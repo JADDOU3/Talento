@@ -1,0 +1,46 @@
+name: mobile
+description: "Talento mobile application"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: ArialRounded
+      fonts:
+        - asset: assets/fonts/Arial Rounded MT Bold Regular.ttf
+          weight: 400
+
+    - family: BerlinSans
+      fonts:
+        - asset: assets/fonts/BRLNSDB.TTF
+          weight: 700
+
+    - family: DGAgnadeen
+      fonts:
+        - asset: assets/fonts/DGAgnadeen-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DGAgnadeen-Extrabold.ttf
+          weight: 700
+        - asset: assets/fonts/DGAgnadeen-Heavy.ttf
+          weight: 800
