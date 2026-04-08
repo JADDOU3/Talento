@@ -1,25 +1,24 @@
 package org.example.backend.controller;
 
 import org.example.backend.model.Child;
-import org.example.backend.service.ChSer;
+import org.example.backend.service.ChildService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/children")
-public class ChCont {
+public class ChildController {
     @Autowired
-    private ChSer childser;
+    private ChildService childService;
 
     @GetMapping("/{id}")
     public ResponseEntity<Child> getChildbyID(@PathVariable int id){
-        Child x = childser.getChildById(id);
+        Child x = childService.getChildById(id);
         if(x != null)
             return new ResponseEntity<>(x , HttpStatus.OK);
         else
@@ -27,10 +26,10 @@ public class ChCont {
     }
 
 
-    @GetMapping("/parent/{parentId}")
-    public ResponseEntity<List<Child>> getChildrenByParentID(@PathVariable int parentId){
-        List<Child> x = childser.getAllChildrenByParent(parentId);
-        if(x != null)
+    @GetMapping("/parent/{userId}")
+    public ResponseEntity<List<Child>> getChildrenByUserid(@PathVariable int userId){
+        List<Child> x = childService.getAllChildrenByUser(userId);
+        if(x != null)//CHECK DOESN'T WORK FOR NOW, user will never be null
             return new ResponseEntity<>(x , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -38,12 +37,12 @@ public class ChCont {
 
     @PostMapping("")
     public ResponseEntity<Child> addChild(@RequestBody Child x){
-        return new ResponseEntity<>(childser.createChild(x), HttpStatus.CREATED);
+        return new ResponseEntity<>(childService.createChild(x), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Child> updateChild(@PathVariable int id, @RequestBody Child x){
-        Child y = childser.updateChild(id,x);
+        Child y = childService.updateChild(id,x);
         if(y != null)
             return new ResponseEntity<>(y , HttpStatus.OK);
         else
@@ -52,7 +51,7 @@ public class ChCont {
 
     @DeleteMapping("/{id}")
     public void deleteChild(@PathVariable int id){
-        childser.deleteChild(id);
+        childService.deleteChild(id);
     }
 
 
