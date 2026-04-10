@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.util.Gender;
 
 @Entity
 @Table(name = "users")
@@ -21,6 +22,7 @@ public class User {
    private String email;
 
    private String name;
-   private String Gender;
+   @Enumerated(EnumType.STRING)// *** added annotation, delete comment after review ^_^ ***
+   private Gender gender;// *** Changed datatype from String to Gender and  name from Gender to gender, delete comment after review ^_^ ***
    private String password;
 }
