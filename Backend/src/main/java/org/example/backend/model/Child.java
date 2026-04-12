@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.example.backend.util.Gender;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -22,11 +23,13 @@ public class Child {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @OneToMany
+    @JoinColumn(name = "kit_id")
+    private List<Kit> kits;
 
 
 
-
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private Gender gender;
     private LocalDateTime createdAt;
     private String name;

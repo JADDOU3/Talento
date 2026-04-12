@@ -22,7 +22,7 @@ public class User {
    private String email;
 
    private String name;
-   @Enumerated(EnumType.STRING)// *** added annotation, delete comment after review ^_^ ***
-   private Gender gender;// *** Changed datatype from String to Gender and  name from Gender to gender, delete comment after review ^_^ ***
+   @Enumerated(EnumType.STRING)
+   private Gender gender;
    private String password;
 }

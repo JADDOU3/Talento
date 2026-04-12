@@ -1,5 +1,6 @@
 package org.example.backend.controller;
 
+import org.example.backend.Dto.ChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.service.ChildService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +37,8 @@ public class ChildController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Child> addChild(@RequestBody Child x){
-        return new ResponseEntity<>(childService.createChild(x), HttpStatus.CREATED);
+    public ResponseEntity<Child> addChild(@RequestBody ChildDto d){
+        return new ResponseEntity<>(childService.createChild(d), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
