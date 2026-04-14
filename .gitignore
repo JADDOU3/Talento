@@ -40,5 +40,5 @@ build/
 ### VS Code ###
 .vscode/
 
-
+.dart_tool/
 .env
