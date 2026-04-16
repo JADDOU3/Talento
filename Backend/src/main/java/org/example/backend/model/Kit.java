@@ -27,6 +27,6 @@ public class Kit {
     @Enumerated(EnumType.STRING)
     private Mindset mindset;
     @ManyToOne
-    @JoinColumn(name = "child_id")
-    private Child child;
+    @JoinColumn(name = "user_id")
+    private User user;
 }

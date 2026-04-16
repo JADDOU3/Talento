@@ -2,8 +2,8 @@ package org.example.backend.service;
 
 
 import org.example.backend.Dto.KitDto;
-import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
+import org.example.backend.model.User;
 import org.example.backend.repo.KitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,15 +18,15 @@ public class KitService {
 
     public Kit createKit(KitDto d){
         Kit kit = new Kit();
-        Child child = new Child();
+        User user = new User();
         kit.setName(d.getName());
         kit.setDescription(d.getDescription());
         kit.setPrice(d.getPrice());
         kit.setType(d.getType());
         kit.setMindset(d.getMindset());
 
-        child.setChildId(d.getChildId());
-        kit.setChild(child);
+        user.setId(d.getUserId());
+        kit.setUser(user);
 
         return kitrepo.save(kit);
     }

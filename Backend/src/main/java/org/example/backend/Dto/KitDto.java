@@ -5,7 +5,6 @@ import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.Gender;
 import org.example.backend.util.Mindset;
 import org.example.backend.util.Type;
 
@@ -20,6 +19,6 @@ public class KitDto {
     private Mindset mindset;
     private String description;
     private double price;
-    private int ChildId;
+    private int userId;
 
 }

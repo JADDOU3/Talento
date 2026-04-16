@@ -2,7 +2,6 @@ package org.example.backend.controller;
 
 
 import org.example.backend.Dto.KitDto;
-import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
 import org.example.backend.service.KitService;
 import org.springframework.beans.factory.annotation.Autowired;
