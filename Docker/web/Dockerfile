@@ -2,12 +2,12 @@ FROM ghcr.io/cirruslabs/flutter:stable AS builder
 
 WORKDIR /app
 
-COPY Frontend/Web/pubspec.yaml .
-COPY Frontend/Web/pubspec.lock .
+COPY Frontend/web/pubspec.yaml .
+COPY Frontend/web/pubspec.lock .
 
 RUN flutter pub get
 
-COPY Frontend/Web .
+COPY Frontend/web .
 
 RUN flutter build web --release
 
