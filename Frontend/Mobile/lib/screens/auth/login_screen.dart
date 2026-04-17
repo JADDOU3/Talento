@@ -6,6 +6,9 @@ import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/social_button.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../services/auth_service.dart';
+import '../../services/token_storage_service.dart';
+import '../home/home_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,6 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
+
   @override
   void dispose() {
     emailController.dispose();
@@ -28,13 +35,76 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login form is valid'),
+  String _cleanErrorMessage(Object error) {
+    String message = error.toString();
+
+    if (message.startsWith('Exception: ')) {
+      message = message.replaceFirst('Exception: ', '');
+    }
+
+    final normalized = message.toLowerCase().trim();
+
+    if (normalized.contains('not authenticated')) {
+      return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+    }
+
+    return message;
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.right,
+        ),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final token = await _authService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      final cleanToken = token.trim();
+
+      if (!cleanToken.contains('.') || cleanToken.split('.').length != 3) {
+        throw Exception('not authenticated');
+      }
+
+      await TokenStorageService.saveToken(cleanToken);
+
+      if (!mounted) return;
+
+      _showMessage('تم تسجيل الدخول بنجاح');
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(_cleanErrorMessage(e), isError: true);
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -134,9 +204,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (value == null || value.trim().isEmpty) {
                               return 'هذا الحقل مطلوب';
                             }
-                            if (value.length < 6) {
-                              return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                            }
                             return null;
                           },
                         ),
@@ -149,6 +216,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SnackBar(
                                   content: Text(
                                     'ميزة استعادة كلمة المرور ستتم إضافتها لاحقًا',
+                                    textDirection: TextDirection.rtl,
+                                    textAlign: TextAlign.right,
                                   ),
                                 ),
                               );
@@ -159,12 +228,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 8),
 
-                        DecoratedBox(
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : DecoratedBox(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.20),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.20,
+                                ),
                                 blurRadius: 18,
                                 offset: const Offset(0, 8),
                               ),
@@ -183,15 +256,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: AppColors.secondary.withValues(alpha: 0.18),
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.18,
+                                ),
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
                               child: Text(
                                 'أو',
                                 style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textSecondary.withValues(alpha: 0.8),
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.8,
+                                  ),
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -200,7 +279,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: AppColors.secondary.withValues(alpha: 0.18),
+                                color: AppColors.secondary.withValues(
+                                  alpha: 0.18,
+                                ),
                               ),
                             ),
                           ],
@@ -228,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         AuthSwitchText(
                           questionText: 'ليس لديك حساب؟',
-                          actionText: 'انشئ حسابًا',
+                          actionText: 'انشاء حساب',
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
