@@ -5,6 +5,7 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -19,11 +20,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController relationController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+  TextEditingController();
+
+  final AuthService _authService = AuthService();
 
   String? selectedRelation;
+  bool _isLoading = false;
 
   final List<String> relations = ['الأم', 'الأب', 'أخرى'];
 
@@ -31,19 +35,108 @@ class _SignupScreenState extends State<SignupScreen> {
   void dispose() {
     fullNameController.dispose();
     emailController.dispose();
-    relationController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _signup() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signup form is valid'),
+  String _mapRelationToGender(String relation) {
+    switch (relation) {
+      case 'الأم':
+        return 'FEMALE';
+      case 'الأب':
+        return 'MALE';
+      case 'أخرى':
+        return 'MALE';
+      default:
+        return 'MALE';
+    }
+  }
+
+  String _cleanErrorMessage(Object error) {
+    String message = error.toString();
+
+    if (message.startsWith('Exception: ')) {
+      message = message.replaceFirst('Exception: ', '');
+    }
+
+    final normalizedMessage = message.toLowerCase().trim();
+
+    if (normalizedMessage.contains('already') &&
+        normalizedMessage.contains('exist')) {
+      return 'هذا البريد الإلكتروني مستخدم بالفعل';
+    }
+
+    if (normalizedMessage.contains('not authenticated')) {
+      return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+    }
+
+    return message;
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.right,
         ),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _signup() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (selectedRelation == null) {
+      _showMessage('يرجى اختيار صلة القرابة', isError: true);
+      return;
+    }
+
+    if (passwordController.text.trim() !=
+        confirmPasswordController.text.trim()) {
+      _showMessage('كلمتا المرور غير متطابقتين', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _authService.register(
+        name: fullNameController.text.trim(),
+        email: emailController.text.trim(),
+        gender: _mapRelationToGender(selectedRelation!),
+        password: passwordController.text.trim(),
       );
+
+      if (!mounted) return;
+
+      if (response.trim() == 'User registered successfully') {
+        _showMessage('تم إنشاء الحساب بنجاح');
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
+        );
+      } else {
+        _showMessage(_cleanErrorMessage(response), isError: true);      }
+    }  catch (e) {
+  print(e.toString());
+  if (!mounted) return;
+  _showMessage(_cleanErrorMessage(e), isError: true);
+  } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -199,12 +292,16 @@ class _SignupScreenState extends State<SignupScreen> {
 
                         const SizedBox(height: 26),
 
-                        DecoratedBox(
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : DecoratedBox(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.20),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.20,
+                                ),
                                 blurRadius: 18,
                                 offset: const Offset(0, 8),
                               ),
@@ -281,7 +378,6 @@ class _SignupScreenState extends State<SignupScreen> {
       onTap: () {
         setState(() {
           selectedRelation = relation;
-          relationController.text = relation;
         });
       },
       borderRadius: BorderRadius.circular(18),
@@ -303,7 +399,9 @@ class _SignupScreenState extends State<SignupScreen> {
           boxShadow: isSelected
               ? [
             BoxShadow(
-              color: _getRelationAccentColor(relation).withValues(alpha: 0.18),
+              color: _getRelationAccentColor(relation).withValues(
+                alpha: 0.18,
+              ),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -393,8 +491,6 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
-
-
 }
 
 class _FeatureItem extends StatelessWidget {
@@ -427,4 +523,3 @@ class _FeatureItem extends StatelessWidget {
     );
   }
 }
-
