@@ -1,5 +1,6 @@
 package org.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class Child {
     @GeneratedValue(strategy = IDENTITY)
     @Id
-    private int ChildId;
+    private int id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -34,6 +35,9 @@ public class Child {
     private LocalDateTime createdAt;
     private String name;
     private int age;
+    @JsonIgnore
+    @OneToMany(mappedBy = "child")
+    private List<Session> sessions;
 
 
 

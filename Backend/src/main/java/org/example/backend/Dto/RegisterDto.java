@@ -14,6 +14,6 @@ public class RegisterDto {
     private String name;
     private String email;
     @Enumerated(EnumType.STRING)
-    private Gender gender;// *** Changed datatype from String to Gender and  name from Gender to gender, delete comment after review ^_^ ***
+    private Gender gender;
     private String password;
 }

@@ -25,7 +25,7 @@ public class KitService {
         kit.setType(d.getType());
         kit.setMindset(d.getMindset());
 
-        child.setChildId(d.getChildId());
+        child.setId(d.getChildId());
         kit.setChild(child);
 
         return kitrepo.save(kit);

@@ -20,6 +20,6 @@ public class KitDto {
     private Mindset mindset;
     private String description;
     private double price;
-    private int ChildId;
+    private int childId;
 
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,19 +16,20 @@ import java.time.LocalDateTime;
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     private LocalDateTime startedAt;
 
     private LocalDateTime endedAt;
-     @ManyToOne
-     @JoinColumn(name = "child_id")
-     private Child child;
+    @ManyToOne
+    @JoinColumn(name = "child_id")
+    private Child child;
 
-     @ManyToOne
-     @JoinColumn(name = "kit_id")
-     private Kit kit;
-    @OneToMany
+    @ManyToOne
+    @JoinColumn(name = "kit_id")
+    private Kit kit;
+
+    @OneToMany(mappedBy = "session")
     private List<ActivitySession> activitySessions;
 
 

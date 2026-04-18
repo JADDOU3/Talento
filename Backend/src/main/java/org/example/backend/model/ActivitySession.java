@@ -15,18 +15,20 @@ import java.time.LocalDateTime;
 public class ActivitySession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
-    private Integer orderIndex;
+    private int orderIndex;
 
     private LocalDateTime startedAt;
 
     private LocalDateTime endedAt;
 
     @ManyToOne
+    @JoinColumn(name = "session_id")
     private Session session;
 
-     @ManyToOne
-     private Activity activity;
+    @ManyToOne
+    @JoinColumn(name = "activity_id")
+    private Activity activity;
 
 }
