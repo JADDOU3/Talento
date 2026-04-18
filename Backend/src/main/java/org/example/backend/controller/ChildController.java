@@ -39,8 +39,7 @@ public class ChildController {
     @PostMapping("")
     public ResponseEntity<Child> addChild(@RequestBody ChildDto d){
         return new ResponseEntity<>(childService.createChild(d), HttpStatus.CREATED);
-    }//TESTETSTEST
-//AFASFASFSFAS
+    }
     @PutMapping("/{id}")
     public ResponseEntity<Child> updateChild(@PathVariable int id, @RequestBody Child x){
         Child y = childService.updateChild(id,x);
