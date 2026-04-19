@@ -31,4 +31,7 @@ public class ActivitySession {
     @JoinColumn(name = "activity_id")
     private Activity activity;
 
+
+    //todo add the other relations when they are created ( LevelAttempts , HelpLog , ChallengeAttempt )
+
 }

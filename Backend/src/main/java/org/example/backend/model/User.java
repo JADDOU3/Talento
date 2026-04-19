@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend.util.Gender;
 
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
@@ -25,4 +27,11 @@ public class User {
    @Enumerated(EnumType.STRING)
    private Gender gender;
    private String password;
+
+
+   @OneToMany
+   @JoinColumn(name = "child_id")
+    private List<Child> children;
+
+   //todo implement Web Relations
 }

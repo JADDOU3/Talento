@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend.util.Type;
 
+import java.util.List;
+
 @Entity
 @Table(name = "activities")
 @Data
@@ -21,13 +23,19 @@ public class Activity {
     private String name;
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private Type type;
 
     @ManyToOne
     @JoinColumn(name = "KitId")
     private Kit kit;
 
+    @OneToMany
+    @JoinColumn(name = "activity_id")
+    private List<ActivitySession> activitySessions;
 
-//todo add the other relations when they are created
+
+
+    //todo add the other relations when they are created ( performance , activityPreference , Event , Level )
 
 }

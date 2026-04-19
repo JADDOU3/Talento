@@ -19,8 +19,8 @@ public class Session {
     private int id;
 
     private LocalDateTime startedAt;
-
     private LocalDateTime endedAt;
+
     @ManyToOne
     @JoinColumn(name = "child_id")
     private Child child;
@@ -31,6 +31,8 @@ public class Session {
 
     @OneToMany(mappedBy = "session")
     private List<ActivitySession> activitySessions;
+
+    //todo implement Event Relation
 
 
 }
