@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.Type;
+import org.example.backend.util.enums.Type;
 
 import java.util.List;
 
@@ -27,11 +27,10 @@ public class Activity {
     private Type type;
 
     @ManyToOne
-    @JoinColumn(name = "KitId")
+    @JoinColumn(name = "kit_id")
     private Kit kit;
 
-    @OneToMany
-    @JoinColumn(name = "activity_id")
+    @OneToMany(mappedBy = "activity")
     private List<ActivitySession> activitySessions;
 
 

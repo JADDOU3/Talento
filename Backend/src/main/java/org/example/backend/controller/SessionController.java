@@ -15,7 +15,7 @@ public class SessionController {
     @Autowired
     private SessionService sessionService;
 
-    @PostMapping("")
+    @PostMapping("/")
     public Session createSession(@RequestBody SessionDto dto) {
         return sessionService.createSession(dto);
     }

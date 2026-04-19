@@ -5,9 +5,8 @@ import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.Gender;
-import org.example.backend.util.Mindset;
-import org.example.backend.util.Type;
+import org.example.backend.util.enums.Mindset;
+import org.example.backend.util.enums.Type;
 
 @Data
 @AllArgsConstructor

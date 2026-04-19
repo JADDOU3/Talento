@@ -17,13 +17,13 @@ public class KitController {
     @Autowired
     private KitService kitService;
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<Kit> addKit(@RequestBody KitDto d){
 
         return new ResponseEntity<>(kitService.createKit(d), HttpStatus.CREATED);
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<List<Kit>> getAllKits(){
         return new ResponseEntity<>(kitService.getAllKits(), HttpStatus.OK);
     }

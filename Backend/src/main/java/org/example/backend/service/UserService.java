@@ -4,7 +4,9 @@ import org.example.backend.Dto.RegisterDto;
 import org.example.backend.config.PasswordEncoderConfig;
 import org.example.backend.model.User;
 import org.example.backend.model.UserPrincipal;
+import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.UserRepo;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -24,6 +26,8 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoderConfig passwordEncoderConfig;
+    @Autowired
+    private ChildRepo childRepo;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -53,4 +57,12 @@ public class UserService implements UserDetailsService {
         return "User registered successfully";
     }
 
+    public boolean isNewUser() {
+        User user = SecurityUtils.getCurrentUser();
+
+        if(childRepo.findByUserId(user.getId()).isEmpty()) {
+            return true;
+        }
+        return false;
+    }
 }

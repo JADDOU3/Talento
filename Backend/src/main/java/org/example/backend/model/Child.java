@@ -1,11 +1,11 @@
 package org.example.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.Gender;
+import org.example.backend.util.enums.Gender;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +13,7 @@ import java.util.List;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
+@Table(name = "child")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,13 +31,13 @@ public class Child {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany
-    @JoinColumn(name = "kit_id")
+    @JsonIgnore
+    @OneToMany(mappedBy = "child")
     private List<Kit> kits;
 
 
-    @OneToMany
-    @JoinColumn(name = "session_id")
+    @JsonIgnore
+    @OneToMany(mappedBy = "child")
     private List<Session> sessions;
 
 

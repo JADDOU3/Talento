@@ -4,8 +4,7 @@ package org.example.backend.Dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.example.backend.util.Type;
+import org.example.backend.util.enums.Type;
 
 @Data
 @NoArgsConstructor

@@ -5,15 +5,16 @@ import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.Gender;
+import org.example.backend.util.enums.Gender;
+
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ChildDto {
+public class CreateChildDto {
         private String name;
-        private int age;
+        private LocalDateTime dateOfBirth;
         @Enumerated(EnumType.STRING)
         private Gender gender;
-        private int userId;
 }

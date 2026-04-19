@@ -1,9 +1,10 @@
 package org.example.backend.service;
 
-import org.example.backend.Dto.ChildDto;
+import org.example.backend.Dto.CreateChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.model.User;
 import org.example.backend.repo.ChildRepo;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +16,12 @@ public class ChildService {
     @Autowired
     private ChildRepo childRepo;
 
-    public Child createChild(ChildDto d){
+    public Child createChild(CreateChildDto d){
         Child child = new Child();
-        User user = new User();
+        User user = SecurityUtils.getCurrentUser();
         child.setName(d.getName());
-        child.setAge(d.getAge());
+        child.setDateOfBirth(d.getDateOfBirth());
         child.setGender(d.getGender());
-
-        user.setId(d.getUserId());
         child.setUser(user);
 
         return childRepo.save(child);
@@ -41,7 +40,7 @@ public class ChildService {
             return null;
 
         oldChild.setName(NewChild.getName());
-        oldChild.setAge(NewChild.getAge());
+        oldChild.setDateOfBirth(NewChild.getDateOfBirth());
         oldChild.setGender(NewChild.getGender());
 
         return childRepo.save(oldChild);

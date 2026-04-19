@@ -5,8 +5,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.Mindset;
-import org.example.backend.util.Type;
+import org.example.backend.util.enums.Mindset;
+import org.example.backend.util.enums.Type;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,13 +34,14 @@ public class Kit {
     @JoinColumn(name = "child_id")
     private Child child;
 
-    @OneToMany
-    @JoinColumn(name = "session_id")
-    private List<Session> session;
+    @JsonIgnore
+    @OneToMany(mappedBy = "kit")
+    private List<Session> sessions;
 
+    @JsonIgnore
     @OneToMany
-    @JoinColumn(name = "activity_id")
-    private List<Activity> activity;
+    @JoinColumn(name = "kit_id")
+    private List<Activity> activities;
 
     //todo add cartItem & OrderItem relations when they are created ^^
 

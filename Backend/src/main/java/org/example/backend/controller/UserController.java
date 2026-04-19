@@ -6,11 +6,9 @@ import org.example.backend.Dto.RegisterDto;
 import org.example.backend.model.User;
 import org.example.backend.service.AuthService;
 import org.example.backend.service.UserService;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -30,4 +28,17 @@ public class UserController {
     public String Login(@RequestBody LoginDto loginDto){
         return authService.login(loginDto);
     }
+
+    @GetMapping("/isNewUser")
+    public boolean isNewUser(){
+        return userService.isNewUser();
+    }
+
+    @GetMapping("/currentUser")
+    public User getCurrentUser(){
+        User user = SecurityUtils.getCurrentUser();
+        return user;
+    }
+
+
 }
