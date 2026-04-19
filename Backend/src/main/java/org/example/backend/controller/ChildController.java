@@ -3,6 +3,7 @@ package org.example.backend.controller;
 import org.example.backend.Dto.CreateChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.service.ChildService;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,18 +28,18 @@ public class ChildController {
     }
 
 
-    @GetMapping("/parent/{userId}")
-    public ResponseEntity<List<Child>> getChildrenByUserid(@PathVariable int userId){
-        List<Child> x = childService.getAllChildrenByUser(userId);
-        if(x != null)//CHECK DOESN'T WORK FOR NOW, user will never be null
-            return new ResponseEntity<>(x , HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<Child>> getChildrenByCurrentUser(){
+        List<Child> children = childService.getAllChildrenByUser(SecurityUtils.getCurrentUser().getId());
+        if(children != null)
+            return new ResponseEntity<>(children , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/")
-    public ResponseEntity<Child> addChild(@RequestBody CreateChildDto d){
-        return new ResponseEntity<>(childService.createChild(d), HttpStatus.CREATED);
+    public ResponseEntity<Child> addChild(@RequestBody CreateChildDto childDto){
+        return new ResponseEntity<>(childService.createChild(childDto), HttpStatus.CREATED);
     }
     @PutMapping("/{id}")
     public ResponseEntity<Child> updateChild(@PathVariable int id, @RequestBody Child x){
@@ -54,7 +55,7 @@ public class ChildController {
         childService.deleteChild(id);
     }
 
-
+    //todo solve Delete & Update errors
 
 
 }

@@ -16,12 +16,12 @@ public class ChildService {
     @Autowired
     private ChildRepo childRepo;
 
-    public Child createChild(CreateChildDto d){
+    public Child createChild(CreateChildDto childDto){
         Child child = new Child();
         User user = SecurityUtils.getCurrentUser();
-        child.setName(d.getName());
-        child.setDateOfBirth(d.getDateOfBirth());
-        child.setGender(d.getGender());
+        child.setName(childDto.getName());
+        child.setDateOfBirth(childDto.getDateOfBirth());
+        child.setGender(childDto.getGender());
         child.setUser(user);
 
         return childRepo.save(child);
@@ -47,7 +47,10 @@ public class ChildService {
 
     }
     public void deleteChild(int id){
-        Child removeChild = getChildById(id);
-        childRepo.delete(removeChild);
+        User user = SecurityUtils.getCurrentUser();
+        if(user.getChildren().stream().noneMatch(child -> child.getId() == id))
+            return;
+        Child removedChild = getChildById(id);
+        childRepo.delete(removedChild);
     }
 }
