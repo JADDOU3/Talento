@@ -5,29 +5,28 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.util.Mindset;
 import org.example.backend.util.Type;
 
-@Entity
-@Table(name = "activities")
-@Data
-@NoArgsConstructor
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
-public class Activity {
-
-    @Id
+@NoArgsConstructor
+@Entity
+@Data
+public class Kit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     private int id;
-
     private String name;
     private String description;
-
+    private double price;
+    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
     private Type type;
-
+    @Enumerated(EnumType.STRING)
+    private Mindset mindset;
     @ManyToOne
-    @JoinColumn(name = "KitId")
-    private Kit kit;
-
-
-//todo add the other relations when they are created
-
+    @JoinColumn(name = "child_id")
+    private Child child;
 }
