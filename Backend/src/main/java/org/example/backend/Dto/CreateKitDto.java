@@ -11,14 +11,13 @@ import org.example.backend.util.enums.Type;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class KitDto {
+public class CreateKitDto {
     private String name;
     @Enumerated(EnumType.STRING)
     private Type type;
     @Enumerated(EnumType.STRING)
     private Mindset mindset;
     private String description;
-    private double price;
-    private int childId;
+    private Double price;
 
 }

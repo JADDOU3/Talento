@@ -1,7 +1,8 @@
 package org.example.backend.controller;
 
 
-import org.example.backend.Dto.KitDto;
+import org.example.backend.Dto.CreateKitDto;
+import org.example.backend.Dto.UpdateKitDto;
 import org.example.backend.model.Kit;
 import org.example.backend.service.KitService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,8 @@ public class KitController {
     private KitService kitService;
 
     @PostMapping("/")
-    public ResponseEntity<Kit> addKit(@RequestBody KitDto d){
-
-        return new ResponseEntity<>(kitService.createKit(d), HttpStatus.CREATED);
+    public ResponseEntity<Kit> addKit(@RequestBody CreateKitDto createKitDto){
+        return new ResponseEntity<>(kitService.createKit(createKitDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/")
@@ -30,25 +30,27 @@ public class KitController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Kit> getKitByID(@PathVariable int id){
-        Kit x = kitService.getKitById(id);
-        if(x != null)
-            return new ResponseEntity<>(x , HttpStatus.OK);
+        Kit kit = kitService.getKitById(id);
+        if(kit != null)
+            return new ResponseEntity<>(kit , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Kit> updateKit(@PathVariable int id, @RequestBody KitDto x){
-        Kit y = kitService.updateKit(id,x);
-        if(y != null)
-            return new ResponseEntity<>(y , HttpStatus.OK);
+    @PutMapping("/")
+    public ResponseEntity<Kit> updateKit(@RequestBody UpdateKitDto updateKitDto){
+        Kit kit = kitService.updateKit(updateKitDto);
+        if(kit != null)
+            return new ResponseEntity<>(kit , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteKit(@PathVariable int id){
-        kitService.deleteKit(id);
+    public ResponseEntity<String> deleteKit(@PathVariable int id){
+        if(kitService.getKitById(id) == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(kitService.deleteKit(id) , HttpStatus.OK);
     }
 
 }
