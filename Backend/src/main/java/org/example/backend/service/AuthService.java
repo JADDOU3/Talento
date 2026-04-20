@@ -2,8 +2,7 @@ package org.example.backend.service;
 
 
 import lombok.RequiredArgsConstructor;
-import org.example.backend.Dto.LoginDto;
-import org.example.backend.model.User;
+import org.example.backend.Dto.auth.LoginDto;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

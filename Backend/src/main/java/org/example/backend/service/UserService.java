@@ -1,6 +1,6 @@
 package org.example.backend.service;
 
-import org.example.backend.Dto.RegisterDto;
+import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.config.PasswordEncoderConfig;
 import org.example.backend.model.User;
 import org.example.backend.model.UserPrincipal;

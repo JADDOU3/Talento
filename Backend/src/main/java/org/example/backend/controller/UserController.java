@@ -1,8 +1,8 @@
 package org.example.backend.controller;
 
 
-import org.example.backend.Dto.LoginDto;
-import org.example.backend.Dto.RegisterDto;
+import org.example.backend.Dto.auth.LoginDto;
+import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.model.User;
 import org.example.backend.service.AuthService;
 import org.example.backend.service.UserService;

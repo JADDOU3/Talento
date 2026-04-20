@@ -1,4 +1,4 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.auth;
 
 
 import lombok.AllArgsConstructor;

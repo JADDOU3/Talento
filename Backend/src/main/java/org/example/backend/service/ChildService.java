@@ -1,7 +1,7 @@
 package org.example.backend.service;
 
-import org.example.backend.Dto.ChildUpdateDto;
-import org.example.backend.Dto.CreateChildDto;
+import org.example.backend.Dto.child.ChildUpdateDto;
+import org.example.backend.Dto.child.CreateChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.model.User;
 import org.example.backend.repo.ChildRepo;

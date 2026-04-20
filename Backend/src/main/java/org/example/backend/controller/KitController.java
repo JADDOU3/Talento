@@ -1,8 +1,8 @@
 package org.example.backend.controller;
 
 
-import org.example.backend.Dto.CreateKitDto;
-import org.example.backend.Dto.UpdateKitDto;
+import org.example.backend.Dto.kit.CreateKitDto;
+import org.example.backend.Dto.kit.UpdateKitDto;
 import org.example.backend.model.Kit;
 import org.example.backend.service.KitService;
 import org.springframework.beans.factory.annotation.Autowired;

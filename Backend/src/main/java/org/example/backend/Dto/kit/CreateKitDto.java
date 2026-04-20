@@ -1,4 +1,4 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.kit;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -8,12 +8,10 @@ import lombok.NoArgsConstructor;
 import org.example.backend.util.enums.Mindset;
 import org.example.backend.util.enums.Type;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateKitDto {
-    private int id;
+public class CreateKitDto {
     private String name;
     @Enumerated(EnumType.STRING)
     private Type type;
@@ -23,4 +21,3 @@ public class UpdateKitDto {
     private Double price;
 
 }
-

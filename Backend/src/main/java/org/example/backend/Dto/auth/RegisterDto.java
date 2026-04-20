@@ -1,4 +1,4 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.auth;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -7,14 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend.util.enums.Gender;
 
-import java.time.LocalDateTime;
-
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class CreateChildDto {
-        private String name;
-        private LocalDateTime dateOfBirth;
-        @Enumerated(EnumType.STRING)
-        private Gender gender;
+public class RegisterDto {
+    private String name;
+    private String email;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+    private String password;
 }

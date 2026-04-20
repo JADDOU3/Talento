@@ -1,8 +1,8 @@
 package org.example.backend.controller;
 
 
-import org.example.backend.Dto.CreateActivityDto;
-import org.example.backend.Dto.UpdateActivityDto;
+import org.example.backend.Dto.activity.CreateActivityDto;
+import org.example.backend.Dto.activity.UpdateActivityDto;
 import org.example.backend.model.Activity;
 import org.example.backend.service.ActivityService;
 import org.springframework.beans.factory.annotation.Autowired;

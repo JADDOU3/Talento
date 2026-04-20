@@ -1,4 +1,4 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.child;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,13 +9,12 @@ import org.example.backend.util.enums.Gender;
 
 import java.time.LocalDateTime;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChildUpdateDto {
-    private int id;
-    private String name;
-    private LocalDateTime dateOfBirth;
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
+@Data
+public class CreateChildDto {
+        private String name;
+        private LocalDateTime dateOfBirth;
+        @Enumerated(EnumType.STRING)
+        private Gender gender;
 }
