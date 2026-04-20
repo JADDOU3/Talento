@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class RegisterDto {
     private String name;
     private String email;
-    private String Gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
     private String password;
 }

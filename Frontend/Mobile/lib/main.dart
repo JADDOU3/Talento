@@ -5,8 +5,6 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/splash/splash_screen.dart';
 
-
-
 void main() {
   runApp(const MyApp());
 }
