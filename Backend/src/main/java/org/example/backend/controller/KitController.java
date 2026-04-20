@@ -1,9 +1,12 @@
 package org.example.backend.controller;
 
 
+import org.example.backend.Dto.kit.AddToChildCollectionDto;
 import org.example.backend.Dto.kit.CreateKitDto;
 import org.example.backend.Dto.kit.UpdateKitDto;
+import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
+import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,9 @@ import java.util.List;
 public class KitController {
     @Autowired
     private KitService kitService;
+
+    @Autowired
+    private ChildService childService;
 
     @PostMapping("/")
     public ResponseEntity<Kit> addKit(@RequestBody CreateKitDto createKitDto){
@@ -53,4 +59,24 @@ public class KitController {
         return new ResponseEntity<>(kitService.deleteKit(id) , HttpStatus.OK);
     }
 
+    @GetMapping("/child/{id}")
+    public ResponseEntity<List<Kit>> getKitsByChildId(@PathVariable int id){
+        List<Kit> kits = kitService.getKitsByChildId(id);
+        if(kits == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(kitService.getKitsByChildId(id), HttpStatus.OK);
+    }
+
+    @PostMapping("/child/")
+    public ResponseEntity<Kit> addToChildsCollection(@RequestBody AddToChildCollectionDto addToChildCollectionDto){
+        Kit kit = kitService.getKitById(addToChildCollectionDto.getKitId());
+        if(kit == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Child child = childService.getChildById(addToChildCollectionDto.getChildId());
+        if (child == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(kitService.addToChildsCollection(addToChildCollectionDto), HttpStatus.OK);
+
+    }
 }

@@ -1,9 +1,12 @@
 package org.example.backend.service;
 
 
+import org.example.backend.Dto.kit.AddToChildCollectionDto;
 import org.example.backend.Dto.kit.CreateKitDto;
 import org.example.backend.Dto.kit.UpdateKitDto;
+import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
+import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.KitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,10 @@ public class KitService {
 
     @Autowired
     private KitRepo kitrepo;
+    @Autowired
+    private ChildService childService;
+    @Autowired
+    private ChildRepo childRepo;
 
     public Kit createKit(CreateKitDto createKitDto){
         Kit kit = new Kit();
@@ -64,4 +71,15 @@ public class KitService {
     }
 
 
+    public List<Kit> getKitsByChildId(int id) {
+        return kitrepo.findByChildId(id);
+    }
+
+    public Kit addToChildsCollection(AddToChildCollectionDto addToChildCollectionDto) {
+        Kit kit = kitrepo.findById(addToChildCollectionDto.getKitId()).orElse(null);
+        kit.setChild(childService.getChildById(addToChildCollectionDto.getChildId()));
+        kit.getChild().getKits().add(kit);
+        childRepo.save(kit.getChild());
+    return kitrepo.save(kit);
+    }
 }
