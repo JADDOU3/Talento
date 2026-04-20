@@ -1,5 +1,6 @@
 package org.example.backend.service;
 
+import org.example.backend.Dto.ChildUpdateDto;
 import org.example.backend.Dto.CreateChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.model.User;
@@ -8,6 +9,7 @@ import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,7 +25,7 @@ public class ChildService {
         child.setDateOfBirth(childDto.getDateOfBirth());
         child.setGender(childDto.getGender());
         child.setUser(user);
-
+        child.setCreatedAt(LocalDateTime.now());
         return childRepo.save(child);
     }
 
@@ -33,24 +35,29 @@ public class ChildService {
 
     public List<Child> getAllChildrenByUser(int id){ return childRepo.findByUserId(id); }
 
-    public  Child updateChild(int id , Child NewChild){
-        Child oldChild = getChildById(id);
-
-        if(oldChild == null)
+    public  Child updateChild(ChildUpdateDto childUpdateDto){
+        Child child = childRepo.findById(childUpdateDto.getId()).orElse(null);
+        if(child == null)
+            return null;
+        User user = SecurityUtils.getCurrentUser();
+        if(user.getId() != child.getUser().getId())
             return null;
 
-        oldChild.setName(NewChild.getName());
-        oldChild.setDateOfBirth(NewChild.getDateOfBirth());
-        oldChild.setGender(NewChild.getGender());
+        if(childUpdateDto.getName() != null) child.setName(childUpdateDto.getName());
+        if(childUpdateDto.getDateOfBirth() != null) child.setDateOfBirth(childUpdateDto.getDateOfBirth());
+        if(childUpdateDto.getGender() != null) child.setGender(childUpdateDto.getGender());
 
-        return childRepo.save(oldChild);
+        return childRepo.save(child);
 
     }
-    public void deleteChild(int id){
+    public String deleteChild(int id){
         User user = SecurityUtils.getCurrentUser();
-        if(user.getChildren().stream().noneMatch(child -> child.getId() == id))
-            return;
-        Child removedChild = getChildById(id);
-        childRepo.delete(removedChild);
+        Child child = getChildById(id);
+        if(child == null)
+            return "Child not found";
+        if(child.getUser().getId() != user.getId())
+            return "You are not authorized to delete this child";
+        childRepo.delete(child);
+        return "Child deleted";
     }
 }

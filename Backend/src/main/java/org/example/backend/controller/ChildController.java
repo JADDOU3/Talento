@@ -1,5 +1,6 @@
 package org.example.backend.controller;
 
+import org.example.backend.Dto.ChildUpdateDto;
 import org.example.backend.Dto.CreateChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.service.ChildService;
@@ -41,20 +42,20 @@ public class ChildController {
     public ResponseEntity<Child> addChild(@RequestBody CreateChildDto childDto){
         return new ResponseEntity<>(childService.createChild(childDto), HttpStatus.CREATED);
     }
-    @PutMapping("/{id}")
-    public ResponseEntity<Child> updateChild(@PathVariable int id, @RequestBody Child x){
-        Child y = childService.updateChild(id,x);
-        if(y != null)
-            return new ResponseEntity<>(y , HttpStatus.OK);
+    @PutMapping("/")
+    public ResponseEntity<Child> updateChild(@RequestBody ChildUpdateDto childUpdateDto){
+        Child child = childService.updateChild(childUpdateDto);
+        if(child != null)
+            return new ResponseEntity<>(child , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteChild(@PathVariable int id){
-        childService.deleteChild(id);
+    public String deleteChild(@PathVariable int id){
+        return childService.deleteChild(id);
     }
 
-    //todo solve Delete & Update errors
+    //todo solve Update errors
 
 }
