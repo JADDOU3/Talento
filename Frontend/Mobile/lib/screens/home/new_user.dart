@@ -1,16 +1,15 @@
 // ============================================================
-// lib/screens/homeusers/new_user.dart
+// lib/screens/home/new_user.dart
 // ============================================================
 import 'package:flutter/material.dart';
 
 import '../../shared/widgets/app_background.dart';
-import '../../shared/widgets/banner_card.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
-import '../../shared/widgets/header.dart';
-import '../../shared/widgets/kit_card.dart';
-import '../../shared/widgets/promotion_card.dart';
-import '../../shared/widgets/start_now_card.dart';
-
+import '../../shared/layout/bottom_nav_bar.dart';
+import '../../shared/layout/top_bar.dart';
+import 'widgets/banner_card.dart';
+import 'widgets/kit_card.dart';
+import 'widgets/promotion_card.dart';
+import 'widgets/start_now_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,22 +19,39 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
 
   final List<Map<String, String>> kits = [
-    {'title': 'KIT1', 'description': 'اكتشف عالم النبات', 'duration': '8 أسابيع', 'age': '3-6','image': 'assets/images/kit1.png'},
-    {'title': 'KIT2', 'description': 'تجارب علمية ممتعة', 'duration': '12 أسبوع', 'age': '4-7','image': 'assets/images/kit2.png'},
-    {'title': 'KIT3', 'description': 'عالم الفن والإبداع', 'duration': '6 أسابيع', 'age': '3-5','image': 'assets/images/kit3.png'},
+    {
+      'title': 'KIT1',
+      'description': 'اكتشف عالم النبات',
+      'duration': '8 أسابيع',
+      'age': '3-6',
+      'image': 'assets/images/kit1.png',
+    },
+    {
+      'title': 'KIT2',
+      'description': 'تجارب علمية ممتعة',
+      'duration': '12 أسبوع',
+      'age': '4-7',
+      'image': 'assets/images/kit2.png',
+    },
+    {
+      'title': 'KIT3',
+      'description': 'عالم الفن والإبداع',
+      'duration': '6 أسابيع',
+      'age': '3-5',
+      'image': 'assets/images/kit3.png',
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: AppBackground(
         child: Column(
           children: [
-            const HomeHeader(),
+            const TopBar(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -55,9 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            HomeBottomNavBar(
+            BottomNavBar(
               selectedIndex: _selectedIndex,
-              onTap: (i) => setState(() => _selectedIndex = i),
             ),
           ],
         ),
@@ -96,7 +111,10 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 4),
         const Text(
           'مغامرات مصممة لتنمية طفلك ',
-          style: TextStyle(fontSize: 13, color: Color(0xFF6B728F)),
+          style: TextStyle(
+            fontSize: 13,
+            color: Color(0xFF6B728F),
+          ),
         ),
         const SizedBox(height: 14),
         SizedBox(
