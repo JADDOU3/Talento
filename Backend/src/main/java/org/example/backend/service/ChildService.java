@@ -8,6 +8,7 @@ import org.example.backend.repo.ChildRepo;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +27,13 @@ public class ChildService {
         child.setGender(childDto.getGender());
         child.setUser(user);
         child.setCreatedAt(LocalDateTime.now());
+
+        if(childRepo.findByUserId(user.getId()).isEmpty()) {
+            child.setSelected(true);
+        } else {
+            child.setSelected(false);
+        }
+
         return childRepo.save(child);
     }
 
@@ -59,5 +67,30 @@ public class ChildService {
             return "You are not authorized to delete this child";
         childRepo.delete(child);
         return "Child deleted";
+    }
+
+    public Child getSelectedChild() {
+        User user = SecurityUtils.getCurrentUser();
+        Child selectedChild = childRepo.findByIsSelectedTrueAndUserId(user.getId());
+        if(selectedChild == null) {
+            return null;
+        }
+
+        return selectedChild;
+    }
+
+    @Transactional
+    public Child selectChild(int id) {
+        User user = SecurityUtils.getCurrentUser();
+        Child child = getChildById(id);
+        if(child.isSelected())
+            return child;
+
+        if (child == null || child.getUser().getId() != user.getId())
+            return null;
+
+        childRepo.deselectAllByUserId(user.getId());
+        child.setSelected(true);
+        return childRepo.save(child);
     }
 }

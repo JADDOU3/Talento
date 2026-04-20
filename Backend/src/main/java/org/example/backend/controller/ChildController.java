@@ -28,7 +28,6 @@ public class ChildController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-
     @GetMapping
     public ResponseEntity<List<Child>> getChildrenByCurrentUser(){
         List<Child> children = childService.getAllChildrenByUser(SecurityUtils.getCurrentUser().getId());
@@ -56,6 +55,18 @@ public class ChildController {
         return childService.deleteChild(id);
     }
 
-    //todo solve Update errors
+    @GetMapping("/selected")
+    public ResponseEntity<Child> getSelectedChild(){
+        Child child = childService.getSelectedChild();
+        if(child != null)
+            return new ResponseEntity<>(child , HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @PutMapping("/selected/{id}")
+    public Child selectChild(@PathVariable int id){
+        return childService.selectChild(id);
+    }
 
 }

@@ -27,6 +27,8 @@ public class Child {
     private String name;
     private LocalDateTime dateOfBirth;
 
+    private boolean isSelected;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
