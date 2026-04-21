@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface SessionRepo extends JpaRepository<Session, Integer> {
     List<Session> findByChildId(int childId);
+
+    List<Session> findByKitId(int kitId);
 }
