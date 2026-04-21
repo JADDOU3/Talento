@@ -1,4 +1,4 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.activitySession;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,11 +9,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivitySessionDto {
+public class CreateActivitySessionDto {
     private Integer orderIndex;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private int sessionId;
-
-     private int activityId;
+    private int activityId;
 }

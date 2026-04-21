@@ -1,10 +1,13 @@
 package org.example.backend.service;
 
-import org.example.backend.Dto.ActivitySessionDto;
+import org.example.backend.Dto.activitySession.CreateActivitySessionDto;
+import org.example.backend.Dto.activitySession.UpdateActivitySessionDto;
 import org.example.backend.model.Activity;
 import org.example.backend.model.ActivitySession;
 import org.example.backend.model.Session;
+import org.example.backend.repo.ActivityRepo;
 import org.example.backend.repo.ActivitySessionRepo;
+import org.example.backend.repo.SessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,22 +18,31 @@ public class ActivitySessionService {
 
     @Autowired
     private ActivitySessionRepo activitySessionRepo;
+    @Autowired
+    private SessionService sessionService;
+    @Autowired
+    private ActivityService activityService;
+    @Autowired
+    private SessionRepo sessionRepo;
+    @Autowired
+    private ActivityRepo activityRepo;
 
-    public ActivitySession createActivitySession(ActivitySessionDto d) {
+    public ActivitySession createActivitySession(CreateActivitySessionDto createActivitySessionDto) {
         ActivitySession activitySession = new ActivitySession();
-        Session session = new Session();
+        Session session = sessionService.getSessionById(createActivitySessionDto.getSessionId());
+        Activity activity = activityService.getActivityById(createActivitySessionDto.getActivityId());
 
-        activitySession.setOrderIndex(d.getOrderIndex());
-        activitySession.setStartedAt(d.getStartedAt());
-        activitySession.setEndedAt(d.getEndedAt());
+        activitySession.setOrderIndex(createActivitySessionDto.getOrderIndex());
+        activitySession.setStartedAt(createActivitySessionDto.getStartedAt());
+        activitySession.setEndedAt(createActivitySessionDto.getEndedAt());
 
-        session.setId(d.getSessionId());
+        activitySession.setActivity(activity);
         activitySession.setSession(session);
+        session.getActivitySessions().add(activitySession);
+        activity.getActivitySessions().add(activitySession);
 
-         Activity activity = new Activity();
-         activity.setId(d.getActivityId());
-         activitySession.setActivity(activity);
-
+        sessionRepo.save(session);
+        activityRepo.save(activity);
         return activitySessionRepo.save(activitySession);
     }
 
@@ -42,21 +54,26 @@ public class ActivitySessionService {
         return activitySessionRepo.findBySessionId(sessionId);
     }
 
-    public ActivitySession updateActivitySession(int id, ActivitySessionDto d) {
-        ActivitySession oldActivitySession = getActivitySessionById(id);
+    public ActivitySession updateActivitySession(UpdateActivitySessionDto updateActivitySessionDto) {
+        ActivitySession activitySession = getActivitySessionById(updateActivitySessionDto.getId());
 
-        if (oldActivitySession == null)
-            return null;
+        if(updateActivitySessionDto.getOrderIndex() != null) activitySession.setOrderIndex(updateActivitySessionDto.getOrderIndex());
+        if(updateActivitySessionDto.getStartedAt() != null) activitySession.setStartedAt(updateActivitySessionDto.getStartedAt());
+        if(updateActivitySessionDto.getEndedAt() != null) activitySession.setEndedAt(updateActivitySessionDto.getEndedAt());
 
-        oldActivitySession.setOrderIndex(d.getOrderIndex());
-        oldActivitySession.setStartedAt(d.getStartedAt());
-        oldActivitySession.setEndedAt(d.getEndedAt());
 
-        return activitySessionRepo.save(oldActivitySession);
+        activitySession.setActivity(activityService.getActivityById(updateActivitySessionDto.getActivityId()));
+        activitySession.setSession(sessionService.getSessionById(updateActivitySessionDto.getSessionId()));
+
+        return activitySessionRepo.save(activitySession);
     }
 
     public void deleteActivitySession(int id) {
         ActivitySession activitySession = getActivitySessionById(id);
         activitySessionRepo.delete(activitySession);
+    }
+
+    public List<ActivitySession> getAllActivitySessions() {
+        return activitySessionRepo.findAll();
     }
 }
