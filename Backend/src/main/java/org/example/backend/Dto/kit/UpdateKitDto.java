@@ -21,6 +21,6 @@ public class UpdateKitDto {
     private Mindset mindset;
     private String description;
     private Double price;
-
+    private String imageURL;
 }
 

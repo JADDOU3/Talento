@@ -24,6 +24,7 @@ public class Kit {
     private String description;
     private double price;
     private LocalDateTime createdAt;
+    private String imageURL;
 
     @Enumerated(EnumType.STRING)
     private Type type;
