@@ -1,15 +1,13 @@
 package org.example.backend.service;
 
-import org.example.backend.Dto.RegisterDto;
+import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.config.PasswordEncoderConfig;
 import org.example.backend.model.User;
 import org.example.backend.model.UserPrincipal;
+import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.UserRepo;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +22,8 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoderConfig passwordEncoderConfig;
+    @Autowired
+    private ChildRepo childRepo;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -40,7 +40,7 @@ public class UserService implements UserDetailsService {
 
     public String register(RegisterDto registerDto) {
         if(repo.findByEmail(registerDto.getEmail()) != null) {
-            return "Username already exists";
+            return "Email already exists";
         }
         User user = new User();
 
@@ -53,4 +53,12 @@ public class UserService implements UserDetailsService {
         return "User registered successfully";
     }
 
+    public boolean isNewUser() {
+        User user = SecurityUtils.getCurrentUser();
+
+        if(childRepo.findByUserId(user.getId()).isEmpty()) {
+            return true;
+        }
+        return false;
+    }
 }

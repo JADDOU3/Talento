@@ -1,8 +1,12 @@
 package org.example.backend.controller;
 
 
-import org.example.backend.Dto.KitDto;
+import org.example.backend.Dto.kit.AddToChildCollectionDto;
+import org.example.backend.Dto.kit.CreateKitDto;
+import org.example.backend.Dto.kit.UpdateKitDto;
+import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
+import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,38 +21,62 @@ public class KitController {
     @Autowired
     private KitService kitService;
 
-    @PostMapping("")
-    public ResponseEntity<Kit> addKit(@RequestBody KitDto d){
+    @Autowired
+    private ChildService childService;
 
-        return new ResponseEntity<>(kitService.createKit(d), HttpStatus.CREATED);
+    @PostMapping("/")
+    public ResponseEntity<Kit> addKit(@RequestBody CreateKitDto createKitDto){
+        return new ResponseEntity<>(kitService.createKit(createKitDto), HttpStatus.CREATED);
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<List<Kit>> getAllKits(){
         return new ResponseEntity<>(kitService.getAllKits(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Kit> getKitByID(@PathVariable int id){
-        Kit x = kitService.getKitById(id);
-        if(x != null)
-            return new ResponseEntity<>(x , HttpStatus.OK);
+        Kit kit = kitService.getKitById(id);
+        if(kit != null)
+            return new ResponseEntity<>(kit , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Kit> updateKit(@PathVariable int id, @RequestBody KitDto x){
-        Kit y = kitService.updateKit(id,x);
-        if(y != null)
-            return new ResponseEntity<>(y , HttpStatus.OK);
+    @PutMapping("/")
+    public ResponseEntity<Kit> updateKit(@RequestBody UpdateKitDto updateKitDto){
+        Kit kit = kitService.updateKit(updateKitDto);
+        if(kit != null)
+            return new ResponseEntity<>(kit , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteKit(@PathVariable int id){
-        kitService.deleteKit(id);
+    public ResponseEntity<String> deleteKit(@PathVariable int id){
+        if(kitService.getKitById(id) == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(kitService.deleteKit(id) , HttpStatus.OK);
     }
 
+    @GetMapping("/child/{id}")
+    public ResponseEntity<List<Kit>> getKitsByChildId(@PathVariable int id){
+        List<Kit> kits = kitService.getKitsByChildId(id);
+        if(kits == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(kitService.getKitsByChildId(id), HttpStatus.OK);
+    }
+
+    @PostMapping("/child/")
+    public ResponseEntity<Kit> addToChildsCollection(@RequestBody AddToChildCollectionDto addToChildCollectionDto){
+        Kit kit = kitService.getKitById(addToChildCollectionDto.getKitId());
+        if(kit == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Child child = childService.getChildById(addToChildCollectionDto.getChildId());
+        if (child == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(kitService.addToChildsCollection(addToChildCollectionDto), HttpStatus.OK);
+
+    }
 }
