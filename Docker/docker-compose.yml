@@ -31,6 +31,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/talento
     depends_on:
       mysql:
         condition: service_healthy
@@ -38,9 +39,7 @@ services:
       - app-network
 
   frontend:
-    build:
-      context: ..
-      dockerfile: Docker/web/Dockerfile
+    image: jaddou333/talento-frontend:latest
     container_name: frontend
     restart: always
     expose:

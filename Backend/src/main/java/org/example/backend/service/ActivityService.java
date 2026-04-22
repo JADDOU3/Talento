@@ -1,10 +1,13 @@
 package org.example.backend.service;
 
 
-import org.example.backend.Dto.CreateActivityDto;
-import org.example.backend.Dto.UpdateActivityDto;
+import org.example.backend.Dto.activity.AssignActivityToKitDto;
+import org.example.backend.Dto.activity.CreateActivityDto;
+import org.example.backend.Dto.activity.UpdateActivityDto;
 import org.example.backend.model.Activity;
+import org.example.backend.model.Kit;
 import org.example.backend.repo.ActivityRepo;
+import org.example.backend.repo.KitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,10 @@ public class ActivityService {
 
     @Autowired
     private ActivityRepo activityRepo;
+    @Autowired
+    private KitService kitService;
+    @Autowired
+    private KitRepo kitRepo;
 
     public Activity createActivity(CreateActivityDto createActivityDto){
         Activity activity = new Activity();
@@ -47,5 +54,19 @@ public class ActivityService {
 
     public void deleteActivity(int id){
         activityRepo.deleteById(id);
+    }
+
+    public Activity assignActivityToKit(AssignActivityToKitDto assignActivityToKitDto) {
+        Kit kit = kitService.getKitById(assignActivityToKitDto.getKitId());
+        Activity activity = getActivityById(assignActivityToKitDto.getActivityId());
+        activity.setKit(kit);
+        kit.getActivities().add(activity);
+        kitRepo.save(kit);
+        return activityRepo.save(activity);
+    }
+
+    public List<Activity> getActivitiesByKit(int kitId) {
+        Kit kit = kitService.getKitById(kitId);
+        return kit.getActivities();
     }
 }

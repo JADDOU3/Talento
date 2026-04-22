@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.util.enums.Gender;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -21,6 +25,14 @@ public class User {
    private String email;
 
    private String name;
-   private String Gender;
+   @Enumerated(EnumType.STRING)
+   private Gender gender;
    private String password;
+
+
+   @JsonIgnore
+   @OneToMany(mappedBy = "user")
+    private List<Child> children;
+
+   //todo implement Web Relations
 }

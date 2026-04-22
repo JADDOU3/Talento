@@ -1,10 +1,10 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.activity;
 
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import org.example.backend.util.enums.Type;
 
 @Data
 @NoArgsConstructor
@@ -13,5 +13,5 @@ public class UpdateActivityDto {
     private int id;
     private String name;
     private String description;
-    private String type; //todo change it to enum later
+    private Type type;
 }

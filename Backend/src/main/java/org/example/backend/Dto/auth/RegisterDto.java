@@ -1,8 +1,11 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.auth;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.util.enums.Gender;
 
 @Data
 @AllArgsConstructor
@@ -10,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class RegisterDto {
     private String name;
     private String email;
-    private String Gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
     private String password;
 }

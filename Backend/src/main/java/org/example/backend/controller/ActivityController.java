@@ -1,10 +1,12 @@
 package org.example.backend.controller;
 
 
-import org.example.backend.Dto.CreateActivityDto;
-import org.example.backend.Dto.UpdateActivityDto;
+import org.example.backend.Dto.activity.AssignActivityToKitDto;
+import org.example.backend.Dto.activity.CreateActivityDto;
+import org.example.backend.Dto.activity.UpdateActivityDto;
 import org.example.backend.model.Activity;
 import org.example.backend.service.ActivityService;
+import org.example.backend.service.KitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ public class ActivityController {
 
     @Autowired
     private ActivityService activityService;
+    @Autowired
+    private KitService kitService;
 
     @PostMapping("/")
     public ResponseEntity<Activity> createActivity(@RequestBody CreateActivityDto createActivityDto){
@@ -42,13 +46,6 @@ public class ActivityController {
     }
 
 
-    @GetMapping("/kit/{kitId}")
-    public ResponseEntity<List<Activity>> getAllActivitiesByKit(@PathVariable int kitId){
-        //todo implement this after implementing the kit
-
-        return null;
-    }
-
     @PutMapping("/")
     public ResponseEntity<Activity> updateActivity(@RequestBody UpdateActivityDto updateActivityDto){
         Activity activity = activityService.updateActivity(updateActivityDto);
@@ -61,5 +58,23 @@ public class ActivityController {
         return new ResponseEntity<>("Activity deleted successfully" , HttpStatus.OK);
     }
 
+    @PutMapping("/kit/")
+    public ResponseEntity<Activity> assignActivityToKit(@RequestBody AssignActivityToKitDto assignActivityToKitDto){
+        if(activityService.getActivityById(assignActivityToKitDto.getActivityId()) == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        if(kitService.getKitById(assignActivityToKitDto.getKitId()) == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(activityService.assignActivityToKit(assignActivityToKitDto) , HttpStatus.OK);
+        }
+
+
+    @GetMapping("/kit/{kitId}")
+    public ResponseEntity<List<Activity>> getAllActivitiesByKit(@PathVariable int kitId){
+        List<Activity> activities = activityService.getActivitiesByKit(kitId);
+        if(activities != null)
+            return new ResponseEntity<>(activities , HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
 }

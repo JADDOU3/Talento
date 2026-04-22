@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'screens/home/new_user.dart';
 import 'core/theme/app_theme.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
 import 'screens/splash/splash_screen.dart';
-
-
+import 'screens/kit_library/kit_library_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +19,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Talento',
       theme: AppTheme.lightTheme,
-      home: const  SplashScreen(),
+      builder: (context, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: child!,
+      ),
+      home: const  HomeScreen(),
     );
   }
 }
