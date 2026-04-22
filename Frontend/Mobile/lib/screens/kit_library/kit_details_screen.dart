@@ -348,7 +348,7 @@ class KitDetailsScreen extends StatelessWidget {
           color: AppColors.white,
         ),
         label: Text(
-          'مزيد من التفاصيل',
+          'مزيد من التفاصيل...',
           style: AppTextStyles.button.copyWith(
             color: AppColors.white,
           ),
