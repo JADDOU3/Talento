@@ -6,6 +6,7 @@ import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/widgets/app_background.dart';
 import 'widgets/category_chip.dart';
 import 'widgets/library_kit_card.dart';
+import 'kit_details_screen.dart';
 
 class KitLibraryScreen extends StatefulWidget {
   const KitLibraryScreen({super.key});
@@ -214,7 +215,14 @@ class _KitLibraryScreenState extends State<KitLibraryScreen> {
             description: kit['description']!,
             category: kit['category']!,
             imageUrl: kit['image']!,
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const KitDetailsScreen(),
+                ),
+              );
+            },
           ),
         );
       }).toList(),
