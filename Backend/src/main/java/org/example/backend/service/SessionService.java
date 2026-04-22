@@ -20,11 +20,13 @@ public class SessionService {
     private KitService kitService;
 
     public Session startSession(SessionStartDto sessionStartDto) {
-      Session session = new Session();
-      session.setStartedAt(LocalDateTime.now());
-      session.setChild(childService.getChildById(sessionStartDto.getChildId()));
-      session.setKit(kitService.getKitById(sessionStartDto.getKitId()));
 
+        Session session = new Session();
+        session.setStartedAt(LocalDateTime.now());
+        session.setChild(childService.getChildById(sessionStartDto.getChildId()));
+        session.setKit(kitService.getKitById(sessionStartDto.getKitId()));
+        if (!session.getKit().getChild().equals(session.getChild()))
+            return null;
         return sessionRepo.save(session);
     }
 

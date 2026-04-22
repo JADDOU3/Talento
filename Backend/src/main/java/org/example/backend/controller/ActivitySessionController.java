@@ -72,4 +72,6 @@ public class ActivitySessionController {
         activitySessionService.deleteActivitySession(id);
         return new ResponseEntity<>("ActivitySession deleted successfully" , HttpStatus.OK);
     }
+
+    //todo adjust after discussion with the team for now leave it as it is
 }

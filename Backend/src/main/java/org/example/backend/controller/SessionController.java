@@ -29,7 +29,10 @@ public class SessionController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         if(childService.getChildById(sessionStartDto.getChildId()) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(sessionService.startSession(sessionStartDto), HttpStatus.CREATED);
+        Session session = sessionService.startSession(sessionStartDto);
+        if(session == null)
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(session, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
