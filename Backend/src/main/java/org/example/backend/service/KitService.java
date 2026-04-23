@@ -8,6 +8,8 @@ import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
 import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.KitRepo;
+import org.example.backend.util.enums.Mindset;
+import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,5 +88,17 @@ public class KitService {
         kit.getChild().getKits().add(kit);
         childRepo.save(kit.getChild());
     return kitrepo.save(kit);
+    }
+
+    public List<Kit> getKitsByType(Type type) {
+        return kitrepo.findByType(type);
+    }
+
+    public List<Kit> getKitsByMindset(Mindset mindset) {
+        return kitrepo.findByMindset(mindset);
+    }
+
+    public List<Kit> searchKitsByName(String keyword) {
+        return kitrepo.findByNameContainingIgnoreCase(keyword);
     }
 }
