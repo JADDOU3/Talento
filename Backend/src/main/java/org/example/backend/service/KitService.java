@@ -11,6 +11,7 @@ import org.example.backend.repo.KitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -33,6 +34,7 @@ public class KitService {
         else
             kit.setPrice(createKitDto.getPrice());
 
+        kit.setCreatedAt(LocalDateTime.now());
         kit.setType(createKitDto.getType());
         kit.setMindset(createKitDto.getMindset());
         kit.setImageURL(createKitDto.getImageURL());
