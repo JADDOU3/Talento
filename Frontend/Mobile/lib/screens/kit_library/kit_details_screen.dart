@@ -1,76 +1,111 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/kit/kit_cubit.dart';
+import '../../cubits/kit/kit_state.dart';
+import '../../services/kit_service.dart';
 import '../../shared/widgets/app_background.dart';
-import 'widgets/detail_stat_chip.dart';
 import 'widgets/inside_item_tile.dart';
-import 'widgets/skill_tag_card.dart';
 
 class KitDetailsScreen extends StatelessWidget {
-  const KitDetailsScreen({super.key});
+  final int kitId;
+
+  const KitDetailsScreen({super.key, required this.kitId});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> skills = [
-      {
-        'title': 'العلوم والتقنية',
-        'subtitle': 'تعلم العلوم',
-        'icon': Icons.rocket_launch_rounded,
-        'color': AppColors.pink,
-      },
-      {
-        'title': 'الإبداع',
-        'subtitle': 'تنمية الخيال',
-        'icon': Icons.auto_awesome_rounded,
-        'color': AppColors.primary,
-      },
-      {
-        'title': 'الإدراك',
-        'subtitle': 'مهارات حل المشكلات',
-        'icon': Icons.psychology_alt_rounded,
-        'color': AppColors.yellow,
-      },
-    ];
+    return BlocProvider(
+      create: (_) => KitCubit(KitService())..getKitById(kitId),
+      child: _KitDetailsView(kitId: kitId),
+    );
+  }
+}
 
-    final List<String> insideItems = [
-      'علب بناء من أصل 10 مهمات',
-      'ألعاب تنمو عندما نزرعها',
-      'قطعة بناء فضائية',
-      'دفتر تعليم مكون من 24 صفحة',
-      'خريطة إشارات للملاحظات',
-    ];
+class _KitDetailsView extends StatelessWidget {
+  final int kitId;
 
+  const _KitDetailsView({required this.kitId});
+
+  @override
+  Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: AppBackground(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildHeroImage(),
-                      const SizedBox(height: 14),
-                      _buildStatsRow(),
-                      const SizedBox(height: 14),
-                      _buildTitleAndDescription(),
-                      const SizedBox(height: 18),
-                      _buildSkillsSection(skills),
-                      const SizedBox(height: 22),
-                      _buildInsideSection(insideItems),
-                      const SizedBox(height: 28),
-                      _buildBottomButton(),
-                      const SizedBox(height: 18),
-                    ],
+          child: BlocBuilder<KitCubit, KitState>(
+            builder: (context, state) {
+              if (state is KitLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state is KitError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: AppColors.hint,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          state.message,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed:
+                              () => context.read<KitCubit>().getKitById(kitId),
+                          child: const Text('إعادة المحاولة'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
+                );
+              }
+
+              if (state is KitDetailsLoaded) {
+                final kit = state.kit;
+
+                return Column(
+                  children: [
+                    _buildHeader(context),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _buildHeroImage(kit.imageUrl),
+                            const SizedBox(height: 14),
+                            _buildLabelsRow(kit.type, kit.mindset),
+                            const SizedBox(height: 14),
+                            _buildTitleAndDescription(
+                              kit.name,
+                              kit.description,
+                            ),
+                            const SizedBox(height: 22),
+                            _buildInsideSection(kit.kitItems),
+                            const SizedBox(height: 28),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
           ),
         ),
       ),
@@ -123,16 +158,12 @@ class KitDetailsScreen extends StatelessWidget {
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: onTap,
-        icon: Icon(
-          icon,
-          size: 18,
-          color: AppColors.textPrimary,
-        ),
+        icon: Icon(icon, size: 18, color: AppColors.textPrimary),
       ),
     );
   }
 
-  Widget _buildHeroImage() {
+  Widget _buildHeroImage(String imageUrl) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -146,124 +177,71 @@ class KitDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: Image.network(
-              'https://tse4.mm.bing.net/th/id/OIP.74KInUeX1czRkk9_MvVQOgHaE8?w=1000&h=667&rs=1&pid=ImgDetMain&o=7&rm=3',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Image.network(
+          imageUrl,
+          width: double.infinity,
+          height: 220,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
               width: double.infinity,
               height: 220,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  height: 220,
-                  color: AppColors.inputFill,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.image_outlined,
-                    color: AppColors.hint,
-                    size: 42,
-                  ),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            top: 12,
-            left: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(16),
+              color: AppColors.inputFill,
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.image_outlined,
+                color: AppColors.hint,
+                size: 42,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '4.9',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.star_rounded,
-                    color: AppColors.yellow,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '(124 تقييم)',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildStatsRow() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'الأعلى تقييماً',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Text(
-            '6-12',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'سنة',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Text(
-            'العمر',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+  Widget _buildLabelsRow(String type, String mindset) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.end,
+      children: [
+        _buildLabelChip(type),
+        _buildLabelChip(mindset),
+      ],
+    );
+  }
+
+  Widget _buildLabelChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        text,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
 
-  Widget _buildTitleAndDescription() {
+  Widget _buildTitleAndDescription(String title, String description) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            'حزمة دب مستكشف الفضاء',
+            title,
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 34,
+              fontSize: 30,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
               height: 1.25,
@@ -274,7 +252,7 @@ class KitDetailsScreen extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            'استكشف الفضاء الرائع ابتداءً من تعلم أساسيات الرحلات إلى المجرات البعيدة. تتضمن هذه المجموعة تجارب عملية وأنشطة تعليمية مصممة لتنمية الفضول العلمي وبناء المهارات عبر محتوى ممتع يربط الخيال بالاكتشاف الحقيقي.',
+            description,
             textAlign: TextAlign.right,
             style: AppTextStyles.bodyMedium.copyWith(
               height: 1.8,
@@ -284,29 +262,6 @@ class KitDetailsScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSkillsSection(List<Map<String, dynamic>> skills) {
-    return Center(
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        runAlignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 12,
-        runSpacing: 12,
-        children: skills.map((skill) {
-          return SizedBox(
-            width: 140,
-            child: SkillTagCard(
-              title: skill['title'] as String,
-              subtitle: skill['subtitle'] as String,
-              icon: skill['icon'] as IconData,
-              iconColor: skill['color'] as Color,
-            ),
-          );
-        }).toList(),
-      ),
     );
   }
 
@@ -327,41 +282,21 @@ class KitDetailsScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        ...items.map(
-              (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: InsideItemTile(text: item),
+        if (items.isEmpty)
+          Text(
+            'لا توجد عناصر متاحة لهذه الحزمة.',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          )
+        else
+          ...items.map(
+                (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: InsideItemTile(text: item),
+            ),
           ),
-        ),
       ],
-    );
-  }
-
-  Widget _buildBottomButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(
-          Icons.info_outline_rounded,
-          size: 18,
-          color: AppColors.white,
-        ),
-        label: Text(
-          'مزيد من التفاصيل...',
-          style: AppTextStyles.button.copyWith(
-            color: AppColors.white,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          minimumSize: const Size(double.infinity, 58),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
-      ),
     );
   }
 }

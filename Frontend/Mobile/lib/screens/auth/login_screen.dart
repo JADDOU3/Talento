@@ -8,7 +8,7 @@ import '../../shared/widgets/social_button.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../services/auth_service.dart';
 import '../../services/token_storage_service.dart';
-import '../home/home_screen.dart';
+import '../home/new_user.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {

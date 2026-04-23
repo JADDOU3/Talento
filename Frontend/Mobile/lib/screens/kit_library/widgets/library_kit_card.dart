@@ -19,13 +19,21 @@ class LibraryKitCard extends StatelessWidget {
   });
 
   Color _badgeColor() {
-    switch (category) {
-      case 'STEM':
+    switch (category.toUpperCase()) {
+      case 'DISCOVERY':
         return AppColors.pink;
-      case 'Nature':
+      case 'HOBBY':
         return AppColors.primary;
-      case 'Arts':
+      case 'DEVELOPMENT':
         return AppColors.red;
+      case 'BUILDER':
+        return AppColors.primary;
+      case 'SCIENTIST':
+        return AppColors.yellow;
+      case 'EXPLORER':
+        return AppColors.secondary;
+      case 'INVENTOR':
+        return AppColors.pink;
       default:
         return AppColors.secondary;
     }

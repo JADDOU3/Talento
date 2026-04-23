@@ -22,10 +22,17 @@ class KitModel {
       id: _parseInt(json['id']),
       name: (json['name'] ?? '').toString(),
       description: (json['description'] ?? '').toString(),
-      imageUrl: (json['imageURL'] ?? json['imageUrl'] ?? '').toString(),
+      imageUrl: (json['imageURL'] ??
+          json['imageUrl'] ??
+          json['image'] ??
+          json['image_path'] ??
+          '')
+          .toString(),
       type: (json['type'] ?? '').toString(),
       mindset: (json['mindset'] ?? '').toString(),
-      kitItems: _parseKitItems(json['kitItems']),
+      kitItems: _parseKitItems(
+        json['kitItems'] ?? json['items'] ?? json['kit_items'],
+      ),
     );
   }
 
@@ -39,7 +46,12 @@ class KitModel {
       return value.map((item) {
         if (item is String) return item;
         if (item is Map<String, dynamic>) {
-          return (item['name'] ?? item['title'] ?? item['itemName'] ?? item.toString()).toString();
+          return (item['name'] ??
+              item['title'] ??
+              item['itemName'] ??
+              item['description'] ??
+              item.toString())
+              .toString();
         }
         return item.toString();
       }).toList();
