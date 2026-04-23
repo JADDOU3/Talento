@@ -36,6 +36,7 @@ public class KitService {
         kit.setType(createKitDto.getType());
         kit.setMindset(createKitDto.getMindset());
         kit.setImageURL(createKitDto.getImageURL());
+        kit.setKitItems(createKitDto.getKitItems());
 
         return kitrepo.save(kit);
     }
@@ -54,7 +55,7 @@ public class KitService {
         if(updateKitDto.getMindset() != null) kit.setMindset(updateKitDto.getMindset());
         if(updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
         if(updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
-
+        if(updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
 
         return kitrepo.save(kit);
 

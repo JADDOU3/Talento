@@ -26,11 +26,17 @@ public class Kit {
     private LocalDateTime createdAt;
     private String imageURL;
 
+    @ElementCollection
+    @CollectionTable(name = "kit_items", joinColumns = @JoinColumn(name = "kit_id"))
+    @Column(name = "item")
+    private List<String> kitItems;
+
     @Enumerated(EnumType.STRING)
     private Type type;
 
     @Enumerated(EnumType.STRING)
     private Mindset mindset;
+
     @ManyToOne
     @JoinColumn(name = "child_id")
     private Child child;
