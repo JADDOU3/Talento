@@ -19,16 +19,6 @@ class KitCubit extends Cubit<KitState> {
     }
   }
 
-  Future<void> getKitsByType(KitType type) async {
-    emit(const KitLoading());
-    try {
-      final kits = await _kitService.getKitsByType(type.apiValue);
-      emit(KitLoaded(kits));
-    } catch (e) {
-      emit(KitError(e.toString().replaceFirst('Exception: ', '')));
-    }
-  }
-
   Future<void> getKitsByMindset(Mindset mindset) async {
     emit(const KitLoading());
     try {
@@ -41,6 +31,7 @@ class KitCubit extends Cubit<KitState> {
 
   Future<void> searchKits(String keyword) async {
     final trimmedKeyword = keyword.trim();
+
     if (trimmedKeyword.isEmpty) {
       await getAllKits();
       return;

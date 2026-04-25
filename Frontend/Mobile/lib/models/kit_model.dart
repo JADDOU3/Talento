@@ -6,6 +6,8 @@ class KitModel {
   final String type;
   final String mindset;
   final List<String> kitItems;
+  final double rating;
+  final int age;
 
   const KitModel({
     required this.id,
@@ -15,6 +17,8 @@ class KitModel {
     required this.type,
     required this.mindset,
     required this.kitItems,
+    required this.rating,
+    required this.age,
   });
 
   factory KitModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +34,8 @@ class KitModel {
           .toString(),
       type: (json['type'] ?? '').toString(),
       mindset: (json['mindset'] ?? '').toString(),
+      rating: _parseDouble(json['rating']),
+      age: _parseInt(json['age']),
       kitItems: _parseKitItems(
         json['kitItems'] ?? json['items'] ?? json['kit_items'],
       ),
@@ -38,7 +44,13 @@ class KitModel {
 
   static int _parseInt(dynamic value) {
     if (value is int) return value;
-    return int.tryParse(value.toString()) ?? 0;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
   }
 
   static List<String> _parseKitItems(dynamic value) {

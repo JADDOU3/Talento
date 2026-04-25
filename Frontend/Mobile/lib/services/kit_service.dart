@@ -10,8 +10,6 @@ class KitService {
   Future<Map<String, String>> _buildHeaders() async {
     final token = await TokenStorageService.getToken();
 
-    print('TOKEN: $token');
-
     return {
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
@@ -19,15 +17,11 @@ class KitService {
 
   Future<List<KitModel>> getAllKits() async {
     final headers = await _buildHeaders();
+
     final response = await http.get(
       Uri.parse('${ApiConstants.kits}/'),
       headers: headers,
     );
-
-    print('GET ALL KITS URL: ${ApiConstants.kits}/');
-    print('HEADERS: $headers');
-    print('STATUS CODE: ${response.statusCode}');
-    print('BODY: ${response.body}');
 
     return _parseKitListResponse(
       response,
@@ -35,31 +29,14 @@ class KitService {
     );
   }
 
-  Future<List<KitModel>> getKitsByType(String type) async {
-    final url = '${ApiConstants.kitsByType}/$type';
-    final headers = await _buildHeaders();
-    final response = await http.get(Uri.parse(url), headers: headers);
-
-    print('GET KITS BY TYPE URL: $url');
-    print('HEADERS: $headers');
-    print('STATUS CODE: ${response.statusCode}');
-    print('BODY: ${response.body}');
-
-    return _parseKitListResponse(
-      response,
-      fallbackError: 'Failed to load kits by type',
-    );
-  }
-
   Future<List<KitModel>> getKitsByMindset(String mindset) async {
-    final url = '${ApiConstants.kitsByMindset}/$mindset';
     final headers = await _buildHeaders();
-    final response = await http.get(Uri.parse(url), headers: headers);
+    final url = '${ApiConstants.kitsByMindset}/$mindset';
 
-    print('GET KITS BY MINDSET URL: $url');
-    print('HEADERS: $headers');
-    print('STATUS CODE: ${response.statusCode}');
-    print('BODY: ${response.body}');
+    final response = await http.get(
+      Uri.parse(url),
+      headers: headers,
+    );
 
     return _parseKitListResponse(
       response,
@@ -68,16 +45,16 @@ class KitService {
   }
 
   Future<List<KitModel>> searchKits(String keyword) async {
+    final headers = await _buildHeaders();
+
     final uri = Uri.parse(ApiConstants.kitsSearch).replace(
       queryParameters: {'keyword': keyword},
     );
-    final headers = await _buildHeaders();
-    final response = await http.get(uri, headers: headers);
 
-    print('SEARCH KITS URL: $uri');
-    print('HEADERS: $headers');
-    print('STATUS CODE: ${response.statusCode}');
-    print('BODY: ${response.body}');
+    final response = await http.get(
+      uri,
+      headers: headers,
+    );
 
     return _parseKitListResponse(
       response,
@@ -86,14 +63,13 @@ class KitService {
   }
 
   Future<KitModel> getKitById(int id) async {
-    final url = '${ApiConstants.kits}/$id';
     final headers = await _buildHeaders();
-    final response = await http.get(Uri.parse(url), headers: headers);
+    final url = '${ApiConstants.kits}/$id';
 
-    print('GET KIT BY ID URL: $url');
-    print('HEADERS: $headers');
-    print('STATUS CODE: ${response.statusCode}');
-    print('BODY: ${response.body}');
+    final response = await http.get(
+      Uri.parse(url),
+      headers: headers,
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);

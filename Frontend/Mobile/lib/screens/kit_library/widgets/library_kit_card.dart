@@ -5,147 +5,208 @@ import '../../../core/theme/app_text_styles.dart';
 class LibraryKitCard extends StatelessWidget {
   final String title;
   final String description;
-  final String category;
+  final String mindset;
   final String imageUrl;
+  final double rating;
+  final int age;
   final VoidCallback onTap;
 
   const LibraryKitCard({
     super.key,
     required this.title,
     required this.description,
-    required this.category,
+    required this.mindset,
     required this.imageUrl,
+    required this.rating,
+    required this.age,
     required this.onTap,
   });
 
-  Color _badgeColor() {
-    switch (category.toUpperCase()) {
-      case 'DISCOVERY':
-        return AppColors.pink;
-      case 'HOBBY':
-        return AppColors.primary;
-      case 'DEVELOPMENT':
-        return AppColors.red;
+  String _mindsetArabic() {
+    switch (mindset.toUpperCase()) {
       case 'BUILDER':
-        return AppColors.primary;
+        return 'البنّاء';
       case 'SCIENTIST':
+        return 'العالِم';
+      case 'EXPLORER':
+        return 'المستكشف';
+      case 'INVENTOR':
+        return 'المخترع';
+      default:
+        return mindset.isEmpty ? 'حزمة' : mindset;
+    }
+  }
+
+  Color _badgeColor() {
+    switch (mindset.toUpperCase()) {
+      case 'BUILDER':
         return AppColors.yellow;
+      case 'SCIENTIST':
+        return AppColors.red;
       case 'EXPLORER':
         return AppColors.secondary;
       case 'INVENTOR':
         return AppColors.pink;
       default:
-        return AppColors.secondary;
+        return AppColors.primary;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: Image.network(
-                  imageUrl,
-                  width: double.infinity,
-                  height: 160,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: double.infinity,
-                      height: 160,
-                      decoration: BoxDecoration(
-                        color: AppColors.inputFill,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: const Icon(
-                        Icons.image_outlined,
-                        color: AppColors.hint,
-                        size: 40,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                top: 10,
-                left: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _badgeColor(),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    category.toUpperCase(),
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyMedium.copyWith(
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary.withOpacity(0.12),
-                foregroundColor: AppColors.primary,
-                elevation: 0,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
                   borderRadius: BorderRadius.circular(22),
+                  child: imageUrl.isEmpty
+                      ? _imagePlaceholder()
+                      : Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 175,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _badge(_mindsetArabic()),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: _ratingBadge(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerRight,
               child: Text(
-                'Start Discovery →',
-                style: AppTextStyles.button.copyWith(
-                  color: AppColors.primary,
-                  fontSize: 14,
+                title,
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 19,
                 ),
               ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                description,
+                textAlign: TextAlign.right,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  height: 1.6,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                  elevation: 0,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: Text(
+                  'ابدأ الاستكشاف',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 175,
+      decoration: BoxDecoration(
+        color: AppColors.inputFill,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: const Icon(
+        Icons.image_outlined,
+        color: AppColors.hint,
+        size: 42,
+      ),
+    );
+  }
+
+  Widget _badge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: _badgeColor(),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _ratingBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, color: AppColors.yellow, size: 17),
+          const SizedBox(width: 4),
+          Text(
+            rating.toStringAsFixed(1),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
             ),
           ),
         ],

@@ -39,39 +39,24 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
 
-  String _selectedFilterGroup = 'ALL';
-  String _selectedFilterLabel = 'الكل';
+  String _selectedLabel = 'الكل';
 
-  final List<_FilterOption> _typeFilters = const [
-    _FilterOption(label: 'الكل', group: 'ALL'),
-    _FilterOption(label: 'DISCOVERY', group: 'TYPE', type: KitType.discovery),
-    _FilterOption(label: 'HOBBY', group: 'TYPE', type: KitType.hobby),
-    _FilterOption(
-      label: 'DEVELOPMENT',
-      group: 'TYPE',
-      type: KitType.development,
-    ),
-  ];
-
-  final List<_FilterOption> _mindsetFilters = const [
-    _FilterOption(
-      label: 'BUILDER',
-      group: 'MINDSET',
+  final List<_MindsetFilterOption> _mindsetFilters = const [
+    _MindsetFilterOption(label: 'الكل'),
+    _MindsetFilterOption(
+      label: 'البنّاء',
       mindset: Mindset.builder,
     ),
-    _FilterOption(
-      label: 'SCIENTIST',
-      group: 'MINDSET',
+    _MindsetFilterOption(
+      label: 'العالِم',
       mindset: Mindset.scientist,
     ),
-    _FilterOption(
-      label: 'EXPLORER',
-      group: 'MINDSET',
+    _MindsetFilterOption(
+      label: 'المستكشف',
       mindset: Mindset.explorer,
     ),
-    _FilterOption(
-      label: 'INVENTOR',
-      group: 'MINDSET',
+    _MindsetFilterOption(
+      label: 'المخترع',
       mindset: Mindset.inventor,
     ),
   ];
@@ -85,188 +70,188 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        child: Column(
-          children: [
-            const TopBar(),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'مكتبة الحزم',
-                      style: AppTextStyles.headlineMedium.copyWith(
-                        color: AppColors.primary,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: AppBackground(
+          child: Column(
+            children: [
+              const TopBar(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          'مكتبة الحزم',
+                          style: AppTextStyles.headlineMedium.copyWith(
+                            color: AppColors.primary,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
                       ),
-                      textAlign: TextAlign.right,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'ابحث عن تجربة',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.yellow,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSearchField(context),
-                    const SizedBox(height: 14),
-                    _buildSectionTitle('Type'),
-                    const SizedBox(height: 8),
-                    _buildFilterChips(_typeFilters),
-                    const SizedBox(height: 12),
-                    _buildSectionTitle('Mindset'),
-                    const SizedBox(height: 8),
-                    _buildFilterChips(_mindsetFilters),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: BlocBuilder<KitCubit, KitState>(
-                        builder: (context, state) {
-                          if (state is KitLoading) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
 
-                          if (state is KitError) {
-                            return _buildMessageState(
-                              icon: Icons.error_outline_rounded,
-                              message: state.message,
-                              buttonLabel: 'إعادة المحاولة',
-                              onPressed:
-                                  () => context.read<KitCubit>().getAllKits(),
-                            );
-                          }
-
-                          if (state is KitLoaded) {
-                            if (state.kits.isEmpty) {
-                              return _buildMessageState(
-                                icon: Icons.inbox_outlined,
-                                message: 'لا توجد حزم حالياً.',
+                      const SizedBox(height: 4),
+                      const SizedBox(height: 16),
+                      _buildSearchField(context),
+                      const SizedBox(height: 10),
+                      _buildMindsetChips(),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: BlocBuilder<KitCubit, KitState>(
+                          builder: (context, state) {
+                            if (state is KitLoading) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
                               );
                             }
 
-                            return ListView.separated(
-                              itemCount: state.kits.length,
-                              separatorBuilder:
-                                  (_, __) => const SizedBox(height: 16),
-                              itemBuilder: (context, index) {
-                                final kit = state.kits[index];
+                            if (state is KitError) {
+                              return _buildMessageState(
+                                icon: Icons.error_outline_rounded,
+                                message: state.message,
+                                buttonLabel: 'إعادة المحاولة',
+                                onPressed: () =>
+                                    context.read<KitCubit>().getAllKits(),
+                              );
+                            }
 
-                                return LibraryKitCard(
-                                  title: kit.name,
-                                  description: kit.description,
-                                  category: kit.type,
-                                  imageUrl: kit.imageUrl,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) => KitDetailsScreen(
-                                          kitId: kit.id,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                            if (state is KitLoaded) {
+                              if (state.kits.isEmpty) {
+                                return _buildMessageState(
+                                  icon: Icons.inbox_outlined,
+                                  message: 'لا توجد حزم حالياً.',
                                 );
-                              },
-                            );
-                          }
+                              }
 
-                          return const SizedBox.shrink();
-                        },
+                              return ListView.separated(
+                                itemCount: state.kits.length,
+                                separatorBuilder: (_, __) =>
+                                const SizedBox(height: 16),
+                                itemBuilder: (context, index) {
+                                  final kit = state.kits[index];
+
+                                  return LibraryKitCard(
+                                    title: kit.name,
+                                    description: kit.description,
+                                    mindset: kit.mindset,
+                                    imageUrl: kit.imageUrl,
+                                    rating: kit.rating,
+                                    age: kit.age,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => KitDetailsScreen(
+                                            kitId: kit.id,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            }
+
+                            return const SizedBox.shrink();
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        bottomNavigationBar: const BottomNavBar(selectedIndex: 1),
       ),
-      bottomNavigationBar: const BottomNavBar(selectedIndex: 1),
     );
   }
 
   Widget _buildSearchField(BuildContext context) {
-    return TextField(
-      controller: _searchController,
-      textAlign: TextAlign.right,
-      onChanged: (value) {
-        _debounce?.cancel();
-        _debounce = Timer(const Duration(milliseconds: 300), () {
-          context.read<KitCubit>().searchKits(value);
-        });
-      },
-      decoration: InputDecoration(
-        hintText: 'ابحث عن تجربة',
-        prefixIcon: const Icon(Icons.search, color: AppColors.yellow),
-        filled: true,
-        fillColor: AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        textAlign: TextAlign.right,
+        onChanged: (value) {
+          _debounce?.cancel();
+          _debounce = Timer(const Duration(milliseconds: 300), () {
+            context.read<KitCubit>().searchKits(value);
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'ابحثي عن تجربة',
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.primary,
+          ),
+          filled: true,
+          fillColor: AppColors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 14,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(26),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(26),
+            borderSide: const BorderSide(
+              color: AppColors.primary,
+              width: 1.2,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: AppColors.textPrimary,
-        fontWeight: FontWeight.w700,
-      ),
-      textAlign: TextAlign.right,
-    );
-  }
 
-  Widget _buildFilterChips(List<_FilterOption> options) {
+
+  Widget _buildMindsetChips() {
     return SizedBox(
-      height: 36,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: options.length,
+        itemCount: _mindsetFilters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final option = options[index];
-          final isSelected =
-              _selectedFilterGroup == option.group &&
-                  _selectedFilterLabel == option.label;
+          final option = _mindsetFilters[index];
 
           return CategoryChip(
             label: option.label,
-            isSelected: isSelected,
-            onTap: () => _onFilterSelected(option),
+            isSelected: _selectedLabel == option.label,
+            onTap: () => _onMindsetSelected(option),
           );
         },
       ),
     );
   }
 
-  void _onFilterSelected(_FilterOption option) {
+  void _onMindsetSelected(_MindsetFilterOption option) {
     setState(() {
-      _selectedFilterGroup = option.group;
-      _selectedFilterLabel = option.label;
+      _selectedLabel = option.label;
     });
 
     if (_searchController.text.trim().isNotEmpty) {
@@ -275,17 +260,9 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 
     final cubit = context.read<KitCubit>();
 
-    if (option.group == 'ALL') {
+    if (option.mindset == null) {
       cubit.getAllKits();
-      return;
-    }
-
-    if (option.type != null) {
-      cubit.getKitsByType(option.type!);
-      return;
-    }
-
-    if (option.mindset != null) {
+    } else {
       cubit.getKitsByMindset(option.mindset!);
     }
   }
@@ -300,7 +277,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 48, color: AppColors.hint),
+          Icon(icon, size: 52, color: AppColors.hint),
           const SizedBox(height: 12),
           Text(
             message,
@@ -310,8 +287,11 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
             ),
           ),
           if (buttonLabel != null && onPressed != null) ...[
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: onPressed, child: Text(buttonLabel)),
+            const SizedBox(height: 14),
+            ElevatedButton(
+              onPressed: onPressed,
+              child: Text(buttonLabel),
+            ),
           ],
         ],
       ),
@@ -319,16 +299,12 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
   }
 }
 
-class _FilterOption {
+class _MindsetFilterOption {
   final String label;
-  final String group;
-  final KitType? type;
   final Mindset? mindset;
 
-  const _FilterOption({
+  const _MindsetFilterOption({
     required this.label,
-    required this.group,
-    this.type,
     this.mindset,
   });
 }

@@ -12,7 +12,10 @@ import 'widgets/inside_item_tile.dart';
 class KitDetailsScreen extends StatelessWidget {
   final int kitId;
 
-  const KitDetailsScreen({super.key, required this.kitId});
+  const KitDetailsScreen({
+    super.key,
+    required this.kitId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +29,9 @@ class KitDetailsScreen extends StatelessWidget {
 class _KitDetailsView extends StatelessWidget {
   final int kitId;
 
-  const _KitDetailsView({required this.kitId});
+  const _KitDetailsView({
+    required this.kitId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,33 +46,7 @@ class _KitDetailsView extends StatelessWidget {
               }
 
               if (state is KitError) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline_rounded,
-                          size: 48,
-                          color: AppColors.hint,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          state.message,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyMedium,
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed:
-                              () => context.read<KitCubit>().getKitById(kitId),
-                          child: const Text('إعادة المحاولة'),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                return _buildErrorState(context, state.message);
               }
 
               if (state is KitDetailsLoaded) {
@@ -85,17 +64,36 @@ class _KitDetailsView extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            _buildHeroImage(kit.imageUrl),
-                            const SizedBox(height: 14),
-                            _buildLabelsRow(kit.type, kit.mindset),
-                            const SizedBox(height: 14),
+                            _buildHeroImage(
+                              imageUrl: kit.imageUrl,
+                              rating: kit.rating,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // ✅ الاسم والوصف طلعوا فوق
                             _buildTitleAndDescription(
                               kit.name,
                               kit.description,
                             ),
-                            const SizedBox(height: 22),
+
+                            const SizedBox(height: 16),
+
+                            // ✅ المربعات صارت تحتهم
+                            _buildStatsRow(
+                              age: kit.age,
+                              rating: kit.rating,
+                              mindset: kit.mindset,
+                            ),
+
+                            const SizedBox(height: 26),
+
                             _buildInsideSection(kit.kitItems),
-                            const SizedBox(height: 28),
+
+                            const SizedBox(height: 30),
+
+                            _buildBottomButton(),
+
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
@@ -114,12 +112,12 @@ class _KitDetailsView extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
       child: Row(
         children: [
           _circleIconButton(
-            icon: Icons.bookmark_border_rounded,
-            onTap: () {},
+            icon: Icons.arrow_forward_ios_rounded,
+            onTap: () => Navigator.pop(context),
           ),
           Expanded(
             child: Center(
@@ -127,17 +125,13 @@ class _KitDetailsView extends StatelessWidget {
                 'تفاصيل الحزمة',
                 style: AppTextStyles.headlineMedium.copyWith(
                   fontSize: 26,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
-          _circleIconButton(
-            icon: Icons.arrow_forward_ios_rounded,
-            onTap: () => Navigator.pop(context),
-          ),
+          const SizedBox(width: 38),
         ],
       ),
     );
@@ -154,79 +148,185 @@ class _KitDetailsView extends StatelessWidget {
         color: AppColors.cardBackground,
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: onTap,
-        icon: Icon(icon, size: 18, color: AppColors.textPrimary),
+        icon: Icon(
+          icon,
+          size: 18,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }
 
-  Widget _buildHeroImage(String imageUrl) {
+  Widget _buildHeroImage({
+    required String imageUrl,
+    required double rating,
+  }) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: AppColors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Image.network(
-          imageUrl,
-          width: double.infinity,
-          height: 220,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: imageUrl.isEmpty
+                ? _imagePlaceholder()
+                : Image.network(
+              imageUrl,
               width: double.infinity,
-              height: 220,
-              color: AppColors.inputFill,
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.image_outlined,
-                color: AppColors.hint,
-                size: 42,
+              height: 240,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _imagePlaceholder(),
+            ),
+          ),
+          Positioned(
+            top: 14,
+            left: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(18),
               ),
-            );
-          },
-        ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.star_rounded,
+                    color: AppColors.yellow,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    rating.toStringAsFixed(1),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLabelsRow(String type, String mindset) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.end,
+  Widget _imagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 240,
+      color: AppColors.inputFill,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_outlined,
+        color: AppColors.hint,
+        size: 46,
+      ),
+    );
+  }
+
+  Widget _buildStatsRow({
+    required int age,
+    required double rating,
+    required String mindset,
+  }) {
+    return Row(
       children: [
-        _buildLabelChip(type),
-        _buildLabelChip(mindset),
+        Expanded(
+          child: _statCard(
+            icon: Icons.child_care_rounded,
+            title: 'العمر',
+            value: age > 0 ? '$age سنوات' : 'غير محدد',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _statCard(
+            icon: Icons.flag_rounded,
+            title: 'المهمات',
+            value: ' مهمات',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _statCard(
+            icon: Icons.auto_awesome_rounded,
+            title: 'النمط',
+            value: _mindsetArabic(mindset),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildLabelChip(String text) {
+  Widget _statCard({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.035),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Text(
-        text,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w700,
-        ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: AppColors.red,
+            size: 21,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -241,14 +341,14 @@ class _KitDetailsView extends StatelessWidget {
             title,
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
               height: 1.25,
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
           child: Text(
@@ -276,17 +376,21 @@ class _KitDetailsView extends StatelessWidget {
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineMedium.copyWith(
               fontSize: 24,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
           ),
         ),
         const SizedBox(height: 14),
         if (items.isEmpty)
-          Text(
-            'لا توجد عناصر متاحة لهذه الحزمة.',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'لا توجد عناصر متاحة لهذه الحزمة.',
+              textAlign: TextAlign.right,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           )
         else
@@ -298,5 +402,75 @@ class _KitDetailsView extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  Widget _buildBottomButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(26),
+          ),
+        ),
+        child: Text(
+          'مزيد من التفاصيل',
+          style: AppTextStyles.button.copyWith(
+            color: AppColors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 52,
+              color: AppColors.hint,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => context.read<KitCubit>().getKitById(kitId),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _mindsetArabic(String mindset) {
+    switch (mindset.toUpperCase()) {
+      case 'BUILDER':
+        return 'البنّاء';
+      case 'SCIENTIST':
+        return 'العالِم';
+      case 'EXPLORER':
+        return 'المستكشف';
+      case 'INVENTOR':
+        return 'المخترع';
+      default:
+        return mindset.isEmpty ? 'غير محدد' : mindset;
+    }
   }
 }
