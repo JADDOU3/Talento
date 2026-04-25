@@ -41,7 +41,13 @@ public class KitService {
         kit.setMindset(createKitDto.getMindset());
         kit.setImageURL(createKitDto.getImageURL());
         kit.setKitItems(createKitDto.getKitItems());
-
+        if(createKitDto.getRating() != null)
+            kit.setRating(createKitDto.getRating());
+        kit.setRating(0);
+        if(createKitDto.getAge() != null)
+            kit.setAge(createKitDto.getAge());
+        kit.setAge(1);
+        kit.setSelected(false);
         return kitrepo.save(kit);
     }
 
@@ -60,6 +66,9 @@ public class KitService {
         if(updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
         if(updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
         if(updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
+        if(updateKitDto.getIsSelected() != null) kit.setSelected(updateKitDto.getIsSelected());
+        if(updateKitDto.getRating() != null ) kit.setRating(updateKitDto.getRating());
+        if(updateKitDto.getAge() != null ) kit.setAge(updateKitDto.getAge());
 
         return kitrepo.save(kit);
 
