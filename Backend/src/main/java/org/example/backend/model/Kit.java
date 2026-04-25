@@ -26,6 +26,10 @@ public class Kit {
     private LocalDateTime createdAt;
     private String imageURL;
 
+    private boolean isSelected;
+    private int rating;
+    private int age;
+
     @ElementCollection
     @CollectionTable(name = "kit_items", joinColumns = @JoinColumn(name = "kit_id"))
     @Column(name = "item")
