@@ -98,7 +98,7 @@ class BottomNavBar extends StatelessWidget {
       case 0: // Home
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const NewUser()),
         );
         break;
 
