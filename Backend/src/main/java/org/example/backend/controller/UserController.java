@@ -2,6 +2,7 @@ package org.example.backend.controller;
 
 import org.example.backend.Dto.auth.AuthResponseDto;
 import org.example.backend.Dto.auth.LoginDto;
+import org.example.backend.Dto.auth.RefreshTokenDto;
 import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.model.User;
 import org.example.backend.service.AuthService;
@@ -32,8 +33,8 @@ public class UserController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDto> refresh(@RequestBody String refreshToken) {
-        return ResponseEntity.ok(authService.refresh(refreshToken));
+    public ResponseEntity<AuthResponseDto> refresh(@RequestBody RefreshTokenDto refreshTokenDto ) {
+        return ResponseEntity.ok(authService.refresh(refreshTokenDto.getRefreshToken()));
     }
 
     @GetMapping("/isNewUser")
