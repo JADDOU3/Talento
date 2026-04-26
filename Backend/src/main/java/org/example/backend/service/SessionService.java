@@ -2,6 +2,7 @@ package org.example.backend.service;
 
 import org.example.backend.Dto.SessionStartDto;
 import org.example.backend.model.Session;
+import org.example.backend.repo.ChildKitRepo;
 import org.example.backend.repo.SessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,15 +19,19 @@ public class SessionService {
     private ChildService childService;
     @Autowired
     private KitService kitService;
+    @Autowired
+    private ChildKitRepo childKitRepo;
 
     public Session startSession(SessionStartDto sessionStartDto) {
-
         Session session = new Session();
         session.setStartedAt(LocalDateTime.now());
         session.setChild(childService.getChildById(sessionStartDto.getChildId()));
         session.setKit(kitService.getKitById(sessionStartDto.getKitId()));
-        if (!session.getKit().getChild().equals(session.getChild()))
+
+        boolean ownsKit = childKitRepo.existsByChildAndKit(session.getChild(), session.getKit());
+        if (!ownsKit)
             return null;
+
         return sessionRepo.save(session);
     }
 
@@ -37,7 +42,6 @@ public class SessionService {
     public List<Session> getAllSessionsByChild(int childId) {
         return sessionRepo.findByChildId(childId);
     }
-
 
     public void deleteSession(int id) {
         Session session = getSessionById(id);

@@ -21,8 +21,10 @@ public class Child {
     @GeneratedValue(strategy = IDENTITY)
     @Id
     private int id;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
     private LocalDateTime createdAt;
     private String name;
     private LocalDateTime dateOfBirth;
@@ -35,14 +37,9 @@ public class Child {
 
     @JsonIgnore
     @OneToMany(mappedBy = "child")
-    private List<Kit> kits;
-
+    private List<ChildKit> childKits;
 
     @JsonIgnore
     @OneToMany(mappedBy = "child")
     private List<Session> sessions;
-
-
-    //todo add Relations ( Mindset Profiling , Performance , ActivityPreference , Event , ChildMission) when implemented
-
 }

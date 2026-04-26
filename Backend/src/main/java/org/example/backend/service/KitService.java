@@ -1,11 +1,12 @@
 package org.example.backend.service;
 
-
 import org.example.backend.Dto.kit.AddToChildCollectionDto;
 import org.example.backend.Dto.kit.CreateKitDto;
 import org.example.backend.Dto.kit.UpdateKitDto;
 import org.example.backend.model.Child;
+import org.example.backend.model.ChildKit;
 import org.example.backend.model.Kit;
+import org.example.backend.repo.ChildKitRepo;
 import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.KitRepo;
 import org.example.backend.util.enums.Mindset;
@@ -20,94 +21,100 @@ import java.util.List;
 public class KitService {
 
     @Autowired
-    private KitRepo kitrepo;
-    @Autowired
-    private ChildService childService;
+    private KitRepo kitRepo;
+
     @Autowired
     private ChildRepo childRepo;
 
-    public Kit createKit(CreateKitDto createKitDto){
+    @Autowired
+    private ChildKitRepo childKitRepo;
+
+    public Kit createKit(CreateKitDto createKitDto) {
         Kit kit = new Kit();
         kit.setName(createKitDto.getName());
         kit.setDescription(createKitDto.getDescription());
-
-        if(createKitDto.getPrice() == null)
-            kit.setPrice(0.0);
-        else
-            kit.setPrice(createKitDto.getPrice());
-
+        kit.setPrice(createKitDto.getPrice() != null ? createKitDto.getPrice() : 0.0);
         kit.setCreatedAt(LocalDateTime.now());
         kit.setType(createKitDto.getType());
         kit.setMindset(createKitDto.getMindset());
         kit.setImageURL(createKitDto.getImageURL());
         kit.setKitItems(createKitDto.getKitItems());
-        if(createKitDto.getRating() != null)
-            kit.setRating(createKitDto.getRating());
-        kit.setRating(0);
-        if(createKitDto.getAge() != null)
-            kit.setAge(createKitDto.getAge());
-        kit.setAge(1);
-        kit.setSelected(false);
-        return kitrepo.save(kit);
+        kit.setRating(createKitDto.getRating() != null ? createKitDto.getRating() : 0);
+        kit.setAge(createKitDto.getAge() != null ? createKitDto.getAge() : 1);
+        return kitRepo.save(kit);
     }
 
-    public Kit getKitById(int id){
-        return kitrepo.findById(id).orElse(null);
+    public Kit getKitById(int id) {
+        return kitRepo.findById(id).orElse(null);
     }
 
-    public  Kit updateKit(UpdateKitDto updateKitDto){
-        Kit kit = kitrepo.findById(updateKitDto.getId()).orElse(null);
-        if(kit == null)
-            return null;
-        if(updateKitDto.getName() != null) kit.setName(updateKitDto.getName());
-        if(updateKitDto.getDescription() != null) kit.setDescription(updateKitDto.getDescription());
-        if(updateKitDto.getType() != null) kit.setType(updateKitDto.getType());
-        if(updateKitDto.getMindset() != null) kit.setMindset(updateKitDto.getMindset());
-        if(updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
-        if(updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
-        if(updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
-        if(updateKitDto.getIsSelected() != null) kit.setSelected(updateKitDto.getIsSelected());
-        if(updateKitDto.getRating() != null ) kit.setRating(updateKitDto.getRating());
-        if(updateKitDto.getAge() != null ) kit.setAge(updateKitDto.getAge());
-
-        return kitrepo.save(kit);
-
+    public Kit updateKit(UpdateKitDto updateKitDto) {
+        Kit kit = kitRepo.findById(updateKitDto.getId()).orElse(null);
+        if (kit == null) return null;
+        if (updateKitDto.getName() != null) kit.setName(updateKitDto.getName());
+        if (updateKitDto.getDescription() != null) kit.setDescription(updateKitDto.getDescription());
+        if (updateKitDto.getType() != null) kit.setType(updateKitDto.getType());
+        if (updateKitDto.getMindset() != null) kit.setMindset(updateKitDto.getMindset());
+        if (updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
+        if (updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
+        if (updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
+        if (updateKitDto.getRating() != null) kit.setRating(updateKitDto.getRating());
+        if (updateKitDto.getAge() != null) kit.setAge(updateKitDto.getAge());
+        return kitRepo.save(kit);
     }
 
-    public String deleteKit(int id){
-        Kit kit = kitrepo.findById(id).orElse(null);
-        if(kit == null)
-            return "Kit not found";
-        kitrepo.delete(kit);
+    public String deleteKit(int id) {
+        Kit kit = kitRepo.findById(id).orElse(null);
+        if (kit == null) return "Kit not found";
+        kitRepo.delete(kit);
         return "Kit deleted";
     }
 
-    public List<Kit> getAllKits(){
-        return kitrepo.findAll();
+    public List<Kit> getAllKits() {
+        return kitRepo.findAll();
     }
 
-
-    public List<Kit> getKitsByChildId(int id) {
-        return kitrepo.findByChildId(id);
+    public List<ChildKit> getKitsByChildId(int childId) {
+        return childKitRepo.findByChildId(childId);
     }
 
-    public Kit addToChildsCollection(AddToChildCollectionDto addToChildCollectionDto) {
-        Kit kit = kitrepo.findById(addToChildCollectionDto.getKitId()).orElse(null);
-        kit.setChild(childService.getChildById(addToChildCollectionDto.getChildId()));
-        kit.getChild().getKits().add(kit);
-        childRepo.save(kit.getChild());
-    return kitrepo.save(kit);
+    public ChildKit addToChildsCollection(AddToChildCollectionDto dto) {
+        Kit kit = kitRepo.findById(dto.getKitId())
+                .orElseThrow(() -> new RuntimeException("Kit not found"));
+        Child child = childRepo.findById(dto.getChildId())
+                .orElseThrow(() -> new RuntimeException("Child not found"));
+
+        if (childKitRepo.existsByChildAndKit(child, kit)) {
+            throw new RuntimeException("Child already owns this kit");
+        }
+
+        ChildKit childKit = new ChildKit();
+        childKit.setKit(kit);
+        childKit.setChild(child);
+        childKit.setAcquiredAt(LocalDateTime.now());
+        childKit.setSelected(false);
+        return childKitRepo.save(childKit);
+    }
+
+    public String removeFromChildsCollection(int childId, int kitId) {
+        Child child = childRepo.findById(childId).orElseThrow(() -> new RuntimeException("Child not found"));
+        Kit kit = kitRepo.findById(kitId).orElseThrow(() -> new RuntimeException("Kit not found"));
+        if (!childKitRepo.existsByChildAndKit(child, kit)) {
+            return "Kit not in child's collection";
+        }
+        childKitRepo.deleteByChildAndKit(child, kit);
+        return "Kit removed from collection";
     }
 
     public List<Kit> getKitsByType(Type type) {
-        return kitrepo.findByType(type);
+        return kitRepo.findByType(type);
     }
 
     public List<Kit> getKitsByMindset(Mindset mindset) {
-        return kitrepo.findByMindset(mindset);
+        return kitRepo.findByMindset(mindset);
     }
 
     public List<Kit> searchKitsByName(String keyword) {
-        return kitrepo.findByNameContainingIgnoreCase(keyword);
+        return kitRepo.findByNameContainingIgnoreCase(keyword);
     }
 }
