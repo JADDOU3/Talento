@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.model.event.Event;
 import org.example.backend.util.enums.Gender;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -42,4 +43,8 @@ public class Child {
     @JsonIgnore
     @OneToMany(mappedBy = "child")
     private List<Session> sessions;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "child")
+    private List<Event> events;
 }
