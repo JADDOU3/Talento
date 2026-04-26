@@ -1,6 +1,5 @@
 package org.example.backend.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +25,6 @@ public class Kit {
     private LocalDateTime createdAt;
     private String imageURL;
 
-    private boolean isSelected;
     private int rating;
     private int age;
 
@@ -41,10 +39,6 @@ public class Kit {
     @Enumerated(EnumType.STRING)
     private Mindset mindset;
 
-    @ManyToOne
-    @JoinColumn(name = "child_id")
-    private Child child;
-
     @JsonIgnore
     @OneToMany(mappedBy = "kit")
     private List<Session> sessions;
@@ -54,7 +48,7 @@ public class Kit {
     @JoinColumn(name = "kit_id")
     private List<Activity> activities;
 
-    //todo add cartItem & OrderItem relations when they are created ^^
-
-
+    @JsonIgnore
+    @OneToMany(mappedBy = "kit")
+    private List<ChildKit> childKits;
 }
