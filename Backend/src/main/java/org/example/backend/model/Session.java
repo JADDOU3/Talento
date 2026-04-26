@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.example.backend.model.event.Event;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +35,9 @@ public class Session {
     @OneToMany(mappedBy = "session")
     private List<ActivitySession> activitySessions;
 
-    //todo implement Event Relation
+    @JsonIgnore
+    @OneToMany(mappedBy = "session")
+    private List<Event> events;
 
 
 }
