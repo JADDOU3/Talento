@@ -1,4 +1,4 @@
-package org.example.backend.repo;
+package org.example.backend.repo.challenge;
 
 import org.example.backend.model.challengeCard.ChallengeCard;
 import org.springframework.data.jpa.repository.JpaRepository;
