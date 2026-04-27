@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ChallengeCardRepo extends JpaRepository<ChallengeCard, Integer> {
-
     List<ChallengeCard> findByActivityId(int activityId);
 }
