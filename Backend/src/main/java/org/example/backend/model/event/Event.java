@@ -4,10 +4,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.Activity;
-import org.example.backend.model.ActivitySession;
-import org.example.backend.model.Child;
-import org.example.backend.model.Session;
+import org.example.backend.model.*;
+
+import org.example.backend.model.challengeCard.ChallengeCard;
+import org.example.backend.model.level.Level;
 import org.example.backend.util.enums.EventType;
 
 import java.time.LocalDateTime;
@@ -38,10 +38,18 @@ public class Event {
     private Session session;
 
     @ManyToOne
+    @JoinColumn(name = "activity_session_id", nullable = false)
+    private ActivitySession activitySession;
+
+    @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;
 
     @ManyToOne
-    @JoinColumn(name = "activity_session_id")
-    private ActivitySession activitySession;
+    @JoinColumn(name = "level_id")
+    private Level level;
+
+    @ManyToOne
+    @JoinColumn(name = "challenge_card_id")
+    private ChallengeCard challengeCard;
 }
