@@ -11,14 +11,14 @@ import 'widgets/kit_card.dart';
 import 'widgets/promotion_card.dart';
 import 'widgets/start_now_card.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class NewUser extends StatefulWidget {
+  const NewUser({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<NewUser> createState() => _NewUser();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _NewUser extends State<NewUser> {
   final int _selectedIndex = 0;
 
   final List<Map<String, String>> kits = [
