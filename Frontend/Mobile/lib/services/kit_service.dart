@@ -4,23 +4,14 @@ import 'package:http/http.dart' as http;
 
 import '../core/config/api_constants.dart';
 import '../models/kit_model.dart';
-import 'token_storage_service.dart';
+import 'auth_api_client.dart';
 
 class KitService {
-  Future<Map<String, String>> _buildHeaders() async {
-    final token = await TokenStorageService.getToken();
-
-    return {
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
-  }
+  final AuthApiClient _client = AuthApiClient();
 
   Future<List<KitModel>> getAllKits() async {
-    final headers = await _buildHeaders();
-
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('${ApiConstants.kits}/'),
-      headers: headers,
     );
 
     return _parseKitListResponse(
@@ -30,12 +21,10 @@ class KitService {
   }
 
   Future<List<KitModel>> getKitsByMindset(String mindset) async {
-    final headers = await _buildHeaders();
     final url = '${ApiConstants.kitsByMindset}/$mindset';
 
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse(url),
-      headers: headers,
     );
 
     return _parseKitListResponse(
@@ -45,15 +34,12 @@ class KitService {
   }
 
   Future<List<KitModel>> searchKits(String keyword) async {
-    final headers = await _buildHeaders();
-
     final uri = Uri.parse(ApiConstants.kitsSearch).replace(
       queryParameters: {'keyword': keyword},
     );
 
-    final response = await http.get(
+    final response = await _client.get(
       uri,
-      headers: headers,
     );
 
     return _parseKitListResponse(
@@ -63,12 +49,10 @@ class KitService {
   }
 
   Future<KitModel> getKitById(int id) async {
-    final headers = await _buildHeaders();
     final url = '${ApiConstants.kits}/$id';
 
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse(url),
-      headers: headers,
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {

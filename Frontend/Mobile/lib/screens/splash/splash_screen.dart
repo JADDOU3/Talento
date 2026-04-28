@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../services/token_storage_service.dart';
 import '../auth/login_screen.dart';
+import '../home/new_user.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,17 +20,34 @@ class _SplashScreenState extends State<SplashScreen> {
     _goToNextScreen();
   }
 
-  void _goToNextScreen() {
-    Timer(const Duration(seconds: 8), () {
-      if (!mounted) return;
+  Future<void> _goToNextScreen() async {
+    await Future.delayed(const Duration(seconds: 3));
 
+    if (!mounted) return;
+
+    final accessToken = await TokenStorageService.getAccessToken();
+    final refreshToken = await TokenStorageService.getRefreshToken();
+
+    if (!mounted) return;
+
+    if (accessToken != null &&
+        accessToken.isNotEmpty &&
+        refreshToken != null &&
+        refreshToken.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ),
+      );
+    } else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const LoginScreen(),
         ),
       );
-    });
+    }
   }
 
   @override

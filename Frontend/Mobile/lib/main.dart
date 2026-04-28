@@ -26,7 +26,8 @@ class MyApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const  OldUserScreen(),
+      home: const  SplashScreen(),
+
     );
   }
 }

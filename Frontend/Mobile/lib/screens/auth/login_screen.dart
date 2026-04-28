@@ -7,7 +7,6 @@ import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/social_button.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../services/auth_service.dart';
-import '../../services/token_storage_service.dart';
 import '../home/new_user.dart';
 import 'signup_screen.dart';
 
@@ -74,18 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final token = await _authService.login(
+      await _authService.login(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-
-      final cleanToken = token.trim();
-
-      if (!cleanToken.contains('.') || cleanToken.split('.').length != 3) {
-        throw Exception('not authenticated');
-      }
-
-      await TokenStorageService.saveToken(cleanToken);
 
       if (!mounted) return;
 
