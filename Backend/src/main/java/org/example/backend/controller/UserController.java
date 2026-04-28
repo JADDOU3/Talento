@@ -1,18 +1,21 @@
 package org.example.backend.controller;
 
-
+import org.example.backend.Dto.auth.AuthResponseDto;
 import org.example.backend.Dto.auth.LoginDto;
+import org.example.backend.Dto.auth.RefreshTokenDto;
 import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.model.User;
 import org.example.backend.service.AuthService;
 import org.example.backend.service.UserService;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
 public class UserController {
+
     @Autowired
     private UserService userService;
 
@@ -25,20 +28,22 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String Login(@RequestBody LoginDto loginDto){
-        return authService.login(loginDto);
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
+        return ResponseEntity.ok(authService.login(loginDto));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDto> refresh(@RequestBody RefreshTokenDto refreshTokenDto ) {
+        return ResponseEntity.ok(authService.refresh(refreshTokenDto.getRefreshToken()));
     }
 
     @GetMapping("/isNewUser")
-    public boolean isNewUser(){
+    public boolean isNewUser() {
         return userService.isNewUser();
     }
 
     @GetMapping("/currentUser")
-    public User getCurrentUser(){
-        User user = SecurityUtils.getCurrentUser();
-        return user;
+    public User getCurrentUser() {
+        return SecurityUtils.getCurrentUser();
     }
-
-
 }
