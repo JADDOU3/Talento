@@ -13,7 +13,6 @@ import java.util.List;
 
 @Repository
 public interface KitRepo extends JpaRepository<Kit, Integer> {
-    List<Kit> findByChildId(int childId);
     List<Kit> findByType(Type type);
     List<Kit> findByMindset(Mindset mindset);
     List<Kit> findByNameContainingIgnoreCase(String keyword);

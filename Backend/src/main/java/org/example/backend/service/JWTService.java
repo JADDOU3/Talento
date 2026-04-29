@@ -8,14 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
 
 @Service
 public class JWTService {
@@ -26,16 +23,26 @@ public class JWTService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    public String generateToken(String username){
-        Map<String , Object> claims = new HashMap<>();
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
 
-        return Jwts
-                .builder()
+    public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return buildToken(username, claims, jwtExpiration);
+    }
+
+    public String generateRefreshToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return buildToken(username, claims, refreshExpiration);
+    }
+
+    private String buildToken(String username, Map<String, Object> claims, long expiration) {
+        return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -75,5 +82,4 @@ public class JWTService {
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-
 }

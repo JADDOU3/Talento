@@ -1,76 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/kit/kit_cubit.dart';
+import '../../cubits/kit/kit_state.dart';
+import '../../services/kit_service.dart';
 import '../../shared/widgets/app_background.dart';
-import 'widgets/detail_stat_chip.dart';
 import 'widgets/inside_item_tile.dart';
-import 'widgets/skill_tag_card.dart';
 
 class KitDetailsScreen extends StatelessWidget {
-  const KitDetailsScreen({super.key});
+  final int kitId;
+
+  const KitDetailsScreen({
+    super.key,
+    required this.kitId,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> skills = [
-      {
-        'title': 'العلوم والتقنية',
-        'subtitle': 'تعلم العلوم',
-        'icon': Icons.rocket_launch_rounded,
-        'color': AppColors.pink,
-      },
-      {
-        'title': 'الإبداع',
-        'subtitle': 'تنمية الخيال',
-        'icon': Icons.auto_awesome_rounded,
-        'color': AppColors.primary,
-      },
-      {
-        'title': 'الإدراك',
-        'subtitle': 'مهارات حل المشكلات',
-        'icon': Icons.psychology_alt_rounded,
-        'color': AppColors.yellow,
-      },
-    ];
+    return BlocProvider(
+      create: (_) => KitCubit(KitService())..getKitById(kitId),
+      child: _KitDetailsView(kitId: kitId),
+    );
+  }
+}
 
-    final List<String> insideItems = [
-      'علب بناء من أصل 10 مهمات',
-      'ألعاب تنمو عندما نزرعها',
-      'قطعة بناء فضائية',
-      'دفتر تعليم مكون من 24 صفحة',
-      'خريطة إشارات للملاحظات',
-    ];
+class _KitDetailsView extends StatelessWidget {
+  final int kitId;
 
+  const _KitDetailsView({
+    required this.kitId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: AppBackground(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildHeroImage(),
-                      const SizedBox(height: 14),
-                      _buildStatsRow(),
-                      const SizedBox(height: 14),
-                      _buildTitleAndDescription(),
-                      const SizedBox(height: 18),
-                      _buildSkillsSection(skills),
-                      const SizedBox(height: 22),
-                      _buildInsideSection(insideItems),
-                      const SizedBox(height: 28),
-                      _buildBottomButton(),
-                      const SizedBox(height: 18),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          child: BlocBuilder<KitCubit, KitState>(
+            builder: (context, state) {
+              if (state is KitLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state is KitError) {
+                return _buildErrorState(context, state.message);
+              }
+
+              if (state is KitDetailsLoaded) {
+                final kit = state.kit;
+
+                return Column(
+                  children: [
+                    _buildHeader(context),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _buildHeroImage(
+                              imageUrl: kit.imageUrl,
+                              rating: kit.rating,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // ✅ الاسم والوصف طلعوا فوق
+                            _buildTitleAndDescription(
+                              kit.name,
+                              kit.description,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // ✅ المربعات صارت تحتهم
+                            _buildStatsRow(
+                              age: kit.age,
+                              rating: kit.rating,
+                              mindset: kit.mindset,
+                            ),
+
+                            const SizedBox(height: 26),
+
+                            _buildInsideSection(kit.kitItems),
+
+                            const SizedBox(height: 30),
+
+                            _buildBottomButton(),
+
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
           ),
         ),
       ),
@@ -79,12 +112,12 @@ class KitDetailsScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
       child: Row(
         children: [
           _circleIconButton(
-            icon: Icons.bookmark_border_rounded,
-            onTap: () {},
+            icon: Icons.arrow_forward_ios_rounded,
+            onTap: () => Navigator.pop(context),
           ),
           Expanded(
             child: Center(
@@ -92,17 +125,13 @@ class KitDetailsScreen extends StatelessWidget {
                 'تفاصيل الحزمة',
                 style: AppTextStyles.headlineMedium.copyWith(
                   fontSize: 26,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
-          _circleIconButton(
-            icon: Icons.arrow_forward_ios_rounded,
-            onTap: () => Navigator.pop(context),
-          ),
+          const SizedBox(width: 38),
         ],
       ),
     );
@@ -119,6 +148,13 @@ class KitDetailsScreen extends StatelessWidget {
         color: AppColors.cardBackground,
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: IconButton(
         padding: EdgeInsets.zero,
@@ -132,74 +168,60 @@ class KitDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroImage() {
+  Widget _buildHeroImage({
+    required String imageUrl,
+    required double rating,
+  }) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: AppColors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: Image.network(
-              'https://tse4.mm.bing.net/th/id/OIP.74KInUeX1czRkk9_MvVQOgHaE8?w=1000&h=667&rs=1&pid=ImgDetMain&o=7&rm=3',
+            borderRadius: BorderRadius.circular(24),
+            child: imageUrl.isEmpty
+                ? _imagePlaceholder()
+                : Image.network(
+              imageUrl,
               width: double.infinity,
-              height: 220,
+              height: 240,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  height: 220,
-                  color: AppColors.inputFill,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.image_outlined,
-                    color: AppColors.hint,
-                    size: 42,
-                  ),
-                );
-              },
+              errorBuilder: (_, __, ___) => _imagePlaceholder(),
             ),
           ),
           Positioned(
-            top: 12,
-            left: 12,
+            top: 14,
+            left: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.cardBackground.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    '4.9',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
                   const Icon(
                     Icons.star_rounded,
                     color: AppColors.yellow,
-                    size: 16,
+                    size: 18,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Text(
-                    '(124 تقييم)',
+                    rating.toStringAsFixed(1),
                     style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 11,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
@@ -211,41 +233,97 @@ class KitDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _imagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 240,
+      color: AppColors.inputFill,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_outlined,
+        color: AppColors.hint,
+        size: 46,
+      ),
+    );
+  }
+
+  Widget _buildStatsRow({
+    required int age,
+    required double rating,
+    required String mindset,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: _statCard(
+            icon: Icons.child_care_rounded,
+            title: 'العمر',
+            value: age > 0 ? '$age سنوات' : 'غير محدد',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _statCard(
+            icon: Icons.flag_rounded,
+            title: 'المهمات',
+            value: ' مهمات',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _statCard(
+            icon: Icons.auto_awesome_rounded,
+            title: 'النمط',
+            value: _mindsetArabic(mindset),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _statCard({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.035),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
         children: [
+          Icon(
+            icon,
+            color: AppColors.red,
+            size: 21,
+          ),
+          const SizedBox(height: 6),
           Text(
-            'الأعلى تقييماً',
+            title,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+              fontSize: 12,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(height: 3),
           Text(
-            '6-12',
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'سنة',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Text(
-            'العمر',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
             ),
           ),
         ],
@@ -253,28 +331,28 @@ class KitDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTitleAndDescription() {
+  Widget _buildTitleAndDescription(String title, String description) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            'حزمة دب مستكشف الفضاء',
+            title,
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 34,
-              fontWeight: FontWeight.w700,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
               height: 1.25,
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            'استكشف الفضاء الرائع ابتداءً من تعلم أساسيات الرحلات إلى المجرات البعيدة. تتضمن هذه المجموعة تجارب عملية وأنشطة تعليمية مصممة لتنمية الفضول العلمي وبناء المهارات عبر محتوى ممتع يربط الخيال بالاكتشاف الحقيقي.',
+            description,
             textAlign: TextAlign.right,
             style: AppTextStyles.bodyMedium.copyWith(
               height: 1.8,
@@ -284,29 +362,6 @@ class KitDetailsScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSkillsSection(List<Map<String, dynamic>> skills) {
-    return Center(
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        runAlignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 12,
-        runSpacing: 12,
-        children: skills.map((skill) {
-          return SizedBox(
-            width: 140,
-            child: SkillTagCard(
-              title: skill['title'] as String,
-              subtitle: skill['subtitle'] as String,
-              icon: skill['icon'] as IconData,
-              iconColor: skill['color'] as Color,
-            ),
-          );
-        }).toList(),
-      ),
     );
   }
 
@@ -321,18 +376,30 @@ class KitDetailsScreen extends StatelessWidget {
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineMedium.copyWith(
               fontSize: 24,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
           ),
         ),
         const SizedBox(height: 14),
-        ...items.map(
-              (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: InsideItemTile(text: item),
+        if (items.isEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'لا توجد عناصر متاحة لهذه الحزمة.',
+              textAlign: TextAlign.right,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          )
+        else
+          ...items.map(
+                (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: InsideItemTile(text: item),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -340,28 +407,70 @@ class KitDetailsScreen extends StatelessWidget {
   Widget _buildBottomButton() {
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: () {},
-        icon: const Icon(
-          Icons.info_outline_rounded,
-          size: 18,
-          color: AppColors.white,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(26),
+          ),
         ),
-        label: Text(
-          'مزيد من التفاصيل...',
+        child: Text(
+          'مزيد من التفاصيل',
           style: AppTextStyles.button.copyWith(
             color: AppColors.white,
           ),
         ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          minimumSize: const Size(double.infinity, 58),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 52,
+              color: AppColors.hint,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => context.read<KitCubit>().getKitById(kitId),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  String _mindsetArabic(String mindset) {
+    switch (mindset.toUpperCase()) {
+      case 'BUILDER':
+        return 'البنّاء';
+      case 'SCIENTIST':
+        return 'العالِم';
+      case 'EXPLORER':
+        return 'المستكشف';
+      case 'INVENTOR':
+        return 'المخترع';
+      default:
+        return mindset.isEmpty ? 'غير محدد' : mindset;
+    }
   }
 }

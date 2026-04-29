@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return  http.csrf(customizer -> customizer.disable())
                     .authorizeHttpRequests(request ->
-                            request.requestMatchers("/api/login" , "/api/register").permitAll()
+                            request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
                                     .anyRequest().authenticated())
                     .httpBasic(Customizer.withDefaults())
                     .sessionManagement(session ->

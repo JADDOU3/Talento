@@ -5,7 +5,7 @@ import '../../screens/home/new_user.dart';
 import '../../screens/home/old_user_screen.dart';
 import '../../screens/home/profile_screen.dart';
 import '../../screens/kit_library/kit_library_screen.dart';
-
+import '../../screens/journal/journal_screen.dart';
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
 
@@ -119,7 +119,10 @@ class BottomNavBar extends StatelessWidget {
         break;
 
       case 3: // Journal
-      // TODO later
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const JournalScreen()),
+        );
         break;
 
       case 4: // Profile
