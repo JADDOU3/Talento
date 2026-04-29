@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/home/home_screen.dart';
 import 'package:mobile/screens/home/old_user_screen.dart';
+import 'package:mobile/screens/home/profile_screen.dart';
 import 'package:mobile/screens/kit_library/kit_details_screen.dart';
 import 'screens/home/new_user.dart';
 import 'core/theme/app_theme.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const  OldUserScreen(),
+      home: const  ProfileScreen(),
     );
   }
 }
