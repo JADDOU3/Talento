@@ -96,7 +96,7 @@ class OldUserScreen extends StatelessWidget {
             ),
 
             // Bottom Nav Bar
-            const BottomNavBar(selectedIndex: 0),
+            const BottomNavBar(selectedIndex: 2),
           ],
         ),
       ),
