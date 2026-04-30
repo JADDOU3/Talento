@@ -17,10 +17,7 @@ class AuthService {
       final response = await http
           .post(
         Uri.parse(ApiConstants.register),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: _headers,
         body: jsonEncode({
           'name': name,
           'email': email,
@@ -30,8 +27,6 @@ class AuthService {
       )
           .timeout(_timeout);
 
-      print('REG ${response.statusCode}');
-
       final body = response.body.trim();
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -40,10 +35,8 @@ class AuthService {
 
       throw Exception(_extractErrorMessage(body, 'Registration failed'));
     } on TimeoutException {
-      print('REG timeout');
       throw Exception('Connection timeout');
     } catch (e) {
-      print('REG error');
       throw Exception(_cleanException(e));
     }
   }
@@ -56,18 +49,13 @@ class AuthService {
       final response = await http
           .post(
         Uri.parse(ApiConstants.login),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: _headers,
         body: jsonEncode({
           'email': email,
           'password': password,
         }),
       )
           .timeout(_timeout);
-
-      print('LOGIN ${response.statusCode}');
 
       final body = response.body.trim();
 
@@ -90,16 +78,13 @@ class AuthService {
           refreshToken: refreshToken,
         );
 
-        print('LOGIN ok');
         return;
       }
 
       throw Exception(_extractErrorMessage(body, 'Login failed'));
     } on TimeoutException {
-      print('LOGIN timeout');
       throw Exception('Connection timeout');
     } catch (e) {
-      print('LOGIN error');
       throw Exception(_cleanException(e));
     }
   }
@@ -115,17 +100,12 @@ class AuthService {
       final response = await http
           .post(
         Uri.parse(ApiConstants.refresh),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: _headers,
         body: jsonEncode({
           'refreshToken': oldRefreshToken,
         }),
       )
           .timeout(_timeout);
-
-      print('REF ${response.statusCode}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final body = response.body.trim();
@@ -148,21 +128,23 @@ class AuthService {
           refreshToken: newRefreshToken,
         );
 
-        print('REF ok');
         return true;
       }
 
       return false;
-    } catch (e) {
-      print('REF error');
+    } catch (_) {
       return false;
     }
   }
 
   Future<void> logout() async {
     await TokenStorageService.clearTokens();
-    print('LOGOUT');
   }
+
+  Map<String, String> get _headers => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
 
   String _extractErrorMessage(String body, String fallback) {
     try {

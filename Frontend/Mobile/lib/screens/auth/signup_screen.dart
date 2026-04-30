@@ -191,7 +191,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: Column(
                       children: [
                         Text(
-                          '!ابدأ الرحلة',
+                          'ابدأ الرحلة !',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.headlineLarge.copyWith(
                             fontSize: 30,

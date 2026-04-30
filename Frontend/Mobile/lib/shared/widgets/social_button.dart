@@ -22,17 +22,17 @@ class SocialButton extends StatelessWidget {
         child: Container(
           height: 54,
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.white.withValues(alpha: 0.96),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: AppColors.border,
+              color: AppColors.secondary.withValues(alpha: 0.18),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: AppColors.primary.withValues(alpha: 0.06),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -49,7 +49,7 @@ class SocialButton extends StatelessWidget {
                 text,
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
               ),
