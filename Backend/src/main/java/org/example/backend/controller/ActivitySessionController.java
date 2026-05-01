@@ -1,6 +1,6 @@
 package org.example.backend.controller;
 
-import org.example.backend.Dto.activitySession.CreateActivitySessionDto;
+import org.example.backend.Dto.activitySession.StartActivitySessionDto;
 import org.example.backend.Dto.activitySession.UpdateActivitySessionDto;
 import org.example.backend.model.ActivitySession;
 import org.example.backend.service.ActivityService;
@@ -25,13 +25,13 @@ public class ActivitySessionController {
     private SessionService sessionService;
 
     @PostMapping("/")
-    public ResponseEntity<ActivitySession> createActivitySession(@RequestBody CreateActivitySessionDto createActivitySessionDtoto) {
-        if(activityService.getActivityById(createActivitySessionDtoto.getActivityId()) == null)
+    public ResponseEntity<ActivitySession> createActivitySession(@RequestBody StartActivitySessionDto startActivitySessionDtoto) {
+        if(activityService.getActivityById(startActivitySessionDtoto.getActivityId()) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        if(sessionService.getSessionById(createActivitySessionDtoto.getSessionId()) == null)
+        if(sessionService.getSessionById(startActivitySessionDtoto.getSessionId()) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(activitySessionService.createActivitySession(createActivitySessionDtoto) , HttpStatus.CREATED);
+        return new ResponseEntity<>(activitySessionService.createActivitySession(startActivitySessionDtoto) , HttpStatus.CREATED);
     }
 
     @GetMapping("/")
@@ -73,5 +73,10 @@ public class ActivitySessionController {
         return new ResponseEntity<>("ActivitySession deleted successfully" , HttpStatus.OK);
     }
 
-    //todo adjust after discussion with the team for now leave it as it is
+    @PutMapping("/{id}")
+    public ResponseEntity<ActivitySession> endActivitySession(@PathVariable int id) {
+        if(activitySessionService.getActivitySessionById(id) == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(activitySessionService.endActivitySession(id), HttpStatus.OK);
+    }
 }
