@@ -1,6 +1,6 @@
 package org.example.backend.service;
 
-import org.example.backend.Dto.activitySession.CreateActivitySessionDto;
+import org.example.backend.Dto.activitySession.StartActivitySessionDto;
 import org.example.backend.Dto.activitySession.UpdateActivitySessionDto;
 import org.example.backend.model.Activity;
 import org.example.backend.model.ActivitySession;
@@ -11,6 +11,7 @@ import org.example.backend.repo.SessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,14 +28,13 @@ public class ActivitySessionService {
     @Autowired
     private ActivityRepo activityRepo;
 
-    public ActivitySession createActivitySession(CreateActivitySessionDto createActivitySessionDto) {
+    public ActivitySession createActivitySession(StartActivitySessionDto startActivitySessionDto) {
         ActivitySession activitySession = new ActivitySession();
-        Session session = sessionService.getSessionById(createActivitySessionDto.getSessionId());
-        Activity activity = activityService.getActivityById(createActivitySessionDto.getActivityId());
+        Session session = sessionService.getSessionById(startActivitySessionDto.getSessionId());
+        Activity activity = activityService.getActivityById(startActivitySessionDto.getActivityId());
 
-        activitySession.setOrderIndex(createActivitySessionDto.getOrderIndex());
-        activitySession.setStartedAt(createActivitySessionDto.getStartedAt());
-        activitySession.setEndedAt(createActivitySessionDto.getEndedAt());
+        activitySession.setOrderIndex(startActivitySessionDto.getOrderIndex());
+        activitySession.setStartedAt(LocalDateTime.now());
 
         activitySession.setActivity(activity);
         activitySession.setSession(session);
@@ -75,5 +75,11 @@ public class ActivitySessionService {
 
     public List<ActivitySession> getAllActivitySessions() {
         return activitySessionRepo.findAll();
+    }
+
+    public ActivitySession endActivitySession(int id) {
+        ActivitySession activitySession = getActivitySessionById(id);
+        activitySession.setEndedAt(LocalDateTime.now());
+        return activitySessionRepo.save(activitySession);
     }
 }
