@@ -1,6 +1,9 @@
 package org.example.backend.controller;
 
-import org.example.backend.model.*;
+import org.example.backend.Dto.event.CreateActivityEventDto;
+import org.example.backend.Dto.event.CreateChallengeEventDto;
+import org.example.backend.Dto.event.CreateHelpEventDto;
+import org.example.backend.Dto.event.CreateLevelEventDto;
 import org.example.backend.model.event.*;
 import org.example.backend.service.EventService;
 import org.example.backend.util.enums.*;
@@ -37,14 +40,8 @@ public class EventController {
 
     // --- LevelEvent ---
     @PostMapping("/level")
-    public ResponseEntity<LevelEvent> createLevelEvent(
-            @RequestParam int childId,
-            @RequestParam int sessionId,
-            @RequestParam int activitySessionId,
-            @RequestParam EventAction action) {
-        return new ResponseEntity<>(
-                eventService.createLevelEvent(childId, sessionId, activitySessionId, action),
-                HttpStatus.CREATED);
+    public ResponseEntity<LevelEvent> createLevelEvent(CreateLevelEventDto createLevelEventDto) {
+        return new ResponseEntity<>(eventService.createLevelEvent(createLevelEventDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/level/session/{sessionId}")
@@ -60,13 +57,8 @@ public class EventController {
 
     // --- ChallengeEvent ---
     @PostMapping("/challenge")
-    public ResponseEntity<ChallengeEvent> createChallengeEvent(
-            @RequestParam int childId,
-            @RequestParam int sessionId,
-            @RequestParam EventAction action) {
-        return new ResponseEntity<>(
-                eventService.createChallengeEvent(childId, sessionId, action),
-                HttpStatus.CREATED);
+    public ResponseEntity<ChallengeEvent> createChallengeEvent(CreateChallengeEventDto createChallengeEventDto) {
+        return new ResponseEntity<>(eventService.createChallengeEvent(createChallengeEventDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/challenge/session/{sessionId}")
@@ -82,13 +74,8 @@ public class EventController {
 
     // --- HelpEvent ---
     @PostMapping("/help")
-    public ResponseEntity<HelpEvent> createHelpEvent(
-            @RequestParam int childId,
-            @RequestParam int sessionId,
-            @RequestParam HelpLevel helpLevel) {
-        return new ResponseEntity<>(
-                eventService.createHelpEvent(childId, sessionId, helpLevel),
-                HttpStatus.CREATED);
+    public ResponseEntity<HelpEvent> createHelpEvent(CreateHelpEventDto createHelpEventDto) {
+        return new ResponseEntity<>(eventService.createHelpEvent(createHelpEventDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/help/session/{sessionId}")
@@ -104,13 +91,9 @@ public class EventController {
 
     // --- ActivityEvent ---
     @PostMapping("/activity")
-    public ResponseEntity<ActivityEvent> createActivityEvent(
-            @RequestParam int childId,
-            @RequestParam int sessionId,
-            @RequestParam int activityId,
-            @RequestParam EventAction action) {
+    public ResponseEntity<ActivityEvent> createActivityEvent(CreateActivityEventDto createActivityEventDto) {
         return new ResponseEntity<>(
-                eventService.createActivityEvent(childId, sessionId, activityId, action),
+                eventService.createActivityEvent(createActivityEventDto),
                 HttpStatus.CREATED);
     }
 

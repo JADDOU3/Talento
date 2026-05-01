@@ -3,6 +3,7 @@ class ApiConstants {
 
   static const String register = '$baseUrl/register';
   static const String login = '$baseUrl/login';
+  static const String refresh = '$baseUrl/refresh';
 
   static const String kits = '$baseUrl/kits';
   static const String kitsByType = '$baseUrl/kits/type';

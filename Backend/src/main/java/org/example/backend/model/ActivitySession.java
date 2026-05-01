@@ -5,8 +5,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.model.challengeCard.ChallengeAttempt;
+import org.example.backend.model.level.LevelAttempt;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,6 +35,13 @@ public class ActivitySession {
     private Activity activity;
 
 
-    //todo add the other relations when they are created ( LevelAttempts , HelpLog , ChallengeAttempt )
+    @OneToMany(mappedBy = "activitySession", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LevelAttempt> levelAttempts;
+
+    @OneToMany(mappedBy = "activitySession", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChallengeAttempt> challengeAttempts;
+
+    @OneToMany(mappedBy = "activitySession")
+    private List<HelpLog> helpLogs;
 
 }
