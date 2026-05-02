@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -16,12 +18,19 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      style: backgroundColor != null
-          ? ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor,
-      )
-          : null,
-      child: Text(text),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor ?? AppColors.primary,
+        foregroundColor: AppColors.white,
+        elevation: 0,
+        minimumSize: const Size(double.infinity, 56),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+      ),
+      child: Text(
+        text,
+        style: AppTextStyles.button,
+      ),
     );
   }
 }

@@ -4,19 +4,19 @@ import 'app_colors.dart';
 class AppTextStyles {
   AppTextStyles._();
 
-  // Headline
+  //  Headlines
   static const TextStyle headlineLarge = TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w700,
     fontFamily: 'BerlinSans',
-    color: AppColors.textPrimary,
+    color: AppColors.primary,
   );
 
   static const TextStyle headlineMedium = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w600,
     fontFamily: 'DGAgnadeen',
-    color: AppColors.textPrimary,
+    color: AppColors.primary,
   );
 
   // Body
@@ -34,7 +34,7 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
-  //  Button
+  // Button
   static const TextStyle button = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,

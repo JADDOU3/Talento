@@ -23,17 +23,19 @@ class AuthSwitchText extends StatelessWidget {
           questionText,
           style: const TextStyle(
             color: AppColors.textSecondary,
-            fontSize: 14,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
+        const SizedBox(width: 4),
         GestureDetector(
           onTap: onTap,
           child: Text(
-            ' $actionText',
+            actionText,
             style: const TextStyle(
-              color: AppColors.red,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+              color: AppColors.yellow,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),

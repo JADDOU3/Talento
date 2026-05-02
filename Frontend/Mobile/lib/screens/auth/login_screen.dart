@@ -58,15 +58,13 @@ class _LoginScreenState extends State<LoginScreen> {
           textDirection: TextDirection.rtl,
           textAlign: TextAlign.right,
         ),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? AppColors.red : AppColors.primary,
       ),
     );
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -107,17 +105,20 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: 24,
-              vertical: 20,
+              vertical: 16,
             ),
             child: Column(
               children: [
-                const SizedBox(height: 8),
+                const SizedBox(height: 20),
+
                 Image.asset(
                   'assets/icons/logo1.png',
-                  height: 120,
+                  height: 105,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 20),
+
+                const SizedBox(height: 16),
+
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 430),
@@ -126,17 +127,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     vertical: 28,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.94),
-                    borderRadius: BorderRadius.circular(32),
+                    color: AppColors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(30),
                     border: Border.all(
                       color: AppColors.white.withValues(alpha: 0.65),
                       width: 1.2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.10),
-                        blurRadius: 30,
-                        offset: const Offset(0, 14),
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        blurRadius: 28,
+                        offset: const Offset(0, 12),
                       ),
                       BoxShadow(
                         color: AppColors.black.withValues(alpha: 0.04),
@@ -153,21 +154,25 @@ class _LoginScreenState extends State<LoginScreen> {
                           'أهلاً بك من جديد!',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.headlineLarge.copyWith(
-                            fontSize: 30,
+                            fontSize: 32,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(height: 10),
+
+                        const SizedBox(height: 8),
+
                         Text(
                           'لنبدأ رحلة ممتعة نحو اكتشاف المواهب',
                           textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyLarge.copyWith(
-                            color: AppColors.textSecondary,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 18,
                             height: 1.5,
+                            color: AppColors.textSecondary,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-                        const SizedBox(height: 26),
+
+                        const SizedBox(height: 24),
 
                         CustomTextField(
                           hintText: 'البريد الإلكتروني',
@@ -184,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
+
                         const SizedBox(height: 16),
 
                         CustomTextField(
@@ -202,83 +208,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'ميزة استعادة كلمة المرور ستتم إضافتها لاحقًا',
-                                    textDirection: TextDirection.rtl,
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text('هل نسيت كلمة المرور؟'),
+                            onPressed: () {},
+                            child: Text(
+                              'هل نسيت كلمة المرور؟',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.pink.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
 
                         _isLoading
                             ? const CircularProgressIndicator()
-                            : DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.20,
-                                ),
-                                blurRadius: 18,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: CustomButton(
-                            text: 'تسجيل الدخول',
-                            onPressed: _login,
-                          ),
+                            : CustomButton(
+                          text: 'تسجيل الدخول',
+                          onPressed: _login,
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
 
                         Row(
                           children: [
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: AppColors.secondary.withValues(
-                                  alpha: 0.18,
-                                ),
+                                color: AppColors.secondary.withValues(alpha: 0.2),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
-                              child: Text(
-                                'أو',
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: Text('التواصل الاحتماعي'),
                             ),
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: AppColors.secondary.withValues(
-                                  alpha: 0.18,
-                                ),
+                                color: AppColors.secondary.withValues(alpha: 0.2),
                               ),
                             ),
                           ],
                         ),
 
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
 
                         Row(
                           children: [
@@ -314,6 +287,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
