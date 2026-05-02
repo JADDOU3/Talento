@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/home/widgets/available_kits_section.dart';
-import 'package:mobile/screens/home/widgets/children_section.dart';
-import 'package:mobile/screens/home/widgets/profile_header.dart';
-import 'package:mobile/screens/home/widgets/profile_progress_card.dart';
-import 'package:mobile/screens/home/widgets/settings_section.dart';
+import 'package:mobile/screens/profile/widgets/available_kits_section.dart';
+import 'package:mobile/screens/profile/widgets/children_section.dart';
+import 'package:mobile/screens/profile/widgets/profile_header.dart';
+import 'package:mobile/screens/profile/widgets/profile_progress_card.dart';
+import 'package:mobile/screens/profile/widgets/settings_section.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/app_background.dart';
@@ -58,7 +58,7 @@ class ProfileScreen extends StatelessWidget {
                     // Footer text
                     Center(
                       child: Text(
-                        'تمكين الاكتشافات الصغيرة كل يوم ♥',
+                        'تمكين الاكتشافات الصغيرة كل يوم ',
                         style: AppTextStyles.bodyMedium.copyWith(
                           fontSize: 12,
                           color: AppColors.hint,

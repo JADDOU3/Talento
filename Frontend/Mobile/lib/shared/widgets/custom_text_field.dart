@@ -34,44 +34,50 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      validator: widget.validator,
-      keyboardType: widget.keyboardType,
-      obscureText: _obscureText,
+    return Directionality(
       textDirection: TextDirection.rtl,
-      textAlign: TextAlign.right,
-      style: const TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 15,
-      ),
-      decoration: InputDecoration(
-        hintText: widget.hintText,
-        hintTextDirection: TextDirection.rtl,
+      child: TextFormField(
+        controller: widget.controller,
+        validator: widget.validator,
+        keyboardType: widget.keyboardType,
+        obscureText: _obscureText,
+        textAlign: TextAlign.right,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: widget.hintText,
+          hintTextDirection: TextDirection.rtl,
 
-        suffixIcon: widget.prefixIcon != null
-            ? Icon(
-          widget.prefixIcon,
-          color: AppColors.primary,
-          size: 20,
-        )
-            : null,
 
-        prefixIcon: widget.isPassword
-            ? IconButton(
-          icon: Icon(
-            _obscureText
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            color: AppColors.textSecondary,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscureText = !_obscureText;
-            });
-          },
-        )
-            : null,
+          prefixIcon: widget.prefixIcon != null
+              ? Icon(
+            widget.prefixIcon,
+            color: AppColors.primary,
+            size: 21,
+          )
+              : null,
+
+
+          suffixIcon: widget.isPassword
+              ? IconButton(
+            icon: Icon(
+              _obscureText
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: AppColors.textSecondary,
+              size: 21,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+          )
+              : null,
+        ),
       ),
     );
   }

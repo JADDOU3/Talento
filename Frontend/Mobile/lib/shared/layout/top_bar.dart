@@ -1,54 +1,46 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 class TopBar extends StatelessWidget {
   const TopBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 8),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
 
-              borderRadius: BorderRadius.circular(12),
-            ),
-              child: Image.asset(
-                'assets/icons/boy.png',
-                width: 40,
-                height: 40,
-              )
-          ),
-
-
-          Image.asset(
-            'assets/icons/logo2.png',
-            height: 40,
-          ),
-
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE3E8EE)),
+            Image.asset(
+              'assets/icons/logo1.png',
+              height: 56,
+              fit: BoxFit.contain,
             ),
 
 
+            Container(
+              width: 45,
+              height: 45,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                  width: 1.5,
+                ),
+              ),
+              child: ClipOval(
                 child: Image.asset(
-                    'assets/icons/icon.png',
-                  width: 40,
-                  height: 40,
-                )
-
-
-          ),
-        ],
+                  'assets/icons/boy.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

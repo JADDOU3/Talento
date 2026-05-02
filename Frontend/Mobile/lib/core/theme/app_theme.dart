@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_text_styles.dart';
 
 class AppTheme {
   AppTheme._();
@@ -13,6 +14,8 @@ class AppTheme {
       secondary: AppColors.secondary,
       surface: AppColors.cardBackground,
       error: AppColors.error,
+      onPrimary: AppColors.white,
+      onSecondary: AppColors.white,
     ),
 
     appBarTheme: const AppBarTheme(
@@ -22,6 +25,7 @@ class AppTheme {
       foregroundColor: AppColors.textPrimary,
     ),
 
+    // Inputs
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.inputFill,
@@ -29,9 +33,8 @@ class AppTheme {
         horizontal: 18,
         vertical: 18,
       ),
-      hintStyle: const TextStyle(
+      hintStyle: AppTextStyles.bodyMedium.copyWith(
         color: AppColors.hint,
-        fontSize: 14,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
@@ -63,6 +66,7 @@ class AppTheme {
       ),
     ),
 
+    // Buttons
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
@@ -72,47 +76,25 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),
-        textStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-        ),
+        textStyle: AppTextStyles.button,
       ),
     ),
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.red,
-        textStyle: const TextStyle(
-          fontSize: 14,
+        foregroundColor: AppColors.secondary,
+        textStyle: AppTextStyles.bodyMedium.copyWith(
           fontWeight: FontWeight.w600,
         ),
       ),
     ),
 
     textTheme: const TextTheme(
-      headlineLarge: TextStyle(
-        fontSize: 30,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textPrimary,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        color: AppColors.textPrimary,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        color: AppColors.textSecondary,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
+      headlineLarge: AppTextStyles.headlineLarge,
+      headlineMedium: AppTextStyles.headlineMedium,
+      bodyLarge: AppTextStyles.bodyLarge,
+      bodyMedium: AppTextStyles.bodyMedium,
+      labelLarge: AppTextStyles.bodyLarge,
     ),
   );
 }
