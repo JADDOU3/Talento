@@ -1,28 +1,24 @@
-package org.example.backend.model;
+package org.example.backend.model.mindset;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.activity.Activity;
+import org.example.backend.model.Child;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "performance")
+@Table(name = "child_mindset_score")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Performance {
+public class ChildMindsetScore {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private Float completionScore;
-    private Float efficiencyScore;
-    private Float persistenceScore;
-    private Float independenceScore;
-    private Float strategyScore;
+    private Float score;
     private LocalDateTime lastUpdated;
 
     @ManyToOne
@@ -30,6 +26,6 @@ public class Performance {
     private Child child;
 
     @ManyToOne
-    @JoinColumn(name = "activity_id")
-    private Activity activity;
+    @JoinColumn(name = "mindset_id")
+    private Mindset mindset;
 }

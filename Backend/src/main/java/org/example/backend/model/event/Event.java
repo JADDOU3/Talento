@@ -6,9 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend.model.*;
 
-import org.example.backend.model.challengeCard.ChallengeCard;
-import org.example.backend.model.level.Level;
-import org.example.backend.util.enums.EventType;
+import org.example.backend.model.activity.Activity;
 
 import java.time.LocalDateTime;
 

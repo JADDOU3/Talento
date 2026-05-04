@@ -1,29 +1,28 @@
-package org.example.backend.model.level;
+package org.example.backend.model.activity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.activity.Activity;
+import org.example.backend.model.mindset.Criteria;
 
 @Entity
-@Table(name = "levels")
+@Table(name = "activity_criteria")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Level {
-
+public class ActivityCriteria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int levelNumber;
-
-    private int difficulty;
-
-    private String description;
+    private Float weight;
 
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;
+
+    @ManyToOne
+    @JoinColumn(name = "criteria_id")
+    private Criteria criteria;
 }

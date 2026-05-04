@@ -1,29 +1,27 @@
-package org.example.backend.model;
+package org.example.backend.model.activity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.activity.Activity;
+import org.example.backend.model.Child;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "performance")
+@Table(name = "activity_preference")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Performance {
+public class ActivityPreference {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private Float completionScore;
-    private Float efficiencyScore;
-    private Float persistenceScore;
-    private Float independenceScore;
-    private Float strategyScore;
-    private LocalDateTime lastUpdated;
+    private int timesStarted;
+    private int timesRepeated;
+    private int timesCompleted;
+    private LocalDateTime lastPlayed;
 
     @ManyToOne
     @JoinColumn(name = "child_id")

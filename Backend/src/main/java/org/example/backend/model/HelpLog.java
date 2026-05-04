@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.util.enums.HelpLevel;
 
 import java.time.LocalDateTime;

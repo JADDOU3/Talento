@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.Activity;
+import org.example.backend.model.activity.Activity;
 import org.example.backend.util.enums.ChallengeCardType;
 
 @Entity

@@ -6,6 +6,7 @@ import org.example.backend.Dto.event.CreateHelpEventDto;
 import org.example.backend.Dto.event.CreateLevelEventDto;
 import org.example.backend.model.event.*;
 import org.example.backend.repo.event.*;
+import org.example.backend.service.activity.ActivityService;
 import org.example.backend.util.enums.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

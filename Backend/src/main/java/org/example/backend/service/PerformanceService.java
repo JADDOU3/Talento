@@ -2,10 +2,10 @@ package org.example.backend.service;
 
 import org.example.backend.Dto.performance.CreatePerformanceDto;
 import org.example.backend.Dto.performance.UpdatePerformanceDto;
-import org.example.backend.model.Activity;
+import org.example.backend.model.activity.Activity;
 import org.example.backend.model.Child;
 import org.example.backend.model.Performance;
-import org.example.backend.repo.ActivityRepo;
+import org.example.backend.repo.activity.ActivityRepo;
 import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.PerformanceRepo;
 import org.springframework.beans.factory.annotation.Autowired;
