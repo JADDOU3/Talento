@@ -1,5 +1,7 @@
 package org.example.backend.service;
 
+import org.example.backend.Dto.mindset.CreateMindsetDto;
+import org.example.backend.Dto.mindset.UpdateMindsetDto;
 import org.example.backend.model.Mindset;
 import org.example.backend.repo.MindsetRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,10 @@ public class MindsetService {
     @Autowired
     private MindsetRepo mindsetRepo;
 
-    public Mindset createMindset(Mindset mindset) {
+    public Mindset createMindset(CreateMindsetDto dto) {
+        Mindset mindset = new Mindset();
+        mindset.setName(dto.getName());
+        mindset.setDescription(dto.getDescription());
         return mindsetRepo.save(mindset);
     }
 
@@ -25,8 +30,14 @@ public class MindsetService {
         return mindsetRepo.findById(id).orElse(null);
     }
 
-    public Mindset updateMindset(Mindset mindset) {
-        return mindsetRepo.save(mindset);
+    public Mindset updateMindset(int id, UpdateMindsetDto dto) {
+        Mindset mindset = getMindsetById(id);
+        if (mindset != null) {
+            mindset.setName(dto.getName());
+            mindset.setDescription(dto.getDescription());
+            return mindsetRepo.save(mindset);
+        }
+        return null;
     }
 
     public void deleteMindset(int id) {

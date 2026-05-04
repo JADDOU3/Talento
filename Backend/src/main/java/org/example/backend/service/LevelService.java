@@ -1,5 +1,8 @@
 package org.example.backend.service;
 
+import org.example.backend.Dto.level.CreateLevelDto;
+import org.example.backend.Dto.level.UpdateLevelDto;
+import org.example.backend.model.Activity;
 import org.example.backend.model.level.Level;
 import org.example.backend.repo.ActivityRepo;
 import org.example.backend.repo.LevelRepo;
@@ -17,8 +20,20 @@ public class LevelService {
     @Autowired
     private ActivityRepo activityRepo;
 
-    public Level createLevel(Level level) {
+    public Level createLevel(CreateLevelDto dto) {
+        Activity activity = activityRepo.findById(dto.getActivityId()).orElse(null);
+        if (activity == null) return null;
+
+        Level level = new Level();
+        level.setLevelNumber(dto.getLevelNumber());
+        level.setDifficulty(dto.getDifficulty());
+        level.setDescription(dto.getDescription());
+        level.setActivity(activity);
         return levelRepo.save(level);
+    }
+
+    public List<Level> getAll() {
+        return levelRepo.findAll();
     }
 
     public Level getLevelById(int id) {
@@ -29,8 +44,15 @@ public class LevelService {
         return levelRepo.findByActivityIdOrderByLevelNumber(activityId);
     }
 
-    public Level updateLevel(Level level) {
-        return levelRepo.save(level);
+    public Level updateLevel(int id, UpdateLevelDto dto) {
+        Level level = getLevelById(id);
+        if (level != null) {
+            level.setLevelNumber(dto.getLevelNumber());
+            level.setDifficulty(dto.getDifficulty());
+            level.setDescription(dto.getDescription());
+            return levelRepo.save(level);
+        }
+        return null;
     }
 
     public void deleteLevel(int id) {

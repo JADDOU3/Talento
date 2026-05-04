@@ -1,7 +1,11 @@
 package org.example.backend.service;
 
+import org.example.backend.Dto.criteria.CreateCriteriaDto;
+import org.example.backend.Dto.criteria.UpdateCriteriaDto;
 import org.example.backend.model.Criteria;
+import org.example.backend.model.Mindset;
 import org.example.backend.repo.CriteriaRepo;
+import org.example.backend.repo.MindsetRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +17,22 @@ public class CriteriaService {
     @Autowired
     private CriteriaRepo criteriaRepo;
 
-    public Criteria createCriteria(Criteria criteria) {
+    @Autowired
+    private MindsetRepo mindsetRepo;
+
+    public Criteria createCriteria(CreateCriteriaDto dto) {
+        Mindset mindset = mindsetRepo.findById(dto.getMindsetId()).orElse(null);
+        if (mindset == null) return null;
+
+        Criteria criteria = new Criteria();
+        criteria.setName(dto.getName());
+        criteria.setWeight(dto.getWeight());
+        criteria.setMindset(mindset);
         return criteriaRepo.save(criteria);
+    }
+
+    public List<Criteria> getAllCriteria() {
+        return criteriaRepo.findAll();
     }
 
     public List<Criteria> getCriteriaByMindset(int mindsetId) {
@@ -23,6 +41,16 @@ public class CriteriaService {
 
     public Criteria getCriteriaById(int id) {
         return criteriaRepo.findById(id).orElse(null);
+    }
+
+    public Criteria updateCriteria(int id, UpdateCriteriaDto dto) {
+        Criteria criteria = getCriteriaById(id);
+        if (criteria != null) {
+            criteria.setName(dto.getName());
+            criteria.setWeight(dto.getWeight());
+            return criteriaRepo.save(criteria);
+        }
+        return null;
     }
 
     public void deleteCriteria(int id) {
