@@ -24,7 +24,7 @@ public class HelpLog {
 
     private LocalDateTime createdAt;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "activity_session_id")
     private ActivitySession activitySession;
 }

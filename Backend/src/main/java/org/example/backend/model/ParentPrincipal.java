@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -14,9 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UserPrincipal implements UserDetails {
+public class ParentPrincipal implements UserDetails {
 
-    private User user;
+    private Parent parent;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -25,11 +24,15 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public @Nullable String getPassword() {
-        return user.getPassword();
+        return parent.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return parent.getEmail();
+    }
+
+    public Parent getParent() {
+        return parent;
     }
 }

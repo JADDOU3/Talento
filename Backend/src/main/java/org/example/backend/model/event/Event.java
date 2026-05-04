@@ -24,10 +24,15 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Enumerated(EnumType.STRING)
-    private EventType type;
-
     private LocalDateTime createdAt;
+
+    private String value; // JSON in UML, using String for simplicity or could use JsonNode
+
+    private Float duration;
+
+    private Boolean success;
+
+    private int attempts;
 
     @ManyToOne
     @JoinColumn(name = "child_id", nullable = false)
@@ -38,18 +43,6 @@ public class Event {
     private Session session;
 
     @ManyToOne
-    @JoinColumn(name = "activity_session_id", nullable = false)
-    private ActivitySession activitySession;
-
-    @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;
-
-    @ManyToOne
-    @JoinColumn(name = "level_id")
-    private Level level;
-
-    @ManyToOne
-    @JoinColumn(name = "challenge_card_id")
-    private ChallengeCard challengeCard;
 }

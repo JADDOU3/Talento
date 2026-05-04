@@ -10,6 +10,7 @@ import org.example.backend.repo.ActivitySessionRepo;
 import org.example.backend.repo.SessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,21 +29,19 @@ public class ActivitySessionService {
     @Autowired
     private ActivityRepo activityRepo;
 
+    @Transactional
     public ActivitySession createActivitySession(StartActivitySessionDto startActivitySessionDto) {
-        ActivitySession activitySession = new ActivitySession();
-        Session session = sessionService.getSessionById(startActivitySessionDto.getSessionId());
-        Activity activity = activityService.getActivityById(startActivitySessionDto.getActivityId());
+        Session session = sessionRepo.findById(startActivitySessionDto.getSessionId())
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+        Activity activity = activityRepo.findById(startActivitySessionDto.getActivityId())
+                .orElseThrow(() -> new RuntimeException("Activity not found"));
 
+        ActivitySession activitySession = new ActivitySession();
         activitySession.setOrderIndex(startActivitySessionDto.getOrderIndex());
         activitySession.setStartedAt(LocalDateTime.now());
-
         activitySession.setActivity(activity);
         activitySession.setSession(session);
-        session.getActivitySessions().add(activitySession);
-        activity.getActivitySessions().add(activitySession);
 
-        sessionRepo.save(session);
-        activityRepo.save(activity);
         return activitySessionRepo.save(activitySession);
     }
 

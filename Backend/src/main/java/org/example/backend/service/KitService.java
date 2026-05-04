@@ -13,6 +13,7 @@ import org.example.backend.util.enums.Mindset;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,6 +79,7 @@ public class KitService {
         return childKitRepo.findByChildId(childId);
     }
 
+    @Transactional
     public ChildKit addToChildsCollection(AddToChildCollectionDto dto) {
         Kit kit = kitRepo.findById(dto.getKitId())
                 .orElseThrow(() -> new RuntimeException("Kit not found"));
@@ -92,10 +94,11 @@ public class KitService {
         childKit.setKit(kit);
         childKit.setChild(child);
         childKit.setAcquiredAt(LocalDateTime.now());
-        childKit.setSelected(false);
+        childKit.setIsSelected(false);
         return childKitRepo.save(childKit);
     }
 
+    @Transactional
     public String removeFromChildsCollection(int childId, int kitId) {
         Child child = childRepo.findById(childId).orElseThrow(() -> new RuntimeException("Child not found"));
         Kit kit = kitRepo.findById(kitId).orElseThrow(() -> new RuntimeException("Kit not found"));

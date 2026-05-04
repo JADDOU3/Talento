@@ -41,7 +41,7 @@ public class ActivitySession {
     @OneToMany(mappedBy = "activitySession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChallengeAttempt> challengeAttempts;
 
-    @OneToMany(mappedBy = "activitySession")
-    private List<HelpLog> helpLogs;
+    @OneToOne(mappedBy = "activitySession")
+    private HelpLog helpLog;
 
 }

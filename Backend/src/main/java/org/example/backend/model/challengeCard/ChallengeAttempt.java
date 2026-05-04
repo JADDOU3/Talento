@@ -17,9 +17,9 @@ public class ChallengeAttempt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private boolean accepted;
+    private Boolean accepted;
 
-    private boolean completed;
+    private Boolean completed;
 
     private int attemptsCount;
 

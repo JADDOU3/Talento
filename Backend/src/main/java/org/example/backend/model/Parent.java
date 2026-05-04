@@ -8,30 +8,38 @@ import lombok.NoArgsConstructor;
 import org.example.backend.util.enums.Gender;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "parent")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class User {
+public class Parent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private int id;
+    private int id;
 
     @Column(unique = true)
-   private String email;
+    private String email;
 
-   private String name;
-   @Enumerated(EnumType.STRING)
-   private Gender gender;
-   private String password;
+    private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
-   @JsonIgnore
-   @OneToMany(mappedBy = "user")
+    private String password;
+
+    private String phone;
+
+    private String location;
+
+    private LocalDateTime createdAt;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "parent")
     private List<Child> children;
 
    //todo implement Web Relations

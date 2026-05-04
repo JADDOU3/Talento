@@ -2,10 +2,10 @@ package org.example.backend.service;
 
 import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.config.PasswordEncoderConfig;
-import org.example.backend.model.User;
-import org.example.backend.model.UserPrincipal;
+import org.example.backend.model.Parent;
+import org.example.backend.model.ParentPrincipal;
 import org.example.backend.repo.ChildRepo;
-import org.example.backend.repo.UserRepo;
+import org.example.backend.repo.ParentRepo;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,12 +13,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 
 @Service
-public class UserService implements UserDetailsService {
+public class ParentService implements UserDetailsService {
 
     @Autowired
-    private UserRepo repo;
+    private ParentRepo repo;
 
     @Autowired
     private PasswordEncoderConfig passwordEncoderConfig;
@@ -28,35 +30,36 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        User user = repo.findByEmail(email);
+        Parent parent = repo.findByEmail(email);
 
-        if(user == null) {
-            System.out.println("User not found");
-            throw new UsernameNotFoundException("User not found");
+        if(parent == null) {
+            System.out.println("Parent not found");
+            throw new UsernameNotFoundException("Parent not found");
         }
 
-        return new UserPrincipal(user);
+        return new ParentPrincipal(parent);
     }
 
     public String register(RegisterDto registerDto) {
         if(repo.findByEmail(registerDto.getEmail()) != null) {
             return "Email already exists";
         }
-        User user = new User();
+        Parent parent = new Parent();
 
-        user.setEmail(registerDto.getEmail());
-        user.setPassword(passwordEncoderConfig.passwordEncoder().encode(registerDto.getPassword()));
-        user.setName(registerDto.getName());
-        user.setGender(registerDto.getGender());
+        parent.setEmail(registerDto.getEmail());
+        parent.setPassword(passwordEncoderConfig.passwordEncoder().encode(registerDto.getPassword()));
+        parent.setName(registerDto.getName());
+        parent.setGender(registerDto.getGender());
+        parent.setCreatedAt(LocalDateTime.now());
 
-        repo.save(user);
-        return "User registered successfully";
+        repo.save(parent);
+        return "Parent registered successfully";
     }
 
     public boolean isNewUser() {
-        User user = SecurityUtils.getCurrentUser();
+        Parent parent = SecurityUtils.getCurrentUser();
 
-        if(childRepo.findByUserId(user.getId()).isEmpty()) {
+        if(childRepo.findByParentId(parent.getId()).isEmpty()) {
             return true;
         }
         return false;

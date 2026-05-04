@@ -25,7 +25,7 @@ public class LevelAttempt {
 
     private LocalDateTime endedAt;
 
-    private boolean completed;
+    private Boolean completed;
 
     @ManyToOne
     @JoinColumn(name = "activity_session_id")

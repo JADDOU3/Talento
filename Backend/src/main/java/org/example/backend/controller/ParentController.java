@@ -4,9 +4,9 @@ import org.example.backend.Dto.auth.AuthResponseDto;
 import org.example.backend.Dto.auth.LoginDto;
 import org.example.backend.Dto.auth.RefreshTokenDto;
 import org.example.backend.Dto.auth.RegisterDto;
-import org.example.backend.model.User;
+import org.example.backend.model.Parent;
 import org.example.backend.service.AuthService;
-import org.example.backend.service.UserService;
+import org.example.backend.service.ParentService;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,17 +14,21 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
-public class UserController {
+public class ParentController {
 
     @Autowired
-    private UserService userService;
+    private ParentService userService;
 
     @Autowired
     private AuthService authService;
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterDto registerDto) {
-        return userService.register(registerDto);
+    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
+        String result = userService.register(registerDto);
+        if (result.equals("Parent registered successfully")) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @PostMapping("/login")
@@ -38,12 +42,12 @@ public class UserController {
     }
 
     @GetMapping("/isNewUser")
-    public boolean isNewUser() {
-        return userService.isNewUser();
+    public ResponseEntity<Boolean> isNewUser() {
+        return ResponseEntity.ok(userService.isNewUser());
     }
 
     @GetMapping("/currentUser")
-    public User getCurrentUser() {
-        return SecurityUtils.getCurrentUser();
+    public ResponseEntity<Parent> getCurrentUser() {
+        return ResponseEntity.ok(SecurityUtils.getCurrentUser());
     }
 }

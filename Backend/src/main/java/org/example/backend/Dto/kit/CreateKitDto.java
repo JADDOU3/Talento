@@ -23,7 +23,6 @@ public class CreateKitDto {
     private Double price;
     private String imageURL;
     private List<String> kitItems;
-    private Boolean isSelected;
     private Integer rating;
     private Integer age;
 }

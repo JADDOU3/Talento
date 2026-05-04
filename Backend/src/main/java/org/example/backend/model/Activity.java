@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.example.backend.model.challengeCard.ChallengeCard;
+import org.example.backend.model.event.Event;
+import org.example.backend.model.level.Level;
 import org.example.backend.util.enums.Type;
 
 import java.util.List;
@@ -21,10 +25,11 @@ public class Activity {
     private int id;
 
     private String name;
-    private String description;
 
     @Enumerated(EnumType.STRING)
     private Type type;
+
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "kit_id")
@@ -35,6 +40,24 @@ public class Activity {
 
 
 
-    //todo add the other relations when they are created ( performance , activityPreference , Event , Level )
+    @JsonIgnore
+    @OneToMany(mappedBy = "activity")
+    private List<Performance> performances;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activity")
+    private List<ActivityPreference> activityPreferences;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activity")
+    private List<Level> levels;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activity")
+    private List<ChallengeCard> challengeCards;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activity")
+    private List<Event> events;
 
 }
