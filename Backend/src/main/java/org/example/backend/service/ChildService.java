@@ -3,7 +3,7 @@ package org.example.backend.service;
 import org.example.backend.Dto.child.ChildUpdateDto;
 import org.example.backend.Dto.child.CreateChildDto;
 import org.example.backend.model.Child;
-import org.example.backend.model.User;
+import org.example.backend.model.Parent;
 import org.example.backend.repo.ChildRepo;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +21,14 @@ public class ChildService {
 
     public Child createChild(CreateChildDto childDto){
         Child child = new Child();
-        User user = SecurityUtils.getCurrentUser();
+        Parent parent = SecurityUtils.getCurrentUser();
         child.setName(childDto.getName());
         child.setDateOfBirth(childDto.getDateOfBirth());
         child.setGender(childDto.getGender());
-        child.setUser(user);
+        child.setParent(parent);
         child.setCreatedAt(LocalDateTime.now());
 
-        if(childRepo.findByUserId(user.getId()).isEmpty()) {
+        if(childRepo.findByParentId(parent.getId()).isEmpty()) {
             child.setSelected(true);
         } else {
             child.setSelected(false);
@@ -41,14 +41,14 @@ public class ChildService {
             return childRepo.findById(id).orElse(null);
     }
 
-    public List<Child> getAllChildrenByUser(int id){ return childRepo.findByUserId(id); }
+    public List<Child> getAllChildrenByUser(int id){ return childRepo.findByParentId(id); }
 
     public  Child updateChild(ChildUpdateDto childUpdateDto){
         Child child = childRepo.findById(childUpdateDto.getId()).orElse(null);
         if(child == null)
             return null;
-        User user = SecurityUtils.getCurrentUser();
-        if(user.getId() != child.getUser().getId())
+        Parent parent = SecurityUtils.getCurrentUser();
+        if(parent.getId() != child.getParent().getId())
             return null;
 
         if(childUpdateDto.getName() != null) child.setName(childUpdateDto.getName());
@@ -59,19 +59,19 @@ public class ChildService {
 
     }
     public String deleteChild(int id){
-        User user = SecurityUtils.getCurrentUser();
+        Parent parent = SecurityUtils.getCurrentUser();
         Child child = getChildById(id);
         if(child == null)
             return "Child not found";
-        if(child.getUser().getId() != user.getId())
+        if(child.getParent().getId() != parent.getId())
             return "You are not authorized to delete this child";
         childRepo.delete(child);
         return "Child deleted";
     }
 
     public Child getSelectedChild() {
-        User user = SecurityUtils.getCurrentUser();
-        Child selectedChild = childRepo.findByIsSelectedTrueAndUserId(user.getId());
+        Parent parent = SecurityUtils.getCurrentUser();
+        Child selectedChild = childRepo.findByIsSelectedTrueAndParentId(parent.getId());
         if(selectedChild == null) {
             return null;
         }
@@ -81,15 +81,15 @@ public class ChildService {
 
     @Transactional
     public Child selectChild(int id) {
-        User user = SecurityUtils.getCurrentUser();
+        Parent parent = SecurityUtils.getCurrentUser();
         Child child = getChildById(id);
         if(child.isSelected())
             return child;
 
-        if (child == null || child.getUser().getId() != user.getId())
+        if (child == null || child.getParent().getId() != parent.getId())
             return null;
 
-        childRepo.deselectAllByUserId(user.getId());
+        childRepo.deselectAllByParentId(parent.getId());
         child.setSelected(true);
         return childRepo.save(child);
     }

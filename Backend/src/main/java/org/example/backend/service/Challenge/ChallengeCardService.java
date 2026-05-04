@@ -2,9 +2,9 @@ package org.example.backend.service.Challenge;
 
 import org.example.backend.Dto.challenge.CreateChallengeCardDto;
 import org.example.backend.Dto.challenge.UpdateChallengeCardDto;
-import org.example.backend.model.Activity;
+import org.example.backend.model.activity.Activity;
 import org.example.backend.model.challengeCard.ChallengeCard;
-import org.example.backend.repo.ActivityRepo;
+import org.example.backend.repo.activity.ActivityRepo;
 import org.example.backend.repo.challenge.ChallengeCardRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

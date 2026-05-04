@@ -6,6 +6,7 @@ import org.example.backend.Dto.event.CreateHelpEventDto;
 import org.example.backend.Dto.event.CreateLevelEventDto;
 import org.example.backend.model.event.*;
 import org.example.backend.repo.event.*;
+import org.example.backend.service.activity.ActivityService;
 import org.example.backend.util.enums.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,6 @@ public class EventService {
     @Autowired private SessionService sessionService;
     @Autowired private ActivityService activityService;
 
-    // --- Generic queries ---
     public List<Event> getEventsByChild(int childId) {
         return eventRepo.findByChildId(childId);
     }
@@ -41,7 +41,6 @@ public class EventService {
     // --- LevelEvent ---
     public LevelEvent createLevelEvent(CreateLevelEventDto createLevelEventDto) {
         LevelEvent event = new LevelEvent();
-        event.setType(EventType.LEVEL);
         event.setCreatedAt(LocalDateTime.now());
         event.setChild(childService.getChildById(createLevelEventDto.getChildId()));
         event.setSession(sessionService.getSessionById(createLevelEventDto.getSessionId()));
@@ -60,7 +59,6 @@ public class EventService {
     // --- ChallengeEvent ---
     public ChallengeEvent createChallengeEvent(CreateChallengeEventDto createChallengeEventDto) {
         ChallengeEvent event = new ChallengeEvent();
-        event.setType(EventType.CHALLENGE);
         event.setCreatedAt(LocalDateTime.now());
         event.setChild(childService.getChildById(createChallengeEventDto.getChildId()));
         event.setSession(sessionService.getSessionById(createChallengeEventDto.getSessionId()));
@@ -79,7 +77,6 @@ public class EventService {
     // --- HelpEvent ---
     public HelpEvent createHelpEvent(CreateHelpEventDto createHelpEventDto) {
         HelpEvent event = new HelpEvent();
-        event.setType(EventType.HELP);
         event.setCreatedAt(LocalDateTime.now());
         event.setChild(childService.getChildById(createHelpEventDto.getChildId()));
         event.setSession(sessionService.getSessionById(createHelpEventDto.getSessionId()));
@@ -98,7 +95,6 @@ public class EventService {
     // --- ActivityEvent ---
     public ActivityEvent createActivityEvent(CreateActivityEventDto createActivityEventDto) {
         ActivityEvent event = new ActivityEvent();
-        event.setType(EventType.ACTIVITY);
         event.setCreatedAt(LocalDateTime.now());
         event.setChild(childService.getChildById(createActivityEventDto.getChildId()));
         event.setSession(sessionService.getSessionById(createActivityEventDto.getSessionId()));
