@@ -9,7 +9,8 @@ import org.example.backend.model.Kit;
 import org.example.backend.repo.ChildKitRepo;
 import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.KitRepo;
-import org.example.backend.util.enums.Mindset;
+import org.example.backend.model.Mindset;
+import org.example.backend.repo.MindsetRepo;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,9 @@ public class KitService {
     @Autowired
     private ChildKitRepo childKitRepo;
 
+    @Autowired
+    private MindsetRepo mindsetRepo;
+
     public Kit createKit(CreateKitDto createKitDto) {
         Kit kit = new Kit();
         kit.setName(createKitDto.getName());
@@ -37,7 +41,12 @@ public class KitService {
         kit.setPrice(createKitDto.getPrice() != null ? createKitDto.getPrice() : 0.0);
         kit.setCreatedAt(LocalDateTime.now());
         kit.setType(createKitDto.getType());
-        kit.setMindset(createKitDto.getMindset());
+        
+        if (createKitDto.getMindsetId() != null) {
+            Mindset mindset = mindsetRepo.findById(createKitDto.getMindsetId()).orElse(null);
+            kit.setMindset(mindset);
+        }
+        
         kit.setImageURL(createKitDto.getImageURL());
         kit.setKitItems(createKitDto.getKitItems());
         kit.setRating(createKitDto.getRating() != null ? createKitDto.getRating() : 0);
@@ -55,7 +64,12 @@ public class KitService {
         if (updateKitDto.getName() != null) kit.setName(updateKitDto.getName());
         if (updateKitDto.getDescription() != null) kit.setDescription(updateKitDto.getDescription());
         if (updateKitDto.getType() != null) kit.setType(updateKitDto.getType());
-        if (updateKitDto.getMindset() != null) kit.setMindset(updateKitDto.getMindset());
+        
+        if (updateKitDto.getMindsetId() != null) {
+            Mindset mindset = mindsetRepo.findById(updateKitDto.getMindsetId()).orElse(null);
+            kit.setMindset(mindset);
+        }
+        
         if (updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
         if (updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
         if (updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
@@ -113,7 +127,9 @@ public class KitService {
         return kitRepo.findByType(type);
     }
 
-    public List<Kit> getKitsByMindset(Mindset mindset) {
+    public List<Kit> getKitsByMindset(int mindsetId) {
+        Mindset mindset = mindsetRepo.findById(mindsetId).orElse(null);
+        if (mindset == null) return List.of();
         return kitRepo.findByMindset(mindset);
     }
 
