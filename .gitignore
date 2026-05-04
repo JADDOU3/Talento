@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Default ignored files
 /shelf/
 /workspace.xml
@@ -42,3 +43,54 @@ build/
 
 
 .env
+=======
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# Android / Gradle
+**/.gradle/
+**/local.properties
+**/GeneratedPluginRegistrant.java
+
+# Build folders
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+.dart_tool/
+.env
+# Symbolication
+app.*.symbols
+
+# Obfuscation
+app.*.map.json
+>>>>>>> 1fa9b86a49e02d460f12550142ed08adf9cf170e

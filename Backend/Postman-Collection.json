@@ -1,0 +1,969 @@
+{
+  "info": {
+    "name": "Backend API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth (Parent)",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/register", "host": ["{{baseUrl}}"], "path": ["api", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Parent Name\",\n  \"email\": \"parent@example.com\",\n  \"gender\": \"MALE\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/login", "host": ["{{baseUrl}}"], "path": ["api", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"parent@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/refresh", "host": ["{{baseUrl}}"], "path": ["api", "refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your-refresh-token-here\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Is New User",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/isNewUser", "host": ["{{baseUrl}}"], "path": ["api", "isNewUser"] }
+          }
+        },
+        {
+          "name": "Get Current Parent",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/currentUser", "host": ["{{baseUrl}}"], "path": ["api", "currentUser"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mindset System",
+      "item": [
+        {
+          "name": "Mindsets",
+          "item": [
+            {
+              "name": "Create Mindset",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/mindsets", "host": ["{{baseUrl}}"], "path": ["api", "mindsets"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Growth Mindset\",\n  \"description\": \"Ability to learn and grow\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Get All Mindsets",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/mindsets", "host": ["{{baseUrl}}"], "path": ["api", "mindsets"] }
+              }
+            },
+            {
+              "name": "Get Mindset By ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/mindsets/1", "host": ["{{baseUrl}}"], "path": ["api", "mindsets", "1"] }
+              }
+            },
+            {
+              "name": "Update Mindset",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/mindsets/1", "host": ["{{baseUrl}}"], "path": ["api", "mindsets", "1"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Growth Mindset\",\n  \"description\": \"Updated description\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Mindset",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{baseUrl}}/api/mindsets/1", "host": ["{{baseUrl}}"], "path": ["api", "mindsets", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criteria",
+          "item": [
+            {
+              "name": "Create Criteria",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/criteria", "host": ["{{baseUrl}}"], "path": ["api", "criteria"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Persistence\",\n  \"weight\": 0.5,\n  \"mindsetId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get All Criteria",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/criteria", "host": ["{{baseUrl}}"], "path": ["api", "criteria"] }
+              }
+            },
+            {
+              "name": "Get Criteria By ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "criteria", "1"] }
+              }
+            },
+            {
+              "name": "Update Criteria",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "criteria", "1"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Persistence\",\n  \"weight\": 0.7\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Criteria",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{baseUrl}}/api/criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "criteria", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity Criteria",
+          "item": [
+            {
+              "name": "Create Activity Criteria",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"weight\": 0.8,\n  \"activityId\": 1,\n  \"criteriaId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get All Activity Criteria",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria"] }
+              }
+            },
+            {
+              "name": "Get By Activity",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria/activity/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria", "activity", "1"] }
+              }
+            },
+            {
+              "name": "Update Activity Criteria",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria", "1"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"weight\": 0.9\n}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AI Scoring & Reports",
+      "item": [
+        {
+          "name": "Performance",
+          "item": [
+            {
+              "name": "Create Performance",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/performance", "host": ["{{baseUrl}}"], "path": ["api", "performance"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"completionScore\": 85.0,\n  \"efficiencyScore\": 70.0,\n  \"persistenceScore\": 90.0,\n  \"independenceScore\": 60.0,\n  \"strategyScore\": 75.0,\n  \"childId\": 1,\n  \"activityId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get Performance By ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/performance/1", "host": ["{{baseUrl}}"], "path": ["api", "performance", "1"] }
+              }
+            },
+            {
+              "name": "Get By Child",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/performance/child/1", "host": ["{{baseUrl}}"], "path": ["api", "performance", "child", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Child Mindset Scores",
+          "item": [
+            {
+              "name": "Create Score",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/mindset-scores", "host": ["{{baseUrl}}"], "path": ["api", "mindset-scores"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"score\": 78.5,\n  \"childId\": 1,\n  \"mindsetId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get By Child",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/mindset-scores/child/1", "host": ["{{baseUrl}}"], "path": ["api", "mindset-scores", "child", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity Preferences",
+          "item": [
+            {
+              "name": "Create Preference",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/activity-preferences", "host": ["{{baseUrl}}"], "path": ["api", "activity-preferences"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"timesStarted\": 5,\n  \"timesRepeated\": 2,\n  \"timesCompleted\": 3,\n  \"lastPlayed\": \"2026-05-04T20:00:00\",\n  \"childId\": 1,\n  \"activityId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get By Child",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/activity-preferences/child/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-preferences", "child", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI Reports",
+          "item": [
+            {
+              "name": "Create AI Report",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/ai-reports", "host": ["{{baseUrl}}"], "path": ["api", "ai-reports"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"summary\": \"Child is showing great progress in persistence.\",\n  \"generatedAt\": \"2026-05-04T21:00:00\",\n  \"childId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get By Child",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/ai-reports/child/1", "host": ["{{baseUrl}}"], "path": ["api", "ai-reports", "child", "1"] }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Levels",
+      "item": [
+        {
+          "name": "Create Level",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/levels", "host": ["{{baseUrl}}"], "path": ["api", "levels"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"levelNumber\": 1,\n  \"difficulty\": 2,\n  \"description\": \"Basic level\",\n  \"activityId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Levels",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/levels", "host": ["{{baseUrl}}"], "path": ["api", "levels"] }
+          }
+        },
+        {
+          "name": "Get Levels By Activity",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/levels/activity/1", "host": ["{{baseUrl}}"], "path": ["api", "levels", "activity", "1"] }
+          }
+        },
+        {
+          "name": "Create Level Attempt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/level-attempts", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attemptNumber\": 1,\n  \"startedAt\": \"2026-05-04T21:10:00\",\n  \"endedAt\": \"2026-05-04T21:15:00\",\n  \"completed\": true,\n  \"activitySessionId\": 1,\n  \"levelId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Level Attempts By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/level-attempts/activity-session/1", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts", "activity-session", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "item": [
+        {
+          "name": "Create Activity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/activities/", "host": ["{{baseUrl}}"], "path": ["api", "activities", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Memory Game\",\n  \"description\": \"A fun game to improve memory\",\n  \"type\": \"GAME\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Activities",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/activities/", "host": ["{{baseUrl}}"], "path": ["api", "activities", ""] }
+          }
+        },
+        {
+          "name": "Get Activity By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/activities/1", "host": ["{{baseUrl}}"], "path": ["api", "activities", "1"] }
+          }
+        },
+        {
+          "name": "Update Activity",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/activities/", "host": ["{{baseUrl}}"], "path": ["api", "activities", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Updated Activity\",\n  \"description\": \"Updated description\",\n  \"type\": \"GAME\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Activity",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/activities/1", "host": ["{{baseUrl}}"], "path": ["api", "activities", "1"] }
+          }
+        },
+        {
+          "name": "Assign Activity to Kit",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/activities/kit/", "host": ["{{baseUrl}}"], "path": ["api", "activities", "kit", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activityId\": 1,\n  \"kitId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Activities By Kit",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/activities/kit/1", "host": ["{{baseUrl}}"], "path": ["api", "activities", "kit", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activity Sessions",
+      "item": [
+        {
+          "name": "Create Activity Session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderIndex\": 1,\n  \"activityId\": 1,\n  \"sessionId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Activity Sessions",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", ""] }
+          }
+        },
+        {
+          "name": "Get Activity Session By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", "1"] }
+          }
+        },
+        {
+          "name": "Get Activity Sessions By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/session/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", "session", "1"] }
+          }
+        },
+        {
+          "name": "Update Activity Session",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"orderIndex\": 1,\n  \"startedAt\": \"2026-05-04T21:00:00\",\n  \"endedAt\": \"2026-05-04T21:30:00\",\n  \"activityId\": 1,\n  \"sessionId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Activity Session",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", "1"] }
+          }
+        },
+        {
+          "name": "End Activity Session",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/activity-sessions/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-sessions", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Children",
+      "item": [
+        {
+          "name": "Get Child By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/children/1", "host": ["{{baseUrl}}"], "path": ["api", "children", "1"] }
+          }
+        },
+        {
+          "name": "Get Children By Current Parent",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/children", "host": ["{{baseUrl}}"], "path": ["api", "children"] }
+          }
+        },
+        {
+          "name": "Add Child",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/children/", "host": ["{{baseUrl}}"], "path": ["api", "children", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Child Name\",\n  \"dateOfBirth\": \"2020-01-01T00:00:00\",\n  \"gender\": \"MALE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Child",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/children/", "host": ["{{baseUrl}}"], "path": ["api", "children", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Updated Name\",\n  \"dateOfBirth\": \"2020-01-01T00:00:00\",\n  \"gender\": \"MALE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Child",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/children/1", "host": ["{{baseUrl}}"], "path": ["api", "children", "1"] }
+          }
+        },
+        {
+          "name": "Get Selected Child",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/children/selected", "host": ["{{baseUrl}}"], "path": ["api", "children", "selected"] }
+          }
+        },
+        {
+          "name": "Select Child",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/children/selected/1", "host": ["{{baseUrl}}"], "path": ["api", "children", "selected", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Get Events By Child",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/child/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "child", "1"] }
+          }
+        },
+        {
+          "name": "Get Events By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/session/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "session", "1"] }
+          }
+        },
+        {
+          "name": "Get Events By Child And Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/events/child/1/type/LEVEL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "child", "1", "type", "LEVEL"]
+            }
+          }
+        },
+        {
+          "name": "Create Level Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/events/level", "host": ["{{baseUrl}}"], "path": ["api", "events", "level"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"childId\": 1,\n  \"sessionId\": 1,\n  \"activitySessionId\": 1,\n  \"action\": \"COMPLETE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Challenge Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/events/challenge", "host": ["{{baseUrl}}"], "path": ["api", "events", "challenge"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"childId\": 1,\n  \"sessionId\": 1,\n  \"action\": \"COMPLETE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Help Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/events/help", "host": ["{{baseUrl}}"], "path": ["api", "events", "help"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"childId\": 1,\n  \"sessionId\": 1,\n  \"helpLevel\": \"MEDIUM\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Activity Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/events/activity", "host": ["{{baseUrl}}"], "path": ["api", "events", "activity"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"childId\": 1,\n  \"sessionId\": 1,\n  \"activityId\": 1,\n  \"action\": \"START\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Help Logs",
+      "item": [
+        {
+          "name": "Create Help Log",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/help-logs/", "host": ["{{baseUrl}}"], "path": ["api", "help-logs", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activitySessionId\": 1,\n  \"helpLevel\": \"MEDIUM\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Help Log By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/help-logs/1", "host": ["{{baseUrl}}"], "path": ["api", "help-logs", "1"] }
+          }
+        },
+        {
+          "name": "Get Help Logs By Activity Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/help-logs/activity-session/1", "host": ["{{baseUrl}}"], "path": ["api", "help-logs", "activity-session", "1"] }
+          }
+        },
+        {
+          "name": "Delete Help Log",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/help-logs/1", "host": ["{{baseUrl}}"], "path": ["api", "help-logs", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kits",
+      "item": [
+        {
+          "name": "Create Kit",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/kits/", "host": ["{{baseUrl}}"], "path": ["api", "kits", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Math Adventure Kit\",\n  \"type\": \"PHYSICAL\",\n  \"mindsetId\": 1,\n  \"description\": \"Learn math with fun\",\n  \"price\": 49.99,\n  \"imageURL\": \"http://example.com/kit.jpg\",\n  \"kitItems\": [\"Book\", \"Flashcards\"],\n  \"rating\": 5,\n  \"age\": 6\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Kits",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/kits/", "host": ["{{baseUrl}}"], "path": ["api", "kits", ""] }
+          }
+        },
+        {
+          "name": "Get Kit By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/kits/1", "host": ["{{baseUrl}}"], "path": ["api", "kits", "1"] }
+          }
+        },
+        {
+          "name": "Update Kit",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/kits/", "host": ["{{baseUrl}}"], "path": ["api", "kits", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Updated Math Kit\",\n  \"type\": \"PHYSICAL\",\n  \"mindsetId\": 1,\n  \"description\": \"Updated description\",\n  \"price\": 54.99\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Kit",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/kits/1", "host": ["{{baseUrl}}"], "path": ["api", "kits", "1"] }
+          }
+        },
+        {
+          "name": "Get Kits By Child ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/kits/child/1", "host": ["{{baseUrl}}"], "path": ["api", "kits", "child", "1"] }
+          }
+        },
+        {
+          "name": "Add Kit to Child Collection",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/kits/child/", "host": ["{{baseUrl}}"], "path": ["api", "kits", "child", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kitId\": 1,\n  \"childId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Kit from Child Collection",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/kits/child/1/kit/1", "host": ["{{baseUrl}}"], "path": ["api", "kits", "child", "1", "kit", "1"] }
+          }
+        },
+        {
+          "name": "Get Kits By Type",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/kits/type/PHYSICAL", "host": ["{{baseUrl}}"], "path": ["api", "kits", "type", "PHYSICAL"] }
+          }
+        },
+        {
+          "name": "Get Kits By Mindset",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/kits/mindset/1", "host": ["{{baseUrl}}"], "path": ["api", "kits", "mindset", "1"] }
+          }
+        },
+        {
+          "name": "Search Kits By Name",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/kits/search?keyword=math",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "kits", "search"],
+              "query": [{ "key": "keyword", "value": "math" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Start Session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/sessions/", "host": ["{{baseUrl}}"], "path": ["api", "sessions", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kitId\": 1,\n  \"childId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Session By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/sessions/1", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "1"] }
+          }
+        },
+        {
+          "name": "Get Sessions By Child",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/sessions/child/1", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "child", "1"] }
+          }
+        },
+        {
+          "name": "Get Sessions By Kit",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/sessions/kit/1", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "kit", "1"] }
+          }
+        },
+        {
+          "name": "Delete Session",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/sessions/1", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "1"] }
+          }
+        },
+        {
+          "name": "End Session",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/api/sessions/1/end", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "1", "end"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenge Cards",
+      "item": [
+        {
+          "name": "Create Challenge Card",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/challenge-cards/", "host": ["{{baseUrl}}"], "path": ["api", "challenge-cards", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activityId\": 1,\n  \"title\": \"Memory Test\",\n  \"description\": \"Recall 5 items\",\n  \"type\": \"QUIZ\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Challenge Cards",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/challenge-cards/", "host": ["{{baseUrl}}"], "path": ["api", "challenge-cards", ""] }
+          }
+        },
+        {
+          "name": "Get Challenge Card By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/challenge-cards/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-cards", "1"] }
+          }
+        },
+        {
+          "name": "Get Challenge Cards By Activity",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/challenge-cards/activity/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-cards", "activity", "1"] }
+          }
+        },
+        {
+          "name": "Update Challenge Card",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/challenge-cards/", "host": ["{{baseUrl}}"], "path": ["api", "challenge-cards", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"activityId\": 1,\n  \"title\": \"Updated Challenge\",\n  \"description\": \"Recall 10 items\",\n  \"type\": \"QUIZ\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Challenge Card",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/challenge-cards/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-cards", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenge Attempts",
+      "item": [
+        {
+          "name": "Create Challenge Attempt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/challenge-attempts/", "host": ["{{baseUrl}}"], "path": ["api", "challenge-attempts", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activitySessionId\": 1,\n  \"challengeCardId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Challenge Attempt By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/challenge-attempts/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-attempts", "1"] }
+          }
+        },
+        {
+          "name": "Get Challenge Attempts By Activity Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/challenge-attempts/activity-session/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-attempts", "activity-session", "1"] }
+          }
+        },
+        {
+          "name": "Get Challenge Attempts By Challenge Card",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/challenge-attempts/challenge-card/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-attempts", "challenge-card", "1"] }
+          }
+        },
+        {
+          "name": "Accept Challenge Attempt",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/challenge-attempts/accept/1?accepted=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "challenge-attempts", "accept", "1"],
+              "query": [{ "key": "accepted", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Complete Challenge Attempt",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/challenge-attempts/complete/1?completed=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "challenge-attempts", "complete", "1"],
+              "query": [{ "key": "completed", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Challenge Attempt",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/challenge-attempts/1", "host": ["{{baseUrl}}"], "path": ["api", "challenge-attempts", "1"] }
+          }
+        }
+      ]
+    }
+  ]
+}
