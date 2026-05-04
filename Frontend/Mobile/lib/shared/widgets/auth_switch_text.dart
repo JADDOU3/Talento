@@ -33,7 +33,7 @@ class AuthSwitchText extends StatelessWidget {
           child: Text(
             actionText,
             style: const TextStyle(
-              color: AppColors.yellow,
+              color: AppColors.red,
               fontSize: 18,
               fontWeight: FontWeight.w800,
             ),

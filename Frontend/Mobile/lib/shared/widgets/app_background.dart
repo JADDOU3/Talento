@@ -87,7 +87,7 @@ class _AppBackgroundState extends State<AppBackground>
               final move = (_controller.value - 0.5) * 20;
 
               return Stack(
-                children: _buildSmallBubbles(move),
+               children: _buildSmallBubbles(move),
               );
             },
           ),
@@ -98,7 +98,7 @@ class _AppBackgroundState extends State<AppBackground>
     );
   }
 
-  List<Widget> _buildSmallBubbles(double move) {
+ List<Widget> _buildSmallBubbles(double move) {
     return [
       _bubble(top: 18 + move, left: 28, size: 12, color: AppColors.primary),
       _bubble(top: 42, left: 70 + move, size: 4, color: AppColors.yellow, opacity: 0.8),
