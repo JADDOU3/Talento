@@ -4,6 +4,8 @@ services:
     image: mysql:8
     container_name: mysql
     restart: always
+    env_file:
+      /.env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: talento
@@ -25,6 +27,8 @@ services:
       dockerfile: Docker/backend/Dockerfile
     container_name: backend
     restart: always
+    env_file:
+      /.env
     expose:
       - "8080"
     environment:
@@ -38,14 +42,31 @@ services:
     networks:
       - app-network
 
+
   frontend:
-    image: jaddou333/talento-frontend:latest
-    container_name: frontend
+      build:
+        context: ..
+        dockerfile: Docker/web/Dockerfile
+      container_name: frontend
+      restart: always
+      expose:
+        - "3000"
+      networks:
+        - app-network
+
+
+  ai:
+    build:
+      context: ..
+      dockerfile: Docker/ai/Dockerfile
+    container_name: ai
     restart: always
     expose:
-      - "3000"
+      - "8000"
     networks:
       - app-network
+
+
 
   nginx:
     image: nginx:alpine
@@ -58,6 +79,7 @@ services:
     depends_on:
       - backend
       - frontend
+      - ai
     networks:
       - app-network
 
