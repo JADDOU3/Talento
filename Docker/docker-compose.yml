@@ -44,9 +44,7 @@ services:
 
 
   frontend:
-      build:
-        context: ..
-        dockerfile: Docker/web/Dockerfile
+      image: jaddou333/talento-frontend:latest
       container_name: frontend
       restart: always
       expose:
