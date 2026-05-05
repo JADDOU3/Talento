@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.ActivitySession;
+import org.example.backend.model.activity.ActivitySession;
 
 import java.time.LocalDateTime;
 
@@ -25,7 +25,7 @@ public class LevelAttempt {
 
     private LocalDateTime endedAt;
 
-    private boolean completed;
+    private Boolean completed;
 
     @ManyToOne
     @JoinColumn(name = "activity_session_id")

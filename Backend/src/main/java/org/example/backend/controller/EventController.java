@@ -40,7 +40,7 @@ public class EventController {
 
     // --- LevelEvent ---
     @PostMapping("/level")
-    public ResponseEntity<LevelEvent> createLevelEvent(CreateLevelEventDto createLevelEventDto) {
+    public ResponseEntity<LevelEvent> createLevelEvent(@RequestBody CreateLevelEventDto createLevelEventDto) {
         return new ResponseEntity<>(eventService.createLevelEvent(createLevelEventDto), HttpStatus.CREATED);
     }
 
@@ -57,7 +57,7 @@ public class EventController {
 
     // --- ChallengeEvent ---
     @PostMapping("/challenge")
-    public ResponseEntity<ChallengeEvent> createChallengeEvent(CreateChallengeEventDto createChallengeEventDto) {
+    public ResponseEntity<ChallengeEvent> createChallengeEvent(@RequestBody CreateChallengeEventDto createChallengeEventDto) {
         return new ResponseEntity<>(eventService.createChallengeEvent(createChallengeEventDto), HttpStatus.CREATED);
     }
 
@@ -74,7 +74,7 @@ public class EventController {
 
     // --- HelpEvent ---
     @PostMapping("/help")
-    public ResponseEntity<HelpEvent> createHelpEvent(CreateHelpEventDto createHelpEventDto) {
+    public ResponseEntity<HelpEvent> createHelpEvent(@RequestBody CreateHelpEventDto createHelpEventDto) {
         return new ResponseEntity<>(eventService.createHelpEvent(createHelpEventDto), HttpStatus.CREATED);
     }
 
@@ -91,7 +91,7 @@ public class EventController {
 
     // --- ActivityEvent ---
     @PostMapping("/activity")
-    public ResponseEntity<ActivityEvent> createActivityEvent(CreateActivityEventDto createActivityEventDto) {
+    public ResponseEntity<ActivityEvent> createActivityEvent(@RequestBody CreateActivityEventDto createActivityEventDto) {
         return new ResponseEntity<>(
                 eventService.createActivityEvent(createActivityEventDto),
                 HttpStatus.CREATED);

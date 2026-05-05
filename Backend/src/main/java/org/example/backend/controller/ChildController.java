@@ -20,12 +20,11 @@ public class ChildController {
     private ChildService childService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Child> getChildbyID(@PathVariable int id){
-        Child x = childService.getChildById(id);
-        if(x != null)
-            return new ResponseEntity<>(x , HttpStatus.OK);
-        else
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<Child> getChildById(@PathVariable int id){
+        Child child = childService.getChildById(id);
+        if(child != null)
+            return new ResponseEntity<>(child, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping
@@ -51,8 +50,12 @@ public class ChildController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteChild(@PathVariable int id){
-        return childService.deleteChild(id);
+    public ResponseEntity<String> deleteChild(@PathVariable int id){
+        String result = childService.deleteChild(id);
+        if (result.equals("Child deleted")) {
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/selected")
@@ -65,8 +68,12 @@ public class ChildController {
     }
 
     @PutMapping("/selected/{id}")
-    public Child selectChild(@PathVariable int id){
-        return childService.selectChild(id);
+    public ResponseEntity<Child> selectChild(@PathVariable int id){
+        Child child = childService.selectChild(id);
+        if (child != null) {
+            return new ResponseEntity<>(child, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.ActivitySession;
+import org.example.backend.model.activity.ActivitySession;
 
 @Entity
 @Table(name = "challenge_attempts")
@@ -17,9 +17,9 @@ public class ChallengeAttempt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private boolean accepted;
+    private Boolean accepted;
 
-    private boolean completed;
+    private Boolean completed;
 
     private int attemptsCount;
 

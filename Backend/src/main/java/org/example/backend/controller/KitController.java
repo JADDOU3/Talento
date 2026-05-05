@@ -8,7 +8,6 @@ import org.example.backend.model.ChildKit;
 import org.example.backend.model.Kit;
 import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
-import org.example.backend.util.enums.Mindset;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -94,9 +93,9 @@ public class KitController {
         return new ResponseEntity<>(kitService.getKitsByType(type), HttpStatus.OK);
     }
 
-    @GetMapping("/mindset/{mindset}")
-    public ResponseEntity<List<Kit>> getKitsByMindset(@PathVariable Mindset mindset) {
-        return new ResponseEntity<>(kitService.getKitsByMindset(mindset), HttpStatus.OK);
+    @GetMapping("/mindset/{mindsetId}")
+    public ResponseEntity<List<Kit>> getKitsByMindset(@PathVariable int mindsetId) {
+        return new ResponseEntity<>(kitService.getKitsByMindset(mindsetId), HttpStatus.OK);
     }
 
     @GetMapping("/search")
