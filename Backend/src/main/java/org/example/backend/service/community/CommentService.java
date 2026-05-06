@@ -10,11 +10,12 @@ import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.ParentRepo;
 import org.example.backend.repo.community.CommentRepo;
 import org.example.backend.repo.community.PostRepo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,8 +50,8 @@ public class CommentService {
         return commentRepo.save(comment);
     }
 
-    public List<Comment> getCommentsByPost(int postId) {
-        return commentRepo.findByPostId(postId);
+    public Page<Comment> getCommentsByPost(int postId, Pageable pageable) {
+        return commentRepo.findByPostId(postId, pageable);
     }
 
     @Transactional

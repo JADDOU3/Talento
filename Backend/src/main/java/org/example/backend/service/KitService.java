@@ -13,6 +13,8 @@ import org.example.backend.model.mindset.Mindset;
 import org.example.backend.repo.mindset.MindsetRepo;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,12 +43,12 @@ public class KitService {
         kit.setPrice(createKitDto.getPrice() != null ? createKitDto.getPrice() : 0.0);
         kit.setCreatedAt(LocalDateTime.now());
         kit.setType(createKitDto.getType());
-        
+
         if (createKitDto.getMindsetId() != null) {
             Mindset mindset = mindsetRepo.findById(createKitDto.getMindsetId()).orElse(null);
             kit.setMindset(mindset);
         }
-        
+
         kit.setImageURL(createKitDto.getImageURL());
         kit.setKitItems(createKitDto.getKitItems());
         kit.setRating(createKitDto.getRating() != null ? createKitDto.getRating() : 0);
@@ -64,12 +66,12 @@ public class KitService {
         if (updateKitDto.getName() != null) kit.setName(updateKitDto.getName());
         if (updateKitDto.getDescription() != null) kit.setDescription(updateKitDto.getDescription());
         if (updateKitDto.getType() != null) kit.setType(updateKitDto.getType());
-        
+
         if (updateKitDto.getMindsetId() != null) {
             Mindset mindset = mindsetRepo.findById(updateKitDto.getMindsetId()).orElse(null);
             kit.setMindset(mindset);
         }
-        
+
         if (updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
         if (updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
         if (updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
@@ -85,8 +87,8 @@ public class KitService {
         return "Kit deleted";
     }
 
-    public List<Kit> getAllKits() {
-        return kitRepo.findAll();
+    public Page<Kit> getAllKits(Pageable pageable) {
+        return kitRepo.findAll(pageable);
     }
 
     public List<ChildKit> getKitsByChildId(int childId) {

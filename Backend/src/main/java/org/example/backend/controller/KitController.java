@@ -10,6 +10,10 @@ import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +36,9 @@ public class KitController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<Kit>> getAllKits() {
-        return new ResponseEntity<>(kitService.getAllKits(), HttpStatus.OK);
+    public ResponseEntity<Page<Kit>> getAllKits(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return new ResponseEntity<>(kitService.getAllKits(pageable), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

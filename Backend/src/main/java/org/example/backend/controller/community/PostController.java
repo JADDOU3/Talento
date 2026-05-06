@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.Dto.community.CreatePostDto;
 import org.example.backend.model.community.Post;
 import org.example.backend.service.community.PostService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -21,13 +23,15 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+    public ResponseEntity<Page<Post>> getAllPosts(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(postService.getAllPosts(pageable));
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<Post>> getMyPosts() {
-        return ResponseEntity.ok(postService.getMyPosts());
+    public ResponseEntity<Page<Post>> getMyPosts(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(postService.getMyPosts(pageable));
     }
 
     @GetMapping("/{id}")
@@ -36,18 +40,24 @@ public class PostController {
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<List<Post>> getPostsByChild(@PathVariable int childId) {
-        return ResponseEntity.ok(postService.getPostsByChild(childId));
+    public ResponseEntity<Page<Post>> getPostsByChild(
+            @PathVariable int childId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(postService.getPostsByChild(childId, pageable));
     }
 
     @GetMapping("/kit/{kitId}")
-    public ResponseEntity<List<Post>> getPostsByKit(@PathVariable int kitId) {
-        return ResponseEntity.ok(postService.getPostsByKit(kitId));
+    public ResponseEntity<Page<Post>> getPostsByKit(
+            @PathVariable int kitId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(postService.getPostsByKit(kitId, pageable));
     }
 
     @GetMapping("/mindset/{mindsetId}")
-    public ResponseEntity<List<Post>> getPostsByMindset(@PathVariable int mindsetId) {
-        return ResponseEntity.ok(postService.getPostsByMindset(mindsetId));
+    public ResponseEntity<Page<Post>> getPostsByMindset(
+            @PathVariable int mindsetId,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(postService.getPostsByMindset(mindsetId, pageable));
     }
 
     @DeleteMapping("/{id}")

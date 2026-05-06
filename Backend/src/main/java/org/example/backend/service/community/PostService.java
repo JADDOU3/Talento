@@ -11,6 +11,8 @@ import org.example.backend.repo.KitRepo;
 import org.example.backend.repo.community.MediaRepo;
 import org.example.backend.repo.community.PostRepo;
 import org.example.backend.service.ChildService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,32 +64,32 @@ public class PostService {
         return savedPost;
     }
 
-    public List<Post> getAllPosts() {
-        return postRepo.findAll();
+    public Page<Post> getAllPosts(Pageable pageable) {
+        return postRepo.findAll(pageable);
     }
 
     public Post getPostById(int id) {
         return postRepo.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
     }
 
-    public List<Post> getPostsByChild(int childId) {
-        return postRepo.findByChildId(childId);
+    public Page<Post> getPostsByChild(int childId, Pageable pageable) {
+        return postRepo.findByChildId(childId, pageable);
     }
 
-    public List<Post> getPostsByKit(int kitId) {
-        return postRepo.findByKitId(kitId);
+    public Page<Post> getPostsByKit(int kitId, Pageable pageable) {
+        return postRepo.findByKitId(kitId, pageable);
     }
 
-    public List<Post> getPostsByMindset(int mindsetId) {
-        return postRepo.findByKitMindsetId(mindsetId);
+    public Page<Post> getPostsByMindset(int mindsetId, Pageable pageable) {
+        return postRepo.findByKitMindsetId(mindsetId, pageable);
     }
 
-    public List<Post> getMyPosts() {
+    public Page<Post> getMyPosts(Pageable pageable) {
         Child child = childService.getSelectedChild();
         if (child == null) {
             throw new RuntimeException("No child selected for the current parent");
         }
-        return postRepo.findByChildId(child.getId());
+        return postRepo.findByChildId(child.getId(), pageable);
     }
 
     @Transactional
