@@ -964,6 +964,156 @@
           }
         }
       ]
+    },
+    {
+      "name": "Community",
+      "item": [
+        {
+          "name": "Posts",
+          "item": [
+            {
+              "name": "Create Post",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/posts", "host": ["{{baseUrl}}"], "path": ["api", "posts"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kitId\": 1,\n  \"content\": \"Look at my new drawing!\",\n  \"media\": [\n    {\n      \"type\": \"IMAGE\",\n      \"url\": \"http://example.com/drawing.jpg\"\n    }\n  ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Get All Posts",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/posts", "host": ["{{baseUrl}}"], "path": ["api", "posts"] }
+              }
+            },
+            {
+              "name": "Get My Posts",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/posts/my", "host": ["{{baseUrl}}"], "path": ["api", "posts", "my"] }
+              }
+            },
+            {
+              "name": "Get Post By ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/posts/1", "host": ["{{baseUrl}}"], "path": ["api", "posts", "1"] }
+              }
+            },
+            {
+              "name": "Get Posts By Child",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/posts/child/1", "host": ["{{baseUrl}}"], "path": ["api", "posts", "child", "1"] }
+              }
+            },
+            {
+              "name": "Get Posts By Kit",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/posts/kit/1", "host": ["{{baseUrl}}"], "path": ["api", "posts", "kit", "1"] }
+              }
+            },
+            {
+              "name": "Get Posts By Mindset",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/posts/mindset/1", "host": ["{{baseUrl}}"], "path": ["api", "posts", "mindset", "1"] }
+              }
+            },
+            {
+              "name": "Delete Post",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{baseUrl}}/api/posts/1", "host": ["{{baseUrl}}"], "path": ["api", "posts", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Comments",
+          "item": [
+            {
+              "name": "Create Comment (as Child)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/comments", "host": ["{{baseUrl}}"], "path": ["api", "comments"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postId\": 1,\n  \"childId\": 2,\n  \"content\": \"Great job!\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Comment (as Parent)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/comments", "host": ["{{baseUrl}}"], "path": ["api", "comments"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postId\": 1,\n  \"parentId\": 1,\n  \"content\": \"Beautiful artwork!\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Get Comments By Post",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/comments/post/1", "host": ["{{baseUrl}}"], "path": ["api", "comments", "post", "1"] }
+              }
+            },
+            {
+              "name": "Delete Comment",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{baseUrl}}/api/comments/1", "host": ["{{baseUrl}}"], "path": ["api", "comments", "1"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Likes",
+          "item": [
+            {
+              "name": "Toggle Like (as Child)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/likes/toggle", "host": ["{{baseUrl}}"], "path": ["api", "likes", "toggle"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postId\": 1,\n  \"childId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Toggle Like (as Parent)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/likes/toggle", "host": ["{{baseUrl}}"], "path": ["api", "likes", "toggle"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postId\": 1,\n  \"parentId\": 1\n}"
+                }
+              }
+            },
+            {
+              "name": "Get Like Count",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/likes/post/1/count", "host": ["{{baseUrl}}"], "path": ["api", "likes", "post", "1", "count"] }
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

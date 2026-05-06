@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend.model.community.Comment;
+import org.example.backend.model.community.PostLike;
 import org.example.backend.util.enums.Gender;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -41,6 +43,14 @@ public class Parent {
     @JsonIgnore
     @OneToMany(mappedBy = "parent")
     private List<Child> children;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "parent")
+    private List<Comment> comments;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "parent")
+    private List<PostLike> likes;
 
    //todo implement Web Relations
 }
