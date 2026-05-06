@@ -51,7 +51,7 @@ public class Parent {
     @JsonIgnore
     @OneToMany(mappedBy = "parent")
     private List<PostLike> likes;
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
 
    //todo implement Web Relations
