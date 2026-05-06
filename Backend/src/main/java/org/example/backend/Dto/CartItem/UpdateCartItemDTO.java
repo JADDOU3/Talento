@@ -1,6 +1,4 @@
-package org.example.backend.Dto;
-
-import lombok.Data;
+package org.example.backend.Dto.CartItem;
 
 public class UpdateCartItemDTO {
     private int quantity;

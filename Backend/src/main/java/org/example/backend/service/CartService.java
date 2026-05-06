@@ -1,8 +1,8 @@
 package org.example.backend.service;
 
 import jakarta.transaction.Transactional;
-import org.example.backend.Dto.CartDTO;
-import org.example.backend.Dto.CartItemDTO;
+import org.example.backend.Dto.Cart.CartDTO;
+import org.example.backend.Dto.CartItem.CartItemDTO;
 import org.example.backend.model.Cart;
 import org.example.backend.model.CartItem;
 import org.example.backend.model.User;

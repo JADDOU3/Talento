@@ -1,4 +1,4 @@
-package org.example.backend.Dto;
+package org.example.backend.Dto.CartItem;
 
 import lombok.Data;
 
