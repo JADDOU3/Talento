@@ -64,4 +64,39 @@ public class ParentService implements UserDetailsService {
         }
         return false;
     }
+
+
+    public String setChildModePin(String rawPin) {
+        if (!rawPin.matches("\\d{6}")) {
+            return "PIN must be exactly 6 digits";
+        }
+        Parent parent = SecurityUtils.getCurrentUser();
+        parent.setChildModePin(passwordEncoderConfig.passwordEncoder().encode(rawPin));
+        repo.save(parent);
+        return "PIN set successfully";
+    }
+
+    public boolean verifyChildModePin(String rawPin) {
+        Parent parent = SecurityUtils.getCurrentUser();
+        if (parent.getChildModePin() == null) {
+            return false;
+        }
+        return passwordEncoderConfig.passwordEncoder()
+                .matches(rawPin, parent.getChildModePin());
+    }
+
+    public boolean hasPinSet() {
+        return SecurityUtils.getCurrentUser().getChildModePin() != null;
+    }
+
+    public void setChildMode(boolean enabled) {
+        Parent parent = SecurityUtils.getCurrentUser();
+        parent.setChildModeEnabled(enabled);
+        repo.save(parent);
+    }
+
+    public boolean isChildMode() {
+        Parent parent = SecurityUtils.getCurrentUser();
+        return parent.isChildModeEnabled();
+    }
 }
