@@ -86,13 +86,16 @@ public class ParentService implements UserDetailsService {
     }
 
     public boolean hasPinSet() {
-        return SecurityUtils.getCurrentUser().getChildModePin() != null;
+        Parent parent = SecurityUtils.getCurrentUser();
+        return parent.getChildModePin() != null;
     }
 
-    public void setChildMode(boolean enabled) {
+    public Parent setChildMode(boolean enabled) {
         Parent parent = SecurityUtils.getCurrentUser();
+        if(parent.getChildModePin() == null)
+            return parent;
         parent.setChildModeEnabled(enabled);
-        repo.save(parent);
+        return repo.save(parent);
     }
 
     public boolean isChildMode() {

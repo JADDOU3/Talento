@@ -63,7 +63,10 @@ public class ParentController {
 
     @PostMapping("/childMode/enable")
     public ResponseEntity<String> enableChildMode() {
-        userService.setChildMode(true);
+        Parent parent = userService.setChildMode(true);
+        if (parent.getChildModePin() == null) {
+            return ResponseEntity.badRequest().body("PIN is needed to enable child mode");
+        }
         return ResponseEntity.ok("Child mode enabled");
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
 public class ChildModeFilter extends OncePerRequestFilter {
 
     private static final List<String> CHILD_MODE_RESTRICTED = List.of(
-            "/api/activity"
+            "/api/activities"
             //todo add all restrectid uris ... ^^
     );
 
