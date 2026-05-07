@@ -3,10 +3,30 @@
     "name": "Backend API Collection",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{Token}}",
+        "type": "string"
+      }
+    ]
+  },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "Token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "Refresh",
+      "value": "",
       "type": "string"
     }
   ],
@@ -28,6 +48,19 @@
         },
         {
           "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "pm.collectionVariables.set('Token', res.accessToken);",
+                  "pm.collectionVariables.set('Refresh', res.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -40,13 +73,26 @@
         },
         {
           "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "pm.collectionVariables.set('Token', res.accessToken);",
+                  "pm.collectionVariables.set('Refresh', res.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/refresh", "host": ["{{baseUrl}}"], "path": ["api", "refresh"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"your-refresh-token-here\"\n}"
+              "raw": "{\n  \"refreshToken\": \"{{Refresh}}\"\n}"
             }
           }
         },
@@ -63,6 +109,56 @@
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/api/currentUser", "host": ["{{baseUrl}}"], "path": ["api", "currentUser"] }
           }
+        },
+        {
+          "name": "Child Mode",
+          "item": [
+            {
+              "name": "Is Child Mode",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/isChildMode", "host": ["{{baseUrl}}"], "path": ["api", "isChildMode"] }
+              }
+            },
+            {
+              "name": "Enable Child Mode",
+              "request": {
+                "method": "POST",
+                "url": { "raw": "{{baseUrl}}/api/childMode/enable", "host": ["{{baseUrl}}"], "path": ["api", "childMode", "enable"] }
+              }
+            },
+            {
+              "name": "Disable Child Mode",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/childMode/disable", "host": ["{{baseUrl}}"], "path": ["api", "childMode", "disable"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pin\": \"123456\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Set PIN",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/childMode/setPin", "host": ["{{baseUrl}}"], "path": ["api", "childMode", "setPin"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pin\": \"123456\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Has PIN",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/childMode/hasPin", "host": ["{{baseUrl}}"], "path": ["api", "childMode", "hasPin"] }
+              }
+            }
+          ]
         }
       ]
     },
