@@ -52,5 +52,10 @@ public class Parent {
     @OneToMany(mappedBy = "parent")
     private List<PostLike> likes;
 
-   //todo implement Web Relations
+
+    private boolean childModeEnabled;
+    private String childModePin;
+
+    
+    //todo implement Web Relations
 }
