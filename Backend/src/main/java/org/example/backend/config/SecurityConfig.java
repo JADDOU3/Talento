@@ -88,6 +88,9 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
+    @Autowired
+    private ChildModeFilter childModeFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return  http.csrf(customizer -> customizer.disable())
@@ -99,6 +102,7 @@ public class SecurityConfig {
                     .sessionManagement(session ->
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .addFilterBefore(jwtFilter ,  UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(childModeFilter, JwtFilter.class)
                     .build();
     }
 

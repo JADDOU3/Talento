@@ -1,43 +1,41 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-
+import '../../../models/kit_model.dart';
 
 class AvailableKitsSection extends StatelessWidget {
-  const AvailableKitsSection({super.key});
+  final List<KitModel>? kits;
+
+  const AvailableKitsSection({super.key, this.kits});
 
   @override
   Widget build(BuildContext context) {
-    final kits = [
-      {
-        'name': 'مستكشف الفضاء',
-        'status': 'جديد',
-        'icon': Icons.rocket_launch_rounded,
-        'color': AppColors.primary,
-        'bg': AppColors.primary,
-      },
-      {
-        'name': 'اكتشاف الطبيعة',
-        'status': '8 أنشطة متبقية',
-        'icon': Icons.eco_rounded,
-        'color': AppColors.secondary,
-        'bg': AppColors.secondary,
-      },
-      {
-        'name': 'الفنون الإبداعية',
-        'status': 'قيد البدء',
-        'icon': Icons.palette_rounded,
-        'color': AppColors.pink,
-        'bg': AppColors.pink,
-      },
-      {
-        'name': 'مملكة الحيوان',
-        'status': 'مكتمل 50%',
-        'icon': Icons.pets_rounded,
-        'color': AppColors.yellow,
-        'bg': AppColors.yellow,
-      },
+    // لو في كيتات من الـ API استخدمهم، غير هيك استخدم الوهمية
+    final hasRealKits = kits != null && kits!.isNotEmpty;
+
+    final colors = [
+      AppColors.primary,
+      AppColors.secondary,
+      AppColors.pink,
+      AppColors.yellow,
     ];
+
+    final icons = [
+      Icons.rocket_launch_rounded,
+      Icons.eco_rounded,
+      Icons.palette_rounded,
+      Icons.pets_rounded,
+    ];
+
+    // Mock kits للعرض لو ما في بيانات
+    final mockKits = [
+      {'name': 'مستكشف الفضاء', 'status': 'جديد'},
+      {'name': 'اكتشاف الطبيعة', 'status': '8 أنشطة متبقية'},
+      {'name': 'الفنون الإبداعية', 'status': 'قيد البدء'},
+      {'name': 'مملكة الحيوان', 'status': 'مكتمل 50%'},
+    ];
+
+    final itemCount = hasRealKits ? kits!.length : mockKits.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,15 +57,39 @@ class AvailableKitsSection extends StatelessWidget {
             mainAxisSpacing: 12,
             childAspectRatio: 1.5,
           ),
-          itemCount: kits.length,
-          itemBuilder: (context, i) => _buildKitCard(kits[i]),
+          itemCount: itemCount,
+          itemBuilder: (context, i) {
+            final color = colors[i % colors.length];
+            final icon = icons[i % icons.length];
+
+            if (hasRealKits) {
+              final kit = kits![i];
+              return _buildKitCard(
+                name: kit.name,
+                status: kit.type.isNotEmpty ? kit.type : 'نشط',
+                color: color,
+                icon: icon,
+              );
+            } else {
+              return _buildKitCard(
+                name: mockKits[i]['name']!,
+                status: mockKits[i]['status']!,
+                color: color,
+                icon: icon,
+              );
+            }
+          },
         ),
       ],
     );
   }
 
-  Widget _buildKitCard(Map<String, dynamic> kit) {
-    final color = kit['color'] as Color;
+  Widget _buildKitCard({
+    required String name,
+    required String status,
+    required Color color,
+    required IconData icon,
+  }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -84,7 +106,7 @@ class AvailableKitsSection extends StatelessWidget {
               color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(kit['icon'] as IconData, color: color, size: 20),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -93,7 +115,7 @@ class AvailableKitsSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  kit['name'] as String,
+                  name,
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -104,7 +126,7 @@ class AvailableKitsSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  kit['status'] as String,
+                  status,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: color,
                     fontSize: 11,

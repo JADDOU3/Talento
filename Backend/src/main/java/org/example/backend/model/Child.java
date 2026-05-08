@@ -47,6 +47,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend.model.activity.ActivityPreference;
+import org.example.backend.model.community.Post;
 import org.example.backend.model.event.Event;
 import org.example.backend.model.mindset.ChildMindsetScore;
 import org.example.backend.util.enums.Gender;
@@ -108,5 +109,9 @@ public class Child {
     @JsonIgnore
     @OneToMany(mappedBy = "child")
     private List<AIReport> aiReports;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "child")
+    private List<Post> posts;
 }
 >>>>>>> 1fa9b86a49e02d460f12550142ed08adf9cf170e
