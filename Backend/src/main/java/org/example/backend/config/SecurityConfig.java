@@ -35,9 +35,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return  http.csrf(customizer -> customizer.disable())
                     .cors(Customizer.withDefaults())
-                    .authorizeHttpRequests(request ->
-                            request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
-                                    .anyRequest().authenticated())
+                .authorizeHttpRequests(request ->
+                        request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
+                                .anyRequest().authenticated())
                     .httpBasic(Customizer.withDefaults())
                     .sessionManagement(session ->
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
