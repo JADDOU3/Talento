@@ -6,6 +6,9 @@ import '../../../shared/components/buttons/primary_button.dart';
 import '../../../shared/components/sections/beyond_section.dart';
 import '../../../shared/components/sections/explorations_section.dart';
 import '../../../shared/components/footer/footer.dart';
+import '../../../shared/i18n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/providers/language_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,6 +36,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       endDrawer: Drawer(
         child: SafeArea(
@@ -41,7 +46,6 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Close button
                 Align(
                   alignment: Alignment.topRight,
                   child: IconButton(
@@ -50,29 +54,23 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Nav links
-                _DrawerLink(
-                  title: "Home",
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _scrollToTop();
-                  },
-                ),
-                _DrawerLink(title: "About", onTap: () => Navigator.of(context).pop()),
-                _DrawerLink(title: "Pricing", onTap: () => Navigator.of(context).pop()),
-                _DrawerLink(title: "Blog", onTap: () => Navigator.of(context).pop()),
-
+                _DrawerLink(title: l10n.navHome, onTap: () { Navigator.of(context).pop(); _scrollToTop(); }),
+                _DrawerLink(title: l10n.navAbout, onTap: () => Navigator.of(context).pop()),
+                _DrawerLink(title: l10n.navPricing, onTap: () => Navigator.of(context).pop()),
+                _DrawerLink(title: l10n.navBlog, onTap: () => Navigator.of(context).pop()),
                 const Spacer(),
-
+                TextButton(
+                  onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                  child: Text(l10n.language),
+                ),
                 TextButton(
                   onPressed: () {},
-                  child: const Text("Login"),
+                  child: Text(l10n.navLogin),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
-                  child: const PrimaryButton(text: "Sign Up"),
+                  child: PrimaryButton(text: l10n.navSignUp),
                 ),
               ],
             ),
@@ -86,9 +84,9 @@ class _HomePageState extends State<HomePage> {
             Navbar(scrollController: _scrollController),
             const SizedBox(height: 40),
             const HeroSection(),
-            const JourneySection(),
-            const BeyondSection(),
-            const ExplorationsSection(),
+            JourneySection(),
+            BeyondSection(),
+            ExplorationsSection(),
             Footer(scrollController: _scrollController),
           ],
         ),
@@ -97,7 +95,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ================= DRAWER LINK مع HOVER =================
 class _DrawerLink extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
@@ -125,9 +122,7 @@ class _DrawerLinkState extends State<_DrawerLink> {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           margin: const EdgeInsets.only(bottom: 4),
           decoration: BoxDecoration(
-            color: _hovered
-                ? const Color(0xFF18A97A).withOpacity(0.08)
-                : Colors.transparent,
+            color: _hovered ? const Color(0xFF18A97A).withOpacity(0.08) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: AnimatedDefaultTextStyle(
