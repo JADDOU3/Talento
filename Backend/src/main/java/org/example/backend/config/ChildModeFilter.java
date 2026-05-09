@@ -24,6 +24,12 @@ public class ChildModeFilter extends OncePerRequestFilter {
             "/api/activity-criteria"
     );
 
+    private static final List<String> CHILD_MODE_READ_ONLY = List.of(
+            "/api/posts",
+            "/api/comments",
+            "/api/likes"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -31,11 +37,16 @@ public class ChildModeFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
 
         boolean isRestricted = CHILD_MODE_RESTRICTED.stream()
                 .anyMatch(path::startsWith);
 
-        if (isRestricted) {
+        boolean isReadOnlyViolation = CHILD_MODE_READ_ONLY.stream()
+                .anyMatch(path::startsWith)
+                && !method.equals("GET");
+
+        if (isRestricted || isReadOnlyViolation) {
             try {
                 Parent parent = SecurityUtils.getCurrentUser();
                 if (parent != null && parent.isChildModeEnabled()) {
@@ -47,7 +58,7 @@ public class ChildModeFilter extends OncePerRequestFilter {
                     return;
                 }
             } catch (Exception e) {
-                //JwtFilter handle unauthenticated requests
+                // JwtFilter handles unauthenticated requests
             }
         }
 
