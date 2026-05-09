@@ -21,7 +21,8 @@ public class ChildModeFilter extends OncePerRequestFilter {
             "/api/child-mindset-scores",
             "/api/criteria",
             "/api/mindsets",
-            "/api/activity-criteria"
+            "/api/activity-criteria",
+            "/api/media"
     );
 
     private static final List<String> CHILD_MODE_READ_ONLY = List.of(
