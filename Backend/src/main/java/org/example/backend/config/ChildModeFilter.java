@@ -16,8 +16,12 @@ import java.util.List;
 public class ChildModeFilter extends OncePerRequestFilter {
 
     private static final List<String> CHILD_MODE_RESTRICTED = List.of(
-            "/api/activities"
-            //todo add all restrectid uris ... ^^
+            "/api/performances",
+            "/api/ai-reports",
+            "/api/child-mindset-scores",
+            "/api/criteria",
+            "/api/mindsets",
+            "/api/activity-criteria"
     );
 
     @Override

@@ -10,6 +10,8 @@ import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.ParentRepo;
 import org.example.backend.repo.community.CommentRepo;
 import org.example.backend.repo.community.PostRepo;
+import org.example.backend.service.ChildService;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class CommentService {
     private final PostRepo postRepo;
     private final ChildRepo childRepo;
     private final ParentRepo parentRepo;
+    private final ChildService childService;
 
     @Transactional
     public Comment createComment(CreateCommentDto dto) {
@@ -56,6 +59,12 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(int id) {
+        Comment comment = commentRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        Parent parent = SecurityUtils.getCurrentUser();
+        if (comment.getParent() == null || comment.getParent().getId() != parent.getId()) {
+            throw new RuntimeException("Not authorized to delete this comment");
+        }
         commentRepo.deleteById(id);
     }
 }
