@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../buttons/primary_button.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/i18n/app_localizations.dart';
+import '../../../shared/providers/language_provider.dart';
 
 class Navbar extends StatelessWidget {
   final bool isLoggedIn;
@@ -19,7 +22,6 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  // ================= LOGO =================
   Widget _logo({double height = 44}) {
     return Image.asset(
       "assets/images/logo.png",
@@ -30,44 +32,46 @@ class Navbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final width = MediaQuery.of(context).size.width;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       color: Colors.white,
       child: width >= 1024
-          ? _buildDesktop()
+          ? _buildDesktop(context, l10n)
           : width >= 768
-              ? _buildTablet()
-              : _buildMobile(context),
+              ? _buildTablet(context, l10n)
+              : _buildMobile(context, l10n),
     );
   }
 
-  // ================= DESKTOP =================
-  Widget _buildDesktop() {
+  Widget _buildDesktop(BuildContext context, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _logo(height: 48),
-
         Row(
           children: [
-            _NavItem(title: "Home", onTap: _scrollToTop),
-            _NavItem(title: "About", onTap: _scrollToTop),
-            _NavItem(title: "Pricing", onTap: _scrollToTop),
-            _NavItem(title: "Blog", onTap: _scrollToTop),
+            _NavItem(title: l10n.navHome, onTap: _scrollToTop),
+            _NavItem(title: l10n.navAbout, onTap: _scrollToTop),
+            _NavItem(title: l10n.navPricing, onTap: _scrollToTop),
+            _NavItem(title: l10n.navBlog, onTap: _scrollToTop),
           ],
         ),
-
         Row(
           children: [
             if (!isLoggedIn) ...[
               TextButton(
+                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                child: Text(l10n.language),
+              ),
+              TextButton(
                 onPressed: () {},
-                child: const Text("Login"),
+                child: Text(l10n.navLogin),
               ),
               const SizedBox(width: 10),
-              const PrimaryButton(text: "Sign Up"),
+              PrimaryButton(text: l10n.navSignUp),
             ] else ...[
               const Icon(Icons.shopping_cart_outlined),
               const SizedBox(width: 10),
@@ -79,35 +83,35 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  // ================= TABLET =================
-  Widget _buildTablet() {
+  Widget _buildTablet(BuildContext context, AppLocalizations l10n) {
     return Row(
       children: [
         _logo(height: 44),
-
         const SizedBox(width: 20),
-
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _NavItem(title: "Home", onTap: _scrollToTop),
-              _NavItem(title: "About", onTap: _scrollToTop),
-              _NavItem(title: "Pricing", onTap: _scrollToTop),
-              _NavItem(title: "Blog", onTap: _scrollToTop),
+              _NavItem(title: l10n.navHome, onTap: _scrollToTop),
+              _NavItem(title: l10n.navAbout, onTap: _scrollToTop),
+              _NavItem(title: l10n.navPricing, onTap: _scrollToTop),
+              _NavItem(title: l10n.navBlog, onTap: _scrollToTop),
             ],
           ),
         ),
-
         Row(
           children: [
             if (!isLoggedIn) ...[
               TextButton(
+                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                child: Text(l10n.language),
+              ),
+              TextButton(
                 onPressed: () {},
-                child: const Text("Login"),
+                child: Text(l10n.navLogin),
               ),
               const SizedBox(width: 8),
-              const PrimaryButton(text: "Sign Up"),
+              PrimaryButton(text: l10n.navSignUp),
             ] else ...[
               const Icon(Icons.shopping_cart_outlined),
               const SizedBox(width: 8),
@@ -119,19 +123,15 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  // ================= MOBILE =================
-  Widget _buildMobile(BuildContext context) {
+  Widget _buildMobile(BuildContext context, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _logo(height: 40),
-
         Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
+            onPressed: () => Scaffold.of(context).openEndDrawer(),
           ),
         ),
       ],
@@ -139,7 +139,6 @@ class Navbar extends StatelessWidget {
   }
 }
 
-// ================= NAV ITEM مع HOVER =================
 class _NavItem extends StatefulWidget {
   final String title;
   final VoidCallback onTap;

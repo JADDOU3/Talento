@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/i18n/app_localizations.dart';
 
 class ExplorationsSection extends StatelessWidget {
   const ExplorationsSection({super.key});
@@ -7,22 +8,20 @@ class ExplorationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final width = MediaQuery.of(context).size.width;
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width >= 768 ? 40 : 20,
-            vertical: 60,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: width >= 768 ? 40 : 20, vertical: 60),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _header(mobile: width < 768),
+              _header(l10n, mobile: width < 768),
               const SizedBox(height: 32),
-              width >= 768 ? _buildDesktop() : _buildMobile(),
+              width >= 768 ? _buildDesktop(l10n) : _buildMobile(l10n),
             ],
           ),
         ),
@@ -30,21 +29,14 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  // ================= HEADER =================
-  Widget _header({required bool mobile}) {
+  Widget _header(AppLocalizations l10n, {required bool mobile}) {
     if (mobile) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Curated Explorations",
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-          ),
+          Text(l10n.explorationsTitle, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          const Text(
-            "Our most loved kits this season.",
-            style: TextStyle(color: Colors.grey),
-          ),
+          Text(l10n.explorationsSubtitle, style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -53,12 +45,10 @@ class ExplorationsSection extends StatelessWidget {
                 backgroundColor: const Color(0xFFFF4D4D),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
               onPressed: () {},
-              child: const Text("View All Kits"),
+              child: Text(l10n.explorationsViewAll),
             ),
           ),
         ],
@@ -68,18 +58,12 @@ class ExplorationsSection extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Curated Explorations",
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 6),
-            Text(
-              "Our most loved kits this season.",
-              style: TextStyle(color: Colors.grey),
-            ),
+            Text(l10n.explorationsTitle, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text(l10n.explorationsSubtitle, style: const TextStyle(color: Colors.grey)),
           ],
         ),
         ElevatedButton(
@@ -87,19 +71,16 @@ class ExplorationsSection extends StatelessWidget {
             backgroundColor: const Color(0xFFFF4D4D),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           ),
           onPressed: () {},
-          child: const Text("View All Kits"),
+          child: Text(l10n.explorationsViewAll),
         ),
       ],
     );
   }
 
-  // ================= DESKTOP — ارتفاع ثابت بدون IntrinsicHeight =================
-  Widget _buildDesktop() {
+  Widget _buildDesktop(AppLocalizations l10n) {
     return Column(
       children: [
         SizedBox(
@@ -107,9 +88,9 @@ class ExplorationsSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(flex: 2, child: _bigCard()),
+              Expanded(flex: 2, child: _bigCard(l10n)),
               const SizedBox(width: 20),
-              Expanded(child: _avianCard()),
+              Expanded(child: _avianCard(l10n)),
             ],
           ),
         ),
@@ -119,9 +100,9 @@ class ExplorationsSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: _prismCard()),
+              Expanded(child: _prismCard(l10n)),
               const SizedBox(width: 20),
-              Expanded(flex: 2, child: _featured()),
+              Expanded(flex: 2, child: _featured(l10n)),
             ],
           ),
         ),
@@ -129,68 +110,29 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  // ================= MOBILE — Column عادي بدون ارتفاع ثابت =================
-  Widget _buildMobile() {
+  Widget _buildMobile(AppLocalizations l10n) {
     return Column(
       children: [
-        _mobileCard(
-          imagePath: "assets/images/img5.png",
-          tag: "AGES 6-9",
-          tagColor: Colors.green,
-          title: "The Botanist Pro",
-          description:
-              "Discover the secrets of the forest floor through seed preservation and soil analysis.",
-          hasButton: true,
-        ),
+        _mobileCard(imagePath: "assets/images/img5.png", tag: "AGES 6-9", tagColor: Colors.green, title: l10n.card1Title, description: l10n.card1Desc, hasButton: true, buttonText: l10n.card1Button),
         const SizedBox(height: 16),
-        _mobileCard(
-          imagePath: "assets/images/img6.png",
-          tag: "AGES 4-6",
-          tagColor: const Color(0xFFE91E8C),
-          title: "Avian Architect",
-          description:
-              "Build, paint, and observe. A first look into structural engineering and wildlife.",
-        ),
+        _mobileCard(imagePath: "assets/images/img6.png", tag: "AGES 4-6", tagColor: const Color(0xFFE91E8C), title: l10n.card2Title, description: l10n.card2Desc),
         const SizedBox(height: 16),
-        _mobileCard(
-          imagePath: "assets/images/img7.png",
-          tag: "AGES 8-12",
-          tagColor: Colors.blue,
-          title: "Prism Mastery",
-          description:
-              "Unlock the physics of light and color with our experimental optics kit.",
-        ),
+        _mobileCard(imagePath: "assets/images/img7.png", tag: "AGES 8-12", tagColor: Colors.blue, title: l10n.card3Title, description: l10n.card3Desc),
         const SizedBox(height: 16),
-        _featuredMobile(),
+        _featuredMobile(l10n),
       ],
     );
   }
 
-  // ================= MOBILE CARD =================
-  Widget _mobileCard({
-    required String imagePath,
-    required String tag,
-    required Color tagColor,
-    required String title,
-    required String description,
-    bool hasButton = false,
-  }) {
+  Widget _mobileCard({required String imagePath, required String tag, required Color tagColor, required String title, required String description, bool hasButton = false, String? buttonText}) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.asset(
-              imagePath,
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset(imagePath, width: double.infinity, height: 200, fit: BoxFit.cover),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -199,33 +141,17 @@ class ExplorationsSection extends StatelessWidget {
               children: [
                 _tag(tag, tagColor),
                 const SizedBox(height: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: const TextStyle(
-                      color: Colors.grey, fontSize: 14, height: 1.5),
-                ),
-                if (hasButton) ...[
+                Text(description, style: const TextStyle(color: Colors.grey, fontSize: 14, height: 1.5)),
+                if (hasButton && buttonText != null) ...[
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.green,
-                        side: const BorderSide(color: Colors.green, width: 1.5),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
+                      style: OutlinedButton.styleFrom(foregroundColor: Colors.green, side: const BorderSide(color: Colors.green, width: 1.5), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                       onPressed: () {},
-                      child: const Text("Get This Kit",
-                          style: TextStyle(fontSize: 15)),
+                      child: Text(buttonText, style: const TextStyle(fontSize: 15)),
                     ),
                   ),
                 ],
@@ -237,23 +163,13 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  // ================= FEATURED MOBILE =================
-  Widget _featuredMobile() {
+  Widget _featuredMobile(AppLocalizations l10n) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Stack(
         children: [
-          Image.asset(
-            "assets/images/img8.png",
-            width: double.infinity,
-            height: 380,
-            fit: BoxFit.cover,
-          ),
-          Container(
-            width: double.infinity,
-            height: 380,
-            color: Colors.black.withOpacity(0.45),
-          ),
+          Image.asset("assets/images/img8.png", width: double.infinity, height: 380, fit: BoxFit.cover),
+          Container(width: double.infinity, height: 380, color: Colors.black.withOpacity(0.45)),
           Padding(
             padding: const EdgeInsets.all(28),
             child: Column(
@@ -262,56 +178,21 @@ class ExplorationsSection extends StatelessWidget {
               children: [
                 const SizedBox(height: 20),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "THE EDUCATORS CHOICE",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+                  child: Text(l10n.featuredBadge, style: const TextStyle(color: Colors.white, fontSize: 11, letterSpacing: 1.2)),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  "Complete Talent\nLibrary",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
-                  ),
-                ),
+                Text(l10n.featuredTitle, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, height: 1.2)),
                 const SizedBox(height: 12),
-                const Text(
-                  "Access our full curriculum of 24 kits delivered over two years of developmental growth.",
-                  style: TextStyle(
-                      color: Colors.white70, fontSize: 14, height: 1.5),
-                ),
+                Text(l10n.featuredDesc, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF2DC5A2),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF2DC5A2), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                     onPressed: () {},
-                    child: const Text(
-                      "Subscribe & Save 20%",
-                      style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w700),
-                    ),
+                    child: Text(l10n.featuredButton, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
@@ -322,26 +203,12 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  // ================= DESKTOP CARDS =================
-  Widget _bigCard() {
+  Widget _bigCard(AppLocalizations l10n) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       child: Row(
         children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(24)),
-              child: Image.asset(
-                "assets/images/img5.png",
-                fit: BoxFit.cover,
-                height: double.infinity,
-              ),
-            ),
-          ),
+          Expanded(child: ClipRRect(borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)), child: Image.asset("assets/images/img5.png", fit: BoxFit.cover, height: double.infinity))),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(28),
@@ -354,32 +221,15 @@ class ExplorationsSection extends StatelessWidget {
                     children: [
                       _tag("AGES 6-9", Colors.green),
                       const SizedBox(height: 14),
-                      const Text(
-                        "The Botanist Pro",
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
+                      Text(l10n.card1Title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      const Text(
-                        "Discover the secrets of the forest floor through seed preservation and soil analysis.",
-                        style: TextStyle(color: Colors.grey, fontSize: 15),
-                      ),
+                      Text(l10n.card1Desc, style: const TextStyle(color: Colors.grey, fontSize: 15)),
                     ],
                   ),
                   OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.green,
-                      side:
-                          const BorderSide(color: Colors.green, width: 1.5),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.green, side: const BorderSide(color: Colors.green, width: 1.5), padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                     onPressed: () {},
-                    child: const Text("Get This Kit",
-                        style: TextStyle(fontSize: 16)),
+                    child: Text(l10n.card1Button, style: const TextStyle(fontSize: 16)),
                   ),
                 ],
               ),
@@ -390,23 +240,14 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _avianCard() {
+  Widget _avianCard(AppLocalizations l10n) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Image.asset(
-              "assets/images/img6.png",
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
+          Expanded(child: Image.asset("assets/images/img6.png", width: double.infinity, fit: BoxFit.cover)),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -414,14 +255,9 @@ class ExplorationsSection extends StatelessWidget {
               children: [
                 _tag("AGES 4-6", const Color(0xFFE91E8C)),
                 const SizedBox(height: 8),
-                const Text("Avian Architect",
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(l10n.card2Title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                const Text(
-                  "Build, paint, and observe. A first look into structural engineering and wildlife.",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
+                Text(l10n.card2Desc, style: const TextStyle(color: Colors.grey, fontSize: 13)),
               ],
             ),
           ),
@@ -430,23 +266,14 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _prismCard() {
+  Widget _prismCard(AppLocalizations l10n) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Image.asset(
-              "assets/images/img7.png",
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
+          Expanded(child: Image.asset("assets/images/img7.png", width: double.infinity, fit: BoxFit.cover)),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -454,14 +281,9 @@ class ExplorationsSection extends StatelessWidget {
               children: [
                 _tag("AGES 8-12", Colors.blue),
                 const SizedBox(height: 8),
-                const Text("Prism Mastery",
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(l10n.card3Title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                const Text(
-                  "Unlock the physics of light and color with our experimental optics kit.",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
+                Text(l10n.card3Desc, style: const TextStyle(color: Colors.grey, fontSize: 13)),
               ],
             ),
           ),
@@ -470,7 +292,7 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _featured() {
+  Widget _featured(AppLocalizations l10n) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: Stack(
@@ -485,53 +307,19 @@ class ExplorationsSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "THE EDUCATORS CHOICE",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        letterSpacing: 1.2),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(20)),
+                  child: Text(l10n.featuredBadge, style: const TextStyle(color: Colors.white, fontSize: 11, letterSpacing: 1.2)),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Complete Talent\nLibrary",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      height: 1.2),
-                ),
+                Text(l10n.featuredTitle, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, height: 1.2)),
                 const SizedBox(height: 14),
-                const SizedBox(
-                  width: 300,
-                  child: Text(
-                    "Access our full curriculum of 24 kits delivered over two years of developmental growth.",
-                    style: TextStyle(
-                        color: Colors.white70, fontSize: 14, height: 1.5),
-                  ),
-                ),
+                SizedBox(width: 300, child: Text(l10n.featuredDesc, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5))),
                 const SizedBox(height: 30),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF2DC5A2),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 28, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF2DC5A2), elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                   onPressed: () {},
-                  child: const Text("Subscribe & Save 20%",
-                      style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w700)),
+                  child: Text(l10n.featuredButton, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
@@ -541,23 +329,11 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  // ================= TAG =================
   Widget _tag(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
     );
   }
 }
