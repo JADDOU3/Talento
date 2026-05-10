@@ -31,6 +31,13 @@ class LikeCubit extends Cubit<LikeState> {
   }
 
   Future<void> toggleLike(int postId) async {
+    final selectedChildId = await _likeService.getSelectedChildId();
+
+    if (selectedChildId == null) {
+      emit(LikeError('لا يوجد طفل محدد، اختاري طفل أولاً'));
+      return;
+    }
+
     final oldCount = likeCounts[postId] ?? 0;
     final oldIsLiked = likedPosts[postId] ?? false;
 
@@ -49,7 +56,10 @@ class LikeCubit extends Cubit<LikeState> {
     );
 
     try {
-      await _likeService.toggleLike(postId);
+      await _likeService.toggleLike(
+        postId: postId,
+        childId: selectedChildId,
+      );
     } catch (e) {
       likeCounts[postId] = oldCount;
       likedPosts[postId] = oldIsLiked;
