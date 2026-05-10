@@ -7,8 +7,8 @@ class AuthApiClient {
 
   Future<http.Response> get(Uri uri, {Map<String, String>? headers}) async {
     return _sendWithRefresh(
-          () async => http.get(uri, headers: await _headers(headers)),
-          () async => http.get(uri, headers: await _headers(headers)),
+          () async => http.get(uri, headers: await authHeaders(headers)),
+          () async => http.get(uri, headers: await authHeaders(headers)),
     );
   }
 
@@ -18,8 +18,8 @@ class AuthApiClient {
         Object? body,
       }) async {
     return _sendWithRefresh(
-          () async => http.post(uri, headers: await _headers(headers), body: body),
-          () async => http.post(uri, headers: await _headers(headers), body: body),
+          () async => http.post(uri, headers: await authHeaders(headers), body: body),
+          () async => http.post(uri, headers: await authHeaders(headers), body: body),
     );
   }
 
@@ -28,8 +28,8 @@ class AuthApiClient {
         Map<String, String>? headers,
       }) async {
     return _sendWithRefresh(
-          () async => http.delete(uri, headers: await _headers(headers)),
-          () async => http.delete(uri, headers: await _headers(headers)),
+          () async => http.delete(uri, headers: await authHeaders(headers)),
+          () async => http.delete(uri, headers: await authHeaders(headers)),
     );
   }
 
@@ -53,7 +53,9 @@ class AuthApiClient {
     return await retryRequest();
   }
 
-  Future<Map<String, String>> _headers(Map<String, String>? extraHeaders) async {
+  Future<Map<String, String>> authHeaders(
+      Map<String, String>? extraHeaders,
+      ) async {
     final accessToken = await TokenStorageService.getAccessToken();
 
     return {

@@ -156,12 +156,11 @@ class PostService {
 
       if (body is Map<String, dynamic>) {
         final dynamic data =
-            body['data'] ??
-                body['content'] ??
+            body['content'] ??
+                body['data'] ??
                 body['posts'] ??
                 body['result'] ??
                 body['items'];
-
         if (data is List) {
           return data.map((item) => Post.fromJson(item)).toList();
         }
