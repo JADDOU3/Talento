@@ -23,6 +23,16 @@ class AuthApiClient {
     );
   }
 
+  Future<http.Response> delete(
+      Uri uri, {
+        Map<String, String>? headers,
+      }) async {
+    return _sendWithRefresh(
+          () async => http.delete(uri, headers: await _headers(headers)),
+          () async => http.delete(uri, headers: await _headers(headers)),
+    );
+  }
+
   Future<http.Response> _sendWithRefresh(
       Future<http.Response> Function() request,
       Future<http.Response> Function() retryRequest,
