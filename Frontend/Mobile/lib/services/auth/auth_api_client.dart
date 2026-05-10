@@ -18,8 +18,16 @@ class AuthApiClient {
         Object? body,
       }) async {
     return _sendWithRefresh(
-          () async => http.post(uri, headers: await authHeaders(headers), body: body),
-          () async => http.post(uri, headers: await authHeaders(headers), body: body),
+          () async => http.post(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+          () async => http.post(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
     );
   }
 
@@ -43,7 +51,11 @@ class AuthApiClient {
       return response;
     }
 
+    print('REQUEST GOT 401, TRYING REFRESH TOKEN...');
+
     final refreshed = await _authService.refreshToken();
+
+    print('REFRESH RESULT: $refreshed');
 
     if (!refreshed) {
       await TokenStorageService.clearTokens();
@@ -57,6 +69,8 @@ class AuthApiClient {
       Map<String, String>? extraHeaders,
       ) async {
     final accessToken = await TokenStorageService.getAccessToken();
+
+    print('ACCESS TOKEN: $accessToken');
 
     return {
       'Content-Type': 'application/json',

@@ -104,12 +104,23 @@ class PostService {
   }
 
   Future<Post> createPost(CreatePost dto) async {
+    final requestBody = dto.toJson();
+
+    print('CREATE POST REQUEST: ${jsonEncode(requestBody)}');
+
     final response = await _client.post(
       Uri.parse(ApiConstants.posts),
-      body: jsonEncode(dto.toJson()),
+      body: jsonEncode(requestBody),
     );
 
+    print('CREATE POST STATUS: ${response.statusCode}');
+    print('CREATE POST BODY: ${response.body}');
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        throw Exception('Post created but response body is empty');
+      }
+
       final body = jsonDecode(response.body);
 
       if (body is Map<String, dynamic>) {
@@ -161,6 +172,7 @@ class PostService {
                 body['posts'] ??
                 body['result'] ??
                 body['items'];
+
         if (data is List) {
           return data.map((item) => Post.fromJson(item)).toList();
         }

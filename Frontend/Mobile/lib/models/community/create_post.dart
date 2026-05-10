@@ -10,11 +10,19 @@ class CreatePost {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final Map<String, dynamic> data = {
       'content': content,
-      'kitId': kitId,
-      'media': media?.map((e) => e.toJson()).toList(),
     };
+
+    if (kitId != null) {
+      data['kitId'] = kitId;
+    }
+
+    if (media != null && media!.isNotEmpty) {
+      data['media'] = media!.map((e) => e.toJson()).toList();
+    }
+
+    return data;
   }
 }
 
