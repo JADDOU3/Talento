@@ -64,25 +64,27 @@ class PostCubit extends Cubit<PostState> {
     }
   }
 
-  Future<void> createPost(CreatePost dto) async {
+  Future<bool> createPost(CreatePost dto) async {
     emit(PostLoading());
 
     try {
       await _postService.createPost(dto);
       await getAllPosts();
+      return true;
     } catch (e) {
       emit(PostError(e.toString()));
+      return false;
     }
   }
 
-  Future<void> deletePost(int id) async {
-    emit(PostLoading());
-
+  Future<bool> deletePost(int id) async {
     try {
       await _postService.deletePost(id);
       await getAllPosts();
+      return true;
     } catch (e) {
       emit(PostError(e.toString()));
+      return false;
     }
   }
 }

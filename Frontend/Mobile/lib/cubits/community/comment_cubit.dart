@@ -20,24 +20,28 @@ class CommentCubit extends Cubit<CommentState> {
     }
   }
 
-  Future<void> createComment(CreateComment dto) async {
+  Future<bool> createComment(CreateComment dto) async {
     try {
       await _commentService.createComment(dto);
       await getCommentsByPost(dto.postId);
+      return true;
     } catch (e) {
       emit(CommentError(e.toString()));
+      return false;
     }
   }
 
-  Future<void> deleteComment({
+  Future<bool> deleteComment({
     required int commentId,
     required int postId,
   }) async {
     try {
       await _commentService.deleteComment(commentId);
       await getCommentsByPost(postId);
+      return true;
     } catch (e) {
       emit(CommentError(e.toString()));
+      return false;
     }
   }
 }
