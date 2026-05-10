@@ -19,7 +19,10 @@ class Post {
     return Post(
       id: json['id'],
       content: json['content'] ?? '',
-      createdAt: json['createdAt'] ?? '',
+      createdAt:
+      json['createdAt'] ??
+          json['created_at'] ??
+          '',
       child: json['child'] != null
           ? Child.fromJson(json['child'])
           : null,
@@ -28,7 +31,12 @@ class Post {
           .map((e) => Media.fromJson(e))
           .toList()
           : [],
-      commentsCount: json['commentsCount'] ?? 0,
+      commentsCount:
+      json['commentsCount'] ??
+          json['commentCount'] ??
+          (json['comments'] is List
+              ? (json['comments'] as List).length
+              : 0),
     );
   }
 }
@@ -54,11 +62,13 @@ class Media {
   final int id;
   final String type;
   final String url;
+  final String? s3Key;
 
   Media({
     required this.id,
     required this.type,
     required this.url,
+    this.s3Key,
   });
 
   factory Media.fromJson(Map<String, dynamic> json) {
@@ -66,6 +76,7 @@ class Media {
       id: json['id'],
       type: json['type'] ?? '',
       url: json['url'] ?? '',
+      s3Key: json['s3Key'],
     );
   }
 }

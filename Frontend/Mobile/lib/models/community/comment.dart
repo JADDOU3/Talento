@@ -15,7 +15,10 @@ class Comment {
     return Comment(
       id: json['id'],
       content: json['content'] ?? '',
-      createdAt: json['createdAt'] ?? '',
+      createdAt:
+      json['createdAt'] ??
+          json['created_at'] ??
+          '',
       child: json['child'] != null
           ? CommentChild.fromJson(json['child'])
           : null,

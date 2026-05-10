@@ -20,17 +20,17 @@ class CreatePost {
 
 class MediaDto {
   final String type;
-  final String url;
+  final String s3Key;
 
   MediaDto({
     required this.type,
-    required this.url,
+    required this.s3Key,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'type': type,
-      'url': url,
+      's3Key': s3Key,
     };
   }
 }
