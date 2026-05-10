@@ -1,12 +1,15 @@
+// lib/features/auth/pages/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:web/shared/i18n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/components/custom_text_field.dart';
 import '../../../shared/components/buttons/custom_button.dart';
-import '../../../shared/services/api_service.dart';
+import '../../../shared/services/auth_service.dart';       // ← AuthService
 import '../../../shared/providers/language_provider.dart';
 import 'signup_screen.dart';
+import '../../home/pages/home_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,37 +19,54 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _emailController    = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final _formKey            = GlobalKey<FormState>();
+  bool _isLoading           = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    final result = await ApiService.login(
-      email: _emailController.text.trim(),
+
+    final result = await AuthService.login(
+      email:    _emailController.text.trim(),
       password: _passwordController.text,
     );
-    setState(() => _isLoading = false);
+
     if (!mounted) return;
+    setState(() => _isLoading = false);
+
     final l10n = AppLocalizations.of(context)!;
-    if (result['success']) {
+
+    if (result['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.loginSuccess),
-            backgroundColor: const Color(0xFF10a896)),
+        SnackBar(
+          content: Text(l10n.loginSuccess),
+          backgroundColor: const Color(0xFF10a896),
+        ),
       );
+      // Navigate to home and clear back stack
+      Navigator.pushReplacementNamed(context, '/');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'].toString()),
-            backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text(result['message']?.toString() ?? 'Invalid credentials'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n         = AppLocalizations.of(context)!;
     final langProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
@@ -163,8 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hint: 'jane@example.com',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (v) =>
-                          v!.isEmpty ? l10n.emailRequired : null,
+                      validator: (v) => v!.isEmpty ? l10n.emailRequired : null,
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
@@ -173,8 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordController,
                       isPassword: true,
                       suffixText: l10n.forgotPassword,
-                      validator: (v) =>
-                          v!.isEmpty ? l10n.passwordRequired : null,
+                      validator: (v) => v!.isEmpty ? l10n.passwordRequired : null,
                     ),
                     const SizedBox(height: 28),
                     _isLoading
@@ -215,7 +233,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Image.asset('assets/images/google.png', height: 20),
+                                Image.asset('assets/images/google.png',
+                                    height: 20),
                                 const SizedBox(width: 8),
                                 Text(l10n.google,
                                     style: GoogleFonts.nunito(
@@ -230,7 +249,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () {},
                             icon: const Icon(Icons.apple, size: 22),
-                            label: Text(l10n.apple, style: GoogleFonts.nunito()),
+                            label: Text(l10n.apple,
+                                style: GoogleFonts.nunito()),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               side: BorderSide.none,
