@@ -7,9 +7,11 @@ import '../../cubits/community/post_cubit.dart';
 import '../../cubits/community/post_state.dart';
 import '../../cubits/community/like_cubit.dart';
 import '../../cubits/community/comment_cubit.dart';
+import '../../cubits/community/media_cubit.dart';
 import '../../services/community/post.dart';
 import '../../services/community/like.dart';
 import '../../services/community/comment.dart';
+import '../../services/community/media.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/app_background.dart';
 import 'widgets/action_icon_button.dart';
@@ -34,6 +36,9 @@ class CommunityScreen extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => CommentCubit(CommentService()),
+        ),
+        BlocProvider(
+          create: (_) => MediaCubit(MediaService()),
         ),
       ],
       child: const _CommunityView(),
@@ -74,6 +79,21 @@ class _CommunityViewState extends State<_CommunityView> {
     }
   }
 
+  void _openCreatePostSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<PostCubit>()),
+          BlocProvider.value(value: context.read<MediaCubit>()),
+        ],
+        child: const CreatePostSheet(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -100,7 +120,6 @@ class _CommunityViewState extends State<_CommunityView> {
                             children: [
                               _SearchBar(),
                               const SizedBox(height: 10),
-
                               SizedBox(
                                 height: 38,
                                 child: ListView.separated(
@@ -118,28 +137,14 @@ class _CommunityViewState extends State<_CommunityView> {
                                   },
                                 ),
                               ),
-
                               const SizedBox(height: 24),
-
                               Center(
                                 child: ActionIconButton(
                                   text: 'شارك قصتك',
-                                  onTap: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (_) => BlocProvider.value(
-                                        value: context.read<PostCubit>(),
-                                        child: const CreatePostSheet(),
-                                      ),
-                                    );
-                                  },
+                                  onTap: _openCreatePostSheet,
                                 ),
                               ),
-
                               const SizedBox(height: 28),
-
                               Text(
                                 'القصص الحديثة',
                                 textAlign: TextAlign.right,
@@ -149,9 +154,7 @@ class _CommunityViewState extends State<_CommunityView> {
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
-
                               const SizedBox(height: 14),
-
                               BlocBuilder<PostCubit, PostState>(
                                 builder: (context, state) {
                                   if (state is PostLoading) {

@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../cubits/community/comment_cubit.dart';
 import '../../../cubits/community/like_cubit.dart';
 import '../../../cubits/community/like_state.dart';
+import '../../../cubits/community/post_cubit.dart';
 import '../../../models/community/post.dart';
 import '../post_details_screen.dart';
 
@@ -34,7 +36,13 @@ class _PostCardState extends State<PostCard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PostDetailsScreen(postId: widget.post.id),
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<PostCubit>()),
+            BlocProvider.value(value: context.read<CommentCubit>()),
+          ],
+          child: PostDetailsScreen(postId: widget.post.id),
+        ),
       ),
     );
   }
@@ -109,7 +117,6 @@ class _PostCardState extends State<PostCard> {
                 ),
               ],
             ),
-
             if (imageUrl != null && imageUrl.isNotEmpty) ...[
               const SizedBox(height: 12),
               ClipRRect(
@@ -127,9 +134,7 @@ class _PostCardState extends State<PostCard> {
                 ),
               ),
             ],
-
             const SizedBox(height: 12),
-
             BlocBuilder<LikeCubit, LikeState>(
               builder: (context, state) {
                 final likeCubit = context.read<LikeCubit>();
@@ -148,8 +153,9 @@ class _PostCardState extends State<PostCard> {
                         isLiked
                             ? Icons.favorite_rounded
                             : Icons.favorite_border_rounded,
-                        color:
-                        isLiked ? AppColors.pink : AppColors.textSecondary,
+                        color: isLiked
+                            ? AppColors.pink
+                            : AppColors.textSecondary,
                         size: 23,
                       ),
                     ),
@@ -163,7 +169,6 @@ class _PostCardState extends State<PostCard> {
                       ),
                     ),
                     const SizedBox(width: 18),
-
                     InkWell(
                       onTap: _openPostDetails,
                       borderRadius: BorderRadius.circular(30),
@@ -182,9 +187,7 @@ class _PostCardState extends State<PostCard> {
                         color: AppColors.textSecondary,
                       ),
                     ),
-
                     const SizedBox(width: 18),
-
                     Icon(
                       Icons.share_outlined,
                       color: AppColors.textSecondary,
@@ -194,9 +197,7 @@ class _PostCardState extends State<PostCard> {
                 );
               },
             ),
-
             const SizedBox(height: 10),
-
             RichText(
               textAlign: TextAlign.right,
               text: TextSpan(
