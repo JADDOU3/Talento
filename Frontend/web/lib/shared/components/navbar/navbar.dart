@@ -3,6 +3,8 @@ import '../buttons/primary_button.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../shared/providers/language_provider.dart';
+import '../../../features/auth/pages/login_screen.dart';
+import '../../../features/auth/pages/signup_screen.dart';
 
 class Navbar extends StatelessWidget {
   final bool isLoggedIn;
@@ -63,15 +65,35 @@ class Navbar extends StatelessWidget {
           children: [
             if (!isLoggedIn) ...[
               TextButton(
-                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                onPressed: () => Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).toggleLanguage(),
                 child: Text(l10n.language),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginScreen(),
+                    ),
+                  );
+                },
                 child: Text(l10n.navLogin),
               ),
               const SizedBox(width: 10),
-              PrimaryButton(text: l10n.navSignUp),
+              PrimaryButton(
+                text: l10n.navSignUp,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SignupScreen(),
+                    ),
+                  );
+                },
+              ),
             ] else ...[
               const Icon(Icons.shopping_cart_outlined),
               const SizedBox(width: 10),
@@ -103,15 +125,35 @@ class Navbar extends StatelessWidget {
           children: [
             if (!isLoggedIn) ...[
               TextButton(
-                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                onPressed: () => Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).toggleLanguage(),
                 child: Text(l10n.language),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginScreen(),
+                    ),
+                  );
+                },
                 child: Text(l10n.navLogin),
               ),
               const SizedBox(width: 8),
-              PrimaryButton(text: l10n.navSignUp),
+              PrimaryButton(
+                text: l10n.navSignUp,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SignupScreen(),
+                    ),
+                  );
+                },
+              ),
             ] else ...[
               const Icon(Icons.shopping_cart_outlined),
               const SizedBox(width: 8),
@@ -143,7 +185,10 @@ class _NavItem extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _NavItem({required this.title, required this.onTap});
+  const _NavItem({
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   State<_NavItem> createState() => _NavItemState();
@@ -166,8 +211,12 @@ class _NavItemState extends State<_NavItem> {
             duration: const Duration(milliseconds: 180),
             style: TextStyle(
               fontSize: 16,
-              color: _hovered ? const Color(0xFF18A97A) : Colors.black87,
-              fontWeight: _hovered ? FontWeight.w600 : FontWeight.w400,
+              color: _hovered
+                  ? const Color(0xFF18A97A)
+                  : Colors.black87,
+              fontWeight: _hovered
+                  ? FontWeight.w600
+                  : FontWeight.w400,
             ),
             child: Text(widget.title),
           ),
