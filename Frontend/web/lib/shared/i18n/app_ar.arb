@@ -94,5 +94,52 @@
 "featuredTitle": "مكتبة المواهب\nالكاملة",
 "featuredDesc": "احصل على منهجنا الكامل المكون من 24 مجموعة على مدى عامين من النمو.",
 "featuredButton": "اشترك ووفّر 20%",
-  "language": "AR"
+  "language": "AR",
+  "yourBasket": "سلة مشترياتك",
+  "cartItemsCount": "{count} عناصر",
+  "@cartItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendedForYou": "موصى به لك",
+  "cartSummary": "ملخص الطلب",
+  "cartSubtotal": "المجموع الفرعي",
+  "cartShipping": "الشحن",
+  "cartShippingFree": "مجاني",
+  "cartTax": "الضريبة",
+  "cartTotal": "الإجمالي",
+  "proceedToCheckout": "المتابعة للدفع",
+  "cartSupportNote": "كل عملية شراء تدعم برنامج إعادة التشجير مع شركائنا.",
+  "cartDeliveryEstimate": "يصل بحلول الخميس — شحن أرضي قياسي",
+  "promoCode": "كود الخصم",
+  "enterPromoCode": "أدخل الكود",
+  "apply": "تطبيق",
+  "cartRemoveA11y": "إزالة المنتج",
+  "badgeAddOn": "إضافة",
+  "badgeCrossSell": "عرض مكمل",
+  "cartRec1Title": "مجموعة الطباعة بالحرير",
+  "cartRec1Desc": "أضف طبقات زاهية لطبعاتك النباتية بأحبار قابلة للغسل.",
+  "cartRec2Title": "مجهر 100×",
+  "cartRec2Desc": "تعمّق في الأوراق والحشرات مع شرائح موجّهة.",
+  "cartAddAmount": "أضف +{amount}",
+  "@cartAddAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "cartLine1Title": "مجموعة عالم النباتات",
+  "cartLine1Desc": "الفئة العمرية: 6–9 سنوات. بذور، مفكرة، وأشرطة حموضة التربة.",
+  "cartLine2Title": "مهندس الطيور",
+  "cartLine2Desc": "الفئة العمرية: 8–12 سنة. نماذج وتعلم أساسيات الطيران.",
+  "cartLine3Title": "إتقان المنشور",
+  "cartLine3Desc": "الفئة العمرية: 9–14 سنة. مختبر بصريات مع منشور وصندوق ضوء.",
+  "footerInstagram": "إنستغرام",
+  "footerPinterest": "بينتريست",
+  "footerLinkedIn": "لينكد إن",
+  "cartCopyrightLine": "© 2024 تالينتو كيدز. جذورنا في الفضول."
 }

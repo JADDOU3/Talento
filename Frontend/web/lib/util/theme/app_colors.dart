@@ -25,4 +25,15 @@ class AppColors {
 
   // Shadows
   static const Color shadow = Color(0x14000000); // خفيف جداً
+
+  // Cart / basket (Talento web)
+  static const Color cartPageBackground = Color(0xFFF5F0EB);
+  static const Color cartForestGreen = Color(0xFF1B4332);
+  static const Color cartTeal = Color(0xFF1A9E75);
+  static const Color cartSummaryPink = Color(0xFFFFD6D6);
+  static const Color cartTotalRose = Color(0xFFD64562);
+  static const Color cartMutedGrey = Color(0xFF8A8A8A);
+  static const Color cartStepperPink = Color(0xFFFF8FA3);
+  static const Color cartApplyPink = Color(0xFFFF9FA8);
+  static const Color cartDeliveryCard = Colors.white;
 }
