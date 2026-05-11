@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/community/post_cubit.dart';
+import '../../cubits/community/post_state.dart';
+import '../../cubits/community/like_cubit.dart';
+import '../../cubits/community/comment_cubit.dart';
+import '../../cubits/community/media_cubit.dart';
+import '../../services/community/post.dart';
+import '../../services/community/like.dart';
+import '../../services/community/comment.dart';
+import '../../services/community/media.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/app_background.dart';
 import 'widgets/action_icon_button.dart';
@@ -9,50 +19,80 @@ import 'widgets/category_chip.dart';
 import 'widgets/custom_bottom_nav.dart';
 import 'widgets/feature_card.dart';
 import 'widgets/post_card.dart';
+import 'create_post_sheet.dart';
 
-class CommunityScreen extends StatefulWidget {
+class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
 
   @override
-  State<CommunityScreen> createState() => _CommunityScreenState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => PostCubit(PostService())..getAllPosts(),
+        ),
+        BlocProvider(
+          create: (_) => LikeCubit(LikeService()),
+        ),
+        BlocProvider(
+          create: (_) => CommentCubit(CommentService()),
+        ),
+        BlocProvider(
+          create: (_) => MediaCubit(MediaService()),
+        ),
+      ],
+      child: const _CommunityView(),
+    );
+  }
 }
 
-class _CommunityScreenState extends State<CommunityScreen> {
+class _CommunityView extends StatefulWidget {
+  const _CommunityView();
+
+  @override
+  State<_CommunityView> createState() => _CommunityViewState();
+}
+
+class _CommunityViewState extends State<_CommunityView> {
   int selectedChip = 0;
 
   final List<String> categories = const [
-    'كل التخصصات',
-    'مجموعة الروبوتات',
-    'التعلّم',
-    'الفنون',
+    'الكل',
+    'منشوراتي',
+    'Mindset 1',
+    'Kit 1',
   ];
 
-  final List<Map<String, dynamic>> feedData = const [
-    {
-      'id': 1,
-      'user': 'إلينا وسام',
-      'time': 'منذ ساعتين',
-      'avatar':
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200',
-      'image':
-      'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=900',
-      'caption':
-      'أخيراً مررنا بلحظة الاكتشاف! تجربة ممتعة مع الأصدقاء في مهمة الفضاء 🚀',
-      'likes': 12,
-    },
-    {
-      'id': 2,
-      'user': 'ديفيد تشن',
-      'time': 'منذ 5 ساعات',
-      'avatar':
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',
-      'image':
-      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900',
-      'caption':
-      'مشاركة مابيا في مجموعة التعبيرات الفنية كانت مليئة بالألوان والإبداع 🎨',
-      'likes': 8,
-    },
-  ];
+  void _onCategoryTap(int index) {
+    setState(() => selectedChip = index);
+
+    final postCubit = context.read<PostCubit>();
+
+    if (index == 0) {
+      postCubit.getAllPosts();
+    } else if (index == 1) {
+      postCubit.getMyPosts();
+    } else if (index == 2) {
+      postCubit.getPostsByMindset(1);
+    } else if (index == 3) {
+      postCubit.getPostsByKit(1);
+    }
+  }
+
+  void _openCreatePostSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<PostCubit>()),
+          BlocProvider.value(value: context.read<MediaCubit>()),
+        ],
+        child: const CreatePostSheet(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +104,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
           child: Column(
             children: [
               const TopBar(),
-
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -72,7 +111,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const FeatureCard(),
-
                       Transform.translate(
                         offset: const Offset(0, -28),
                         child: Padding(
@@ -81,9 +119,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _SearchBar(),
-
                               const SizedBox(height: 10),
-
                               SizedBox(
                                 height: 38,
                                 child: ListView.separated(
@@ -96,25 +132,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     return CategoryChip(
                                       label: categories[index],
                                       isSelected: selectedChip == index,
-                                      onTap: () {
-                                        setState(() => selectedChip = index);
-                                      },
+                                      onTap: () => _onCategoryTap(index),
                                     );
                                   },
                                 ),
                               ),
-
                               const SizedBox(height: 24),
-
                               Center(
                                 child: ActionIconButton(
                                   text: 'شارك قصتك',
-                                  onTap: () {},
+                                  onTap: _openCreatePostSheet,
                                 ),
                               ),
-
                               const SizedBox(height: 28),
-
                               Text(
                                 'القصص الحديثة',
                                 textAlign: TextAlign.right,
@@ -124,21 +154,50 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
-
                               const SizedBox(height: 14),
+                              BlocBuilder<PostCubit, PostState>(
+                                builder: (context, state) {
+                                  if (state is PostLoading) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(30),
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  }
 
-                              ...feedData.map(
-                                    (post) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 18),
-                                  child: PostCard(
-                                    user: post['user'],
-                                    time: post['time'],
-                                    avatarUrl: post['avatar'],
-                                    imageUrl: post['image'],
-                                    caption: post['caption'],
-                                    likes: post['likes'],
-                                  ),
-                                ),
+                                  if (state is PostError) {
+                                    return Center(
+                                      child: Text(
+                                        state.message,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  }
+
+                                  if (state is PostLoaded) {
+                                    if (state.posts.isEmpty) {
+                                      return const Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(30),
+                                          child: Text('لا توجد منشورات حالياً'),
+                                        ),
+                                      );
+                                    }
+
+                                    return Column(
+                                      children: state.posts.map((post) {
+                                        return Padding(
+                                          padding:
+                                          const EdgeInsets.only(bottom: 18),
+                                          child: PostCard(post: post),
+                                        );
+                                      }).toList(),
+                                    );
+                                  }
+
+                                  return const SizedBox.shrink();
+                                },
                               ),
                             ],
                           ),
@@ -148,7 +207,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   ),
                 ),
               ),
-
               const CustomBottomNav(selectedIndex: 2),
             ],
           ),

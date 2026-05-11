@@ -412,5 +412,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get footerLinkedIn => 'لينكد إن';
 
   @override
-  String get cartCopyrightLine => '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+  String get cartCopyrightLine =>
+      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
 }

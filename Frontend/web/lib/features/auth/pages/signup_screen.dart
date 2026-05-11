@@ -1,10 +1,12 @@
+// lib/features/auth/pages/signup_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:web/shared/i18n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/components/custom_text_field.dart';
 import '../../../shared/components/buttons/custom_button.dart';
-import '../../../shared/services/api_service.dart';
+import '../../../shared/services/auth_service.dart';       // ← AuthService
 import '../../../shared/providers/language_provider.dart';
 import 'login_screen.dart';
 
@@ -16,51 +18,72 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _nameController            = TextEditingController();
+  final _emailController           = TextEditingController();
+  final _passwordController        = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  String _selectedGender = '';
-  bool _isLoading = false;
+  final _formKey                   = GlobalKey<FormState>();
+  String _selectedGender           = '';
+  bool _isLoading                  = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _signup() async {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (_selectedGender.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.pleaseSelectGender),
-            backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text(l10n.pleaseSelectGender),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       return;
     }
+
     setState(() => _isLoading = true);
-    final result = await ApiService.register(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      gender: _selectedGender.toUpperCase(),
+
+    final result = await AuthService.register(
+      name:     _nameController.text.trim(),
+      email:    _emailController.text.trim(),
+      gender:   _selectedGender.toUpperCase(),
       password: _passwordController.text,
     );
-    setState(() => _isLoading = false);
+
     if (!mounted) return;
-    if (result['success']) {
+    setState(() => _isLoading = false);
+
+    if (result['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.accountCreated),
-            backgroundColor: const Color(0xFF10a896)),
+        SnackBar(
+          content: Text(l10n.accountCreated),
+          backgroundColor: const Color(0xFF10a896),
+        ),
       );
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'].toString()),
-            backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text(result['message']?.toString() ?? 'Registration failed'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n         = AppLocalizations.of(context)!;
     final langProvider = Provider.of<LanguageProvider>(context);
 
     return Scaffold(
@@ -185,8 +208,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         label: l10n.fullName,
                         hint: 'Jane Doe',
                         controller: _nameController,
-                        validator: (v) =>
-                            v!.isEmpty ? l10n.nameRequired : null,
+                        validator: (v) => v!.isEmpty ? l10n.nameRequired : null,
                       ),
                       const SizedBox(height: 20),
 

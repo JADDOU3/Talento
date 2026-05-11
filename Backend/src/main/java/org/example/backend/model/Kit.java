@@ -10,6 +10,7 @@ import org.example.backend.util.enums.Type;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -53,4 +54,7 @@ public class Kit {
     @JsonIgnore
     @OneToMany(mappedBy = "kit")
     private List<ChildKit> childKits;
+    @OneToMany(mappedBy = "kit")
+    private List<CartItem> cartItems = new ArrayList<>();
+
 }
