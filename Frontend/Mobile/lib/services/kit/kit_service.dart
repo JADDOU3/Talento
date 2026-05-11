@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../core/config/api_constants.dart';
-import '../models/kit_model.dart';
-import 'auth_api_client.dart';
+import '../../core/config/api_constants.dart';
+import '../../models/kit/kit_model.dart';
+import '../auth/auth_api_client.dart';
 
 class KitService {
   final AuthApiClient _client = AuthApiClient();

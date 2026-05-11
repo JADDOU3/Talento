@@ -6,7 +6,7 @@ import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/social_button.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../services/auth_service.dart';
+import '../../services/auth/auth_service.dart';
 import '../home/new_user.dart';
 import 'signup_screen.dart';
 

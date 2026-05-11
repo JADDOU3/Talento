@@ -7,8 +7,8 @@ class AuthApiClient {
 
   Future<http.Response> get(Uri uri, {Map<String, String>? headers}) async {
     return _sendWithRefresh(
-          () async => http.get(uri, headers: await _headers(headers)),
-          () async => http.get(uri, headers: await _headers(headers)),
+          () async => http.get(uri, headers: await authHeaders(headers)),
+          () async => http.get(uri, headers: await authHeaders(headers)),
     );
   }
 
@@ -18,8 +18,26 @@ class AuthApiClient {
         Object? body,
       }) async {
     return _sendWithRefresh(
-          () async => http.post(uri, headers: await _headers(headers), body: body),
-          () async => http.post(uri, headers: await _headers(headers), body: body),
+          () async => http.post(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+          () async => http.post(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+    );
+  }
+
+  Future<http.Response> delete(
+      Uri uri, {
+        Map<String, String>? headers,
+      }) async {
+    return _sendWithRefresh(
+          () async => http.delete(uri, headers: await authHeaders(headers)),
+          () async => http.delete(uri, headers: await authHeaders(headers)),
     );
   }
 
@@ -33,7 +51,11 @@ class AuthApiClient {
       return response;
     }
 
+    print('REQUEST GOT 401, TRYING REFRESH TOKEN...');
+
     final refreshed = await _authService.refreshToken();
+
+    print('REFRESH RESULT: $refreshed');
 
     if (!refreshed) {
       await TokenStorageService.clearTokens();
@@ -43,8 +65,12 @@ class AuthApiClient {
     return await retryRequest();
   }
 
-  Future<Map<String, String>> _headers(Map<String, String>? extraHeaders) async {
+  Future<Map<String, String>> authHeaders(
+      Map<String, String>? extraHeaders,
+      ) async {
     final accessToken = await TokenStorageService.getAccessToken();
+
+    print('ACCESS TOKEN: $accessToken');
 
     return {
       'Content-Type': 'application/json',
