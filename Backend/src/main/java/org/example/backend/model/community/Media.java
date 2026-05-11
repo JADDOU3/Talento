@@ -13,14 +13,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Media {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Enumerated(EnumType.STRING)
     private MediaType type;
-
-    private String url;
+    
+    private String s3Key;
 
     @ManyToOne
     @JoinColumn(name = "post_id")

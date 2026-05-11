@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../services/token_storage_service.dart';
+import '../../services/auth/token_storage_service.dart';
 import '../auth/login_screen.dart';
 import '../home/new_user.dart';
 
