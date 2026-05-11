@@ -1,6 +1,6 @@
 package org.example.backend.config;
 
-import org.example.backend.service.UserService;
+import org.example.backend.service.ParentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +12,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService;
+    private ParentService userService;
 
     @Autowired
     private PasswordEncoderConfig passwordEncoderConfig;
@@ -30,16 +28,21 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
+    @Autowired
+    private ChildModeFilter childModeFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return  http.csrf(customizer -> customizer.disable())
+                    .cors(Customizer.withDefaults())
                     .authorizeHttpRequests(request ->
-                            request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
-                                    .anyRequest().authenticated())
+                        request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
+                                .anyRequest().authenticated())
                     .httpBasic(Customizer.withDefaults())
                     .sessionManagement(session ->
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .addFilterBefore(jwtFilter ,  UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(childModeFilter, JwtFilter.class)
                     .build();
     }
 

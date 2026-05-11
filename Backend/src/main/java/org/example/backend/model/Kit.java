@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.util.enums.Mindset;
+import org.example.backend.model.activity.Activity;
+import org.example.backend.model.mindset.Mindset;
 import org.example.backend.util.enums.Type;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -36,7 +38,8 @@ public class Kit {
     @Enumerated(EnumType.STRING)
     private Type type;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name = "mindset_id")
     private Mindset mindset;
 
     @JsonIgnore
@@ -51,4 +54,7 @@ public class Kit {
     @JsonIgnore
     @OneToMany(mappedBy = "kit")
     private List<ChildKit> childKits;
+    @OneToMany(mappedBy = "kit")
+    private List<CartItem> cartItems = new ArrayList<>();
+
 }

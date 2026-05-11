@@ -4,11 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.Activity;
-import org.example.backend.model.ActivitySession;
-import org.example.backend.model.Child;
-import org.example.backend.model.Session;
-import org.example.backend.util.enums.EventType;
+import org.example.backend.model.*;
+
+import org.example.backend.model.activity.Activity;
 
 import java.time.LocalDateTime;
 
@@ -24,10 +22,15 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Enumerated(EnumType.STRING)
-    private EventType type;
-
     private LocalDateTime createdAt;
+
+    private String value; // JSON in UML, using String for simplicity or could use JsonNode
+
+    private Float duration;
+
+    private Boolean success;
+
+    private int attempts;
 
     @ManyToOne
     @JoinColumn(name = "child_id", nullable = false)
@@ -40,8 +43,4 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;
-
-    @ManyToOne
-    @JoinColumn(name = "activity_session_id")
-    private ActivitySession activitySession;
 }

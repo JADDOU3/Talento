@@ -1,32 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'shared/providers/language_provider.dart';
+import 'shared/i18n/app_localizations.dart';
+import 'features/auth/pages/login_screen.dart';
+import 'features/home/pages/home_page.dart';
+import 'features/catalog/pages/catalog_page.dart';
 import 'util/theme/app_colors.dart';
-import 'util/theme/app_text_styles.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LanguageProvider(),
+      child: const TalentoApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TalentoApp extends StatelessWidget {
+  const TalentoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Talento',
+    final languageProvider = Provider.of<LanguageProvider>(context);
+    final isArabic = languageProvider.locale.languageCode == 'ar';
 
+    return MaterialApp(
+      title: 'Talento',
+      debugShowCheckedModeBanner: false,
+      locale: languageProvider.locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ar'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
+        textTheme: isArabic
+            ? GoogleFonts.cairoTextTheme()
+            : GoogleFonts.nunitoTextTheme(),
+        fontFamily: isArabic
+            ? GoogleFonts.cairo().fontFamily
+            : GoogleFonts.nunito().fontFamily,
       ),
-
-      home: Scaffold(
-        body: Center(
-          child: Text(
-            'Setup Ready',
-            style: AppTextStyles.heading,
-          ),
-        ),
-      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomePage(),
+        '/home': (context) => const HomePage(),
+        '/catalog': (context) => const CatalogPage(),
+      },
     );
+
   }
 }

@@ -4,6 +4,8 @@ services:
     image: mysql:8
     container_name: mysql
     restart: always
+    env_file:
+      /.env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: talento
@@ -25,6 +27,8 @@ services:
       dockerfile: Docker/backend/Dockerfile
     container_name: backend
     restart: always
+    env_file:
+      /.env
     expose:
       - "8080"
     environment:
@@ -32,20 +36,37 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/talento
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - app-network
 
+
   frontend:
-    image: jaddou333/talento-frontend:latest
-    container_name: frontend
+      image: jaddou333/talento-frontend:latest
+      container_name: frontend
+      restart: always
+      expose:
+        - "3000"
+      networks:
+        - app-network
+
+
+  ai:
+    build:
+      context: ..
+      dockerfile: Docker/ai/Dockerfile
+    container_name: ai
     restart: always
     expose:
-      - "3000"
+      - "8000"
     networks:
       - app-network
+
+
 
   nginx:
     image: nginx:alpine
@@ -58,6 +79,7 @@ services:
     depends_on:
       - backend
       - frontend
+      - ai
     networks:
       - app-network
 
