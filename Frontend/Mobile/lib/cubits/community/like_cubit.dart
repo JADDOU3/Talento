@@ -16,7 +16,7 @@ class LikeCubit extends Cubit<LikeState> {
       final count = await _likeService.getLikeCount(postId);
 
       likeCounts[postId] = count;
-      likedPosts[postId] = likedPosts[postId] ?? false;
+      likedPosts.putIfAbsent(postId, () => false);
 
       emit(
         LikeUpdated(
@@ -41,26 +41,47 @@ class LikeCubit extends Cubit<LikeState> {
     final oldCount = likeCounts[postId] ?? 0;
     final oldIsLiked = likedPosts[postId] ?? false;
 
-    final newIsLiked = !oldIsLiked;
-    final newCount = newIsLiked ? oldCount + 1 : oldCount - 1;
+    final optimisticIsLiked = !oldIsLiked;
+    final optimisticCount = optimisticIsLiked ? oldCount + 1 : oldCount - 1;
 
-    likeCounts[postId] = newCount < 0 ? 0 : newCount;
-    likedPosts[postId] = newIsLiked;
+    likeCounts[postId] = optimisticCount < 0 ? 0 : optimisticCount;
+    likedPosts[postId] = optimisticIsLiked;
 
     emit(
       LikeUpdated(
         postId: postId,
         count: likeCounts[postId] ?? 0,
-        isLiked: newIsLiked,
+        isLiked: optimisticIsLiked,
       ),
     );
 
     try {
-      await _likeService.toggleLike(
+      final result = await _likeService.toggleLike(
         postId: postId,
         childId: selectedChildId,
       );
+
+      final normalizedResult = result.toLowerCase().trim();
+
+      final confirmedIsLiked =
+          normalizedResult.contains('liked') &&
+              !normalizedResult.contains('unliked');
+
+      final confirmedCount = confirmedIsLiked ? oldCount + 1 : oldCount - 1;
+
+      likeCounts[postId] = confirmedCount < 0 ? 0 : confirmedCount;
+      likedPosts[postId] = confirmedIsLiked;
+
+      emit(
+        LikeUpdated(
+          postId: postId,
+          count: likeCounts[postId] ?? 0,
+          isLiked: confirmedIsLiked,
+        ),
+      );
     } catch (e) {
+      print('LIKE TOGGLE FAILED IN CUBIT: $e');
+
       likeCounts[postId] = oldCount;
       likedPosts[postId] = oldIsLiked;
 

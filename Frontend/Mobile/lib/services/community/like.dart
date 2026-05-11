@@ -41,27 +41,26 @@ class LikeService {
     }
   }
 
-  Future<void> toggleLike({
+  Future<String> toggleLike({
     required int postId,
     required int childId,
   }) async {
-    final response = await _client.post(
-      Uri.parse(ApiConstants.likesToggle),
-      body: jsonEncode({
-        'postId': postId,
-        'childId': childId,
-      }),
-    );
-
-    print('TOGGLE LIKE REQUEST: ${jsonEncode({
+    final requestBody = {
       'postId': postId,
       'childId': childId,
-    })}');
+    };
+
+    final response = await _client.post(
+      Uri.parse(ApiConstants.likesToggle),
+      body: jsonEncode(requestBody),
+    );
+
+    print('TOGGLE LIKE REQUEST: ${jsonEncode(requestBody)}');
     print('TOGGLE LIKE STATUS: ${response.statusCode}');
     print('TOGGLE LIKE BODY: ${response.body}');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return;
+      return response.body.trim();
     }
 
     throw Exception(

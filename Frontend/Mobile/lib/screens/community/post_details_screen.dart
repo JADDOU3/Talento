@@ -9,6 +9,7 @@ import '../../../cubits/community/post_cubit.dart';
 import '../../../cubits/community/post_state.dart';
 import '../../../models/community/create_comment.dart';
 import '../../../models/community/post.dart';
+import '../../shared/widgets/app_background.dart';
 
 class PostDetailsScreen extends StatefulWidget {
   final int postId;
@@ -63,7 +64,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -75,57 +76,64 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: BlocBuilder<PostCubit, PostState>(
-              builder: (context, state) {
-                if (state is PostLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      extendBodyBehindAppBar: false,
+      body: AppBackground(
+        child: Column(
+          children: [
+            Expanded(
+              child: BlocBuilder<PostCubit, PostState>(
+                builder: (context, state) {
+                  if (state is PostLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-                if (state is PostError) {
-                  return Center(child: Text(state.message));
-                }
+                  if (state is PostError) {
+                    return Center(
+                      child: Text(state.message),
+                    );
+                  }
 
-                if (state is PostDetailsLoaded) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _PostDetailsCard(post: state.post),
-                        const SizedBox(height: 20),
-                        Text(
-                          'التعليقات',
-                          textAlign: TextAlign.right,
-                          style: AppTextStyles.headlineMedium.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
+                  if (state is PostDetailsLoaded) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _PostDetailsCard(post: state.post),
+                          const SizedBox(height: 20),
+                          Text(
+                            'التعليقات',
+                            textAlign: TextAlign.right,
+                            style: AppTextStyles.headlineMedium.copyWith(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        _CommentsList(postId: widget.postId),
-                      ],
-                    ),
-                  );
-                }
+                          const SizedBox(height: 12),
+                          _CommentsList(postId: widget.postId),
+                        ],
+                      ),
+                    );
+                  }
 
-                return const SizedBox.shrink();
-              },
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-
-          _CommentInput(
-            controller: _commentController,
-            onSend: _sendComment,
-          ),
-        ],
+            _CommentInput(
+              controller: _commentController,
+              onSend: _sendComment,
+            ),
+          ],
+        ),
       ),
     );
   }
+
 }
 
 class _PostDetailsCard extends StatelessWidget {
@@ -145,7 +153,9 @@ class _PostDetailsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+        border: Border.all(
+          color: AppColors.border.withValues(alpha: 0.65),
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.045),
@@ -180,7 +190,6 @@ class _PostDetailsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-
           if (imageUrl != null && imageUrl.isNotEmpty) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
@@ -190,13 +199,14 @@ class _PostDetailsCard extends StatelessWidget {
                 errorBuilder: (_, __, ___) => Container(
                   height: 180,
                   color: AppColors.inputFill,
-                  child: const Icon(Icons.image_not_supported_outlined),
+                  child: const Icon(
+                    Icons.image_not_supported_outlined,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 14),
           ],
-
           Text(
             post.content,
             textAlign: TextAlign.right,
@@ -316,9 +326,11 @@ class _CommentInput extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           border: Border(
-            top: BorderSide(color: AppColors.border.withValues(alpha: 0.7)),
+            top: BorderSide(
+              color: AppColors.border.withValues(alpha: 0.7),
+            ),
           ),
         ),
         child: Row(

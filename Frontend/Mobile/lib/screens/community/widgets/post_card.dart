@@ -142,78 +142,86 @@ class _PostCardState extends State<PostCard> {
                 final count = likeCubit.likeCounts[widget.post.id] ?? 0;
                 final isLiked = likeCubit.likedPosts[widget.post.id] ?? false;
 
-                return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    InkWell(
-                      onTap: () {
-                        context.read<LikeCubit>().toggleLike(widget.post.id);
-                      },
-                      borderRadius: BorderRadius.circular(30),
-                      child: Icon(
-                        isLiked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: isLiked
-                            ? AppColors.pink
-                            : AppColors.textSecondary,
-                        size: 23,
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            context
+                                .read<LikeCubit>()
+                                .toggleLike(widget.post.id);
+                          },
+                          borderRadius: BorderRadius.circular(30),
+                          child: Icon(
+                            isLiked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: isLiked
+                                ? AppColors.pink
+                                : AppColors.textSecondary,
+                            size: 23,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          count.toString(),
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        InkWell(
+                          onTap: _openPostDetails,
+                          borderRadius: BorderRadius.circular(30),
+                          child: Icon(
+                            Icons.mode_comment_outlined,
+                            color: AppColors.textSecondary,
+                            size: 21,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          widget.post.commentsCount.toString(),
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        childName,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontSize: 12.8,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    Text(
-                      count.toString(),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textSecondary,
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        widget.post.content,
+                        textAlign: TextAlign.right,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textPrimary,
+                          fontSize: 12.3,
+                          height: 1.55,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 18),
-                    InkWell(
-                      onTap: _openPostDetails,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Icon(
-                        Icons.mode_comment_outlined,
-                        color: AppColors.textSecondary,
-                        size: 21,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      widget.post.commentsCount.toString(),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 18),
-                    Icon(
-                      Icons.share_outlined,
-                      color: AppColors.textSecondary,
-                      size: 21,
                     ),
                   ],
                 );
               },
-            ),
-            const SizedBox(height: 10),
-            RichText(
-              textAlign: TextAlign.right,
-              text: TextSpan(
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textPrimary,
-                  fontSize: 12.3,
-                  height: 1.55,
-                ),
-                children: [
-                  TextSpan(
-                    text: '$childName  ',
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  TextSpan(text: widget.post.content),
-                ],
-              ),
             ),
           ],
         ),
