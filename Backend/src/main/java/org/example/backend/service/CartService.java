@@ -28,6 +28,32 @@ public class CartService {
     @Autowired
     private KitRepo kitRepo;
 
+    private CartItemDTO toItemDto(CartItem item) {
+        CartItemDTO dto = new CartItemDTO();
+        dto.setId(item.getId());
+        dto.setKitId(item.getKit().getId());
+        dto.setKitName(item.getKit().getName());
+        dto.setKitDescription(item.getKit().getDescription());
+        dto.setKitImageURL(item.getKit().getImageURL());
+        dto.setKitPrice(item.getKit().getPrice());
+        dto.setQuantity(item.getQuantity());
+        return dto;
+    }
+
+    private CartDTO toCartDto(Cart cart) {
+        List<CartItem> items = cartItemRepo.findByCartId(cart.getId());
+        List<CartItemDTO> itemDtos = new ArrayList<>();
+        for (CartItem item : items) {
+            itemDtos.add(toItemDto(item));
+        }
+        CartDTO dto = new CartDTO();
+        dto.setId(cart.getId());
+        dto.setCreatedAt(cart.getCreatedAt());
+        dto.setItems(itemDtos);
+        return dto;
+    }
+
+
     public CartDTO createCart(int parentId) {
         Cart existing = cartRepo.findByParentId(parentId).orElse(null);
         if (existing != null) return null;
@@ -49,24 +75,7 @@ public class CartService {
     public CartDTO getCart(int parentId) {
         Cart cart = cartRepo.findByParentId(parentId).orElse(null);
         if (cart == null) return null;
-
-        List<CartItem> items = cartItemRepo.findByCartId(cart.getId());
-        List<CartItemDTO> itemDtos = new ArrayList<>();
-        for (CartItem item : items) {
-            CartItemDTO itemDto = new CartItemDTO();
-            itemDto.setId(item.getId());
-            itemDto.setKitId(item.getKit().getId());
-            itemDto.setKitName(item.getKit().getName());
-            itemDto.setKitPrice(item.getKit().getPrice());
-            itemDto.setQuantity(item.getQuantity());
-            itemDtos.add(itemDto);
-        }
-
-        CartDTO dto = new CartDTO();
-        dto.setId(cart.getId());
-        dto.setCreatedAt(cart.getCreatedAt());
-        dto.setItems(itemDtos);
-        return dto;
+        return toCartDto(cart);
     }
 
     @Transactional
@@ -97,23 +106,7 @@ public class CartService {
             cartItemRepo.save(newItem);
         }
 
-        List<CartItem> items = cartItemRepo.findByCartId(cart.getId());
-        List<CartItemDTO> itemDtos = new ArrayList<>();
-        for (CartItem item : items) {
-            CartItemDTO itemDto = new CartItemDTO();
-            itemDto.setId(item.getId());
-            itemDto.setKitId(item.getKit().getId());
-            itemDto.setKitName(item.getKit().getName());
-            itemDto.setKitPrice(item.getKit().getPrice());
-            itemDto.setQuantity(item.getQuantity());
-            itemDtos.add(itemDto);
-        }
-
-        CartDTO cartDto = new CartDTO();
-        cartDto.setId(cart.getId());
-        cartDto.setCreatedAt(cart.getCreatedAt());
-        cartDto.setItems(itemDtos);
-        return cartDto;
+        return toCartDto(cart);
     }
 
     public CartDTO updateItem(int parentId, int itemId, UpdateCartItemDTO dto) {
@@ -129,23 +122,7 @@ public class CartService {
         item.setQuantity(dto.getQuantity());
         cartItemRepo.save(item);
 
-        List<CartItem> items = cartItemRepo.findByCartId(cart.getId());
-        List<CartItemDTO> itemDtos = new ArrayList<>();
-        for (CartItem i : items) {
-            CartItemDTO itemDto = new CartItemDTO();
-            itemDto.setId(i.getId());
-            itemDto.setKitId(i.getKit().getId());
-            itemDto.setKitName(i.getKit().getName());
-            itemDto.setKitPrice(i.getKit().getPrice());
-            itemDto.setQuantity(i.getQuantity());
-            itemDtos.add(itemDto);
-        }
-
-        CartDTO cartDto = new CartDTO();
-        cartDto.setId(cart.getId());
-        cartDto.setCreatedAt(cart.getCreatedAt());
-        cartDto.setItems(itemDtos);
-        return cartDto;
+        return toCartDto(cart);
     }
 
     @Transactional
@@ -159,23 +136,7 @@ public class CartService {
 
         cartItemRepo.delete(item);
 
-        List<CartItem> items = cartItemRepo.findByCartId(cart.getId());
-        List<CartItemDTO> itemDtos = new ArrayList<>();
-        for (CartItem i : items) {
-            CartItemDTO itemDto = new CartItemDTO();
-            itemDto.setId(i.getId());
-            itemDto.setKitId(i.getKit().getId());
-            itemDto.setKitName(i.getKit().getName());
-            itemDto.setKitPrice(i.getKit().getPrice());
-            itemDto.setQuantity(i.getQuantity());
-            itemDtos.add(itemDto);
-        }
-
-        CartDTO cartDto = new CartDTO();
-        cartDto.setId(cart.getId());
-        cartDto.setCreatedAt(cart.getCreatedAt());
-        cartDto.setItems(itemDtos);
-        return cartDto;
+        return toCartDto(cart);
     }
 
     public List<CartItemDTO> getItems(int parentId) {
@@ -185,13 +146,7 @@ public class CartService {
         List<CartItem> items = cartItemRepo.findByCartId(cart.getId());
         List<CartItemDTO> itemDtos = new ArrayList<>();
         for (CartItem item : items) {
-            CartItemDTO itemDto = new CartItemDTO();
-            itemDto.setId(item.getId());
-            itemDto.setKitId(item.getKit().getId());
-            itemDto.setKitName(item.getKit().getName());
-            itemDto.setKitPrice(item.getKit().getPrice());
-            itemDto.setQuantity(item.getQuantity());
-            itemDtos.add(itemDto);
+            itemDtos.add(toItemDto(item));
         }
         return itemDtos;
     }

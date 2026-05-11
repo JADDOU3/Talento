@@ -305,4 +305,113 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get language => 'AR';
+
+  @override
+  String get yourBasket => 'سلة مشترياتك';
+
+  @override
+  String cartItemsCount(int count) {
+    return '$count عناصر';
+  }
+
+  @override
+  String get recommendedForYou => 'موصى به لك';
+
+  @override
+  String get cartSummary => 'ملخص الطلب';
+
+  @override
+  String get cartSubtotal => 'المجموع الفرعي';
+
+  @override
+  String get cartShipping => 'الشحن';
+
+  @override
+  String get cartShippingFree => 'مجاني';
+
+  @override
+  String get cartTax => 'الضريبة';
+
+  @override
+  String get cartTotal => 'الإجمالي';
+
+  @override
+  String get proceedToCheckout => 'المتابعة للدفع';
+
+  @override
+  String get cartSupportNote =>
+      'كل عملية شراء تدعم برنامج إعادة التشجير مع شركائنا.';
+
+  @override
+  String get cartDeliveryEstimate => 'يصل بحلول الخميس — شحن أرضي قياسي';
+
+  @override
+  String get promoCode => 'كود الخصم';
+
+  @override
+  String get enterPromoCode => 'أدخل الكود';
+
+  @override
+  String get apply => 'تطبيق';
+
+  @override
+  String get cartRemoveA11y => 'إزالة المنتج';
+
+  @override
+  String get badgeAddOn => 'إضافة';
+
+  @override
+  String get badgeCrossSell => 'عرض مكمل';
+
+  @override
+  String get cartRec1Title => 'مجموعة الطباعة بالحرير';
+
+  @override
+  String get cartRec1Desc =>
+      'أضف طبقات زاهية لطبعاتك النباتية بأحبار قابلة للغسل.';
+
+  @override
+  String get cartRec2Title => 'مجهر 100×';
+
+  @override
+  String get cartRec2Desc => 'تعمّق في الأوراق والحشرات مع شرائح موجّهة.';
+
+  @override
+  String cartAddAmount(String amount) {
+    return 'أضف +$amount';
+  }
+
+  @override
+  String get cartLine1Title => 'مجموعة عالم النباتات';
+
+  @override
+  String get cartLine1Desc =>
+      'الفئة العمرية: 6–9 سنوات. بذور، مفكرة، وأشرطة حموضة التربة.';
+
+  @override
+  String get cartLine2Title => 'مهندس الطيور';
+
+  @override
+  String get cartLine2Desc =>
+      'الفئة العمرية: 8–12 سنة. نماذج وتعلم أساسيات الطيران.';
+
+  @override
+  String get cartLine3Title => 'إتقان المنشور';
+
+  @override
+  String get cartLine3Desc =>
+      'الفئة العمرية: 9–14 سنة. مختبر بصريات مع منشور وصندوق ضوء.';
+
+  @override
+  String get footerInstagram => 'إنستغرام';
+
+  @override
+  String get footerPinterest => 'بينتريست';
+
+  @override
+  String get footerLinkedIn => 'لينكد إن';
+
+  @override
+  String get cartCopyrightLine =>
+      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
 }

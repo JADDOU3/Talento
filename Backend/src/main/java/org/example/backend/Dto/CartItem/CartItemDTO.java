@@ -9,4 +9,6 @@ public class CartItemDTO {
     private String kitName;
     private double kitPrice;
     private int quantity;
+    private String kitImageURL;
+    private String kitDescription;
 }

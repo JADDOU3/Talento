@@ -94,5 +94,52 @@
 "featuredTitle": "Complete Talent\nLibrary",
 "featuredDesc": "Access our full curriculum of 24 kits delivered over two years of developmental growth.",
 "featuredButton": "Subscribe & Save 20%",
-  "language": "EN"
+  "language": "EN",
+  "yourBasket": "Your Basket",
+  "cartItemsCount": "{count} Items",
+  "@cartItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendedForYou": "Recommended for You",
+  "cartSummary": "Summary",
+  "cartSubtotal": "Subtotal",
+  "cartShipping": "Shipping",
+  "cartShippingFree": "Free",
+  "cartTax": "Tax",
+  "cartTotal": "Total",
+  "proceedToCheckout": "Proceed to Checkout",
+  "cartSupportNote": "Every purchase supports our Re-Forestation partner program.",
+  "cartDeliveryEstimate": "Arrives by Thursday — Standard Ground Shipping",
+  "promoCode": "Promo Code",
+  "enterPromoCode": "Enter code",
+  "apply": "Apply",
+  "cartRemoveA11y": "Remove item",
+  "badgeAddOn": "ADD-ON",
+  "badgeCrossSell": "CROSS-SELL",
+  "cartRec1Title": "Silk Screen Kit",
+  "cartRec1Desc": "Add vibrant layers to your botanical prints with washable inks.",
+  "cartRec2Title": "Microscope 100x",
+  "cartRec2Desc": "Zoom deeper into leaves and insects with guided slides.",
+  "cartAddAmount": "Add +{amount}",
+  "@cartAddAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "cartLine1Title": "The Botanist Kit",
+  "cartLine1Desc": "Age range: 6–9 years. Seeds, journal, and soil pH strips.",
+  "cartLine2Title": "Avian Architect",
+  "cartLine2Desc": "Age range: 8–12 years. Build models and learn flight basics.",
+  "cartLine3Title": "Prism Mastery",
+  "cartLine3Desc": "Age range: 9–14 years. Optics lab with prism and light box.",
+  "footerInstagram": "INSTAGRAM",
+  "footerPinterest": "PINTEREST",
+  "footerLinkedIn": "LINKEDIN",
+  "cartCopyrightLine": "© 2024 Talento Kids. Rooted in Curiosity."
 }
