@@ -306,4 +306,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'EN';
+
+  @override
+  String get yourBasket => 'Your Basket';
+
+  @override
+  String cartItemsCount(int count) {
+    return '$count Items';
+  }
+
+  @override
+  String get recommendedForYou => 'Recommended for You';
+
+  @override
+  String get cartSummary => 'Summary';
+
+  @override
+  String get cartSubtotal => 'Subtotal';
+
+  @override
+  String get cartShipping => 'Shipping';
+
+  @override
+  String get cartShippingFree => 'Free';
+
+  @override
+  String get cartTax => 'Tax';
+
+  @override
+  String get cartTotal => 'Total';
+
+  @override
+  String get proceedToCheckout => 'Proceed to Checkout';
+
+  @override
+  String get cartSupportNote =>
+      'Every purchase supports our Re-Forestation partner program.';
+
+  @override
+  String get cartDeliveryEstimate =>
+      'Arrives by Thursday — Standard Ground Shipping';
+
+  @override
+  String get promoCode => 'Promo Code';
+
+  @override
+  String get enterPromoCode => 'Enter code';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get cartRemoveA11y => 'Remove item';
+
+  @override
+  String get badgeAddOn => 'ADD-ON';
+
+  @override
+  String get badgeCrossSell => 'CROSS-SELL';
+
+  @override
+  String get cartRec1Title => 'Silk Screen Kit';
+
+  @override
+  String get cartRec1Desc =>
+      'Add vibrant layers to your botanical prints with washable inks.';
+
+  @override
+  String get cartRec2Title => 'Microscope 100x';
+
+  @override
+  String get cartRec2Desc =>
+      'Zoom deeper into leaves and insects with guided slides.';
+
+  @override
+  String cartAddAmount(String amount) {
+    return 'Add +$amount';
+  }
+
+  @override
+  String get cartLine1Title => 'The Botanist Kit';
+
+  @override
+  String get cartLine1Desc =>
+      'Age range: 6–9 years. Seeds, journal, and soil pH strips.';
+
+  @override
+  String get cartLine2Title => 'Avian Architect';
+
+  @override
+  String get cartLine2Desc =>
+      'Age range: 8–12 years. Build models and learn flight basics.';
+
+  @override
+  String get cartLine3Title => 'Prism Mastery';
+
+  @override
+  String get cartLine3Desc =>
+      'Age range: 9–14 years. Optics lab with prism and light box.';
+
+  @override
+  String get footerInstagram => 'INSTAGRAM';
+
+  @override
+  String get footerPinterest => 'PINTEREST';
+
+  @override
+  String get footerLinkedIn => 'LINKEDIN';
+
+  @override
+  String get cartCopyrightLine => '© 2024 Talento Kids. Rooted in Curiosity.';
 }

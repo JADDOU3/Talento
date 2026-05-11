@@ -667,6 +667,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'EN'**
   String get language;
+
+  /// No description provided for @yourBasket.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Basket'**
+  String get yourBasket;
+
+  /// No description provided for @cartItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Items'**
+  String cartItemsCount(int count);
+
+  /// No description provided for @recommendedForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for You'**
+  String get recommendedForYou;
+
+  /// No description provided for @cartSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get cartSummary;
+
+  /// No description provided for @cartSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get cartSubtotal;
+
+  /// No description provided for @cartShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping'**
+  String get cartShipping;
+
+  /// No description provided for @cartShippingFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get cartShippingFree;
+
+  /// No description provided for @cartTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get cartTax;
+
+  /// No description provided for @cartTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get cartTotal;
+
+  /// No description provided for @proceedToCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed to Checkout'**
+  String get proceedToCheckout;
+
+  /// No description provided for @cartSupportNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Every purchase supports our Re-Forestation partner program.'**
+  String get cartSupportNote;
+
+  /// No description provided for @cartDeliveryEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrives by Thursday — Standard Ground Shipping'**
+  String get cartDeliveryEstimate;
+
+  /// No description provided for @promoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Code'**
+  String get promoCode;
+
+  /// No description provided for @enterPromoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get enterPromoCode;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @cartRemoveA11y.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove item'**
+  String get cartRemoveA11y;
+
+  /// No description provided for @badgeAddOn.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD-ON'**
+  String get badgeAddOn;
+
+  /// No description provided for @badgeCrossSell.
+  ///
+  /// In en, this message translates to:
+  /// **'CROSS-SELL'**
+  String get badgeCrossSell;
+
+  /// No description provided for @cartRec1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Silk Screen Kit'**
+  String get cartRec1Title;
+
+  /// No description provided for @cartRec1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add vibrant layers to your botanical prints with washable inks.'**
+  String get cartRec1Desc;
+
+  /// No description provided for @cartRec2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Microscope 100x'**
+  String get cartRec2Title;
+
+  /// No description provided for @cartRec2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom deeper into leaves and insects with guided slides.'**
+  String get cartRec2Desc;
+
+  /// No description provided for @cartAddAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add +{amount}'**
+  String cartAddAmount(String amount);
+
+  /// No description provided for @cartLine1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'The Botanist Kit'**
+  String get cartLine1Title;
+
+  /// No description provided for @cartLine1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Age range: 6–9 years. Seeds, journal, and soil pH strips.'**
+  String get cartLine1Desc;
+
+  /// No description provided for @cartLine2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Avian Architect'**
+  String get cartLine2Title;
+
+  /// No description provided for @cartLine2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Age range: 8–12 years. Build models and learn flight basics.'**
+  String get cartLine2Desc;
+
+  /// No description provided for @cartLine3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism Mastery'**
+  String get cartLine3Title;
+
+  /// No description provided for @cartLine3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Age range: 9–14 years. Optics lab with prism and light box.'**
+  String get cartLine3Desc;
+
+  /// No description provided for @footerInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'INSTAGRAM'**
+  String get footerInstagram;
+
+  /// No description provided for @footerPinterest.
+  ///
+  /// In en, this message translates to:
+  /// **'PINTEREST'**
+  String get footerPinterest;
+
+  /// No description provided for @footerLinkedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'LINKEDIN'**
+  String get footerLinkedIn;
+
+  /// No description provided for @cartCopyrightLine.
+  ///
+  /// In en, this message translates to:
+  /// **'© 2024 Talento Kids. Rooted in Curiosity.'**
+  String get cartCopyrightLine;
 }
 
 class _AppLocalizationsDelegate

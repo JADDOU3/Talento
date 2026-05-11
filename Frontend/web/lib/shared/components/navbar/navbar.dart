@@ -61,11 +61,11 @@ class Navbar extends StatelessWidget {
         ),
         Row(
           children: [
+            TextButton(
+              onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+              child: Text(l10n.language),
+            ),
             if (!isLoggedIn) ...[
-              TextButton(
-                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
-                child: Text(l10n.language),
-              ),
               TextButton(
                 onPressed: () {},
                 child: Text(l10n.navLogin),
@@ -73,8 +73,14 @@ class Navbar extends StatelessWidget {
               const SizedBox(width: 10),
               PrimaryButton(text: l10n.navSignUp),
             ] else ...[
-              const Icon(Icons.shopping_cart_outlined),
-              const SizedBox(width: 10),
+              const SizedBox(width: 4),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                onPressed: () => Navigator.of(context).pushNamed('/cart'),
+                icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
+              ),
+              const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
             ]
           ],
@@ -101,11 +107,11 @@ class Navbar extends StatelessWidget {
         ),
         Row(
           children: [
+            TextButton(
+              onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+              child: Text(l10n.language),
+            ),
             if (!isLoggedIn) ...[
-              TextButton(
-                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
-                child: Text(l10n.language),
-              ),
               TextButton(
                 onPressed: () {},
                 child: Text(l10n.navLogin),
@@ -113,8 +119,14 @@ class Navbar extends StatelessWidget {
               const SizedBox(width: 8),
               PrimaryButton(text: l10n.navSignUp),
             ] else ...[
-              const Icon(Icons.shopping_cart_outlined),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                onPressed: () => Navigator.of(context).pushNamed('/cart'),
+                icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
+              ),
+              const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
             ]
           ],

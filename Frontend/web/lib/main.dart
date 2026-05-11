@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'shared/providers/language_provider.dart';
 import 'shared/i18n/app_localizations.dart';
-import 'features/auth/pages/login_screen.dart';
 import 'features/home/pages/home_page.dart';
 import 'features/catalog/pages/catalog_page.dart';
+import 'features/cart/pages/cart_page.dart';
 import 'util/theme/app_colors.dart';
 
 void main() {
@@ -51,9 +51,10 @@ class TalentoApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomePage(),
+        '/': (context) => const CartPage(),
         '/home': (context) => const HomePage(),
         '/catalog': (context) => const CatalogPage(),
+       // '/cart': (context) => const CartPage(),
       },
     );
 
