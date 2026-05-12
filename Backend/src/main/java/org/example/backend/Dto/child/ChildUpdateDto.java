@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class ChildUpdateDto {
     private int id;
     private String name;
-    private LocalDateTime dateOfBirth;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime dateOfBirth;        
     @Enumerated(EnumType.STRING)
-    private Gender gender;
+    private Gender gender; 
 }
