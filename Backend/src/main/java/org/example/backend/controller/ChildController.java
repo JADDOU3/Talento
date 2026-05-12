@@ -36,11 +36,11 @@ public class ChildController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/")
+    @PostMapping({"", "/"})
     public ResponseEntity<Child> addChild(@RequestBody CreateChildDto childDto){
         return new ResponseEntity<>(childService.createChild(childDto), HttpStatus.CREATED);
     }
-    @PutMapping("/")
+    @PutMapping({"", "/"})
     public ResponseEntity<Child> updateChild(@RequestBody ChildUpdateDto childUpdateDto){
         Child child = childService.updateChild(childUpdateDto);
         if(child != null)
