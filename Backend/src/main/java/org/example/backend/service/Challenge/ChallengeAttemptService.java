@@ -1,10 +1,10 @@
 package org.example.backend.service.Challenge;
 
 import org.example.backend.Dto.challenge.CreateChallengeAttemptDto;
-import org.example.backend.model.ActivitySession;
+import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.challengeCard.ChallengeAttempt;
 import org.example.backend.model.challengeCard.ChallengeCard;
-import org.example.backend.repo.ActivitySessionRepo;
+import org.example.backend.repo.activity.ActivitySessionRepo;
 import org.example.backend.repo.challenge.ChallengeAttemptRepo;
 import org.example.backend.repo.challenge.ChallengeCardRepo;
 import org.springframework.beans.factory.annotation.Autowired;

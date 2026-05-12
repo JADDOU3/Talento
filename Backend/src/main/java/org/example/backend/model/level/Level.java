@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend.model.Activity;
+import org.example.backend.model.activity.Activity;
 
 @Entity
 @Table(name = "levels")

@@ -1,9 +1,9 @@
 package org.example.backend.service;
 
 import org.example.backend.Dto.CreateHelpLogDto;
-import org.example.backend.model.ActivitySession;
+import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.HelpLog;
-import org.example.backend.repo.ActivitySessionRepo;
+import org.example.backend.repo.activity.ActivitySessionRepo;
 import org.example.backend.repo.HelpLogRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

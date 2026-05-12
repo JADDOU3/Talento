@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/kit_enums.dart';
-import '../../services/kit_service.dart';
+import '../../models/kit/kit_enums.dart';
+import '../../services/kit/kit_service.dart';
 import 'kit_state.dart';
 
 class KitCubit extends Cubit<KitState> {

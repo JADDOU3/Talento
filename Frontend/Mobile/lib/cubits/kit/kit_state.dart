@@ -1,4 +1,4 @@
-import '../../models/kit_model.dart';
+import '../../models/kit/kit_model.dart';
 
 abstract class KitState {
   const KitState();
