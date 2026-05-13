@@ -1,10 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../models/child_model.dart';
 import '../../models/kit/kit_model.dart';
-
 import '../../services/auth/token_storage_service.dart';
-import '../../services/profile_service.dart';
-
+import '../../services/profile/profile_service.dart';
 import 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
@@ -17,31 +16,19 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     try {
       final user = await _service.getCurrentUser();
-
       final children = await _service.getChildren();
-
       final selectedChild = await _service.getSelectedChild();
 
-      final List<ChildModel> finalChildren = children.isNotEmpty
-          ? children
-          : [
-        ChildModel(id: 1, name: 'مايا'),
-        ChildModel(id: 2, name: 'أيو'),
-        ChildModel(id: 3, name: 'سارة'),
-      ];
-
       final ChildModel? finalSelected =
-          selectedChild ??
-              (finalChildren.isNotEmpty ? finalChildren[0] : null);
+          selectedChild ?? (children.isNotEmpty ? children.first : null);
 
-      final List<KitModel> kits =
-      finalSelected != null
-          ? _getMockKits(finalSelected.id)
+      final List<KitModel> kits = finalSelected != null
+          ? await _service.getKitsByChild(finalSelected.id)
           : [];
 
       emit(ProfileLoaded(
         user: user,
-        children: finalChildren,
+        children: children,
         selectedChild: finalSelected,
         kits: kits,
       ));
@@ -49,8 +36,10 @@ class ProfileCubit extends Cubit<ProfileState> {
       emit(ProfileError(e.toString()));
     }
   }
+
   Future<void> selectChild(ChildModel child) async {
     if (state is! ProfileLoaded) return;
+
     final current = state as ProfileLoaded;
 
     emit(ProfileKitsLoading(
@@ -60,15 +49,25 @@ class ProfileCubit extends Cubit<ProfileState> {
     ));
 
     try {
+      await _service.setSelectedChild(child.id);
 
+      final selectedChild = await _service.getSelectedChild();
       final kits = await _service.getKitsByChild(child.id);
+
       emit(ProfileLoaded(
         user: current.user,
         children: current.children,
-        selectedChild: child,
+        selectedChild: selectedChild ?? child,
         kits: kits,
       ));
     } catch (e) {
+      emit(ProfileLoaded(
+        user: current.user,
+        children: current.children,
+        selectedChild: current.selectedChild,
+        kits: current.kits,
+      ));
+
       emit(ProfileError(e.toString()));
     }
   }
@@ -79,6 +78,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     required String gender,
   }) async {
     if (state is! ProfileLoaded) return;
+
     final current = state as ProfileLoaded;
 
     try {
@@ -87,43 +87,27 @@ class ProfileCubit extends Cubit<ProfileState> {
         dateOfBirth: dateOfBirth,
         gender: gender,
       );
+
       final updatedChildren = [...current.children, newChild];
+
+      final selectedChild = await _service.getSelectedChild();
+
+      final ChildModel? finalSelected =
+          selectedChild ?? current.selectedChild ?? newChild;
+
+      final kits = finalSelected != null
+          ? await _service.getKitsByChild(finalSelected.id)
+          : <KitModel>[];
+
       emit(ProfileLoaded(
         user: current.user,
         children: updatedChildren,
-        selectedChild: current.selectedChild,
-        kits: current.kits,
+        selectedChild: finalSelected,
+        kits: kits,
       ));
     } catch (e) {
       emit(ProfileError(e.toString()));
     }
-  }
-
-  List<KitModel> _getMockKits(int childId) {
-    return [
-      KitModel(
-        id: childId * 10,
-        name: 'مستكشف الفضاء',
-        description: 'رحلة في عالم الكون',
-        imageUrl: '',
-        type: 'علوم',
-        mindset: 'استكشاف',
-        kitItems: [],
-        rating: 4.5,
-        age: 6,
-      ),
-      KitModel(
-        id: childId * 10 + 1,
-        name: 'عالم النبات',
-        description: 'اكتشف الطبيعة',
-        imageUrl: '',
-        type: 'طبيعة',
-        mindset: 'إبداع',
-        kitItems: [],
-        rating: 4.0,
-        age: 5,
-      ),
-    ];
   }
 
   Future<void> logout() async {
