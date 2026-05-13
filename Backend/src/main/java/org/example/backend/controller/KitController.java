@@ -8,9 +8,12 @@ import org.example.backend.model.ChildKit;
 import org.example.backend.model.Kit;
 import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
-import org.example.backend.util.enums.Mindset;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +36,9 @@ public class KitController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<Kit>> getAllKits() {
-        return new ResponseEntity<>(kitService.getAllKits(), HttpStatus.OK);
+    public ResponseEntity<Page<Kit>> getAllKits(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return new ResponseEntity<>(kitService.getAllKits(pageable), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -94,9 +98,9 @@ public class KitController {
         return new ResponseEntity<>(kitService.getKitsByType(type), HttpStatus.OK);
     }
 
-    @GetMapping("/mindset/{mindset}")
-    public ResponseEntity<List<Kit>> getKitsByMindset(@PathVariable Mindset mindset) {
-        return new ResponseEntity<>(kitService.getKitsByMindset(mindset), HttpStatus.OK);
+    @GetMapping("/mindset/{mindsetId}")
+    public ResponseEntity<List<Kit>> getKitsByMindset(@PathVariable int mindsetId) {
+        return new ResponseEntity<>(kitService.getKitsByMindset(mindsetId), HttpStatus.OK);
     }
 
     @GetMapping("/search")

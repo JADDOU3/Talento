@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.event.Event;
 
 import java.time.LocalDateTime;

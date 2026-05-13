@@ -9,10 +9,10 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ChildRepo extends JpaRepository<Child, Integer> {
-    List<Child> findByUserId(int id);
-    Child findByIsSelectedTrueAndUserId(int userId);
+    List<Child> findByParentId(int id);
+    Child findByIsSelectedTrueAndParentId(int parentId);
 
     @Modifying
-    @Query("UPDATE Child c SET c.isSelected = false WHERE c.user.id = :userId")
-    void deselectAllByUserId(@Param("userId") int userId);
+    @Query("UPDATE Child c SET c.isSelected = false WHERE c.parent.id = :parentId")
+    void deselectAllByParentId(@Param("parentId") int parentId);
 }

@@ -28,5 +28,5 @@ public class ChildKit {
 
     private LocalDateTime acquiredAt;
 
-    private boolean isSelected;
+    private Boolean isSelected;
 }
