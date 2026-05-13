@@ -14,16 +14,13 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> loadProfile() async {
     emit(ProfileLoading());
-    try {
-      final results = await Future.wait([
-        _service.getCurrentUser(),
-        _service.getChildren(),
-        _service.getSelectedChild(),
-      ]);
 
-      final user = results[0] as dynamic;
-      final children = results[1] as List<ChildModel>;
-      final selectedChild = results[2] as ChildModel?;
+    try {
+      final user = await _service.getCurrentUser();
+
+      final children = await _service.getChildren();
+
+      final selectedChild = await _service.getSelectedChild();
 
       final List<ChildModel> finalChildren = children.isNotEmpty
           ? children
@@ -33,10 +30,12 @@ class ProfileCubit extends Cubit<ProfileState> {
         ChildModel(id: 3, name: 'سارة'),
       ];
 
-      final ChildModel? finalSelected = selectedChild ??
-          (finalChildren.isNotEmpty ? finalChildren[0] : null);
+      final ChildModel? finalSelected =
+          selectedChild ??
+              (finalChildren.isNotEmpty ? finalChildren[0] : null);
 
-      final List<KitModel> kits = finalSelected != null
+      final List<KitModel> kits =
+      finalSelected != null
           ? _getMockKits(finalSelected.id)
           : [];
 
@@ -50,7 +49,6 @@ class ProfileCubit extends Cubit<ProfileState> {
       emit(ProfileError(e.toString()));
     }
   }
-
   Future<void> selectChild(ChildModel child) async {
     if (state is! ProfileLoaded) return;
     final current = state as ProfileLoaded;

@@ -1,0 +1,37 @@
+name: web
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.3.2
+  intl: ^0.20.2
+  provider: ^6.1.5+1
+  flutter_bloc: ^8.1.6  # <-- هذا السطر هو الحل، أضفه الآن
+
+dependency_overrides:
+  http: ^0.13.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_staggered_grid_view: ^0.7.0
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/

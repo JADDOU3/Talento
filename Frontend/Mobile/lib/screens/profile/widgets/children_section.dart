@@ -71,15 +71,27 @@ class ChildrenSection extends StatelessWidget {
                   : [],
             ),
             child: ClipOval(
-              child: Image.network(
-                child.avatarUrl ??
-                    'https://api.dicebear.com/7.x/adventurer/png?seed=${child.name}',
+              child: child.avatarUrl != null
+                  ? Image.network(
+                child.avatarUrl!,
                 width: 56,
                 height: 56,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: AppColors.inputFill,
-                  child: const Icon(Icons.person_rounded, color: AppColors.hint),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.hint,
+                  ),
+                ),
+              )
+                  : Container(
+                width: 56,
+                height: 56,
+                color: AppColors.inputFill,
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: AppColors.hint,
                 ),
               ),
             ),
