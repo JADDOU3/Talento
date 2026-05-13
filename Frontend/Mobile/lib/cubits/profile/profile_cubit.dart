@@ -3,7 +3,7 @@ import '../../models/child_model.dart';
 import '../../models/kit/kit_model.dart';
 
 import '../../services/auth/token_storage_service.dart';
-import '../../services/profile_service.dart';
+import '../../services/profile/profile_service.dart';
 
 import 'profile_state.dart';
 
