@@ -1,6 +1,7 @@
 class ApiConstants {
   static const String baseUrl = 'http://15.224.101.253/api';
 
+
   static const String register = '$baseUrl/register';
   static const String login = '$baseUrl/login';
   static const String refresh = '$baseUrl/refresh';
@@ -9,6 +10,7 @@ class ApiConstants {
   static const String kitsByType = '$baseUrl/kits/type';
   static const String kitsByMindset = '$baseUrl/kits/mindset';
   static const String kitsSearch = '$baseUrl/kits/search';
+
 
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';
@@ -23,6 +25,13 @@ class ApiConstants {
   static const String comments = '$baseUrl/comments';
   static const String commentsByPost = '$baseUrl/comments/post';
 
+  static const String currentUser = '$baseUrl/currentUser';
+  static const String children = '$baseUrl/children';
+
+  static const String addChild = '$baseUrl/children/';
+
+
   static const String selectedChild = '$baseUrl/children/selected';
+  static String kitsByChild(int childId) => '$baseUrl/kits/child/$childId';
 
 }
