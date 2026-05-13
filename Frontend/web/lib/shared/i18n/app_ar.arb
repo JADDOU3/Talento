@@ -141,5 +141,11 @@
   "footerInstagram": "إنستغرام",
   "footerPinterest": "بينتريست",
   "footerLinkedIn": "لينكد إن",
-  "cartCopyrightLine": "© 2024 تالينتو كيدز. جذورنا في الفضول."
+  "cartCopyrightLine": "© 2024 تالينتو كيدز. جذورنا في الفضول.",
+  "cartEmpty": "سلتك فارغة",
+  "cartEmptyDesc": "اكتشف مجموعاتنا الرائعة لطفلك",
+  "discoverKits": "اكتشف المجموعات",
+  "retry": "إعادة المحاولة",
+  "addedToCart": "تمت الإضافة إلى السلة",
+  "addToCartFailed": "تعذرت الإضافة إلى السلة. حاول مرة أخرى."
 }
