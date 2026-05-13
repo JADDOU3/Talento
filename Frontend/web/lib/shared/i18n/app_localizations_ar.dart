@@ -414,4 +414,129 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get cartCopyrightLine =>
       '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+
+  @override
+  String get nurturingTitle => 'تنمية علماء الغد';
+
+  @override
+  String get whatsInsideTitle => 'ما الذي بداخل المختبر؟';
+
+  @override
+  String get explorerTestimonials => 'آراء المستكشفين';
+
+  @override
+  String get testimonialsSubtitle =>
+      'آراء الآباء والمستكشفين الصغار من حول العالم';
+
+  @override
+  String get writeReview => 'اكتب مراجعة';
+
+  @override
+  String get addToCart => 'أضف إلى السلة';
+
+  @override
+  String get partnerQuality => 'جودة الشريك';
+
+  @override
+  String get partnerQualitySubtitle =>
+      'مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.';
+
+  @override
+  String reviews(int count) {
+    return '$count مراجعة';
+  }
+
+  @override
+  String get kitDetailsCategory => 'الطبيعة والعلوم';
+
+  @override
+  String get kitDetailsName => 'مجموعة اكتشاف العالم النباتي';
+
+  @override
+  String get kitDetailsDescription =>
+      'أدوات ودلائل مختارة بعناية لمساعدة الصغار على التعرف على العينات، كبس النباتات، وفهم البيئة من الحديقة إلى الطبيعة.';
+
+  @override
+  String get kitDetailsAgeTag => 'الأعمار 6–12';
+
+  @override
+  String get kitDetailsExperimentsTag => '+15 تجربة';
+
+  @override
+  String get kitDetailsPriceCurrent => '84.00 \$';
+
+  @override
+  String get kitDetailsPriceOriginal => '110.00 \$';
+
+  @override
+  String get mindsetCard1Title => 'الملاحظة النقدية';
+
+  @override
+  String get mindsetCard1Body =>
+      'تنمية الانتباه للتفاصيل والتدوين بصبر ليلاحظ الأطفال الأنماط في العالم الحي.';
+
+  @override
+  String get mindsetCard2Title => 'الثقافة البيئية';
+
+  @override
+  String get mindsetCard2Body =>
+      'ربط النباتات والتربة والموائل لفهم كيف تدعم الأنظمة البيئية بعضها.';
+
+  @override
+  String get mindsetCard3Title => 'مهارات المختبر';
+
+  @override
+  String get mindsetCard3Body =>
+      'تعريف الطفل بالتعامل الحذر مع الأدوات والعينات وبأساليب بسيطة يستخدمها العلماء.';
+
+  @override
+  String get kitContent1Title => 'عدسة نحاسية دقيقة';
+
+  @override
+  String get kitContent1Desc => 'تكبير 10× مع زجاج مقاوم للخدش.';
+
+  @override
+  String get kitContent2Title => 'مفكرة المستكشف القماشية';
+
+  @override
+  String get kitContent2Desc =>
+      'صفحات مقاومة للماء لملاحظات الحقل ورسم العينات.';
+
+  @override
+  String get kitContent3Title => 'مكبس نباتات خشبي';
+
+  @override
+  String get kitContent3Desc =>
+      'مكبس من خشب البلوط من مصادر مستدامة مع أحزمة شد قابلة للتعديل.';
+
+  @override
+  String get kitContent4Title => 'مجموعة جمع العينات';
+
+  @override
+  String get kitContent4Desc =>
+      'تشمل 12 أنبوب اختبار زجاجي وملقط وملصقات للتسمية.';
+
+  @override
+  String get testimonial1Body =>
+      'حولت هذه المجموعة نزهاتنا في عطلة نهاية الأسبوع إلى دراسات ميدانية حقيقية. ابنتي تحتفظ الآن بمفكرة أوراق مكبوسة على مكتبها.';
+
+  @override
+  String get testimonial1Name => 'سارة إلويك';
+
+  @override
+  String get testimonial1Role => 'مستكشفة موثقة';
+
+  @override
+  String get testimonial2Body =>
+      'أدلة واضحة ومواد متينة — أستخدمها في نادي العلوم بعد المدرسة وسأطلب المزيد للفصل القادم.';
+
+  @override
+  String get testimonial2Name => 'السيد آلان بورتر';
+
+  @override
+  String get testimonial2Role => 'معلم علوم';
+
+  @override
+  String get kitDetailsAddToCartDemo =>
+      'معاينة فقط — السلة لا تتزامن من هذه الشاشة.';
 }
