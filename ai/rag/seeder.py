@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import os
@@ -7,6 +8,12 @@ from uuid import uuid4
 import httpx
 
 from core.config import get_settings
+from core.backend_endpoints import (
+    BACKEND_BASE_URL,
+    BACKEND_MINDSETS_PATH,
+    BACKEND_CRITERIA_PATH,
+    BACKEND_ACTIVITY_CRITERIA_PATH,
+)
 from llm.embeddings_client import embed_texts
 from rag.chroma_client import (
     get_mindsets_collection,
@@ -158,7 +165,7 @@ async def _upsert_records(collection, records: list[dict[str, Any]]) -> None:
 
 
 async def _fetch_backend_list(client: httpx.AsyncClient, path: str) -> list[dict[str, Any]]:
-    url = settings.backend_base_url.rstrip("/") + path
+    url = BACKEND_BASE_URL.rstrip("/") + path
     response = await client.get(url)
     response.raise_for_status()
     payload = response.json()
@@ -169,15 +176,15 @@ async def _fetch_backend_list(client: httpx.AsyncClient, path: str) -> list[dict
     return payload
 
 
-async def seed_from_backend() -> None:
+async def seed_from_backend(token: str | None, auth_header: str) -> None:
     timeout = httpx.Timeout(settings.backend_timeout_seconds)
     headers: dict[str, str] = {}
-    if settings.backend_auth_token:
-        headers[settings.backend_auth_header] = settings.backend_auth_token
+    if token:
+        headers[auth_header] = token
     async with httpx.AsyncClient(timeout=timeout, headers=headers) as client:
-        mindsets = await _fetch_backend_list(client, settings.backend_mindsets_path)
-        criteria = await _fetch_backend_list(client, settings.backend_criteria_path)
-        activity_criteria = await _fetch_backend_list(client, settings.backend_activity_criteria_path)
+        mindsets = await _fetch_backend_list(client, BACKEND_MINDSETS_PATH)
+        criteria = await _fetch_backend_list(client, BACKEND_CRITERIA_PATH)
+        activity_criteria = await _fetch_backend_list(client, BACKEND_ACTIVITY_CRITERIA_PATH)
 
     await _upsert_records(get_mindsets_collection(), _build_mindset_records(mindsets))
     criteria_records = _build_criteria_records(criteria) + _build_activity_criteria_records(activity_criteria)
@@ -192,10 +199,15 @@ async def seed_from_files() -> None:
     await _upsert_records(get_rules_collection(), _build_static_records(rules, "interpretation_rule"))
 
 
-async def seed_all() -> None:
-    await seed_from_backend()
+async def seed_all(token: str | None, auth_header: str) -> None:
+    await seed_from_backend(token, auth_header)
     await seed_from_files()
 
 
 if __name__ == "__main__":
-    asyncio.run(seed_all())
+    parser = argparse.ArgumentParser(description="Seed ChromaDB from backend and local data")
+    parser.add_argument("--token", default=None, help="Auth token for backend requests")
+    parser.add_argument("--auth-header", default="Authorization", help="Auth header name")
+    args = parser.parse_args()
+
+    asyncio.run(seed_all(args.token, args.auth_header))

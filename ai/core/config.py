@@ -10,13 +10,7 @@ class Settings(BaseSettings):
     embedding_model: str = "text-embedding-3-small"
 
     # Backend API (for seeding)
-    backend_base_url: str = "http://backend:8080"
-    backend_mindsets_path: str = "/api/mindsets"
-    backend_criteria_path: str = "/api/criteria"
-    backend_activity_criteria_path: str = "/api/activity-criteria"
     backend_timeout_seconds: int = 15
-    backend_auth_header: str = "Authorization"
-    backend_auth_token: str | None = None
 
     # ChromaDB
     chroma_host: str = "chromadb"
