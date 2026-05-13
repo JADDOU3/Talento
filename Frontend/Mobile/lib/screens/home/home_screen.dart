@@ -37,7 +37,7 @@ class _HomeScreenBody extends StatelessWidget {
         }
 
         if (state is HomeReturningUser) {
-          return const OldUserScreen();
+          return OldUserScreen(data: state.data);
         }
 
         if (state is HomeError) {

@@ -5,15 +5,38 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../models/child_model.dart';
 import '../../../cubits/profile/profile_cubit.dart';
 
-class ChildrenSection extends StatelessWidget {
+class ChildrenSection extends StatefulWidget {
   final List<ChildModel> children;
   final ChildModel? selectedChild;
+  final bool openAddChildDialog;
 
   const ChildrenSection({
     super.key,
     required this.children,
     this.selectedChild,
+    this.openAddChildDialog = false,
   });
+
+  @override
+  State<ChildrenSection> createState() => _ChildrenSectionState();
+}
+
+class _ChildrenSectionState extends State<ChildrenSection> {
+  bool _hasOpenedDialog = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (widget.openAddChildDialog && !_hasOpenedDialog) {
+      _hasOpenedDialog = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showAddChildDialog(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +55,14 @@ class ChildrenSection extends StatelessWidget {
           height: 90,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: children.length + 1,
+            itemCount: widget.children.length + 1,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, i) {
-              if (i == children.length) return _buildAddButton(context);
-              return _buildChildItem(context, children[i]);
+              if (i == widget.children.length) {
+                return _buildAddButton(context);
+              }
+
+              return _buildChildItem(context, widget.children[i]);
             },
           ),
         ),
@@ -45,7 +71,8 @@ class ChildrenSection extends StatelessWidget {
   }
 
   Widget _buildChildItem(BuildContext context, ChildModel child) {
-    final isSelected = selectedChild?.id == child.id;
+    final isSelected = widget.selectedChild?.id == child.id;
+
     return GestureDetector(
       onTap: () => context.read<ProfileCubit>().selectChild(child),
       onLongPress: () => _showChildInfoDialog(context, child),
@@ -123,7 +150,11 @@ class ChildrenSection extends StatelessWidget {
               color: AppColors.inputFill,
               border: Border.all(color: AppColors.border),
             ),
-            child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 26),
+            child: const Icon(
+              Icons.add_rounded,
+              color: AppColors.primary,
+              size: 26,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -147,22 +178,33 @@ class ChildrenSection extends StatelessWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: const Text('إضافة طفل', textAlign: TextAlign.right),
+          title: const Text(
+            'إضافة طفل',
+            textAlign: TextAlign.right,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
                 textAlign: TextAlign.right,
-                decoration: const InputDecoration(hintText: 'الاسم'),
+                decoration: const InputDecoration(
+                  hintText: 'الاسم',
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 hint: const Text('الجنس'),
                 value: selectedGender,
                 items: const [
-                  DropdownMenuItem(value: 'MALE', child: Text('ذكر')),
-                  DropdownMenuItem(value: 'FEMALE', child: Text('أنثى')),
+                  DropdownMenuItem(
+                    value: 'MALE',
+                    child: Text('ذكر'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'FEMALE',
+                    child: Text('أنثى'),
+                  ),
                 ],
                 onChanged: (v) => setState(() => selectedGender = v),
               ),
@@ -175,7 +217,10 @@ class ChildrenSection extends StatelessWidget {
                     firstDate: DateTime(2010),
                     lastDate: DateTime.now(),
                   );
-                  if (picked != null) setState(() => selectedDate = picked);
+
+                  if (picked != null) {
+                    setState(() => selectedDate = picked);
+                  }
                 },
                 child: Text(
                   selectedDate == null
@@ -194,13 +239,17 @@ class ChildrenSection extends StatelessWidget {
               onPressed: () {
                 if (nameController.text.isEmpty ||
                     selectedGender == null ||
-                    selectedDate == null) return;
+                    selectedDate == null) {
+                  return;
+                }
+
                 context.read<ProfileCubit>().addChild(
                   name: nameController.text,
                   dateOfBirth:
                   '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}',
                   gender: selectedGender!,
                 );
+
                 Navigator.pop(ctx);
               },
               child: const Text('إضافة'),
@@ -208,14 +257,19 @@ class ChildrenSection extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ).whenComplete(() {
+      nameController.dispose();
+    });
   }
 
   void _showChildInfoDialog(BuildContext context, ChildModel child) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(child.name, textAlign: TextAlign.right),
+        title: Text(
+          child.name,
+          textAlign: TextAlign.right,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,

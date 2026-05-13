@@ -14,19 +14,30 @@ import '../../cubits/profile/profile_state.dart';
 import 'package:mobile/screens/profile/widgets/settings_section.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final bool openAddChildDialog;
+
+  const ProfileScreen({
+    super.key,
+    this.openAddChildDialog = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ProfileCubit()..loadProfile(),
-      child: const _ProfileView(),
+      child: _ProfileView(
+        openAddChildDialog: openAddChildDialog,
+      ),
     );
   }
 }
 
 class _ProfileView extends StatelessWidget {
-  const _ProfileView();
+  final bool openAddChildDialog;
+
+  const _ProfileView({
+    required this.openAddChildDialog,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +61,9 @@ class _ProfileView extends StatelessWidget {
                 builder: (context, state) {
                   if (state is ProfileLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     );
                   }
 
@@ -59,12 +72,21 @@ class _ProfileView extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.error,
+                            size: 48,
+                          ),
                           const SizedBox(height: 12),
-                          Text('حدث خطأ', style: AppTextStyles.bodyLarge),
+                          Text(
+                            'حدث خطأ',
+                            style: AppTextStyles.bodyLarge,
+                          ),
                           const SizedBox(height: 8),
                           ElevatedButton(
-                            onPressed: () => context.read<ProfileCubit>().loadProfile(),
+                            onPressed: () {
+                              context.read<ProfileCubit>().loadProfile();
+                            },
                             child: const Text('إعادة المحاولة'),
                           ),
                         ],
@@ -76,12 +98,15 @@ class _ProfileView extends StatelessWidget {
                     final user = state is ProfileLoaded
                         ? state.user
                         : (state as ProfileKitsLoading).user;
+
                     final children = state is ProfileLoaded
                         ? state.children
                         : (state as ProfileKitsLoading).children;
+
                     final selectedChild = state is ProfileLoaded
                         ? state.selectedChild
                         : (state as ProfileKitsLoading).selectedChild;
+
                     final kits = state is ProfileLoaded ? state.kits : [];
                     final isKitsLoading = state is ProfileKitsLoading;
 
@@ -101,6 +126,7 @@ class _ProfileView extends StatelessWidget {
                           ChildrenSection(
                             children: children,
                             selectedChild: selectedChild,
+                            openAddChildDialog: openAddChildDialog,
                           ),
                           const SizedBox(height: 24),
                           const ProfileProgressCard(
@@ -123,7 +149,9 @@ class _ProfileView extends StatelessWidget {
                           const SizedBox(height: 12),
                           if (isKitsLoading)
                             const Center(
-                              child: CircularProgressIndicator(color: AppColors.primary),
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
                             )
                           else if (kits.isEmpty)
                             Center(

@@ -75,12 +75,12 @@ class _NewUser extends State<NewUser> {
   }
 
   void _goToAddChildFlow() {
-    // مؤقتًا لأنه ما عندك AddChild screen مستقلة.
-    // زر Add Child الموجود فعليًا عندك داخل Profile.
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ProfileScreen(),
+        builder: (_) => const ProfileScreen(
+          openAddChildDialog: true,
+        ),
       ),
     );
   }
@@ -104,21 +104,15 @@ class _NewUser extends State<NewUser> {
                       const SizedBox(height: 12),
                       const BannerCard(),
                       const SizedBox(height: 20),
-
-                      // Add Child's Data card
                       StartNowCard(
                         onTap: _goToAddChildFlow,
                       ),
-
                       const SizedBox(height: 24),
                       _buildKitSection(),
                       const SizedBox(height: 24),
-
-                      // Start Journal CTA
                       PromotionCard(
                         onTap: _goToJournal,
                       ),
-
                       const SizedBox(height: 24),
                     ],
                   ),

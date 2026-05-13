@@ -14,6 +14,16 @@ class ApiConstants {
   static const String kitsSearch = '$baseUrl/kits/search';
   static String kitsByChild(int childId) => '$baseUrl/kits/child/$childId';
 
+  // Home / Sessions / Activities / Level Attempts
+  static String sessionsByChild(int childId) =>
+      '$baseUrl/sessions/child/$childId';
+
+  static String activitiesByKit(int kitId) =>
+      '$baseUrl/activities/kit/$kitId';
+
+  static String levelAttemptsByActivitySession(int activitySessionId) =>
+      '$baseUrl/level-attempts/activity-session/$activitySessionId';
+
   // Community - Posts
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';
@@ -36,4 +46,7 @@ class ApiConstants {
   static const String children = '$baseUrl/children';
   static const String addChild = '$baseUrl/children/';
   static const String selectedChild = '$baseUrl/children/selected';
+
+  static String setSelectedChild(int childId) =>
+      '$baseUrl/children/selected/$childId';
 }

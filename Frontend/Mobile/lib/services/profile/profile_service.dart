@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../core/config/api_constants.dart';
-import '../../../models/user_model.dart';
-import '../../../models/child_model.dart';
+import '../../core/config/api_constants.dart';
+import '../../models/child_model.dart';
 import '../../models/kit/kit_model.dart';
+import '../../models/user_model.dart';
 import '../auth/auth_service.dart';
 import '../auth/token_storage_service.dart';
 
@@ -16,21 +16,28 @@ class ProfileService {
 
     return {
       'Content-Type': 'application/json',
-      if (token != null && token.isNotEmpty)
-        'Authorization': 'Bearer $token',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
   }
 
   Future<http.Response> _getWithRefresh(String url) async {
     var headers = await _getHeaders();
-    var response = await http.get(Uri.parse(url), headers: headers);
+
+    var response = await http.get(
+      Uri.parse(url),
+      headers: headers,
+    );
 
     if (response.statusCode == 401) {
       final refreshed = await AuthService().refreshToken();
 
       if (refreshed) {
         headers = await _getHeaders();
-        response = await http.get(Uri.parse(url), headers: headers);
+
+        response = await http.get(
+          Uri.parse(url),
+          headers: headers,
+        );
       }
     }
 
@@ -70,6 +77,33 @@ class ProfileService {
     return response;
   }
 
+  Future<http.Response> _putWithRefresh(String url) async {
+    var headers = await _getHeaders();
+
+    debugPrint('PUT URL: $url');
+    debugPrint('HAS TOKEN: ${headers['Authorization'] != null}');
+
+    var response = await http.put(
+      Uri.parse(url),
+      headers: headers,
+    );
+
+    if (response.statusCode == 401) {
+      final refreshed = await AuthService().refreshToken();
+
+      if (refreshed) {
+        headers = await _getHeaders();
+
+        response = await http.put(
+          Uri.parse(url),
+          headers: headers,
+        );
+      }
+    }
+
+    return response;
+  }
+
   Future<UserModel> getCurrentUser() async {
     final response = await _getWithRefresh(ApiConstants.currentUser);
 
@@ -88,8 +122,15 @@ class ProfileService {
     debugPrint('getChildren: ${response.statusCode} - ${response.body}');
 
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => ChildModel.fromJson(e)).toList();
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is List) {
+        return decoded
+            .map((e) => ChildModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+
+      return [];
     }
 
     throw Exception('Failed to load children: ${response.statusCode}');
@@ -100,15 +141,39 @@ class ProfileService {
 
     debugPrint('getSelectedChild: ${response.statusCode} - ${response.body}');
 
+    if (response.statusCode == 404) {
+      return null;
+    }
+
     if (response.statusCode == 200) {
+      if (response.body.trim().isEmpty) return null;
+
       final data = jsonDecode(response.body);
 
       if (data == null) return null;
 
-      return ChildModel.fromJson(data);
+      if (data is Map<String, dynamic>) {
+        return ChildModel.fromJson(data);
+      }
+
+      return null;
     }
 
     return null;
+  }
+
+  Future<void> setSelectedChild(int childId) async {
+    final response = await _putWithRefresh(
+      ApiConstants.setSelectedChild(childId),
+    );
+
+    debugPrint('setSelectedChild: ${response.statusCode} - ${response.body}');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    throw Exception('Failed to set selected child: ${response.statusCode}');
   }
 
   Future<List<KitModel>> getKitsByChild(int childId) async {
@@ -118,9 +183,24 @@ class ProfileService {
 
     debugPrint('getKitsByChild: ${response.statusCode} - ${response.body}');
 
+    if (response.statusCode == 404) {
+      return [];
+    }
+
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => KitModel.fromJson(e)).toList();
+      if (response.body.trim().isEmpty) {
+        return [];
+      }
+
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is List) {
+        return decoded
+            .map((e) => KitModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+
+      return [];
     }
 
     throw Exception('Failed to load kits: ${response.statusCode}');
