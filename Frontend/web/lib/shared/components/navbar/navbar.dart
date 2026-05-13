@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../buttons/primary_button.dart';
 import 'package:provider/provider.dart';
-import '../../i18n/app_localizations.dart';
-import '../../providers/language_provider.dart';
+import '../../../shared/i18n/app_localizations.dart';
+import '../../../shared/providers/language_provider.dart';
 import '../../../features/auth/pages/login_screen.dart';
 import '../../../features/auth/pages/signup_screen.dart';
 

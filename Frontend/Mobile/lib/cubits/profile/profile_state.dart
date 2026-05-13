@@ -1,5 +1,4 @@
-import '../../models/kit/kit_model.dart';
-
+import '../../models/kit_model.dart';
 import '../../models/user_model.dart';
 import '../../models/child_model.dart';
 

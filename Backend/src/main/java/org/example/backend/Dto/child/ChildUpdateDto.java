@@ -17,7 +17,7 @@ public class ChildUpdateDto {
     private int id;
     private String name;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime dateOfBirth;        
+    private LocalDateTime dateOfBirth;
     @Enumerated(EnumType.STRING)
-    private Gender gender; 
+    private Gender gender;
 }

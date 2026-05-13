@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../i18n/app_localizations.dart';
+import '../../../shared/i18n/app_localizations.dart';
 
 class ExplorationsSection extends StatelessWidget {
   const ExplorationsSection({super.key});
