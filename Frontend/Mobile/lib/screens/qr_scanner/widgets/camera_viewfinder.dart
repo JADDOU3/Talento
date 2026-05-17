@@ -144,7 +144,7 @@ class _CameraViewfinderState extends State<CameraViewfinder>
                       ],
                     ),
                     child: Text(
-                      'Point your camera at a Talento card!',
+                      'وجّه الكاميرا نحو بطاقة تالينتو!',
                       textAlign: TextAlign.center,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textPrimary,

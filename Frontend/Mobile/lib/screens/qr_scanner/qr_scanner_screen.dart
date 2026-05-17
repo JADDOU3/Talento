@@ -11,37 +11,40 @@ class QrScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: AppBackground(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 22, 20, 24),
-          child: Column(
-            children: [
-              ScannerBadge(),
-              SizedBox(height: 26),
-              CameraViewfinder(),
-              SizedBox(height: 24),
-              ProTipCard(),
-              SizedBox(height: 22),
-              Row(
-                children: [
-                  Expanded(
-                    child: ScannerActionButton(
-                      icon: Icons.auto_awesome_rounded,
-                      label: 'MAGIC FOUND',
+    return const Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: AppBackground(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(20, 22, 20, 24),
+            child: Column(
+              children: [
+                ScannerBadge(),
+                SizedBox(height: 26),
+                CameraViewfinder(),
+                SizedBox(height: 24),
+                ProTipCard(),
+                SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ScannerActionButton(
+                        icon: Icons.auto_awesome_rounded,
+                        label: 'تم اكتشاف السحر',
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: ScannerActionButton(
-                      icon: Icons.lock_rounded,
-                      label: 'LOCKED QUEST',
-                      isMuted: true,
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: ScannerActionButton(
+                        icon: Icons.lock_rounded,
+                        label: 'مهمة مقفلة',
+                        isMuted: true,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

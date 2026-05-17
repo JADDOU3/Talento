@@ -36,7 +36,7 @@ class ScannerBadge extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'Scans: 2/5',
+            'عدد المسحات: 2/5',
             style: AppTextStyles.bodyLarge.copyWith(
               color: AppColors.white,
               fontWeight: FontWeight.w700,
