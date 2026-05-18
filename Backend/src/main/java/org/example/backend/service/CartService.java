@@ -150,4 +150,9 @@ public class CartService {
         }
         return itemDtos;
     }
+    public List<CartItem> getCartItems(int parentId) {
+        Cart cart=cartRepo.findByParentId(parentId).orElse(null);
+        if (cart==null) return null;
+        return cartItemRepo.findByCartId(cart.getId());
+    }
 }

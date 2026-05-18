@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class PromotionCard extends StatelessWidget {
-  const PromotionCard({super.key});
+  final VoidCallback? onTap;
+
+  const PromotionCard({
+    super.key,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,11 @@ class PromotionCard extends StatelessWidget {
                   color: const Color(0xFFEC6886).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.star_rounded, color: Color(0xFFEC6886), size: 22),
+                child: const Icon(
+                  Icons.star_rounded,
+                  color: Color(0xFFEC6886),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -40,18 +49,27 @@ class PromotionCard extends StatelessWidget {
           const SizedBox(height: 10),
           const Text(
             'من خلال تقييم فصولهم الطبيعية، أنت تضمن تقديم أفضل دعم لهم اليوم',
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B728F), height: 1.5),
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF6B728F),
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 14),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: onTap,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEC6886),
               foregroundColor: Colors.white,
               elevation: 0,
               minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             child: const Text('ابدأ اليوميات'),
           ),

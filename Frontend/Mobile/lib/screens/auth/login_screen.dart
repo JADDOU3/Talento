@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../services/auth/auth_service.dart';
+import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
-import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/social_button.dart';
-import '../../shared/widgets/app_background.dart';
-import '../../services/auth/auth_service.dart';
-import '../home/new_user.dart';
+import '../home/home_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -80,17 +81,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
       _showMessage('تم تسجيل الدخول بنجاح');
 
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const NewUser(),
+          builder: (context) => const HomeScreen(),
         ),
+            (route) => false,
       );
     } catch (e) {
       if (!mounted) return;
-      _showMessage(_cleanErrorMessage(e), isError: true);
+
+      _showMessage(
+        _cleanErrorMessage(e),
+        isError: true,
+      );
     } finally {
       if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
@@ -110,15 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-
                 Image.asset(
                   'assets/icons/logo1.png',
                   height: 105,
                   fit: BoxFit.contain,
                 ),
-
                 const SizedBox(height: 16),
-
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 430),
@@ -158,9 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         Text(
                           'لنبدأ رحلة ممتعة نحو اكتشاف المواهب',
                           textAlign: TextAlign.center,
@@ -171,9 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
                         CustomTextField(
                           hintText: 'البريد الإلكتروني',
                           controller: emailController,
@@ -183,15 +183,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (value == null || value.trim().isEmpty) {
                               return 'هذا الحقل مطلوب';
                             }
+
                             if (!value.contains('@')) {
                               return 'أدخل بريدًا إلكترونيًا صحيحًا';
                             }
+
                             return null;
                           },
                         ),
-
                         const SizedBox(height: 16),
-
                         CustomTextField(
                           hintText: 'كلمة المرور',
                           controller: passwordController,
@@ -201,10 +201,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (value == null || value.trim().isEmpty) {
                               return 'هذا الحقل مطلوب';
                             }
+
                             return null;
                           },
                         ),
-
                         Align(
                           alignment: Alignment.centerLeft,
                           child: TextButton(
@@ -218,24 +218,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         _isLoading
-                            ? const CircularProgressIndicator()
+                            ? const CircularProgressIndicator(
+                          color: AppColors.primary,
+                        )
                             : CustomButton(
                           text: 'تسجيل الدخول',
                           onPressed: _login,
                         ),
-
                         const SizedBox(height: 18),
-
                         Row(
                           children: [
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: AppColors.secondary.withValues(alpha: 0.2),
+                                color:
+                                AppColors.secondary.withValues(alpha: 0.2),
                               ),
                             ),
                             const Padding(
@@ -245,14 +244,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: AppColors.secondary.withValues(alpha: 0.2),
+                                color:
+                                AppColors.secondary.withValues(alpha: 0.2),
                               ),
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 16),
-
                         Row(
                           children: [
                             SocialButton(
@@ -268,9 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 18),
-
                         AuthSwitchText(
                           questionText: 'ليس لديك حساب؟',
                           actionText: 'انشاء حساب',
@@ -287,7 +283,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
               ],
             ),

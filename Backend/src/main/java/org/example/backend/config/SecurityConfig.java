@@ -31,6 +31,12 @@ public class SecurityConfig {
     @Autowired
     private ChildModeFilter childModeFilter;
 
+    @Autowired
+    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+
+    @Autowired
+    private RestAccessDeniedHandler restAccessDeniedHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return  http.csrf(customizer -> customizer.disable())
@@ -38,12 +44,15 @@ public class SecurityConfig {
                     .authorizeHttpRequests(request ->
                         request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
                                 .anyRequest().authenticated())
-                    .httpBasic(Customizer.withDefaults())
-                    .sessionManagement(session ->
-                            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .addFilterBefore(jwtFilter ,  UsernamePasswordAuthenticationFilter.class)
-                    .addFilterAfter(childModeFilter, JwtFilter.class)
-                    .build();
+                    .exceptionHandling(exceptions -> exceptions
+                            .authenticationEntryPoint(restAuthenticationEntryPoint)
+                            .accessDeniedHandler(restAccessDeniedHandler))
+                     .httpBasic(Customizer.withDefaults())
+                     .sessionManagement(session ->
+                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                     .addFilterBefore(jwtFilter ,  UsernamePasswordAuthenticationFilter.class)
+                     .addFilterAfter(childModeFilter, JwtFilter.class)
+                     .build();
     }
 
 
@@ -56,6 +65,9 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+
         return config.getAuthenticationManager();
+
+
     }
 }

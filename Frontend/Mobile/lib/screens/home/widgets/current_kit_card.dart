@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/custom_button.dart';
-
-
-
 
 class CurrentKitCard extends StatelessWidget {
   final String kitTitle;
   final String progressText;
   final String imagePath;
   final double progress;
+  final VoidCallback? onContinue;
 
   const CurrentKitCard({
     super.key,
@@ -19,6 +17,7 @@ class CurrentKitCard extends StatelessWidget {
     required this.progressText,
     required this.imagePath,
     required this.progress,
+    this.onContinue,
   });
 
   @override
@@ -42,30 +41,10 @@ class CurrentKitCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.asset(
-              imagePath,
+            child: SizedBox(
               width: double.infinity,
               height: 160,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 160,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.secondary],
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.science_rounded,
-                      color: AppColors.white,
-                      size: 60,
-                    ),
-                  ),
-                );
-              },
+              child: _buildImage(),
             ),
           ),
           Padding(
@@ -89,10 +68,12 @@ class CurrentKitCard extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      progressText,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                    Expanded(
+                      child: Text(
+                        progressText,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -101,21 +82,62 @@ class CurrentKitCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
-                    value: progress,
+                    value: progress.clamp(0.0, 1.0),
                     backgroundColor: AppColors.border,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
                     minHeight: 6,
                   ),
                 ),
                 const SizedBox(height: 14),
                 CustomButton(
                   text: 'أكمل',
-                  onPressed: () {},
+                  onPressed: onContinue ?? () {},
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (imagePath.startsWith('http')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _imageFallback(),
+      );
+    }
+
+    if (imagePath.isNotEmpty) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _imageFallback(),
+      );
+    }
+
+    return _imageFallback();
+  }
+
+  Widget _imageFallback() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.secondary],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.science_rounded,
+          color: AppColors.white,
+          size: 60,
+        ),
       ),
     );
   }

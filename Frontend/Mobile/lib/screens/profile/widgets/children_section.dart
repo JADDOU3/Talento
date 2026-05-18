@@ -1,55 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-
-
-
-
+import '../../../models/child_model.dart';
+import '../../../cubits/profile/profile_cubit.dart';
 
 class ChildrenSection extends StatefulWidget {
-  const ChildrenSection({super.key});
+  final List<ChildModel> children;
+  final ChildModel? selectedChild;
+  final bool openAddChildDialog;
+
+  const ChildrenSection({
+    super.key,
+    required this.children,
+    this.selectedChild,
+    this.openAddChildDialog = false,
+  });
 
   @override
   State<ChildrenSection> createState() => _ChildrenSectionState();
 }
 
 class _ChildrenSectionState extends State<ChildrenSection> {
-  int _selectedIndex = 0;
+  bool _hasOpenedDialog = false;
 
-  final List<Map<String, String>> children = [
-    {'name': 'مايا', 'avatar': 'https://api.dicebear.com/7.x/adventurer/png?seed=Maya'},
-    {'name': 'أيو', 'avatar': 'https://api.dicebear.com/7.x/adventurer/png?seed=Ayo'},
-    {'name': 'سارة', 'avatar': 'https://api.dicebear.com/7.x/adventurer/png?seed=Sara'},
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-  void _showAvatarDialog(String avatarUrl, String name) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipOval(
-              child: Image.network(
-                avatarUrl,
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              name,
-              style: AppTextStyles.headlineMedium.copyWith(
-                color: AppColors.white,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (widget.openAddChildDialog && !_hasOpenedDialog) {
+      _hasOpenedDialog = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showAddChildDialog(context);
+      });
+    }
   }
 
   @override
@@ -69,11 +55,14 @@ class _ChildrenSectionState extends State<ChildrenSection> {
           height: 90,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: children.length + 1,
+            itemCount: widget.children.length + 1,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, i) {
-              if (i == children.length) return _buildAddButton();
-              return _buildChildItem(i);
+              if (i == widget.children.length) {
+                return _buildAddButton(context);
+              }
+
+              return _buildChildItem(context, widget.children[i]);
             },
           ),
         ),
@@ -81,14 +70,12 @@ class _ChildrenSectionState extends State<ChildrenSection> {
     );
   }
 
-  Widget _buildChildItem(int index) {
-    final isSelected = index == _selectedIndex;
+  Widget _buildChildItem(BuildContext context, ChildModel child) {
+    final isSelected = widget.selectedChild?.id == child.id;
+
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      onLongPress: () => _showAvatarDialog(
-        children[index]['avatar']!,
-        children[index]['name']!,
-      ),
+      onTap: () => context.read<ProfileCubit>().selectChild(child),
+      onLongPress: () => _showChildInfoDialog(context, child),
       child: Column(
         children: [
           Container(
@@ -111,21 +98,34 @@ class _ChildrenSectionState extends State<ChildrenSection> {
                   : [],
             ),
             child: ClipOval(
-              child: Image.network(
-                children[index]['avatar']!,
+              child: child.avatarUrl != null
+                  ? Image.network(
+                child.avatarUrl!,
                 width: 56,
                 height: 56,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: AppColors.inputFill,
-                  child: const Icon(Icons.person_rounded, color: AppColors.hint),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.hint,
+                  ),
+                ),
+              )
+                  : Container(
+                width: 56,
+                height: 56,
+                color: AppColors.inputFill,
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: AppColors.hint,
                 ),
               ),
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            children[index]['name']!,
+            child.name,
             style: AppTextStyles.bodyMedium.copyWith(
               fontSize: 12,
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
@@ -137,32 +137,155 @@ class _ChildrenSectionState extends State<ChildrenSection> {
     );
   }
 
-  Widget _buildAddButton() {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.inputFill,
-            border: Border.all(color: AppColors.border),
+  Widget _buildAddButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showAddChildDialog(context),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.inputFill,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: const Icon(
+              Icons.add_rounded,
+              color: AppColors.primary,
+              size: 26,
+            ),
           ),
-          child: const Icon(
-            Icons.add_rounded,
-            color: AppColors.primary,
-            size: 26,
+          const SizedBox(height: 6),
+          Text(
+            'إضافة',
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddChildDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    String? selectedGender;
+    DateTime? selectedDate;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: const Text(
+            'إضافة طفل',
+            textAlign: TextAlign.right,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                textAlign: TextAlign.right,
+                decoration: const InputDecoration(
+                  hintText: 'الاسم',
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                hint: const Text('الجنس'),
+                value: selectedGender,
+                items: const [
+                  DropdownMenuItem(
+                    value: 'MALE',
+                    child: Text('ذكر'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'FEMALE',
+                    child: Text('أنثى'),
+                  ),
+                ],
+                onChanged: (v) => setState(() => selectedGender = v),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: DateTime(2018),
+                    firstDate: DateTime(2010),
+                    lastDate: DateTime.now(),
+                  );
+
+                  if (picked != null) {
+                    setState(() => selectedDate = picked);
+                  }
+                },
+                child: Text(
+                  selectedDate == null
+                      ? 'اختر تاريخ الميلاد'
+                      : '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.isEmpty ||
+                    selectedGender == null ||
+                    selectedDate == null) {
+                  return;
+                }
+
+                context.read<ProfileCubit>().addChild(
+                  name: nameController.text,
+                  dateOfBirth:
+                  '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}',
+                  gender: selectedGender!,
+                );
+
+                Navigator.pop(ctx);
+              },
+              child: const Text('إضافة'),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(
-          'إضافة',
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+      ),
+    ).whenComplete(() {
+      nameController.dispose();
+    });
+  }
+
+  void _showChildInfoDialog(BuildContext context, ChildModel child) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(
+          child.name,
+          textAlign: TextAlign.right,
         ),
-      ],
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('الجنس: ${child.gender == 'MALE' ? 'ذكر' : 'أنثى'}'),
+            const SizedBox(height: 8),
+            Text('تاريخ الميلاد: ${child.dateOfBirth ?? 'غير محدد'}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
     );
   }
 }
