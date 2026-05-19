@@ -10,5 +10,7 @@ async def run_analysis_service(request: AnalysisRequest) -> AnalysisResponse:
     result = await run_analysis(SYSTEM_PROMPT, user_prompt)
     if "analysis_version" not in result:
         result["analysis_version"] = request.analysis_version
-    return AnalysisResponse.model_validate(result)
-
+    try:
+        return AnalysisResponse.model_validate(result)
+    except Exception as exc:
+        raise ValueError(f"LLM returned unexpected structure: {exc}\nRaw: {result}")

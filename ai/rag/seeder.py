@@ -205,8 +205,14 @@ async def seed_all(token: str | None, auth_header: str) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Seed ChromaDB from backend and local data")
-    parser.add_argument("--token", default=None, help="Auth token for backend requests")
+    parser = argparse.ArgumentParser(
+        description="Seed ChromaDB from backend and local data (pass a JWT token if backend auth is enabled)"
+    )
+    parser.add_argument(
+        "--token",
+        default=None,
+        help="Auth token for backend requests (include any 'Bearer ' prefix if required)",
+    )
     parser.add_argument("--auth-header", default="Authorization", help="Auth header name")
     args = parser.parse_args()
 

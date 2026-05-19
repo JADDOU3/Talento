@@ -4,7 +4,7 @@ from core.config import get_settings
 
 settings = get_settings()
 
-_client: chromadb.HttpClient = None
+_client: chromadb.HttpClient | None = None
 
 
 def get_chroma_client() -> chromadb.HttpClient:

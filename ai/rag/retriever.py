@@ -39,7 +39,13 @@ def _format_query(request: AnalysisRequest) -> str:
 def _query_collection(collection, query: str, top_k: int) -> list[str]:
     if not query:
         return []
-    result = collection.query(query_texts=[query], n_results=top_k)
+    try:
+        count = collection.count()
+        if count == 0:
+            return []
+        result = collection.query(query_texts=[query], n_results=min(top_k, count))
+    except Exception:
+        return []
     documents = result.get("documents") or []
     if not documents:
         return []
