@@ -185,5 +185,39 @@
   "testimonial2Body": "أدلة واضحة ومواد متينة — أستخدمها في نادي العلوم بعد المدرسة وسأطلب المزيد للفصل القادم.",
   "testimonial2Name": "السيد آلان بورتر",
   "testimonial2Role": "معلم علوم",
-  "kitDetailsAddToCartDemo": "معاينة فقط — السلة لا تتزامن من هذه الشاشة."
+  "kitDetailsAddToCartDemo": "معاينة فقط — السلة لا تتزامن من هذه الشاشة.",
+  "addedToCart": "تمت الإضافة إلى السلة",
+  "addToCartFailed": "تعذرت الإضافة إلى السلة. حاول مرة أخرى.",
+  "retry": "إعادة المحاولة",
+  "noReviewsYet": "لا توجد مراجعات بعد",
+  "verifiedExplorer": "مستكشف موثق",
+  "mindsetCriteriaPlaceholder": "ينمّي الفضول والتركيز والتفكير العلمي من خلال استكشاف موجّه.",
+  "kitContentItemPlaceholder": "مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.",
+  "kitDetailsAgePlus": "من عمر {age}+",
+  "@kitDetailsAgePlus": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "kitDetailsItemsCount": "{count} عنصر",
+  "@kitDetailsItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kitRatingSummary": "★ {rating} ({count} مراجعة)",
+  "@kitRatingSummary": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../buttons/primary_button.dart';
 import 'package:provider/provider.dart';
+import '../../../cubits/cart/cart_cubit.dart';
+import '../../../cubits/cart/cart_state.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../shared/providers/language_provider.dart';
 import '../../../features/auth/pages/login_screen.dart';
 import '../../../features/auth/pages/signup_screen.dart';
+import '../../../util/theme/app_colors.dart';
 
 class Navbar extends StatelessWidget {
   final bool isLoggedIn;
@@ -93,12 +97,7 @@ class Navbar extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 4),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                onPressed: () => Navigator.of(context).pushNamed('/cart'),
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
-              ),
+              _CartIconButton(minSize: 40),
               const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
             ]
@@ -156,12 +155,7 @@ class Navbar extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 4),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                onPressed: () => Navigator.of(context).pushNamed('/cart'),
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
-              ),
+              _CartIconButton(minSize: 36),
               const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
             ]
@@ -183,6 +177,54 @@ class Navbar extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CartIconButton extends StatelessWidget {
+  const _CartIconButton({required this.minSize});
+
+  final double minSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CartCubit, CartState>(
+      builder: (context, state) {
+        final count = state is CartLoaded ? state.cart.unitCount : 0;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
+              onPressed: () => Navigator.of(context).pushNamed('/cart'),
+              icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
+            ),
+            if (count > 0)
+              PositionedDirectional(
+                top: 4,
+                end: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: const BoxDecoration(
+                    color: AppColors.cartTotalRose,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  child: Text(
+                    count > 99 ? '99+' : '$count',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

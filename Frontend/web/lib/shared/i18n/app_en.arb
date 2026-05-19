@@ -185,5 +185,39 @@
   "testimonial2Body": "Clear guides and durable materials — I use it in my after-school science club and am ordering more for next term.",
   "testimonial2Name": "Mr. Alan Porter",
   "testimonial2Role": "SCIENCE TEACHER",
-  "kitDetailsAddToCartDemo": "Preview only — cart is not synced from this screen."
+  "kitDetailsAddToCartDemo": "Preview only — cart is not synced from this screen.",
+  "addedToCart": "Added to cart",
+  "addToCartFailed": "Could not add to cart. Please try again.",
+  "retry": "Retry",
+  "noReviewsYet": "No reviews yet",
+  "verifiedExplorer": "VERIFIED EXPLORER",
+  "mindsetCriteriaPlaceholder": "Develops curiosity, focus, and scientific thinking through guided exploration.",
+  "kitContentItemPlaceholder": "Included in this discovery kit for hands-on learning.",
+  "kitDetailsAgePlus": "AGES {age}+",
+  "@kitDetailsAgePlus": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "kitDetailsItemsCount": "{count} ITEMS",
+  "@kitDetailsItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kitRatingSummary": "★ {rating} ({count} Reviews)",
+  "@kitRatingSummary": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

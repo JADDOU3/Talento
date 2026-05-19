@@ -412,8 +412,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get footerLinkedIn => 'لينكد إن';
 
   @override
-  String get cartCopyrightLine =>
-      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+  String get cartCopyrightLine => '© 2024 تالينتو كيدز. جذورنا في الفضول.';
 
   @override
   String get nurturingTitle => 'تنمية علماء الغد';
@@ -539,4 +538,42 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get kitDetailsAddToCartDemo =>
       'معاينة فقط — السلة لا تتزامن من هذه الشاشة.';
+
+  @override
+  String get addedToCart => 'تمت الإضافة إلى السلة';
+
+  @override
+  String get addToCartFailed => 'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get noReviewsYet => 'لا توجد مراجعات بعد';
+
+  @override
+  String get verifiedExplorer => 'مستكشف موثق';
+
+  @override
+  String get mindsetCriteriaPlaceholder =>
+      'ينمّي الفضول والتركيز والتفكير العلمي من خلال استكشاف موجّه.';
+
+  @override
+  String get kitContentItemPlaceholder =>
+      'مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.';
+
+  @override
+  String kitDetailsAgePlus(int age) {
+    return 'من عمر $age+';
+  }
+
+  @override
+  String kitDetailsItemsCount(int count) {
+    return '$count عنصر';
+  }
+
+  @override
+  String kitRatingSummary(String rating, int count) {
+    return '★ $rating ($count مراجعة)';
+  }
 }

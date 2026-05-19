@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/i18n/app_localizations.dart';
+import '../../../../shared/models/kit_model.dart';
 import '../../../../util/theme/app_colors.dart';
 import 'image_gallery.dart';
 import 'star_rating.dart';
@@ -9,44 +10,46 @@ class KitHeroSection extends StatelessWidget {
   const KitHeroSection({
     super.key,
     required this.l10n,
-    required this.mainImageAsset,
-    required this.thumbnailAssets,
+    required this.kit,
     required this.reviewCount,
-    this.rating = 4.5,
-    this.currentPriceLabel,
-    this.originalPriceLabel,
+    this.rating,
+    this.fallbackMainAsset,
+    this.fallbackThumbAssets = const [],
     this.onAddToCart,
+    this.isAddingToCart = false,
   });
 
   final AppLocalizations l10n;
-  final String mainImageAsset;
-  final List<String> thumbnailAssets;
+  final KitModel kit;
   final int reviewCount;
-  final double rating;
-  /// When null, uses [l10n.kitDetailsPriceCurrent] / [l10n.kitDetailsPriceOriginal].
-  final String? currentPriceLabel;
-  final String? originalPriceLabel;
+  final double? rating;
+  final String? fallbackMainAsset;
+  final List<String> fallbackThumbAssets;
   final VoidCallback? onAddToCart;
+  final bool isAddingToCart;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final twoCol = width >= 960;
-    final current = currentPriceLabel ?? l10n.kitDetailsPriceCurrent;
-    final original = originalPriceLabel ?? l10n.kitDetailsPriceOriginal;
+    final displayRating = rating ?? kit.rating;
 
     final gallery = ImageGallery(
-      mainAsset: mainImageAsset,
-      thumbnailAssets: thumbnailAssets,
+      mainImageUrl: kit.imageURL,
+      mainAsset: fallbackMainAsset,
+      thumbnailUrls: kit.imageURL.isNotEmpty
+          ? [kit.imageURL, kit.imageURL]
+          : const [],
+      thumbnailAssets: fallbackThumbAssets,
     );
 
     final details = _DetailsColumn(
       l10n: l10n,
+      kit: kit,
       reviewCount: reviewCount,
-      rating: rating,
-      currentPrice: current,
-      originalPrice: original,
+      rating: displayRating,
       onAddToCart: onAddToCart,
+      isAddingToCart: isAddingToCart,
     );
 
     if (twoCol) {
@@ -74,19 +77,25 @@ class KitHeroSection extends StatelessWidget {
 class _DetailsColumn extends StatelessWidget {
   const _DetailsColumn({
     required this.l10n,
+    required this.kit,
     required this.reviewCount,
     required this.rating,
-    required this.currentPrice,
-    required this.originalPrice,
     this.onAddToCart,
+    this.isAddingToCart = false,
   });
 
   final AppLocalizations l10n;
+  final KitModel kit;
   final int reviewCount;
   final double rating;
-  final String currentPrice;
-  final String originalPrice;
   final VoidCallback? onAddToCart;
+  final bool isAddingToCart;
+
+  String get _typeLabel {
+    final t = kit.type.trim();
+    if (t.isEmpty) return l10n.kitDetailsCategory;
+    return t.replaceAll('_', ' ').toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +113,7 @@ class _DetailsColumn extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
             ),
             child: Text(
-              l10n.kitDetailsCategory,
+              _typeLabel,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 10,
@@ -116,7 +125,7 @@ class _DetailsColumn extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          l10n.kitDetailsName,
+          kit.name,
           style: const TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.w900,
@@ -150,33 +159,17 @@ class _DetailsColumn extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    currentPrice,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cartTeal,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    originalPrice,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.cartMutedGrey,
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: AppColors.cartMutedGrey,
-                    ),
-                  ),
-                ],
+              Text(
+                '\$${kit.price.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.cartTeal,
+                ),
               ),
               const SizedBox(height: 14),
               Text(
-                l10n.kitDetailsDescription,
+                kit.description,
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.6,
@@ -190,11 +183,11 @@ class _DetailsColumn extends StatelessWidget {
                 children: [
                   _TagChip(
                     icon: Icons.schedule_rounded,
-                    label: l10n.kitDetailsAgeTag,
+                    label: l10n.kitDetailsAgePlus(kit.age),
                   ),
                   _TagChip(
-                    icon: Icons.science_outlined,
-                    label: l10n.kitDetailsExperimentsTag,
+                    icon: Icons.inventory_2_outlined,
+                    label: l10n.kitDetailsItemsCount(kit.kitItems.length),
                   ),
                 ],
               ),
@@ -211,8 +204,17 @@ class _DetailsColumn extends StatelessWidget {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  onPressed: onAddToCart,
-                  icon: const Icon(Icons.shopping_cart_outlined, size: 22),
+                  onPressed: isAddingToCart ? null : onAddToCart,
+                  icon: isAddingToCart
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.shopping_cart_outlined, size: 22),
                   label: Text(
                     l10n.addToCart,
                     style: const TextStyle(

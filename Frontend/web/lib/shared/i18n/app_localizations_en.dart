@@ -307,8 +307,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get language => 'EN';
 
-  // ===== CART PAGE UI STRINGS =====
-
   @override
   String get yourBasket => 'Your Basket';
 
@@ -417,8 +415,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get footerLinkedIn => 'LINKEDIN';
 
   @override
-  String get cartCopyrightLine =>
-      '© 2024 Talento Kids. Rooted in Curiosity.';
+  String get cartCopyrightLine => '© 2024 Talento Kids. Rooted in Curiosity.';
 
   @override
   String get nurturingTitle => 'Nurturing Tomorrow\'s Scientists';
@@ -468,10 +465,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kitDetailsExperimentsTag => '15+ EXPERIMENTS';
 
   @override
-  String get kitDetailsPriceCurrent => r'$84.00';
+  String get kitDetailsPriceCurrent => '\$84.00';
 
   @override
-  String get kitDetailsPriceOriginal => r'$110.00';
+  String get kitDetailsPriceOriginal => '\$110.00';
 
   @override
   String get mindsetCard1Title => 'Critical Observation';
@@ -545,4 +542,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kitDetailsAddToCartDemo =>
       'Preview only — cart is not synced from this screen.';
+
+  @override
+  String get addedToCart => 'Added to cart';
+
+  @override
+  String get addToCartFailed => 'Could not add to cart. Please try again.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get verifiedExplorer => 'VERIFIED EXPLORER';
+
+  @override
+  String get mindsetCriteriaPlaceholder =>
+      'Develops curiosity, focus, and scientific thinking through guided exploration.';
+
+  @override
+  String get kitContentItemPlaceholder =>
+      'Included in this discovery kit for hands-on learning.';
+
+  @override
+  String kitDetailsAgePlus(int age) {
+    return 'AGES $age+';
+  }
+
+  @override
+  String kitDetailsItemsCount(int count) {
+    return '$count ITEMS';
+  }
+
+  @override
+  String kitRatingSummary(String rating, int count) {
+    return '★ $rating ($count Reviews)';
+  }
 }
