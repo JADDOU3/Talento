@@ -141,5 +141,49 @@
   "footerInstagram": "إنستغرام",
   "footerPinterest": "بينتريست",
   "footerLinkedIn": "لينكد إن",
-  "cartCopyrightLine": "© 2024 تالينتو كيدز. جذورنا في الفضول."
+  "cartCopyrightLine": "© 2024 تالينتو كيدز. جذورنا في الفضول.",
+  "nurturingTitle": "تنمية علماء الغد",
+  "whatsInsideTitle": "ما الذي بداخل المختبر؟",
+  "explorerTestimonials": "آراء المستكشفين",
+  "testimonialsSubtitle": "آراء الآباء والمستكشفين الصغار من حول العالم",
+  "writeReview": "اكتب مراجعة",
+  "addToCart": "أضف إلى السلة",
+  "partnerQuality": "جودة الشريك",
+  "partnerQualitySubtitle": "مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.",
+  "reviews": "{count} مراجعة",
+  "@reviews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kitDetailsCategory": "الطبيعة والعلوم",
+  "kitDetailsName": "مجموعة اكتشاف العالم النباتي",
+  "kitDetailsDescription": "أدوات ودلائل مختارة بعناية لمساعدة الصغار على التعرف على العينات، كبس النباتات، وفهم البيئة من الحديقة إلى الطبيعة.",
+  "kitDetailsAgeTag": "الأعمار 6–12",
+  "kitDetailsExperimentsTag": "+15 تجربة",
+  "kitDetailsPriceCurrent": "84.00 $",
+  "kitDetailsPriceOriginal": "110.00 $",
+  "mindsetCard1Title": "الملاحظة النقدية",
+  "mindsetCard1Body": "تنمية الانتباه للتفاصيل والتدوين بصبر ليلاحظ الأطفال الأنماط في العالم الحي.",
+  "mindsetCard2Title": "الثقافة البيئية",
+  "mindsetCard2Body": "ربط النباتات والتربة والموائل لفهم كيف تدعم الأنظمة البيئية بعضها.",
+  "mindsetCard3Title": "مهارات المختبر",
+  "mindsetCard3Body": "تعريف الطفل بالتعامل الحذر مع الأدوات والعينات وبأساليب بسيطة يستخدمها العلماء.",
+  "kitContent1Title": "عدسة نحاسية دقيقة",
+  "kitContent1Desc": "تكبير 10× مع زجاج مقاوم للخدش.",
+  "kitContent2Title": "مفكرة المستكشف القماشية",
+  "kitContent2Desc": "صفحات مقاومة للماء لملاحظات الحقل ورسم العينات.",
+  "kitContent3Title": "مكبس نباتات خشبي",
+  "kitContent3Desc": "مكبس من خشب البلوط من مصادر مستدامة مع أحزمة شد قابلة للتعديل.",
+  "kitContent4Title": "مجموعة جمع العينات",
+  "kitContent4Desc": "تشمل 12 أنبوب اختبار زجاجي وملقط وملصقات للتسمية.",
+  "testimonial1Body": "حولت هذه المجموعة نزهاتنا في عطلة نهاية الأسبوع إلى دراسات ميدانية حقيقية. ابنتي تحتفظ الآن بمفكرة أوراق مكبوسة على مكتبها.",
+  "testimonial1Name": "سارة إلويك",
+  "testimonial1Role": "مستكشفة موثقة",
+  "testimonial2Body": "أدلة واضحة ومواد متينة — أستخدمها في نادي العلوم بعد المدرسة وسأطلب المزيد للفصل القادم.",
+  "testimonial2Name": "السيد آلان بورتر",
+  "testimonial2Role": "معلم علوم",
+  "kitDetailsAddToCartDemo": "معاينة فقط — السلة لا تتزامن من هذه الشاشة."
 }
