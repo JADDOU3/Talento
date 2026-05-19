@@ -69,14 +69,6 @@ class Navbar extends StatelessWidget {
             ),
             if (!isLoggedIn) ...[
               TextButton(
-
-                onPressed: () => Provider.of<LanguageProvider>(
-                  context,
-                  listen: false,
-                ).toggleLanguage(),
-                child: Text(l10n.language),
-              ),
-              TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -139,14 +131,6 @@ class Navbar extends StatelessWidget {
               child: Text(l10n.language),
             ),
             if (!isLoggedIn) ...[
-              TextButton(
-
-                onPressed: () => Provider.of<LanguageProvider>(
-                  context,
-                  listen: false,
-                ).toggleLanguage(),
-                child: Text(l10n.language),
-              ),
               TextButton(
                 onPressed: () {
                   Navigator.push(
