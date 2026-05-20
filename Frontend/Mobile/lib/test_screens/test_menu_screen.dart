@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'qr_scanner_test_screen.dart';
+import 'sensors_test_screen.dart';
 
 
 class TestMenuScreen extends StatelessWidget {
@@ -52,12 +53,14 @@ class TestMenuScreen extends StatelessWidget {
           _PrototypeButton(
             title: 'Gyroscope / Sensors Prototype',
             subtitle: 'Test device tilt for maze-style activities',
-            icon: Icons.screen_rotation_alt,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Sensors screen coming next')),
-              );
-            },
+            icon: Icons.screen_rotation_alt,onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SensorsTestScreen(),
+              ),
+            );
+          },
           ),
 
           _PrototypeButton(
