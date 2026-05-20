@@ -13,4 +13,5 @@ public class CreateActivityEventDto {
     private int sessionId;
     private int activityId;
     private EventAction action;
+    private String responseLanguage;
 }
