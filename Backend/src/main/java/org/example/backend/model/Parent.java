@@ -52,5 +52,8 @@ public class Parent {
     @OneToMany(mappedBy = "parent")
     private List<PostLike> likes;
 
+    @JsonIgnore
+    @OneToMany(mappedBy="parent")
+    private List<Review> reviews;
    //todo implement Web Relations
 }
