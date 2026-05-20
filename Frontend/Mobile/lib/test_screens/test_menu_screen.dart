@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'qr_scanner_test_screen.dart';
 import 'sensors_test_screen.dart';
-
+import 'flame_test_screen.dart';
 
 class TestMenuScreen extends StatelessWidget {
   const TestMenuScreen({super.key});
@@ -68,8 +68,11 @@ class TestMenuScreen extends StatelessWidget {
             subtitle: 'Test mini game engine inside Flutter',
             icon: Icons.sports_esports,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Flame screen coming next')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const FlameTestScreen(),
+                ),
               );
             },
           ),
