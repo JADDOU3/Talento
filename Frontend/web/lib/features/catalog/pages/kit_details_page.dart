@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubits/kit/kit_cubit.dart';
 import '../cubits/kit/kit_state.dart';
 import '../../../shared/models/kit_model.dart';
+import '../../../shared/i18n/app_localizations.dart';
+import '../../../cubits/cart/cart_cubit.dart';
 import '../../../util/theme/app_colors.dart';
 
 class KitDetailsPage extends StatefulWidget {
@@ -207,12 +209,20 @@ class _DetailsBody extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                    onPressed: () async {
+                      final l10n = AppLocalizations.of(context)!;
+                      final messenger = ScaffoldMessenger.of(context);
+                      final ok =
+                          await context.read<CartCubit>().addItem(kit.id, 1);
+                      if (!context.mounted) return;
+                      messenger.showSnackBar(
                         SnackBar(
-                          content: Text('${kit.name} added to cart'),
-                          duration: const Duration(seconds: 1),
-                          backgroundColor: AppColors.teal,
+                          content: Text(
+                            ok ? l10n.addedToCart : l10n.addToCartFailed,
+                          ),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor:
+                              ok ? AppColors.teal : Colors.redAccent,
                         ),
                       );
                     },

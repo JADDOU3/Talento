@@ -141,5 +141,11 @@
   "footerInstagram": "INSTAGRAM",
   "footerPinterest": "PINTEREST",
   "footerLinkedIn": "LINKEDIN",
-  "cartCopyrightLine": "© 2024 Talento Kids. Rooted in Curiosity."
+  "cartCopyrightLine": "© 2024 Talento Kids. Rooted in Curiosity.",
+  "cartEmpty": "Your cart is empty",
+  "cartEmptyDesc": "Discover our amazing kits for your child",
+  "discoverKits": "Discover Kits",
+  "retry": "Retry",
+  "addedToCart": "Added to cart",
+  "addToCartFailed": "Could not add to cart. Please try again."
 }
