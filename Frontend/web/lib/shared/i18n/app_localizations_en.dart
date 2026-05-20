@@ -307,8 +307,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get language => 'EN';
 
-  // ===== CART PAGE UI STRINGS =====
-
   @override
   String get yourBasket => 'Your Basket';
 
@@ -417,14 +415,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get footerLinkedIn => 'LINKEDIN';
 
   @override
+  @override
   String get cartCopyrightLine =>
       '© 2024 Talento Kids. Rooted in Curiosity.';
 
   @override
-  String get nurturingTitle => 'Nurturing Tomorrow\'s Scientists';
+  String get cartEmpty => 'Your cart is empty';
 
   @override
-  String get whatsInsideTitle => 'What\'s Inside the Laboratory?';
+  String get cartEmptyDesc =>
+      'Discover our amazing kits for your child';
+
+  @override
+  String get discoverKits => 'Discover Kits';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get addedToCart => 'Added to cart';
+
+  @override
+  String get addToCartFailed =>
+      'Could not add to cart. Please try again.';
+
+  @override
+  String get nurturingTitle => 'Nurturing Tomorrow\\'s Scientists';
+
+  @override
+  String get whatsInsideTitle => 'What\\'s Inside the Laboratory?';
 
   @override
   String get explorerTestimonials => 'Explorer Testimonials';
@@ -502,7 +521,7 @@ class AppLocalizationsEn extends AppLocalizations {
       '10x magnification with scratch-resistant glass lenses.';
 
   @override
-  String get kitContent2Title => 'Canvas Explorer\'s Journal';
+  String get kitContent2Title => 'Canvas Explorer\\'s Journal';
 
   @override
   String get kitContent2Desc =>

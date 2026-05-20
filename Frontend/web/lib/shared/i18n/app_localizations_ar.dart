@@ -412,8 +412,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get footerLinkedIn => 'لينكد إن';
 
   @override
+  @override
   String get cartCopyrightLine =>
       '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+
+  @override
+  String get cartEmpty => 'سلتك فارغة';
+
+  @override
+  String get cartEmptyDesc => 'اكتشف مجموعاتنا الرائعة لطفلك';
+
+  @override
+  String get discoverKits => 'اكتشف المجموعات';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get addedToCart => 'تمت الإضافة إلى السلة';
+
+  @override
+  String get addToCartFailed =>
+      'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
 
   @override
   String get nurturingTitle => 'تنمية علماء الغد';

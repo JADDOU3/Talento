@@ -46,7 +46,6 @@ class ApiConstants {
   static const String children = '$baseUrl/children';
   static const String addChild = '$baseUrl/children/';
   static const String selectedChild = '$baseUrl/children/selected';
-  static String kitsByChild(int childId) => '$baseUrl/kits/child/$childId';
 
   static String setSelectedChild(int childId) =>
       '$baseUrl/children/selected/$childId';

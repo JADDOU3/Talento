@@ -245,6 +245,13 @@
               }
             },
             {
+              "name": "Get Criteria By Mindset",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/criteria/mindset/1", "host": ["{{baseUrl}}"], "path": ["api", "criteria", "mindset", "1"] }
+              }
+            },
+            {
               "name": "Update Criteria",
               "request": {
                 "method": "PUT",
@@ -288,10 +295,24 @@
               }
             },
             {
+              "name": "Get By ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria", "1"] }
+              }
+            },
+            {
               "name": "Get By Activity",
               "request": {
                 "method": "GET",
                 "url": { "raw": "{{baseUrl}}/api/activity-criteria/activity/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria", "activity", "1"] }
+              }
+            },
+            {
+              "name": "Get By Criteria",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria/criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria", "criteria", "1"] }
               }
             },
             {
@@ -304,6 +325,13 @@
                   "mode": "raw",
                   "raw": "{\n  \"weight\": 0.9\n}"
                 }
+              }
+            },
+            {
+              "name": "Delete Activity Criteria",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{baseUrl}}/api/activity-criteria/1", "host": ["{{baseUrl}}"], "path": ["api", "activity-criteria", "1"] }
               }
             }
           ]
@@ -441,10 +469,36 @@
           }
         },
         {
+          "name": "Get Level By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/levels/1", "host": ["{{baseUrl}}"], "path": ["api", "levels", "1"] }
+          }
+        },
+        {
           "name": "Get Levels By Activity",
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/api/levels/activity/1", "host": ["{{baseUrl}}"], "path": ["api", "levels", "activity", "1"] }
+          }
+        },
+        {
+          "name": "Update Level",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/levels/1", "host": ["{{baseUrl}}"], "path": ["api", "levels", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"levelNumber\": 2,\n  \"difficulty\": 3,\n  \"description\": \"Updated level\",\n  \"activityId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Level",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/levels/1", "host": ["{{baseUrl}}"], "path": ["api", "levels", "1"] }
           }
         },
         {
@@ -460,10 +514,43 @@
           }
         },
         {
+          "name": "Get All Level Attempts",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/level-attempts", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts"] }
+          }
+        },
+        {
+          "name": "Get Level Attempt By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/level-attempts/1", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts", "1"] }
+          }
+        },
+        {
           "name": "Get Level Attempts By Session",
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/api/level-attempts/activity-session/1", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts", "activity-session", "1"] }
+          }
+        },
+        {
+          "name": "Update Level Attempt",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/level-attempts/1", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attemptNumber\": 2,\n  \"startedAt\": \"2026-05-04T21:20:00\",\n  \"endedAt\": \"2026-05-04T21:25:00\",\n  \"completed\": true,\n  \"activitySessionId\": 1,\n  \"levelId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Level Attempt",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/level-attempts/1", "host": ["{{baseUrl}}"], "path": ["api", "level-attempts", "1"] }
           }
         }
       ]
@@ -706,6 +793,20 @@
           }
         },
         {
+          "name": "Get Level Events By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/level/session/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "level", "session", "1"] }
+          }
+        },
+        {
+          "name": "Get Level Events By Child And Action",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/level/child/1/action/COMPLETE", "host": ["{{baseUrl}}"], "path": ["api", "events", "level", "child", "1", "action", "COMPLETE"] }
+          }
+        },
+        {
           "name": "Create Challenge Event",
           "request": {
             "method": "POST",
@@ -715,6 +816,20 @@
               "mode": "raw",
               "raw": "{\n  \"childId\": 1,\n  \"sessionId\": 1,\n  \"action\": \"COMPLETE\"\n}"
             }
+          }
+        },
+        {
+          "name": "Get Challenge Events By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/challenge/session/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "challenge", "session", "1"] }
+          }
+        },
+        {
+          "name": "Get Challenge Events By Child And Action",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/challenge/child/1/action/COMPLETE", "host": ["{{baseUrl}}"], "path": ["api", "events", "challenge", "child", "1", "action", "COMPLETE"] }
           }
         },
         {
@@ -730,6 +845,20 @@
           }
         },
         {
+          "name": "Get Help Events By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/help/session/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "help", "session", "1"] }
+          }
+        },
+        {
+          "name": "Get Help Events By Child And Level",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/help/child/1/level/MEDIUM", "host": ["{{baseUrl}}"], "path": ["api", "events", "help", "child", "1", "level", "MEDIUM"] }
+          }
+        },
+        {
           "name": "Create Activity Event",
           "request": {
             "method": "POST",
@@ -739,6 +868,20 @@
               "mode": "raw",
               "raw": "{\n  \"childId\": 1,\n  \"sessionId\": 1,\n  \"activityId\": 1,\n  \"action\": \"START\"\n}"
             }
+          }
+        },
+        {
+          "name": "Get Activity Events By Session",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/activity/session/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "activity", "session", "1"] }
+          }
+        },
+        {
+          "name": "Get Activity Events By Activity",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/activity/1", "host": ["{{baseUrl}}"], "path": ["api", "events", "activity", "1"] }
           }
         }
       ]
@@ -931,6 +1074,117 @@
           "request": {
             "method": "PATCH",
             "url": { "raw": "{{baseUrl}}/api/sessions/1/end", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "1", "end"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Create Cart",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/cart/", "host": ["{{baseUrl}}"], "path": ["api", "cart", ""] }
+          }
+        },
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/cart/", "host": ["{{baseUrl}}"], "path": ["api", "cart", ""] }
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/cart/", "host": ["{{baseUrl}}"], "path": ["api", "cart", ""] }
+          }
+        },
+        {
+          "name": "Get Cart Items",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/cart/items", "host": ["{{baseUrl}}"], "path": ["api", "cart", "items"] }
+          }
+        },
+        {
+          "name": "Add Cart Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/cart/items", "host": ["{{baseUrl}}"], "path": ["api", "cart", "items"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kitId\": 1,\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Cart Item",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/cart/items/1", "host": ["{{baseUrl}}"], "path": ["api", "cart", "items", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/cart/items/1", "host": ["{{baseUrl}}"], "path": ["api", "cart", "items", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/orders/", "host": ["{{baseUrl}}"], "path": ["api", "orders", ""] }
+          }
+        },
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/orders/my", "host": ["{{baseUrl}}"], "path": ["api", "orders", "my"] }
+          }
+        },
+        {
+          "name": "Get Order By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/orders/1", "host": ["{{baseUrl}}"], "path": ["api", "orders", "1"] }
+          }
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/orders/checkout", "host": ["{{baseUrl}}"], "path": ["api", "orders", "checkout"] }
+          }
+        },
+        {
+          "name": "Delete Order",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/orders/1", "host": ["{{baseUrl}}"], "path": ["api", "orders", "1"] }
+          }
+        },
+        {
+          "name": "Get Order Items",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/orders/1/items", "host": ["{{baseUrl}}"], "path": ["api", "orders", "1", "items"] }
           }
         }
       ]
@@ -1205,6 +1459,24 @@
               "request": {
                 "method": "GET",
                 "url": { "raw": "{{baseUrl}}/api/likes/post/1/count", "host": ["{{baseUrl}}"], "path": ["api", "likes", "post", "1", "count"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Media",
+          "item": [
+            {
+              "name": "Upload Media",
+              "request": {
+                "method": "POST",
+                "url": { "raw": "{{baseUrl}}/api/media/upload", "host": ["{{baseUrl}}"], "path": ["api", "media", "upload"] },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "file", "type": "file" }
+                  ]
+                }
               }
             }
           ]

@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../buttons/primary_button.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../shared/providers/language_provider.dart';
 import '../../../features/auth/pages/login_screen.dart';
 import '../../../features/auth/pages/signup_screen.dart';
+import '../../../cubits/cart/cart_cubit.dart';
+import '../../../cubits/cart/cart_state.dart';
+
+int _cartBadgeCount(CartState state) {
+  if (state is CartLoaded) return state.cart.lineItemCount;
+  return 0;
+}
+
+String _cartBadgeLabel(int count) {
+  if (count > 99) return '99+';
+  return '$count';
+}
 
 class Navbar extends StatelessWidget {
   final bool isLoggedIn;
@@ -69,14 +82,6 @@ class Navbar extends StatelessWidget {
             ),
             if (!isLoggedIn) ...[
               TextButton(
-
-                onPressed: () => Provider.of<LanguageProvider>(
-                  context,
-                  listen: false,
-                ).toggleLanguage(),
-                child: Text(l10n.language),
-              ),
-              TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -101,11 +106,26 @@ class Navbar extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 4),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                onPressed: () => Navigator.of(context).pushNamed('/cart'),
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
+              BlocBuilder<CartCubit, CartState>(
+                builder: (context, cState) {
+                  final count = _cartBadgeCount(cState);
+                  return Badge(
+                    isLabelVisible: count > 0,
+                    label: Text(
+                      _cartBadgeLabel(count),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 40, minHeight: 40),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/cart'),
+                      icon: const Icon(Icons.shopping_cart,
+                          color: Color(0xFF1B4332)),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
@@ -140,14 +160,6 @@ class Navbar extends StatelessWidget {
             ),
             if (!isLoggedIn) ...[
               TextButton(
-
-                onPressed: () => Provider.of<LanguageProvider>(
-                  context,
-                  listen: false,
-                ).toggleLanguage(),
-                child: Text(l10n.language),
-              ),
-              TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -172,11 +184,26 @@ class Navbar extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 4),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                onPressed: () => Navigator.of(context).pushNamed('/cart'),
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFF1B4332)),
+              BlocBuilder<CartCubit, CartState>(
+                builder: (context, cState) {
+                  final count = _cartBadgeCount(cState);
+                  return Badge(
+                    isLabelVisible: count > 0,
+                    label: Text(
+                      _cartBadgeLabel(count),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/cart'),
+                      icon: const Icon(Icons.shopping_cart,
+                          color: Color(0xFF1B4332)),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
