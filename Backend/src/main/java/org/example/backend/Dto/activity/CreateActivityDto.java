@@ -13,4 +13,5 @@ public class CreateActivityDto {
     private String name;
     private String description;
     private Type type;
+    private Boolean voiceEnabled;
 }

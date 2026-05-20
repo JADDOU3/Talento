@@ -14,4 +14,5 @@ public class UpdateActivityDto {
     private String name;
     private String description;
     private Type type;
+    private Boolean voiceEnabled;
 }
