@@ -901,6 +901,80 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not add to cart. Please try again.'**
   String get addToCartFailed;
+
+  String get nurturingTitle;
+
+  String get whatsInsideTitle;
+
+  String get explorerTestimonials;
+
+  String get testimonialsSubtitle;
+
+  String get writeReview;
+
+  String get addToCart;
+
+  String get partnerQuality;
+
+  String get partnerQualitySubtitle;
+
+  String reviews(int count);
+
+  String get kitDetailsCategory;
+
+  String get kitDetailsName;
+
+  String get kitDetailsDescription;
+
+  String get kitDetailsAgeTag;
+
+  String get kitDetailsExperimentsTag;
+
+  String get kitDetailsPriceCurrent;
+
+  String get kitDetailsPriceOriginal;
+
+  String get mindsetCard1Title;
+
+  String get mindsetCard1Body;
+
+  String get mindsetCard2Title;
+
+  String get mindsetCard2Body;
+
+  String get mindsetCard3Title;
+
+  String get mindsetCard3Body;
+
+  String get kitContent1Title;
+
+  String get kitContent1Desc;
+
+  String get kitContent2Title;
+
+  String get kitContent2Desc;
+
+  String get kitContent3Title;
+
+  String get kitContent3Desc;
+
+  String get kitContent4Title;
+
+  String get kitContent4Desc;
+
+  String get testimonial1Body;
+
+  String get testimonial1Name;
+
+  String get testimonial1Role;
+
+  String get testimonial2Body;
+
+  String get testimonial2Name;
+
+  String get testimonial2Role;
+
+  String get kitDetailsAddToCartDemo;
 }
 
 class _AppLocalizationsDelegate

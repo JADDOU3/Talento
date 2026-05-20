@@ -415,13 +415,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get footerLinkedIn => 'LINKEDIN';
 
   @override
-  String get cartCopyrightLine => '© 2024 Talento Kids. Rooted in Curiosity.';
+  @override
+  String get cartCopyrightLine =>
+      '© 2024 Talento Kids. Rooted in Curiosity.';
 
   @override
   String get cartEmpty => 'Your cart is empty';
 
   @override
-  String get cartEmptyDesc => 'Discover our amazing kits for your child';
+  String get cartEmptyDesc =>
+      'Discover our amazing kits for your child';
 
   @override
   String get discoverKits => 'Discover Kits';
@@ -433,5 +436,132 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addedToCart => 'Added to cart';
 
   @override
-  String get addToCartFailed => 'Could not add to cart. Please try again.';
+  String get addToCartFailed =>
+      'Could not add to cart. Please try again.';
+
+  @override
+  String get nurturingTitle => 'Nurturing Tomorrow\\'s Scientists';
+
+  @override
+  String get whatsInsideTitle => 'What\\'s Inside the Laboratory?';
+
+  @override
+  String get explorerTestimonials => 'Explorer Testimonials';
+
+  @override
+  String get testimonialsSubtitle =>
+      'Hear from parents and young explorers around the world';
+
+  @override
+  String get writeReview => 'Write a Review';
+
+  @override
+  String get addToCart => 'Add to Cart';
+
+  @override
+  String get partnerQuality => 'PARTNER QUALITY';
+
+  @override
+  String get partnerQualitySubtitle =>
+      'Built with heirloom-quality materials designed to last for a lifetime of exploration.';
+
+  @override
+  String reviews(int count) {
+    return '$count Reviews';
+  }
+
+  @override
+  String get kitDetailsCategory => 'NATURE & SCIENCE';
+
+  @override
+  String get kitDetailsName => 'Botanist Discovery Kit';
+
+  @override
+  String get kitDetailsDescription =>
+      'Thoughtfully curated tools and guides for young botanists to identify specimens, press plants, and explore ecology from the backyard to the field.';
+
+  @override
+  String get kitDetailsAgeTag => 'AGES 6-12';
+
+  @override
+  String get kitDetailsExperimentsTag => '15+ EXPERIMENTS';
+
+  @override
+  String get kitDetailsPriceCurrent => r'$84.00';
+
+  @override
+  String get kitDetailsPriceOriginal => r'$110.00';
+
+  @override
+  String get mindsetCard1Title => 'Critical Observation';
+
+  @override
+  String get mindsetCard1Body =>
+      'Train attention to detail and patient recording so children notice patterns in the living world.';
+
+  @override
+  String get mindsetCard2Title => 'Ecological Literacy';
+
+  @override
+  String get mindsetCard2Body =>
+      'Connect plants, soil, and habitats so learners understand how ecosystems support one another.';
+
+  @override
+  String get mindsetCard3Title => 'Laboratory Skills';
+
+  @override
+  String get mindsetCard3Body =>
+      'Introduce careful handling of tools, specimens, and simple methods used by real scientists.';
+
+  @override
+  String get kitContent1Title => 'Precision Brass Magnifier';
+
+  @override
+  String get kitContent1Desc =>
+      '10x magnification with scratch-resistant glass lenses.';
+
+  @override
+  String get kitContent2Title => 'Canvas Explorer\\'s Journal';
+
+  @override
+  String get kitContent2Desc =>
+      'Water-resistant pages for field notes and specimen drawings.';
+
+  @override
+  String get kitContent3Title => 'Wooden Plant Press';
+
+  @override
+  String get kitContent3Desc =>
+      'Sustainably sourced oak press with adjustable tension straps.';
+
+  @override
+  String get kitContent4Title => 'Specimen Collection Kit';
+
+  @override
+  String get kitContent4Desc =>
+      'Includes 12 glass test tubes, tweezers, and labeling stickers.';
+
+  @override
+  String get testimonial1Body =>
+      'This kit turned our weekend walks into real field studies. My daughter now keeps a pressed-leaf journal on her desk.';
+
+  @override
+  String get testimonial1Name => 'Sarah Elwick';
+
+  @override
+  String get testimonial1Role => 'VERIFIED EXPLORER';
+
+  @override
+  String get testimonial2Body =>
+      'Clear guides and durable materials — I use it in my after-school science club and am ordering more for next term.';
+
+  @override
+  String get testimonial2Name => 'Mr. Alan Porter';
+
+  @override
+  String get testimonial2Role => 'SCIENCE TEACHER';
+
+  @override
+  String get kitDetailsAddToCartDemo =>
+      'Preview only — cart is not synced from this screen.';
 }
