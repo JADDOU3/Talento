@@ -3,52 +3,42 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-
 /*
 Talento Gyroscope / Sensors Prototype
 
 Package chosen: sensors_plus
 Version used: 7.0.0
 
-Purpose:
-Test device tilt/orientation input for Talento interactive activities,
-especially tilt-based maze and balance games.
-
 Why sensors_plus:
 - Supports Android and iOS.
 - Provides accelerometer, gyroscope, user accelerometer, and magnetometer streams.
-- Easy to integrate inside a normal Flutter screen.
+- Easy to use inside a normal Flutter screen.
 - Suitable for testing tilt, rotation speed, and shake-like movement.
 
 Important finding:
-- For tilt-based games, accelerometer data is more useful than raw gyroscope data.
-- Accelerometer helps detect tilt left/right and forward/backward.
-- Gyroscope is useful for rotation speed, not direct tilt position.
-- Magnetometer is mainly for compass direction and is not needed for the maze use case.
+- For tilt-based games, accelerometer is more useful than raw gyroscope.
+- Accelerometer detects tilt left/right and forward/backward.
+- Gyroscope is useful for rotation speed.
+- Magnetometer is mainly for compass direction and is not needed for the maze.
 
 Prototype behavior:
-- A ball moves on screen based on device tilt.
-- Tilt left/right moves the ball horizontally.
-- Tilt forward/backward moves the ball vertically.
-- Raw x, y, z accelerometer values are shown for debugging.
-- A visual text indicator shows the detected tilt direction.
-- A simple low-pass smoothing filter is used to reduce jitter.
-- Calibration is supported: the current phone position can be treated as neutral.
+- Ball moves based on device tilt.
+- Raw x, y, z accelerometer values are displayed.
+- Tilt direction is shown visually.
+- Low-pass smoothing is used to reduce jitter.
+- Calibration is supported by treating the current phone position as neutral.
 
-Smoothing approach:
+Smoothing:
 smoothedValue = oldValue * 0.78 + newValue * 0.22
 
-Calibration approach:
-The reset button returns the ball to the center and stores the current smoothed
-accelerometer values as the neutral phone position. This is needed because sensor
-values are usually not zero even when the phone looks still.
+Limitations:
+- Battery impact needs longer real-device testing.
+- iOS may require NSMotionUsageDescription before production.
 
 Verdict:
-Use sensors_plus for Talento tilt-based activities, with accelerometer-based movement,
-calibration, and smoothing. Gyroscope can be used later for rotation-speed features.
+Use sensors_plus for Talento tilt-based activities with accelerometer-based
+movement, smoothing, and calibration.
 
-Recommended use case:
-Tilt maze, balance activities, motion-based puzzles, and physical interaction games.
 */
 
 class SensorsTestScreen extends StatefulWidget {

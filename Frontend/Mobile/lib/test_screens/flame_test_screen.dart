@@ -11,40 +11,35 @@ Talento Flame Prototype
 Package chosen: flame
 Version used: 1.35.1
 
-Purpose:
-Test whether Flame is suitable for Talento in-app mini games.
-
 Why Flame:
-- Works inside a normal Flutter screen using GameWidget.
-- Allows Flutter UI to coexist with the game, such as score, timer, buttons, and overlays.
-- Supports game loops, components, movement, collision detection, and touch/game input.
-- Suitable for Talento mini games such as maze games, collecting games, sorting games, reaction games, and puzzle-like activities.
+- Runs inside a normal Flutter screen using GameWidget.
+- Allows Flutter UI overlays such as score, timer, buttons, and game over.
+- Supports game loop, movement, components, collision detection, and input.
+- Fits Talento mini games like maze, collecting, sorting, memory, and reaction games.
 
 Prototype behavior:
-- A simple character moves left and right using Flutter on-screen buttons.
-- A collectible item appears randomly inside the game area.
-- Collision detection is used between the character and the collectible.
-- Score is displayed as a Flutter widget overlay, not as Flame UI.
-- A 30-second timer is displayed as a Flutter overlay.
-- When time reaches 0, the game stops and shows a Game Over overlay.
-- The game can be restarted.
+- Character moves in four directions using Flutter buttons.
+- Collectible item spawns randomly.
+- Collision between character and collectible increases the score.
+- Score and 30-second timer are Flutter overlays.
+- Game stops when time ends and shows Game Over.
 
 What works:
-- Flame can live inside a Flutter widget tree.
-- Flutter UI and Flame game content can coexist on the same screen.
-- Basic movement, random spawning, collision detection, score updates, and timer logic work.
+- Flame integrates well with Flutter UI.
+- Flutter overlays and Flame game can coexist.
+- Movement, collision, score, timer, and restart work.
 
-What does not work / limitations:
-- This prototype uses simple shapes instead of real sprites or animations.
-- Asset pipeline testing for sprites, audio, and tilemaps still needs a larger prototype.
-- Performance should be tested on a real mid-range Android device.
+Limitations:
+- Uses simple shapes, not real sprites or animations.
+- Sprites, audio, and tilemaps still need a larger test.
+- Performance should be tested on a mid-range Android device.
 
 Verdict:
-Use Flame as the base engine for Talento app-only mini games.
+Use Flame as the base engine for Talento games.
 
 Recommended use case:
-Maze games, collecting games, sorting games, memory games, reaction games,
-and interactive activity-kit mini games. Forge2D can be added when real physics is needed.
+Maze, collecting, sorting, memory, reaction, and interactive mini games.
+Use Forge2D with Flame only when real physics is needed.
 */
 
 class FlameTestScreen extends StatefulWidget {
@@ -129,7 +124,9 @@ class _FlameTestScreenState extends State<FlameTestScreen> {
                       child: Stack(
                         children: [
                           GameWidget(game: _game),
-                          _buildFlutterOverlay(),
+                          Positioned.fill(
+                            child: _buildFlutterOverlay(),
+                          ),
                         ],
                       ),
                     ),
@@ -167,7 +164,7 @@ class _FlameTestScreenState extends State<FlameTestScreen> {
         IconButton(
           onPressed: _restartGame,
           icon: const Icon(Icons.refresh_rounded),
-          color: Color(0xFF123835),
+          color: const Color(0xFF123835),
         ),
       ],
     );
@@ -189,7 +186,7 @@ class _FlameTestScreenState extends State<FlameTestScreen> {
         ],
       ),
       child: const Text(
-        'حرّكي الشخصية يمين وشمال واجمعي النجمة. العداد والوقت هنا Flutter UI فوق لعبة Flame.',
+        'حرّكي الشخصية بكل الاتجاهات واجمعي النجمة. العداد والوقت هنا Flutter UI فوق لعبة Flame.',
         textAlign: TextAlign.right,
         style: TextStyle(
           color: Color(0xFF123835),
@@ -304,24 +301,50 @@ class _FlameTestScreenState extends State<FlameTestScreen> {
   }
 
   Widget _buildControlButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _GameControlButton(
-            icon: Icons.keyboard_arrow_right_rounded,
-            label: 'يمين',
-            onTapDown: () => _game.moveRight(),
-            onTapUp: () => _game.stopMoving(),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _GameControlButton(
+                icon: Icons.keyboard_arrow_up_rounded,
+                label: 'فوق',
+                onTapDown: () => _game.moveUp(),
+                onTapUp: () => _game.stopMoving(),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: _GameControlButton(
+                icon: Icons.keyboard_arrow_down_rounded,
+                label: 'تحت',
+                onTapDown: () => _game.moveDown(),
+                onTapUp: () => _game.stopMoving(),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: _GameControlButton(
-            icon: Icons.keyboard_arrow_left_rounded,
-            label: 'شمال',
-            onTapDown: () => _game.moveLeft(),
-            onTapUp: () => _game.stopMoving(),
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _GameControlButton(
+                icon: Icons.keyboard_arrow_right_rounded,
+                label: 'يمين',
+                onTapDown: () => _game.moveRight(),
+                onTapUp: () => _game.stopMoving(),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: _GameControlButton(
+                icon: Icons.keyboard_arrow_left_rounded,
+                label: 'شمال',
+                onTapDown: () => _game.moveLeft(),
+                onTapUp: () => _game.stopMoving(),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -345,6 +368,7 @@ class TalentoFlameGame extends FlameGame with HasCollisionDetection {
   late _CollectibleComponent _collectible;
 
   double _horizontalDirection = 0;
+  double _verticalDirection = 0;
   double _timeLeft = 30;
 
   @override
@@ -360,8 +384,7 @@ class TalentoFlameGame extends FlameGame with HasCollisionDetection {
       ..position = Vector2(size.x / 2, size.y - 70)
       ..anchor = Anchor.center;
 
-    _collectible = _CollectibleComponent()
-      ..anchor = Anchor.center;
+    _collectible = _CollectibleComponent()..anchor = Anchor.center;
 
     add(_player);
     add(_collectible);
@@ -385,28 +408,49 @@ class TalentoFlameGame extends FlameGame with HasCollisionDetection {
     if (_timeLeft <= 0) {
       gameOverNotifier.value = true;
       _horizontalDirection = 0;
+      _verticalDirection = 0;
       return;
     }
 
     _player.position.x += _horizontalDirection * _player.speed * dt;
+    _player.position.y += _verticalDirection * _player.speed * dt;
 
     final minX = _player.size.x / 2;
     final maxX = size.x - (_player.size.x / 2);
+    final minY = 90 + (_player.size.y / 2);
+    final maxY = size.y - (_player.size.y / 2);
+
     _player.position.x = _player.position.x.clamp(minX, maxX).toDouble();
+    _player.position.y = _player.position.y.clamp(minY, maxY).toDouble();
   }
 
   void moveLeft() {
     if (gameOverNotifier.value) return;
     _horizontalDirection = -1;
+    _verticalDirection = 0;
   }
 
   void moveRight() {
     if (gameOverNotifier.value) return;
     _horizontalDirection = 1;
+    _verticalDirection = 0;
+  }
+
+  void moveUp() {
+    if (gameOverNotifier.value) return;
+    _horizontalDirection = 0;
+    _verticalDirection = -1;
+  }
+
+  void moveDown() {
+    if (gameOverNotifier.value) return;
+    _horizontalDirection = 0;
+    _verticalDirection = 1;
   }
 
   void stopMoving() {
     _horizontalDirection = 0;
+    _verticalDirection = 0;
   }
 
   void _handleCollectibleHit() {
@@ -417,8 +461,8 @@ class TalentoFlameGame extends FlameGame with HasCollisionDetection {
   }
 
   void _spawnCollectible() {
-    final safeTop = 90.0;
-    final safeBottom = max(safeTop + 20, size.y - 130);
+    final safeTop = 110.0;
+    final safeBottom = max(safeTop + 20, size.y - 70);
     final safeLeft = 40.0;
     final safeRight = max(safeLeft + 20, size.x - 40);
 
@@ -606,10 +650,10 @@ class _GameControlButton extends StatelessWidget {
       onTapUp: (_) => onTapUp(),
       onTapCancel: onTapUp,
       child: Container(
-        height: 72,
+        height: 62,
         decoration: BoxDecoration(
           color: const Color(0xFFFFE7A8),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
@@ -624,13 +668,13 @@ class _GameControlButton extends StatelessWidget {
             Icon(
               icon,
               color: const Color(0xFF123835),
-              size: 32,
+              size: 28,
             ),
             Text(
               label,
               style: const TextStyle(
                 color: Color(0xFF123835),
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w900,
               ),
             ),

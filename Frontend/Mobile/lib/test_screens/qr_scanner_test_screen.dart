@@ -9,8 +9,6 @@ Talento QR Scanner Prototype
 Package chosen: mobile_scanner
 Version used: 7.2.0
 
-Purpose:
-Test QR scanning for Talento physical kit cards.
 
 Why mobile_scanner:
 - Supports Android and iOS.
@@ -33,10 +31,6 @@ Haptic feedback:
 - Uses HapticFeedback.heavyImpact() because mediumImpact felt too light during testing.
 - If longer/custom vibration patterns are needed later, the vibration package should be tested.
 
-QR size notes:
-- Recommended printed QR size for Talento cards: 3 cm to 3.5 cm.
-- Minimum suggested size: around 2.5 cm.
-- Real printed cards should be tested in different lighting, distances, and angles.
 */
 
 class QrScannerTestScreen extends StatefulWidget {

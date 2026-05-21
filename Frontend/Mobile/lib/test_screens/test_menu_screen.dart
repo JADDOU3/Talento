@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'qr_scanner_test_screen.dart';
 import 'sensors_test_screen.dart';
 import 'flame_test_screen.dart';
+import 'forge2d_test_screen.dart';
 
 class TestMenuScreen extends StatelessWidget {
   const TestMenuScreen({super.key});
@@ -82,8 +83,11 @@ class TestMenuScreen extends StatelessWidget {
             subtitle: 'Test physics for ball maze and collisions',
             icon: Icons.bubble_chart,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Forge2D screen coming next')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const Forge2DTestScreen(),
+                ),
               );
             },
           ),
