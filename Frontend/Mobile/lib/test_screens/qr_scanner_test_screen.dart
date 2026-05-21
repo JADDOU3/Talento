@@ -95,7 +95,10 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
     if (!mounted) return;
 
     setState(() {
+
+      _scannedValues.remove(value);
       _scannedValues.add(value);
+
     });
 
     _showScanMessage(value);
