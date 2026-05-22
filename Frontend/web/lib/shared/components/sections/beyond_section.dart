@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/i18n/app_localizations.dart';
 import '../../../util/theme/app_colors.dart';
 
 class BeyondSection extends StatelessWidget {
@@ -19,105 +20,91 @@ class BeyondSection extends StatelessWidget {
               horizontal: width >= 768 ? 40 : 20,
               vertical: 60,
             ),
-            child: width >= 768 ? _buildDesktop() : _buildMobile(),
+            child: width >= 768 ? _buildDesktop(context) : _buildMobile(context),
           ),
         ),
       ),
     );
   }
 
-  // ================= DESKTOP =================
-  Widget _buildDesktop() {
+  Widget _buildDesktop(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: _ImageGrid(mobile: false)),
         const SizedBox(width: 60),
-        Expanded(child: _content()),
+        Expanded(child: _content(context)),
       ],
     );
   }
 
-  // ================= MOBILE =================
-  Widget _buildMobile() {
+  Widget _buildMobile(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _content(),
+        _content(context),
         const SizedBox(height: 40),
         const _ImageGrid(mobile: true),
       ],
     );
   }
 
-  // ================= CONTENT =================
-  Widget _content() {
+  Widget _content(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: AppColors.pink.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            "MINDSET DISCOVERY",
-            style: TextStyle(
+          child: Text(
+            l10n.beyondBadge,
+            style: const TextStyle(
               color: AppColors.pink,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
-
         const SizedBox(height: 20),
-
-        const Text(
-          "Beyond Knowledge.\nBuilding Character.",
-          style: TextStyle(
+        Text(
+          l10n.beyondTitle,
+          style: const TextStyle(
             fontSize: 36,
             fontWeight: FontWeight.bold,
             height: 1.2,
           ),
         ),
-
         const SizedBox(height: 30),
-
         _FeatureItem(
           icon: Icons.psychology_outlined,
           color: AppColors.teal,
-          title: "Growth Mindset",
-          description:
-              "We teach children that mistakes are just another step in the grand experiment of learning.",
+          title: l10n.beyondFeature1Title,
+          description: l10n.beyondFeature1Desc,
         ),
-
         const SizedBox(height: 20),
-
         _FeatureItem(
           icon: Icons.eco_outlined,
           color: Colors.blue,
-          title: "Nature Connection",
-          description:
-              "Materials are sourced ethically, teaching kids to respect the forest as much as they learn from it.",
+          title: l10n.beyondFeature2Title,
+          description: l10n.beyondFeature2Desc,
         ),
-
         const SizedBox(height: 20),
-
         _FeatureItem(
           icon: Icons.lightbulb_outline,
           color: AppColors.yellow,
-          title: "Critical Reasoning",
-          description:
-              "Our kits don't give answers; they provide the tools for children to ask the right questions.",
+          title: l10n.beyondFeature3Title,
+          description: l10n.beyondFeature3Desc,
         ),
       ],
     );
   }
 }
 
-// ================= IMAGE GRID =================
 class _ImageGrid extends StatelessWidget {
   final bool mobile;
   const _ImageGrid({required this.mobile});
@@ -125,7 +112,6 @@ class _ImageGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (mobile) {
-      // على الموبايل: صفين كل صف فيه صورتين بنفس الحجم
       return Column(
         children: [
           Row(
@@ -147,7 +133,6 @@ class _ImageGrid extends StatelessWidget {
       );
     }
 
-    // Desktop: العمودين الأصليين
     return Row(
       children: [
         Expanded(
@@ -185,7 +170,6 @@ class _ImageGrid extends StatelessWidget {
   }
 }
 
-// ================= FEATURE ITEM =================
 class _FeatureItem extends StatelessWidget {
   final IconData icon;
   final Color color;

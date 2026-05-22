@@ -1,0 +1,21 @@
+[
+  {
+    "id": "pattern_repeated_failure_same_strategy",
+    "title": "Repeated failure with same strategy",
+    "content": "Repeatedly using the same strategy after failures can indicate low adaptability or rigid thinking.",
+    "tags": ["adaptability", "problem_solving"]
+  },
+  {
+    "id": "pattern_hints_after_failures",
+    "title": "Hints requested after failures",
+    "content": "Requesting hints after multiple failures can indicate healthy persistence but rising frustration.",
+    "tags": ["persistence", "frustration"]
+  },
+  {
+    "id": "pattern_slowdown_after_mistakes",
+    "title": "Response speed slows after mistakes",
+    "content": "Slower responses after mistakes can indicate reduced confidence or increased caution.",
+    "tags": ["confidence", "decision_making"]
+  }
+]
+

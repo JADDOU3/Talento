@@ -51,9 +51,16 @@ public class Parent {
     @JsonIgnore
     @OneToMany(mappedBy = "parent")
     private List<PostLike> likes;
+    @OneToOne(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Cart cart;
 
     @JsonIgnore
     @OneToMany(mappedBy="parent")
     private List<Review> reviews;
-   //todo implement Web Relations
+
+
+    private boolean childModeEnabled;
+    private String childModePin;
+
+
 }

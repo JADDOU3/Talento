@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface AIReportRepo extends JpaRepository<AIReport, Integer> {
     List<AIReport> findByChildId(int childId);
+    AIReport findTopByChildIdOrderByGeneratedAtDesc(int childId);
 }

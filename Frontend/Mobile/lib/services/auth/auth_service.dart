@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../core/config/api_constants.dart';
+import '../../core/config/api_constants.dart';
 import 'token_storage_service.dart';
 
 class AuthService {

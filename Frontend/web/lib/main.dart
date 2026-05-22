@@ -1,28 +1,76 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
-import 'util/theme/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'shared/providers/language_provider.dart';
+import 'shared/i18n/app_localizations.dart';
 import 'features/home/pages/home_page.dart';
 import 'features/catalog/pages/catalog_page.dart';
+import 'features/catalog/pages/kit_details_page.dart';
+import 'features/catalog/cubits/kit/kit_cubit.dart';
+import 'cubits/cart/cart_cubit.dart';
+import 'features/cart/pages/cart_page.dart';
+import 'util/theme/app_colors.dart';
+import 'features/auth/pages/login_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LanguageProvider(),
+      child: const TalentoApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TalentoApp extends StatelessWidget {
+  const TalentoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Talento',
-      theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.background,
+    final languageProvider = Provider.of<LanguageProvider>(context);
+    final isArabic = languageProvider.locale.languageCode == 'ar';
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => KitCubit()),
+        BlocProvider(create: (_) => CartCubit()),
+      ],
+      child: MaterialApp(
+        title: 'Talento',
+        debugShowCheckedModeBanner: false,
+        locale: languageProvider.locale,
+        supportedLocales: const [
+          Locale('en'),
+          Locale('ar'),
+        ],
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        theme: ThemeData(
+          scaffoldBackgroundColor: AppColors.background,
+          textTheme: isArabic
+              ? GoogleFonts.cairoTextTheme()
+              : GoogleFonts.nunitoTextTheme(),
+          fontFamily: isArabic
+              ? GoogleFonts.cairo().fontFamily
+              : GoogleFonts.nunito().fontFamily,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => LoginScreen(),
+          //'/': (context) => const CartPage(),
+          '/home': (context) => const HomePage(),
+          '/catalog': (context) => const CatalogPage(),
+          '/kit-details': (context) => const KitDetailsPage(),
+          '/cart': (context) => const CartPage(),
+        },
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomePage(),
-        '/catalog': (context) => const CatalogPage(),
-      },
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../screens/home/new_user.dart';
+import '../../screens/home/home_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../../screens/kit_library/kit_library_screen.dart';
 import '../../screens/journal/journal_screen.dart';
@@ -122,7 +122,7 @@ class BottomNavBar extends StatelessWidget {
     if (index == selectedIndex) return;
 
     final screens = [
-      const NewUser(),
+      const HomeScreen(),
       const KitLibraryScreen(),
       const CommunityScreen(),
       const JournalScreen(),

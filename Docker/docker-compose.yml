@@ -36,6 +36,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/talento
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
     depends_on:
       mysql:
         condition: service_healthy
@@ -53,16 +55,33 @@ services:
         - app-network
 
 
-  ai:
-    build:
-      context: ..
-      dockerfile: Docker/ai/Dockerfile
-    container_name: ai
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
     restart: always
     expose:
-      - "8000"
+      - "8001"
+    volumes:
+      - chroma_data:/chroma/chroma
     networks:
       - app-network
+
+    ai:
+      build:
+        context: ..
+        dockerfile: Docker/ai/Dockerfile
+      container_name: ai
+      restart: always
+      expose:
+        - "8000"
+      environment:
+        OPENAI_API_KEY: ${OPENAI_API_KEY}
+        CHROMA_HOST: chromadb
+        CHROMA_PORT: 8001
+      depends_on:
+        - chromadb
+      networks:
+        - app-network
 
 
 
@@ -83,6 +102,7 @@ services:
 
 volumes:
   mysql_data:
+  chroma_data:
 
 networks:
   app-network:

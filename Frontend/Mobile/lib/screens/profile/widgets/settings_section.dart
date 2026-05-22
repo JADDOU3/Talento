@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../services/auth_service.dart';
+import '../../../services/auth/auth_service.dart';
 import '../../auth/login_screen.dart';
+
+
 
 class SettingsSection extends StatelessWidget {
   const SettingsSection({super.key});

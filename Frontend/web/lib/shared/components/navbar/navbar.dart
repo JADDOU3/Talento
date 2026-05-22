@@ -1,5 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../buttons/primary_button.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/i18n/app_localizations.dart';
+import '../../../shared/providers/language_provider.dart';
+import '../../../features/auth/pages/login_screen.dart';
+import '../../../features/auth/pages/signup_screen.dart';
+import '../../../cubits/cart/cart_cubit.dart';
+import '../../../cubits/cart/cart_state.dart';
+
+int _cartBadgeCount(CartState state) {
+  if (state is CartLoaded) return state.cart.lineItemCount;
+  return 0;
+}
+
+String _cartBadgeLabel(int count) {
+  if (count > 99) return '99+';
+  return '$count';
+}
 
 class Navbar extends StatelessWidget {
   final bool isLoggedIn;
@@ -19,7 +37,6 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  // ================= LOGO =================
   Widget _logo({double height = 44}) {
     return Image.asset(
       "assets/images/logo.png",
@@ -30,47 +47,87 @@ class Navbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final width = MediaQuery.of(context).size.width;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       color: Colors.white,
       child: width >= 1024
-          ? _buildDesktop()
+          ? _buildDesktop(context, l10n)
           : width >= 768
-              ? _buildTablet()
-              : _buildMobile(context),
+              ? _buildTablet(context, l10n)
+              : _buildMobile(context, l10n),
     );
   }
 
-  // ================= DESKTOP =================
-  Widget _buildDesktop() {
+  Widget _buildDesktop(BuildContext context, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _logo(height: 48),
-
         Row(
           children: [
-            _NavItem(title: "Home", onTap: _scrollToTop),
-            _NavItem(title: "About", onTap: _scrollToTop),
-            _NavItem(title: "Pricing", onTap: _scrollToTop),
-            _NavItem(title: "Blog", onTap: _scrollToTop),
+            _NavItem(title: l10n.navHome, onTap: _scrollToTop),
+            _NavItem(title: l10n.navAbout, onTap: _scrollToTop),
+            _NavItem(title: l10n.navPricing, onTap: _scrollToTop),
+            _NavItem(title: l10n.navBlog, onTap: _scrollToTop),
           ],
         ),
-
         Row(
           children: [
+            TextButton(
+              onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+              child: Text(l10n.language),
+            ),
             if (!isLoggedIn) ...[
               TextButton(
-                onPressed: () {},
-                child: const Text("Login"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginScreen(),
+                    ),
+                  );
+                },
+                child: Text(l10n.navLogin),
               ),
               const SizedBox(width: 10),
-              const PrimaryButton(text: "Sign Up"),
+              PrimaryButton(
+                text: l10n.navSignUp,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SignupScreen(),
+                    ),
+                  );
+                },
+              ),
             ] else ...[
-              const Icon(Icons.shopping_cart_outlined),
-              const SizedBox(width: 10),
+              const SizedBox(width: 4),
+              BlocBuilder<CartCubit, CartState>(
+                builder: (context, cState) {
+                  final count = _cartBadgeCount(cState);
+                  return Badge(
+                    isLabelVisible: count > 0,
+                    label: Text(
+                      _cartBadgeLabel(count),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 40, minHeight: 40),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/cart'),
+                      icon: const Icon(Icons.shopping_cart,
+                          color: Color(0xFF1B4332)),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
             ]
           ],
@@ -79,38 +136,76 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  // ================= TABLET =================
-  Widget _buildTablet() {
+  Widget _buildTablet(BuildContext context, AppLocalizations l10n) {
     return Row(
       children: [
         _logo(height: 44),
-
         const SizedBox(width: 20),
-
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _NavItem(title: "Home", onTap: _scrollToTop),
-              _NavItem(title: "About", onTap: _scrollToTop),
-              _NavItem(title: "Pricing", onTap: _scrollToTop),
-              _NavItem(title: "Blog", onTap: _scrollToTop),
+              _NavItem(title: l10n.navHome, onTap: _scrollToTop),
+              _NavItem(title: l10n.navAbout, onTap: _scrollToTop),
+              _NavItem(title: l10n.navPricing, onTap: _scrollToTop),
+              _NavItem(title: l10n.navBlog, onTap: _scrollToTop),
             ],
           ),
         ),
-
         Row(
           children: [
+            TextButton(
+              onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+              child: Text(l10n.language),
+            ),
             if (!isLoggedIn) ...[
               TextButton(
-                onPressed: () {},
-                child: const Text("Login"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginScreen(),
+                    ),
+                  );
+                },
+                child: Text(l10n.navLogin),
               ),
               const SizedBox(width: 8),
-              const PrimaryButton(text: "Sign Up"),
+              PrimaryButton(
+                text: l10n.navSignUp,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SignupScreen(),
+                    ),
+                  );
+                },
+              ),
             ] else ...[
-              const Icon(Icons.shopping_cart_outlined),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+              BlocBuilder<CartCubit, CartState>(
+                builder: (context, cState) {
+                  final count = _cartBadgeCount(cState);
+                  return Badge(
+                    isLabelVisible: count > 0,
+                    label: Text(
+                      _cartBadgeLabel(count),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/cart'),
+                      icon: const Icon(Icons.shopping_cart,
+                          color: Color(0xFF1B4332)),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
               const CircleAvatar(radius: 14),
             ]
           ],
@@ -119,19 +214,15 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  // ================= MOBILE =================
-  Widget _buildMobile(BuildContext context) {
+  Widget _buildMobile(BuildContext context, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _logo(height: 40),
-
         Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
+            onPressed: () => Scaffold.of(context).openEndDrawer(),
           ),
         ),
       ],
@@ -139,12 +230,14 @@ class Navbar extends StatelessWidget {
   }
 }
 
-// ================= NAV ITEM مع HOVER =================
 class _NavItem extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _NavItem({required this.title, required this.onTap});
+  const _NavItem({
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   State<_NavItem> createState() => _NavItemState();
@@ -167,8 +260,12 @@ class _NavItemState extends State<_NavItem> {
             duration: const Duration(milliseconds: 180),
             style: TextStyle(
               fontSize: 16,
-              color: _hovered ? const Color(0xFF18A97A) : Colors.black87,
-              fontWeight: _hovered ? FontWeight.w600 : FontWeight.w400,
+              color: _hovered
+                  ? const Color(0xFF18A97A)
+                  : Colors.black87,
+              fontWeight: _hovered
+                  ? FontWeight.w600
+                  : FontWeight.w400,
             ),
             child: Text(widget.title),
           ),

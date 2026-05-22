@@ -2,6 +2,7 @@ package org.example.backend.util;
 
 import org.example.backend.model.Parent;
 import org.example.backend.model.ParentPrincipal;
+import org.example.backend.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -10,7 +11,7 @@ public class SecurityUtils {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Unauthenticated access");
+            throw new UnauthorizedException("Unauthenticated access");
         }
 
         Object principal = authentication.getPrincipal();
@@ -19,6 +20,6 @@ public class SecurityUtils {
             return parentPrincipal.getParent();
         }
 
-        throw new RuntimeException("Invalid user in security context");
+        throw new UnauthorizedException("Invalid user in security context");
     }
 }

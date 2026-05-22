@@ -5,7 +5,7 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/auth_switch_text.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../services/auth_service.dart';
+import '../../services/auth/auth_service.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
