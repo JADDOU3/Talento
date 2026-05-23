@@ -1,0 +1,21 @@
+[
+  {
+    "id": "rule_high_fail_low_adaptability",
+    "title": "High fail count with repeated strategy",
+    "content": "If fail_count is high and the child repeats the same strategy, interpret adaptability as low.",
+    "tags": ["adaptability", "fail_count"]
+  },
+  {
+    "id": "rule_hints_improve_performance",
+    "title": "Performance improves after hints",
+    "content": "If performance improves after hints, interpret learning pattern as hint-responsive and suggest gradual reduction of hints.",
+    "tags": ["learning_pattern", "hints"]
+  },
+  {
+    "id": "rule_rage_quit_stress",
+    "title": "Rage quit indicates high stress",
+    "content": "If rage_quit is true, interpret stress_level as high and recommend monitoring frustration tolerance.",
+    "tags": ["stress", "frustration"]
+  }
+]
+

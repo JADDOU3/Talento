@@ -25,6 +25,7 @@ public class ActivityService {
         activity.setName(createActivityDto.getName());
         activity.setDescription(createActivityDto.getDescription());
         activity.setType(createActivityDto.getType());
+        activity.setVoiceEnabled(createActivityDto.getVoiceEnabled());
         return activityRepo.save(activity);
     }
 
@@ -42,6 +43,7 @@ public class ActivityService {
         if (updateActivityDto.getName() != null) activity.setName(updateActivityDto.getName());
         if (updateActivityDto.getDescription() != null) activity.setDescription(updateActivityDto.getDescription());
         if (updateActivityDto.getType() != null) activity.setType(updateActivityDto.getType());
+        if (updateActivityDto.getVoiceEnabled() != null) activity.setVoiceEnabled(updateActivityDto.getVoiceEnabled());
         return activityRepo.save(activity);
     }
 

@@ -33,6 +33,8 @@ public class Activity {
 
     private String description;
 
+    private Boolean voiceEnabled;
+
     @ManyToOne
     @JoinColumn(name = "kit_id")
     private Kit kit;
