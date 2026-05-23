@@ -580,4 +580,132 @@ class AppLocalizationsEn extends AppLocalizations {
   String kitRatingSummary(String rating, int count) {
     return '★ $rating ($count Reviews)';
   }
+
+  @override
+  String get profileUserName => 'Sarah';
+
+  @override
+  String get profileChildName => 'Leo';
+
+  @override
+  String profileWelcomeBack(String name) {
+    return 'Welcome back, $name.';
+  }
+
+  @override
+  String profileWelcomeSubtitle(String childName) {
+    return 'Your organic laboratory is thriving. Here\'s what $childName is exploring today.';
+  }
+
+  @override
+  String get profileCuriosityProgress => 'CURIOSITY PROGRESS';
+
+  @override
+  String get profileKitTitle => 'Deep Forest Discovery Kit';
+
+  @override
+  String get profileKitDescription =>
+      'Leo has completed 4 out of 6 botanical experiments. The \'Fungal Networks\' module is waiting to be discovered.';
+
+  @override
+  String profileMasteryReached(int percent) {
+    return '$percent% Mastery Reached';
+  }
+
+  @override
+  String get profileOrderHistory => 'Order History';
+
+  @override
+  String get profileViewAllOrders => 'View All Orders';
+
+  @override
+  String get profileOrder1Number => '#TLN-49202';
+
+  @override
+  String get profileOrder1Subtitle => 'Bio-Luminary Kit • Sep 12';
+
+  @override
+  String get profileOrder2Number => '#TLN-48115';
+
+  @override
+  String get profileOrder2Subtitle => 'Botanist Pro • Aug 03';
+
+  @override
+  String get profileOrder3Number => '#TLN-47088';
+
+  @override
+  String get profileOrder3Subtitle => 'Avian Architect • Jun 21';
+
+  @override
+  String get profileDelivered => 'DELIVERED';
+
+  @override
+  String get profileManageSubscription => 'Manage Subscription';
+
+  @override
+  String get profileActive => 'ACTIVE';
+
+  @override
+  String get profilePlanName => 'The Explorer Monthly Plan';
+
+  @override
+  String get profileNextDelivery => 'Next Delivery: Oct 24, 2024';
+
+  @override
+  String get profileBillingAmount => 'Billing Amount: \$34.00/mo';
+
+  @override
+  String get profilePauseOrUpdate => 'Pause or Update Plan';
+
+  @override
+  String profileLeosBadges(String childName) {
+    return '$childName\'s Badges';
+  }
+
+  @override
+  String get profileBadgesSubtitle => 'Honors earned through discovery.';
+
+  @override
+  String get profileViewPortfolio => 'VIEW PORTFOLIO →';
+
+  @override
+  String get profileAccountSettings => 'Account Settings';
+
+  @override
+  String get profileProfileInformation => 'Profile Information';
+
+  @override
+  String get profilePaymentMethods => 'Payment Methods';
+
+  @override
+  String get profileShippingAddress => 'Shipping Address';
+
+  @override
+  String get profileSignOut => 'Sign Out';
+
+  @override
+  String profileRecommendedForLeo(String childName) {
+    return 'Recommended for $childName';
+  }
+
+  @override
+  String get profileRec1Badge => 'PHYSICS • AGES 8-12';
+
+  @override
+  String get profileRec1Title => 'The Hydraulics of Growth';
+
+  @override
+  String get profileRec2Badge => 'ENGINEERING • AGES 8-12';
+
+  @override
+  String get profileRec2Title => 'Avian Architecture';
+
+  @override
+  String get profileRec3Badge => 'NATURE • AGES 6-10';
+
+  @override
+  String get profileRec3Title => 'Tales of the Canopy';
+
+  @override
+  String get profileMyAccount => 'My Account';
 }

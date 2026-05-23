@@ -219,5 +219,79 @@
         "type": "int"
       }
     }
-  }
+  },
+  "profileUserName": "سارة",
+  "profileChildName": "ليو",
+  "profileWelcomeBack": "مرحباً بعودتك، {name}.",
+  "@profileWelcomeBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWelcomeSubtitle": "مختبرك العضوي يزدهر. إليك ما يستكشفه {childName} اليوم.",
+  "@profileWelcomeSubtitle": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCuriosityProgress": "تقدم الفضول",
+  "profileKitTitle": "مجموعة اكتشاف الغابة العميقة",
+  "profileKitDescription": "أكمل ليو 4 من 6 تجارب نباتية. وحدة «شبكات الفطر» بانتظار الاكتشاف.",
+  "profileMasteryReached": "تم الوصول إلى {percent}% إتقان",
+  "@profileMasteryReached": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileOrderHistory": "سجل الطلبات",
+  "profileViewAllOrders": "عرض كل الطلبات",
+  "profileOrder1Number": "#TLN-49202",
+  "profileOrder1Subtitle": "مجموعة التنوير الحيوي • 12 سبتمبر",
+  "profileOrder2Number": "#TLN-48115",
+  "profileOrder2Subtitle": "عالم النباتات • 3 أغسطس",
+  "profileOrder3Number": "#TLN-47088",
+  "profileOrder3Subtitle": "مهندس الطيور • 21 يونيو",
+  "profileDelivered": "تم التسليم",
+  "profileManageSubscription": "إدارة الاشتراك",
+  "profileActive": "نشط",
+  "profilePlanName": "خطة المستكشف الشهرية",
+  "profileNextDelivery": "التسليم القادم: 24 أكتوبر 2024",
+  "profileBillingAmount": "مبلغ الفاتورة: 34.00 $/شهر",
+  "profilePauseOrUpdate": "إيقاف أو تحديث الخطة",
+  "profileLeosBadges": "شارات {childName}",
+  "@profileLeosBadges": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileBadgesSubtitle": "أوسمة مكتسبة من الاكتشاف.",
+  "profileViewPortfolio": "عرض المحفظة ←",
+  "profileAccountSettings": "إعدادات الحساب",
+  "profileProfileInformation": "معلومات الملف الشخصي",
+  "profilePaymentMethods": "طرق الدفع",
+  "profileShippingAddress": "عنوان الشحن",
+  "profileSignOut": "تسجيل الخروج",
+  "profileRecommendedForLeo": "موصى به لـ {childName}",
+  "@profileRecommendedForLeo": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRec1Badge": "فيزياء • الأعمار 8-12",
+  "profileRec1Title": "هيدraulics النمو",
+  "profileRec2Badge": "هندسة • الأعمار 8-12",
+  "profileRec2Title": "هندسة الطيور",
+  "profileRec3Badge": "طبيعة • الأعمار 6-10",
+  "profileRec3Title": "حكايات المظلة",
+  "profileMyAccount": "حسابي"
 }

@@ -219,5 +219,79 @@
         "type": "int"
       }
     }
-  }
+  },
+  "profileUserName": "Sarah",
+  "profileChildName": "Leo",
+  "profileWelcomeBack": "Welcome back, {name}.",
+  "@profileWelcomeBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWelcomeSubtitle": "Your organic laboratory is thriving. Here's what {childName} is exploring today.",
+  "@profileWelcomeSubtitle": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCuriosityProgress": "CURIOSITY PROGRESS",
+  "profileKitTitle": "Deep Forest Discovery Kit",
+  "profileKitDescription": "Leo has completed 4 out of 6 botanical experiments. The 'Fungal Networks' module is waiting to be discovered.",
+  "profileMasteryReached": "{percent}% Mastery Reached",
+  "@profileMasteryReached": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileOrderHistory": "Order History",
+  "profileViewAllOrders": "View All Orders",
+  "profileOrder1Number": "#TLN-49202",
+  "profileOrder1Subtitle": "Bio-Luminary Kit • Sep 12",
+  "profileOrder2Number": "#TLN-48115",
+  "profileOrder2Subtitle": "Botanist Pro • Aug 03",
+  "profileOrder3Number": "#TLN-47088",
+  "profileOrder3Subtitle": "Avian Architect • Jun 21",
+  "profileDelivered": "DELIVERED",
+  "profileManageSubscription": "Manage Subscription",
+  "profileActive": "ACTIVE",
+  "profilePlanName": "The Explorer Monthly Plan",
+  "profileNextDelivery": "Next Delivery: Oct 24, 2024",
+  "profileBillingAmount": "Billing Amount: $34.00/mo",
+  "profilePauseOrUpdate": "Pause or Update Plan",
+  "profileLeosBadges": "{childName}'s Badges",
+  "@profileLeosBadges": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileBadgesSubtitle": "Honors earned through discovery.",
+  "profileViewPortfolio": "VIEW PORTFOLIO →",
+  "profileAccountSettings": "Account Settings",
+  "profileProfileInformation": "Profile Information",
+  "profilePaymentMethods": "Payment Methods",
+  "profileShippingAddress": "Shipping Address",
+  "profileSignOut": "Sign Out",
+  "profileRecommendedForLeo": "Recommended for {childName}",
+  "@profileRecommendedForLeo": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRec1Badge": "PHYSICS • AGES 8-12",
+  "profileRec1Title": "The Hydraulics of Growth",
+  "profileRec2Badge": "ENGINEERING • AGES 8-12",
+  "profileRec2Title": "Avian Architecture",
+  "profileRec3Badge": "NATURE • AGES 6-10",
+  "profileRec3Title": "Tales of the Canopy",
+  "profileMyAccount": "My Account"
 }

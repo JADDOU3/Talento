@@ -576,4 +576,132 @@ class AppLocalizationsAr extends AppLocalizations {
   String kitRatingSummary(String rating, int count) {
     return '★ $rating ($count مراجعة)';
   }
+
+  @override
+  String get profileUserName => 'سارة';
+
+  @override
+  String get profileChildName => 'ليو';
+
+  @override
+  String profileWelcomeBack(String name) {
+    return 'مرحباً بعودتك، $name.';
+  }
+
+  @override
+  String profileWelcomeSubtitle(String childName) {
+    return 'مختبرك العضوي يزدهر. إليك ما يستكشفه $childName اليوم.';
+  }
+
+  @override
+  String get profileCuriosityProgress => 'تقدم الفضول';
+
+  @override
+  String get profileKitTitle => 'مجموعة اكتشاف الغابة العميقة';
+
+  @override
+  String get profileKitDescription =>
+      'أكمل ليو 4 من 6 تجارب نباتية. وحدة «شبكات الفطر» بانتظار الاكتشاف.';
+
+  @override
+  String profileMasteryReached(int percent) {
+    return 'تم الوصول إلى $percent% إتقان';
+  }
+
+  @override
+  String get profileOrderHistory => 'سجل الطلبات';
+
+  @override
+  String get profileViewAllOrders => 'عرض كل الطلبات';
+
+  @override
+  String get profileOrder1Number => '#TLN-49202';
+
+  @override
+  String get profileOrder1Subtitle => 'مجموعة التنوير الحيوي • 12 سبتمبر';
+
+  @override
+  String get profileOrder2Number => '#TLN-48115';
+
+  @override
+  String get profileOrder2Subtitle => 'عالم النباتات • 3 أغسطس';
+
+  @override
+  String get profileOrder3Number => '#TLN-47088';
+
+  @override
+  String get profileOrder3Subtitle => 'مهندس الطيور • 21 يونيو';
+
+  @override
+  String get profileDelivered => 'تم التسليم';
+
+  @override
+  String get profileManageSubscription => 'إدارة الاشتراك';
+
+  @override
+  String get profileActive => 'نشط';
+
+  @override
+  String get profilePlanName => 'خطة المستكشف الشهرية';
+
+  @override
+  String get profileNextDelivery => 'التسليم القادم: 24 أكتوبر 2024';
+
+  @override
+  String get profileBillingAmount => 'مبلغ الفاتورة: 34.00 \$/شهر';
+
+  @override
+  String get profilePauseOrUpdate => 'إيقاف أو تحديث الخطة';
+
+  @override
+  String profileLeosBadges(String childName) {
+    return 'شارات $childName';
+  }
+
+  @override
+  String get profileBadgesSubtitle => 'أوسمة مكتسبة من الاكتشاف.';
+
+  @override
+  String get profileViewPortfolio => 'عرض المحفظة ←';
+
+  @override
+  String get profileAccountSettings => 'إعدادات الحساب';
+
+  @override
+  String get profileProfileInformation => 'معلومات الملف الشخصي';
+
+  @override
+  String get profilePaymentMethods => 'طرق الدفع';
+
+  @override
+  String get profileShippingAddress => 'عنوان الشحن';
+
+  @override
+  String get profileSignOut => 'تسجيل الخروج';
+
+  @override
+  String profileRecommendedForLeo(String childName) {
+    return 'موصى به لـ $childName';
+  }
+
+  @override
+  String get profileRec1Badge => 'فيزياء • الأعمار 8-12';
+
+  @override
+  String get profileRec1Title => 'هيدraulics النمو';
+
+  @override
+  String get profileRec2Badge => 'هندسة • الأعمار 8-12';
+
+  @override
+  String get profileRec2Title => 'هندسة الطيور';
+
+  @override
+  String get profileRec3Badge => 'طبيعة • الأعمار 6-10';
+
+  @override
+  String get profileRec3Title => 'حكايات المظلة';
+
+  @override
+  String get profileMyAccount => 'حسابي';
 }

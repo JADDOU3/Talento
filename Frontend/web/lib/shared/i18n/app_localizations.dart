@@ -1147,6 +1147,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'★ {rating} ({count} Reviews)'**
   String kitRatingSummary(String rating, int count);
+
+  /// No description provided for @profileUserName.
+  ///
+  /// In en, this message translates to:
+  /// **'Sarah'**
+  String get profileUserName;
+
+  /// No description provided for @profileChildName.
+  ///
+  /// In en, this message translates to:
+  /// **'Leo'**
+  String get profileChildName;
+
+  /// No description provided for @profileWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back, {name}.'**
+  String profileWelcomeBack(String name);
+
+  /// No description provided for @profileWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your organic laboratory is thriving. Here\'s what {childName} is exploring today.'**
+  String profileWelcomeSubtitle(String childName);
+
+  /// No description provided for @profileCuriosityProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'CURIOSITY PROGRESS'**
+  String get profileCuriosityProgress;
+
+  /// No description provided for @profileKitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Forest Discovery Kit'**
+  String get profileKitTitle;
+
+  /// No description provided for @profileKitDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Leo has completed 4 out of 6 botanical experiments. The \'Fungal Networks\' module is waiting to be discovered.'**
+  String get profileKitDescription;
+
+  /// No description provided for @profileMasteryReached.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% Mastery Reached'**
+  String profileMasteryReached(int percent);
+
+  /// No description provided for @profileOrderHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Order History'**
+  String get profileOrderHistory;
+
+  /// No description provided for @profileViewAllOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'View All Orders'**
+  String get profileViewAllOrders;
+
+  /// No description provided for @profileOrder1Number.
+  ///
+  /// In en, this message translates to:
+  /// **'#TLN-49202'**
+  String get profileOrder1Number;
+
+  /// No description provided for @profileOrder1Subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio-Luminary Kit • Sep 12'**
+  String get profileOrder1Subtitle;
+
+  /// No description provided for @profileOrder2Number.
+  ///
+  /// In en, this message translates to:
+  /// **'#TLN-48115'**
+  String get profileOrder2Number;
+
+  /// No description provided for @profileOrder2Subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Botanist Pro • Aug 03'**
+  String get profileOrder2Subtitle;
+
+  /// No description provided for @profileOrder3Number.
+  ///
+  /// In en, this message translates to:
+  /// **'#TLN-47088'**
+  String get profileOrder3Number;
+
+  /// No description provided for @profileOrder3Subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Avian Architect • Jun 21'**
+  String get profileOrder3Subtitle;
+
+  /// No description provided for @profileDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'DELIVERED'**
+  String get profileDelivered;
+
+  /// No description provided for @profileManageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get profileManageSubscription;
+
+  /// No description provided for @profileActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get profileActive;
+
+  /// No description provided for @profilePlanName.
+  ///
+  /// In en, this message translates to:
+  /// **'The Explorer Monthly Plan'**
+  String get profilePlanName;
+
+  /// No description provided for @profileNextDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Delivery: Oct 24, 2024'**
+  String get profileNextDelivery;
+
+  /// No description provided for @profileBillingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing Amount: \$34.00/mo'**
+  String get profileBillingAmount;
+
+  /// No description provided for @profilePauseOrUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause or Update Plan'**
+  String get profilePauseOrUpdate;
+
+  /// No description provided for @profileLeosBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'{childName}\'s Badges'**
+  String profileLeosBadges(String childName);
+
+  /// No description provided for @profileBadgesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Honors earned through discovery.'**
+  String get profileBadgesSubtitle;
+
+  /// No description provided for @profileViewPortfolio.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW PORTFOLIO →'**
+  String get profileViewPortfolio;
+
+  /// No description provided for @profileAccountSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Settings'**
+  String get profileAccountSettings;
+
+  /// No description provided for @profileProfileInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Information'**
+  String get profileProfileInformation;
+
+  /// No description provided for @profilePaymentMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get profilePaymentMethods;
+
+  /// No description provided for @profileShippingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping Address'**
+  String get profileShippingAddress;
+
+  /// No description provided for @profileSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get profileSignOut;
+
+  /// No description provided for @profileRecommendedForLeo.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for {childName}'**
+  String profileRecommendedForLeo(String childName);
+
+  /// No description provided for @profileRec1Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'PHYSICS • AGES 8-12'**
+  String get profileRec1Badge;
+
+  /// No description provided for @profileRec1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'The Hydraulics of Growth'**
+  String get profileRec1Title;
+
+  /// No description provided for @profileRec2Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'ENGINEERING • AGES 8-12'**
+  String get profileRec2Badge;
+
+  /// No description provided for @profileRec2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Avian Architecture'**
+  String get profileRec2Title;
+
+  /// No description provided for @profileRec3Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'NATURE • AGES 6-10'**
+  String get profileRec3Badge;
+
+  /// No description provided for @profileRec3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tales of the Canopy'**
+  String get profileRec3Title;
+
+  /// No description provided for @profileMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'My Account'**
+  String get profileMyAccount;
 }
 
 class _AppLocalizationsDelegate

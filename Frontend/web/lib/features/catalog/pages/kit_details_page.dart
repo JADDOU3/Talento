@@ -94,7 +94,7 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed('/home');
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                   },
                   child: Text(l10n.navHome),
                 ),
