@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/child_mode/child_mode_state.dart';
 import '../../screens/home/new_user.dart';
-import '../../screens/profile/profile_screen.dart';
 import '../../screens/kit_library/kit_library_screen.dart';
 import '../../screens/journal/journal_screen.dart';
 import '../../screens/community/community_screen.dart';
@@ -23,7 +25,6 @@ class BottomNavBar extends StatelessWidget {
       _NavItem(Icons.widgets_outlined, Icons.widgets_rounded, 'الحزم'),
       _NavItem(Icons.groups_outlined, Icons.groups_rounded, 'المجتمع'),
       _NavItem(Icons.auto_stories_outlined, Icons.auto_stories_rounded, 'اليوميات'),
-      _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'حسابي'),
     ];
 
     return Directionality(
@@ -53,6 +54,7 @@ class BottomNavBar extends StatelessWidget {
             child: Row(
               children: List.generate(tabs.length, (index) {
                 final item = tabs[index];
+                // selectedIndex: -1 means no item is selected (e.g. child profile)
                 final isSelected = index == selectedIndex;
 
                 return Expanded(
@@ -121,12 +123,24 @@ class BottomNavBar extends StatelessWidget {
   void _handleNavigation(BuildContext context, int index) {
     if (index == selectedIndex) return;
 
+    final childModeState = context.read<ChildModeCubit>().state;
+    final isChildMode =
+        childModeState is ChildModeStatus && childModeState.isChildMode;
+
+    // Block Journal in child mode — redirect to Home silently
+    if (isChildMode && index == 3) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const NewUser()),
+      );
+      return;
+    }
+
     final screens = [
       const NewUser(),
       const KitLibraryScreen(),
       const CommunityScreen(),
       const JournalScreen(),
-      const ProfileScreen(),
     ];
 
     Navigator.pushReplacement(
@@ -134,9 +148,8 @@ class BottomNavBar extends StatelessWidget {
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => screens[index],
         transitionDuration: const Duration(milliseconds: 160),
-        transitionsBuilder: (_, animation, __, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }

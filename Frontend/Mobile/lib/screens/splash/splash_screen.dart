@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../services/auth/token_storage_service.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../auth/login_screen.dart';
 import '../home/new_user.dart';
 
@@ -25,8 +27,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final accessToken = await TokenStorageService.getAccessToken();
-    final refreshToken = await TokenStorageService.getRefreshToken();
+    String? accessToken;
+    String? refreshToken;
+
+    try {
+      accessToken = await TokenStorageService.getAccessToken()
+          .timeout(const Duration(seconds: 5));
+      refreshToken = await TokenStorageService.getRefreshToken()
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      accessToken = null;
+      refreshToken = null;
+    }
 
     if (!mounted) return;
 
@@ -34,18 +46,19 @@ class _SplashScreenState extends State<SplashScreen> {
         accessToken.isNotEmpty &&
         refreshToken != null &&
         refreshToken.isNotEmpty) {
+      // ✅ نادي checkChildMode بعد ما نتأكد إنه logged in
+      if (mounted) {
+        context.read<ChildModeCubit>().checkChildMode();
+      }
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const NewUser(),
-        ),
+        MaterialPageRoute(builder: (_) => const NewUser()),
       );
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
   }

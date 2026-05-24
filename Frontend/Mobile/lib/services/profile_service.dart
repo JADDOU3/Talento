@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/config/api_constants.dart';
-import '../../models/user_model.dart';
-import '../../models/child_model.dart';
+import '../models/childmode/user_model.dart';
+import '../models/childmode/child_model.dart';
 import '../models/kit/kit_model.dart';
 import 'auth/auth_service.dart';
 import 'auth/token_storage_service.dart';
@@ -109,6 +109,14 @@ class ProfileService {
     }
 
     return null;
+  }
+
+  Future<void> selectChild(int childId) async {
+    final headers = await _getHeaders();
+    await http.put(
+      Uri.parse(ApiConstants.setSelectedChild(childId)),
+      headers: headers,
+    );
   }
 
   Future<List<KitModel>> getKitsByChild(int childId) async {

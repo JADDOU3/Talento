@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../models/child_model.dart';
+import '../../models/childmode/child_model.dart';
 import '../../models/kit/kit_model.dart';
 
 import '../../services/auth/token_storage_service.dart';
@@ -60,7 +60,8 @@ class ProfileCubit extends Cubit<ProfileState> {
     ));
 
     try {
-
+      // ✅ أخبر الـ backend
+      await _service.selectChild(child.id);
       final kits = await _service.getKitsByChild(child.id);
       emit(ProfileLoaded(
         user: current.user,

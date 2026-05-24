@@ -5,6 +5,7 @@ import 'package:mobile/screens/home/widgets/progression_card.dart';
 import 'package:mobile/screens/home/widgets/quick_actions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../shared/layout/app_drawer.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
@@ -17,6 +18,8 @@ class OldUserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
+
       body: AppBackground(
         child: Column(
           children: [
