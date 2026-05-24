@@ -65,31 +65,13 @@ class CartModel {
     );
   }
 
-  /// Distinct line items (for badge / "N items" label).
   int get lineItemCount => items.length;
 
-  /// Total units across all lines.
   int get unitCount => items.fold(0, (s, e) => s + e.quantity);
 
   double get subtotal =>
       items.fold(0.0, (s, e) => s + e.kitPrice * e.quantity);
 
-  double get tax => double.parse((subtotal * 0.08).toStringAsFixed(2));
-
-  double get total => subtotal + tax;
-
   CartModel deepCopy() =>
       CartModel(id: id, items: items.map((e) => e.copy()).toList());
-
-  /// Returns a new cart with one line's quantity updated, or `null` if invalid.
-  CartModel? withItemQuantity(int itemId, int quantity) {
-    if (quantity < 1) return null;
-    final idx = items.indexWhere((i) => i.id == itemId);
-    if (idx == -1) return null;
-    final next = List<CartItemModel>.generate(items.length, (i) {
-      if (i != idx) return items[i].copy();
-      return items[i].copyWith(quantity: quantity);
-    });
-    return CartModel(id: id, items: next);
-  }
 }

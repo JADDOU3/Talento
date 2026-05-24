@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../util/theme/app_colors.dart';
 import 'star_rating.dart';
 
@@ -7,24 +8,27 @@ class TestimonialCard extends StatelessWidget {
     super.key,
     required this.rating,
     required this.reviewText,
-    required this.avatarAsset,
     required this.name,
     required this.role,
+    this.createdAt,
   });
 
   final double rating;
   final String reviewText;
-  final String avatarAsset;
   final String name;
   final String role;
+  final DateTime? createdAt;
 
   @override
   Widget build(BuildContext context) {
+    final dateLabel = createdAt != null
+        ? DateFormat.yMMMd().format(createdAt!.toLocal())
+        : null;
+
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -32,6 +36,7 @@ class TestimonialCard extends StatelessWidget {
             offset: const Offset(0, 10),
           ),
         ],
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -56,20 +61,10 @@ class TestimonialCard extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              ClipOval(
-                child: Image.asset(
-                  avatarAsset,
-                  width: 44,
-                  height: 44,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 44,
-                    height: 44,
-                    color: AppColors.cartTeal.withValues(alpha: 0.15),
-                    child: const Icon(Icons.person_rounded,
-                        color: AppColors.cartTeal),
-                  ),
-                ),
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: AppColors.cartTeal.withValues(alpha: 0.15),
+                child: const Icon(Icons.person_rounded, color: AppColors.cartTeal),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -94,6 +89,16 @@ class TestimonialCard extends StatelessWidget {
                         color: AppColors.cartMutedGrey,
                       ),
                     ),
+                    if (dateLabel != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        dateLabel,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.cartMutedGrey.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

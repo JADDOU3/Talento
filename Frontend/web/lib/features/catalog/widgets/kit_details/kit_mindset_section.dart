@@ -1,36 +1,48 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/i18n/app_localizations.dart';
+import '../../../../shared/models/kit_model.dart';
 import '../../../../util/theme/app_colors.dart';
 import 'mindset_card.dart';
 
 class KitMindsetSection extends StatelessWidget {
-  const KitMindsetSection({super.key, required this.l10n});
+  const KitMindsetSection({
+    super.key,
+    required this.l10n,
+    required this.criteria,
+    this.placeholderBody,
+  });
 
   final AppLocalizations l10n;
+  final List<CriteriaModel> criteria;
+  final String? placeholderBody;
+
+  static const _icons = [
+    Icons.lightbulb_outline_rounded,
+    Icons.eco_rounded,
+    Icons.biotech_rounded,
+    Icons.psychology_outlined,
+    Icons.school_outlined,
+  ];
 
   @override
   Widget build(BuildContext context) {
+    if (criteria.isEmpty) return const SizedBox.shrink();
+
     final w = MediaQuery.sizeOf(context).width;
     final threeCol = w >= 1000;
+    final body = placeholderBody ?? l10n.mindsetCriteriaPlaceholder;
 
-    final cards = [
-      MindsetCard(
-        icon: Icons.lightbulb_outline_rounded,
-        title: l10n.mindsetCard1Title,
-        body: l10n.mindsetCard1Body,
-      ),
-      MindsetCard(
-        icon: Icons.eco_rounded,
-        title: l10n.mindsetCard2Title,
-        body: l10n.mindsetCard2Body,
-        highlighted: true,
-      ),
-      MindsetCard(
-        icon: Icons.biotech_rounded,
-        title: l10n.mindsetCard3Title,
-        body: l10n.mindsetCard3Body,
-      ),
-    ];
+    final cards = List.generate(criteria.length, (i) {
+      final highlight = criteria.length >= 3
+          ? i == 1
+          : i == criteria.length ~/ 2;
+      return MindsetCard(
+        icon: _icons[i % _icons.length],
+        title: criteria[i].name,
+        body: body,
+        highlighted: highlight,
+      );
+    });
 
     return Column(
       children: [
@@ -45,23 +57,21 @@ class KitMindsetSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 32),
-        if (threeCol)
+        if (threeCol && cards.length >= 3)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: cards[0]),
-              const SizedBox(width: 18),
-              Expanded(child: cards[1]),
-              const SizedBox(width: 18),
-              Expanded(child: cards[2]),
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(width: 18),
+                Expanded(child: cards[i]),
+              ],
             ],
           )
         else ...[
-          cards[0],
-          const SizedBox(height: 16),
-          cards[1],
-          const SizedBox(height: 16),
-          cards[2],
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(height: 16),
+            cards[i],
+          ],
         ],
       ],
     );

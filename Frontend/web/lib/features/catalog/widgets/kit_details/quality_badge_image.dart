@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../../util/theme/app_colors.dart';
+import 'kit_network_image.dart';
 
 /// Large product image with a corner quality badge; badge aligns to
 /// [AlignmentDirectional.bottomEnd] so it mirrors correctly in RTL.
 class QualityBadgeImage extends StatelessWidget {
   const QualityBadgeImage({
     super.key,
-    required this.imageAsset,
+    this.imageAsset,
+    this.imageUrl,
     required this.badgeTitle,
     required this.badgeSubtitle,
     this.borderRadius = 22,
   });
 
-  final String imageAsset;
+  final String? imageAsset;
+  final String? imageUrl;
   final String badgeTitle;
   final String badgeSubtitle;
   final double borderRadius;
@@ -26,14 +29,10 @@ class QualityBadgeImage extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              imageAsset,
+            KitNetworkImage(
+              imageUrl: imageUrl,
+              assetPath: imageAsset,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => ColoredBox(
-                color: Colors.grey.shade300,
-                child: Icon(Icons.image_not_supported_outlined,
-                    size: 48, color: Colors.grey.shade500),
-              ),
             ),
             PositionedDirectional(
               end: 16,

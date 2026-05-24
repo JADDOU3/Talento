@@ -2,18 +2,40 @@ import 'package:flutter/material.dart';
 import '../../../../shared/i18n/app_localizations.dart';
 import '../../../../util/theme/app_colors.dart';
 import 'kit_content_item.dart';
-import 'kit_details_constants.dart';
 import 'quality_badge_image.dart';
 
 class KitWhatsInsideSection extends StatelessWidget {
-  const KitWhatsInsideSection({super.key, required this.l10n});
+  const KitWhatsInsideSection({
+    super.key,
+    required this.l10n,
+    required this.items,
+    required this.imageUrl,
+    this.fallbackImageAsset,
+    this.itemDescriptionPlaceholder,
+  });
 
   final AppLocalizations l10n;
+  final List<String> items;
+  final String imageUrl;
+  final String? fallbackImageAsset;
+  final String? itemDescriptionPlaceholder;
+
+  static const _icons = [
+    Icons.search_rounded,
+    Icons.menu_book_outlined,
+    Icons.layers_outlined,
+    Icons.science_outlined,
+    Icons.build_outlined,
+    Icons.inventory_2_outlined,
+  ];
 
   @override
   Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
     final w = MediaQuery.sizeOf(context).width;
     final twoCol = w >= 960;
+    final desc = itemDescriptionPlaceholder ?? l10n.kitContentItemPlaceholder;
 
     final list = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -28,31 +50,18 @@ class KitWhatsInsideSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
-        KitContentItem(
-          icon: Icons.search_rounded,
-          title: l10n.kitContent1Title,
-          description: l10n.kitContent1Desc,
-        ),
-        KitContentItem(
-          icon: Icons.menu_book_outlined,
-          title: l10n.kitContent2Title,
-          description: l10n.kitContent2Desc,
-        ),
-        KitContentItem(
-          icon: Icons.layers_outlined,
-          title: l10n.kitContent3Title,
-          description: l10n.kitContent3Desc,
-        ),
-        KitContentItem(
-          icon: Icons.science_outlined,
-          title: l10n.kitContent4Title,
-          description: l10n.kitContent4Desc,
-        ),
+        for (var i = 0; i < items.length; i++)
+          KitContentItem(
+            icon: _icons[i % _icons.length],
+            title: items[i],
+            description: desc,
+          ),
       ],
     );
 
     final image = QualityBadgeImage(
-      imageAsset: KitDetailsConstants.whatsInsideImage,
+      imageUrl: imageUrl,
+      imageAsset: fallbackImageAsset,
       badgeTitle: l10n.partnerQuality,
       badgeSubtitle: l10n.partnerQualitySubtitle,
     );

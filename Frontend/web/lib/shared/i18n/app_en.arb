@@ -1,5 +1,6 @@
 {
   "@@locale": "en",
+
   "welcomeBack": "Welcome back",
   "loginSubtitle": "Log in to your account to continue.",
   "emailAddress": "EMAIL ADDRESS",
@@ -20,11 +21,17 @@
   "signupButton": "Plant the Seed (Sign Up) →",
   "alreadyHaveAccount": "Already have an account? ",
   "logIn": "Log in",
+
   "emailRequired": "Email is required",
   "passwordRequired": "Password is required",
   "nameRequired": "Name is required",
   "confirmPasswordRequired": "Please confirm password",
   "passwordsNotMatch": "Passwords do not match",
+  "pleaseSelectGender": "Please select a gender",
+
+  "somethingWentWrong": "Something went wrong",
+  "loginSuccess": "Login successful!",
+  "accountCreated": "Account created successfully!",
 
   "nurturingTomorrow": "NURTURING TOMORROW",
   "trustedByEducators": "4.9/5  •  Trusted by global educators",
@@ -45,11 +52,6 @@
 
   "google": "Google",
   "apple": "Apple",
-
-  "somethingWentWrong": "Something went wrong",
-  "loginSuccess": "Login successful!",
-  "accountCreated": "Account created successfully!",
-  "pleaseSelectGender": "Please select a gender",
 
   "navHome": "Home",
   "navAbout": "About",
@@ -97,7 +99,6 @@
   "footerPrivacy": "PRIVACY POLICY",
   "footerContact": "CONTACT US",
   "footerAccessibility": "ACCESSIBILITY",
-
   "footerInstagram": "INSTAGRAM",
   "footerPinterest": "PINTEREST",
   "footerLinkedIn": "LINKEDIN",
@@ -186,6 +187,7 @@
   "cartEmpty": "Your cart is empty",
   "cartEmptyDesc": "Discover our amazing kits for your child",
   "discoverKits": "Discover Kits",
+
   "retry": "Retry",
   "addedToCart": "Added to cart",
   "addToCartFailed": "Could not add to cart. Please try again.",
@@ -251,5 +253,41 @@
   "testimonial2Name": "Mr. Alan Porter",
   "testimonial2Role": "SCIENCE TEACHER",
 
-  "kitDetailsAddToCartDemo": "Preview only — cart is not synced from this screen."
+  "kitDetailsAddToCartDemo": "Preview only — cart is not synced from this screen.",
+
+  "noReviewsYet": "No reviews yet",
+  "verifiedExplorer": "VERIFIED EXPLORER",
+
+  "mindsetCriteriaPlaceholder": "Develops curiosity, focus, and scientific thinking through guided exploration.",
+  "kitContentItemPlaceholder": "Included in this discovery kit for hands-on learning.",
+
+  "kitDetailsAgePlus": "AGES {age}+",
+  "@kitDetailsAgePlus": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+
+  "kitDetailsItemsCount": "{count} ITEMS",
+  "@kitDetailsItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "kitRatingSummary": "★ {rating} ({count} Reviews)",
+  "@kitRatingSummary": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
