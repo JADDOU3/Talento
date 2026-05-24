@@ -12,11 +12,15 @@ import '../../../util/theme/app_colors.dart';
 
 class Navbar extends StatelessWidget {
   final bool isLoggedIn;
+  final bool showLanguageToggle;
+  final bool showCartIcon;
   final ScrollController scrollController;
 
   const Navbar({
     super.key,
     this.isLoggedIn = false,
+    this.showLanguageToggle = true,
+    this.showCartIcon = true,
     required this.scrollController,
   });
 
@@ -26,6 +30,10 @@ class Navbar extends StatelessWidget {
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeInOut,
     );
+  }
+
+  void _goHome(BuildContext context) {
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
   Widget _logo({double height = 44}) {
@@ -56,10 +64,13 @@ class Navbar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _logo(height: 48),
+        GestureDetector(
+          onTap: () => _goHome(context),
+          child: _logo(height: 48),
+        ),
         Row(
           children: [
-            _NavItem(title: l10n.navHome, onTap: _scrollToTop),
+            _NavItem(title: l10n.navHome, onTap: () => _goHome(context)),
             _NavItem(title: l10n.navAbout, onTap: _scrollToTop),
             _NavItem(title: l10n.navPricing, onTap: _scrollToTop),
             _NavItem(title: l10n.navBlog, onTap: _scrollToTop),
@@ -67,10 +78,15 @@ class Navbar extends StatelessWidget {
         ),
         Row(
           children: [
-            TextButton(
-              onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
-              child: Text(l10n.language),
-            ),
+            if (showLanguageToggle)
+              TextButton(
+                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                child: Text(l10n.language),
+              ),
+            if (showCartIcon) ...[
+              const SizedBox(width: 4),
+              _CartIconButton(minSize: 40),
+            ],
             if (!isLoggedIn) ...[
               TextButton(
                 onPressed: () {
@@ -97,10 +113,8 @@ class Navbar extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 4),
-              _CartIconButton(minSize: 40),
-              const SizedBox(width: 4),
-              const CircleAvatar(radius: 14),
-            ]
+              _ProfileAvatarButton(minSize: 40),
+            ],
           ],
         ),
       ],
@@ -110,13 +124,16 @@ class Navbar extends StatelessWidget {
   Widget _buildTablet(BuildContext context, AppLocalizations l10n) {
     return Row(
       children: [
-        _logo(height: 44),
+        GestureDetector(
+          onTap: () => _goHome(context),
+          child: _logo(height: 44),
+        ),
         const SizedBox(width: 20),
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _NavItem(title: l10n.navHome, onTap: _scrollToTop),
+              _NavItem(title: l10n.navHome, onTap: () => _goHome(context)),
               _NavItem(title: l10n.navAbout, onTap: _scrollToTop),
               _NavItem(title: l10n.navPricing, onTap: _scrollToTop),
               _NavItem(title: l10n.navBlog, onTap: _scrollToTop),
@@ -125,10 +142,15 @@ class Navbar extends StatelessWidget {
         ),
         Row(
           children: [
-            TextButton(
-              onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
-              child: Text(l10n.language),
-            ),
+            if (showLanguageToggle)
+              TextButton(
+                onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
+                child: Text(l10n.language),
+              ),
+            if (showCartIcon) ...[
+              const SizedBox(width: 4),
+              _CartIconButton(minSize: 36),
+            ],
             if (!isLoggedIn) ...[
               TextButton(
                 onPressed: () {
@@ -155,10 +177,8 @@ class Navbar extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 4),
-              _CartIconButton(minSize: 36),
-              const SizedBox(width: 4),
-              const CircleAvatar(radius: 14),
-            ]
+              _ProfileAvatarButton(minSize: 36),
+            ],
           ],
         ),
       ],
@@ -169,14 +189,46 @@ class Navbar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _logo(height: 40),
-        Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openEndDrawer(),
-          ),
+        GestureDetector(
+          onTap: () => _goHome(context),
+          child: _logo(height: 40),
+        ),
+        Row(
+          children: [
+            if (showCartIcon) const _CartIconButton(minSize: 40),
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+              ),
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _ProfileAvatarButton extends StatelessWidget {
+  const _ProfileAvatarButton({required this.minSize});
+
+  final double minSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
+      onPressed: () => Navigator.of(context).pushNamed('/profile'),
+      icon: CircleAvatar(
+        radius: 14,
+        backgroundColor: AppColors.cartTeal,
+        child: Icon(
+          Icons.person,
+          size: 16,
+          color: Colors.white.withValues(alpha: 0.95),
+        ),
+      ),
     );
   }
 }

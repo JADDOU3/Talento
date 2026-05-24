@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -42,7 +43,8 @@ public class SecurityConfig {
         return  http.csrf(customizer -> customizer.disable())
                     .cors(Customizer.withDefaults())
                     .authorizeHttpRequests(request ->
-                        request.requestMatchers("/api/login" , "/api/register" , "/api/refresh").permitAll()
+                        request.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/api/login", "/api/register", "/api/refresh").permitAll()
                                 .anyRequest().authenticated())
                     .exceptionHandling(exceptions -> exceptions
                             .authenticationEntryPoint(restAuthenticationEntryPoint)

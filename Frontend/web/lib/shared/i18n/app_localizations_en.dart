@@ -408,33 +408,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get footerLinkedIn => 'لينكد إن';
 
   @override
-  String get cartCopyrightLine =>
-      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+  String get cartCopyrightLine => '© 2024 Talento Kids. Rooted in Curiosity.';
 
   @override
-  String get cartEmpty => 'سلتك فارغة';
+  String get nurturingTitle => 'Nurturing Tomorrow\'s Scientists';
 
   @override
-  String get cartEmptyDesc => 'اكتشف مجموعاتنا الرائعة لطفلك';
-
-  @override
-  String get discoverKits => 'اكتشف المجموعات';
-
-  @override
-  String get retry => 'إعادة المحاولة';
-
-  @override
-  String get addedToCart => 'تمت الإضافة إلى السلة';
-
-  @override
-  String get addToCartFailed =>
-      'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
-
-  @override
-  String get nurturingTitle => 'تنمية علماء الغد';
-
-  @override
-  String get whatsInsideTitle => 'ما الذي بداخل المختبر؟';
+  String get whatsInsideTitle => 'What\'s Inside the Laboratory?';
 
   @override
   String get explorerTestimonials => 'آراء المستكشفين';
@@ -476,10 +456,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kitDetailsExperimentsTag => '+15 تجربة';
 
   @override
-  String get kitDetailsPriceCurrent => '84.00 \$';
+  String get kitDetailsPriceCurrent => '\$84.00';
 
   @override
-  String get kitDetailsPriceOriginal => '110.00 \$';
+  String get kitDetailsPriceOriginal => '\$110.00';
 
   @override
   String get mindsetCard1Title => 'الملاحظة النقدية';
@@ -509,7 +489,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kitContent1Desc => 'تكبير 10× مع زجاج مقاوم للخدش.';
 
   @override
-  String get kitContent2Title => 'مفكرة المستكشف القماشية';
+  String get kitContent2Title => 'Canvas Explorer\'s Journal';
 
   @override
   String get kitContent2Desc =>
@@ -551,31 +531,171 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get kitDetailsAddToCartDemo =>
-      'معاينة فقط — السلة لا تتزامن من هذه الشاشة.';
-
-  // -------- Extra merged keys (from conflict resolution) --------
+      'Preview only — cart is not synced from this screen.';
 
   @override
-  String get noReviewsYet => 'لا توجد مراجعات بعد';
+  String get addedToCart => 'Added to cart';
 
   @override
-  String get verifiedExplorer => 'مستكشف موثق';
+  String get addToCartFailed => 'Could not add to cart. Please try again.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get verifiedExplorer => 'VERIFIED EXPLORER';
 
   @override
   String get mindsetCriteriaPlaceholder =>
-      'ينمّي الفضول والتركيز والتفكير العلمي من خلال استكشاف موجّه.';
+      'Develops curiosity, focus, and scientific thinking through guided exploration.';
 
   @override
   String get kitContentItemPlaceholder =>
-      'مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.';
+      'Included in this discovery kit for hands-on learning.';
 
   @override
-  String kitDetailsAgePlus(int age) => 'من عمر $age+';
+  String kitDetailsAgePlus(int age) {
+    return 'AGES $age+';
+  }
 
   @override
-  String kitDetailsItemsCount(int count) => '$count عنصر';
+  String kitDetailsItemsCount(int count) {
+    return '$count ITEMS';
+  }
 
   @override
-  String kitRatingSummary(String rating, int count) =>
-      '★ $rating ($count مراجعة)';
+  String kitRatingSummary(String rating, int count) {
+    return '★ $rating ($count Reviews)';
+  }
+
+  @override
+  String get profileUserName => 'Sarah';
+
+  @override
+  String get profileChildName => 'Leo';
+
+  @override
+  String profileWelcomeBack(String name) {
+    return 'Welcome back, $name.';
+  }
+
+  @override
+  String profileWelcomeSubtitle(String childName) {
+    return 'Your organic laboratory is thriving. Here\'s what $childName is exploring today.';
+  }
+
+  @override
+  String get profileCuriosityProgress => 'CURIOSITY PROGRESS';
+
+  @override
+  String get profileKitTitle => 'Deep Forest Discovery Kit';
+
+  @override
+  String get profileKitDescription =>
+      'Leo has completed 4 out of 6 botanical experiments. The \'Fungal Networks\' module is waiting to be discovered.';
+
+  @override
+  String profileMasteryReached(int percent) {
+    return '$percent% Mastery Reached';
+  }
+
+  @override
+  String get profileOrderHistory => 'Order History';
+
+  @override
+  String get profileViewAllOrders => 'View All Orders';
+
+  @override
+  String get profileOrder1Number => '#TLN-49202';
+
+  @override
+  String get profileOrder1Subtitle => 'Bio-Luminary Kit • Sep 12';
+
+  @override
+  String get profileOrder2Number => '#TLN-48115';
+
+  @override
+  String get profileOrder2Subtitle => 'Botanist Pro • Aug 03';
+
+  @override
+  String get profileOrder3Number => '#TLN-47088';
+
+  @override
+  String get profileOrder3Subtitle => 'Avian Architect • Jun 21';
+
+  @override
+  String get profileDelivered => 'DELIVERED';
+
+  @override
+  String get profileManageSubscription => 'Manage Subscription';
+
+  @override
+  String get profileActive => 'ACTIVE';
+
+  @override
+  String get profilePlanName => 'The Explorer Monthly Plan';
+
+  @override
+  String get profileNextDelivery => 'Next Delivery: Oct 24, 2024';
+
+  @override
+  String get profileBillingAmount => 'Billing Amount: \$34.00/mo';
+
+  @override
+  String get profilePauseOrUpdate => 'Pause or Update Plan';
+
+  @override
+  String profileLeosBadges(String childName) {
+    return '$childName\'s Badges';
+  }
+
+  @override
+  String get profileBadgesSubtitle => 'Honors earned through discovery.';
+
+  @override
+  String get profileViewPortfolio => 'VIEW PORTFOLIO →';
+
+  @override
+  String get profileAccountSettings => 'Account Settings';
+
+  @override
+  String get profileProfileInformation => 'Profile Information';
+
+  @override
+  String get profilePaymentMethods => 'Payment Methods';
+
+  @override
+  String get profileShippingAddress => 'Shipping Address';
+
+  @override
+  String get profileSignOut => 'Sign Out';
+
+  @override
+  String profileRecommendedForLeo(String childName) {
+    return 'Recommended for $childName';
+  }
+
+  @override
+  String get profileRec1Badge => 'PHYSICS • AGES 8-12';
+
+  @override
+  String get profileRec1Title => 'The Hydraulics of Growth';
+
+  @override
+  String get profileRec2Badge => 'ENGINEERING • AGES 8-12';
+
+  @override
+  String get profileRec2Title => 'Avian Architecture';
+
+  @override
+  String get profileRec3Badge => 'NATURE • AGES 6-10';
+
+  @override
+  String get profileRec3Title => 'Tales of the Canopy';
+
+  @override
+  String get profileMyAccount => 'My Account';
 }

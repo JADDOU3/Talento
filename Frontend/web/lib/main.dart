@@ -14,8 +14,9 @@ import 'features/home/pages/home_page.dart';
 import 'features/catalog/pages/catalog_page.dart';
 import 'features/catalog/pages/kit_details_page.dart';
 import 'features/catalog/cubits/kit/kit_cubit.dart' as catalog;
+import 'features/cart/pages/cart_page.dart';
+import 'features/profile/pages/profile_page.dart';
 import 'util/theme/app_colors.dart';
-import 'features/auth/pages/login_screen.dart';
 
 void main() {
   runApp(
@@ -64,10 +65,11 @@ class TalentoApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => LoginScreen(),
-          //'/': (context) => const CartPage(),
+          '/': (context) => const HomePage(),
           '/home': (context) => const HomePage(),
           '/catalog': (context) => const CatalogPage(),
+          '/cart': (context) => const CartPage(),
+          '/profile': (context) => const ProfilePage(),
           '/kit-details': (context) {
             final args = ModalRoute.of(context)?.settings.arguments;
             final kitId = args is int ? args : 1;

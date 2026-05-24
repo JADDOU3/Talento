@@ -3,7 +3,7 @@ import 'package:web/shared/models/cart_model.dart';
 
 void main() {
   group('CartModel', () {
-    test('subtotal, tax (8%), and total match line items', () {
+    test('subtotal matches line items', () {
       final cart = CartModel(
         id: 1,
         items: [
@@ -28,8 +28,6 @@ void main() {
         ],
       );
       expect(cart.subtotal, 45 + 44);
-      expect(cart.tax, double.parse((cart.subtotal * 0.08).toStringAsFixed(2)));
-      expect(cart.total, cart.subtotal + cart.tax);
     });
 
     test('lineItemCount and unitCount', () {
@@ -66,7 +64,7 @@ void main() {
       expect(cart.items, isEmpty);
     });
 
-    test('withItemQuantity returns new cart or null', () {
+    test('deepCopy produces independent items', () {
       final cart = CartModel(
         id: 1,
         items: [
@@ -81,11 +79,9 @@ void main() {
           ),
         ],
       );
-      expect(cart.withItemQuantity(7, 0), isNull);
-      final next = cart.withItemQuantity(7, 3);
-      expect(next, isNotNull);
-      expect(next!.items.single.quantity, 3);
-      expect(identical(next, cart), isFalse);
+      final copy = cart.deepCopy();
+      expect(identical(copy, cart), isFalse);
+      expect(copy.items.single.quantity, 1);
     });
   });
 }

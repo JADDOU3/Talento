@@ -10,22 +10,21 @@
   "gender": "الجنس",
   "selectGender": "اختر الجنس",
   "male": "ذكر",
-  "female": "أنثى",
+  "female": "انثى",
   "forgotPassword": "نسيت؟",
   "loginButton": "ادخل (تسجيل الدخول)",
   "orContinueWith": "او تابع بواسطة",
   "dontHaveAccount": "ليس لديك حساب؟ ",
-  "signUp": "إنشاء حساب",
-  "createAccount": "إنشاء حساب جديد",
-  "signupSubtitle": "ابدأ رحلة تعلم طفلك اليوم.",
-  "signupButton": "إنشاء حساب",
+  "signUp": "انشاء حساب",
+  "createAccount": "انشاء حساب جديد",
+  "signupSubtitle": "ابدا رحلة تعلم طفلك اليوم.",
+  "signupButton": "انشاء حساب",
   "alreadyHaveAccount": "لديك حساب بالفعل؟ ",
   "logIn": "تسجيل الدخول",
-
-  "emailRequired": "البريد الإلكتروني مطلوب",
+  "emailRequired": "البريد الالكتروني مطلوب",
   "passwordRequired": "كلمة المرور مطلوبة",
   "nameRequired": "الاسم مطلوب",
-  "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
+  "confirmPasswordRequired": "يرجى تاكيد كلمة المرور",
   "passwordsNotMatch": "كلمتا المرور غير متطابقتين",
   "pleaseSelectGender": "يرجى اختيار الجنس",
 
@@ -39,91 +38,71 @@
   "aesEncrypted": "تشفير AES-256",
   "coppaCompliant": "متوافق مع COPPA",
   "gdprSecured": "محمي بـ GDPR",
-
-  "welcomeBackTitle": "مرحباً بعودتك إلى",
+  "welcomeBackTitle": "مرحبا بعودتك الى",
   "learningGarden": "حديقة التعلم.",
   "welcomeBackDesc": "واصل تنمية الفضول والمرونة من خلال نظامنا التربوي.",
 
   "everyChild": "كل طفل هو ",
   "hiddenForest": "غابة مخفية",
-  "untappedPotential": "من الإمكانات غير المستغلة.",
-
-  "signupDesc": "انضم لأكثر من 50,000 عائلة تنمي الفضول والمرونة.",
-
+  "untappedPotential": "من الامكانات غير المستغلة.",
+  "signupDesc": "انضم لاكثر من 50,000 عائلة تنمي الفضول والمرونة.",
   "google": "جوجل",
-  "apple": "أبل",
-
+  "apple": "ابل",
+  "somethingWentWrong": "حدث خطا ما",
+  "loginSuccess": "تم تسجيل الدخول بنجاح!",
+  "accountCreated": "تم انشاء الحساب بنجاح!",
+  "pleaseSelectGender": "يرجى اختيار الجنس",
   "navHome": "الرئيسية",
-  "navAbout": "من نحن",
-  "navPricing": "الأسعار",
-  "navBlog": "المدونة",
-  "navLogin": "تسجيل الدخول",
-  "navSignUp": "إنشاء حساب",
-
-  "heroBadge": "نطلق إمكانات الطفولة",
-  "heroTitle1": "ارعَ",
-  "heroTitle2": "العبقري",
-  "heroTitle3": "بداخله.",
-  "heroDesc": "مجموعات مختارة بعناية من قبل معلمين لإشعال الفضول والتفكير النقدي وحب الطبيعة.",
-  "heroExplore": "استكشف المجموعات",
-  "heroLearn": "تعرف علينا",
-
-  "journeyTitle": "كيف تبدأ رحلتك",
-  "journeySubtitle": "نبسّط علم التعلم في ثلاث خطوات طبيعية للعائلات.",
-
-  "journeyCard1Title": "اختر موضوعك",
-  "journeyCard1Desc": "اختر من علم الأحياء أو الهندسة أو الفنون الجميلة المصممة لمراحل عمرية محددة.",
-
-  "journeyCard2Title": "توصيل شهري",
-  "journeyCard2Desc": "تصل المجموعات الصديقة للبيئة إلى باب منزلك مع كل ما تحتاجه للاستكشاف.",
-
-  "journeyCard3Title": "استكشاف موجّه",
-  "journeyCard3Desc": "أدلة تفاعلية تساعد الآباء والأطفال على التواصل من خلال التجارب والقصص.",
-
-  "beyondBadge": "اكتشاف العقلية",
-  "beyondTitle": "ما وراء المعرفة.\nبناء الشخصية.",
-
-  "beyondFeature1Title": "عقلية النمو",
-  "beyondFeature1Desc": "نعلم الأطفال أن الأخطاء مجرد خطوة في تجربة التعلم الكبرى.",
-
-  "beyondFeature2Title": "الارتباط بالطبيعة",
-  "beyondFeature2Desc": "المواد مصدرها أخلاقي، تعلّم الأطفال احترام الطبيعة بقدر ما يتعلمون منها.",
-
-  "beyondFeature3Title": "التفكير النقدي",
-  "beyondFeature3Desc": "مجموعاتنا لا تعطي إجابات، بل توفر أدوات للأطفال لطرح الأسئلة الصحيحة.",
-
-  "footerCopyright": "© 2026 تالينتو كيدز. جذورنا في الفضول.",
-  "footerSustainability": "الاستدامة",
-  "footerShipping": "الشحن",
-  "footerReturns": "الإرجاع",
-  "footerPrivacy": "سياسة الخصوصية",
-  "footerContact": "اتصل بنا",
-  "footerAccessibility": "إمكانية الوصول",
-  "footerInstagram": "إنستغرام",
-  "footerPinterest": "بينتريست",
-  "footerLinkedIn": "لينكد إن",
-
-  "explorationsTitle": "استكشافات مختارة",
-  "explorationsSubtitle": "أكثر مجموعاتنا شعبية هذا الموسم.",
-  "explorationsViewAll": "عرض كل المجموعات",
-
-  "card1Title": "عالم النباتات",
-  "card1Desc": "اكتشف أسرار أرضية الغابة من خلال حفظ البذور وتحليل التربة.",
-  "card1Button": "احصل على المجموعة",
-
-  "card2Title": "مهندس الطيور",
-  "card2Desc": "ابنِ وألوِّن وراقب. نظرة أولى في الهندسة الإنشائية والحياة البرية.",
-
-  "card3Title": "إتقان المنشور",
-  "card3Desc": "اكتشف فيزياء الضوء واللون مع مجموعة البصريات التجريبية.",
-
-  "featuredBadge": "اختيار المعلمين",
-  "featuredTitle": "مكتبة المواهب\nالكاملة",
-  "featuredDesc": "احصل على منهجنا الكامل المكون من 24 مجموعة على مدى عامين من النمو.",
-  "featuredButton": "اشترك ووفّر 20%",
-
+"navAbout": "من نحن",
+"navPricing": "الأسعار",
+"navBlog": "المدونة",
+"navLogin": "تسجيل الدخول",
+"navSignUp": "إنشاء حساب",
+"heroBadge": "نطلق إمكانات الطفولة",
+"heroTitle1": "ارعَ",
+"heroTitle2": "العبقري",
+"heroTitle3": "بداخله.",
+"heroDesc": "مجموعات مختارة بعناية من قبل معلمين لإشعال الفضول والتفكير النقدي وحب الطبيعة.",
+"heroExplore": "استكشف المجموعات",
+"heroLearn": "تعرف علينا",
+"journeyTitle": "كيف تبدأ رحلتك",
+"journeySubtitle": "نبسّط علم التعلم في ثلاث خطوات طبيعية للعائلات.",
+"journeyCard1Title": "اختر موضوعك",
+"journeyCard1Desc": "اختر من علم الأحياء أو الهندسة أو الفنون الجميلة المصممة لمراحل عمرية محددة.",
+"journeyCard2Title": "توصيل شهري",
+"journeyCard2Desc": "تصل المجموعات الصديقة للبيئة إلى باب منزلك مع كل ما تحتاجه للاستكشاف.",
+"journeyCard3Title": "استكشاف موجّه",
+"journeyCard3Desc": "أدلة تفاعلية تساعد الآباء والأطفال على التواصل من خلال التجارب والقصص.",
+"beyondBadge": "اكتشاف العقلية",
+"beyondTitle": "ما وراء المعرفة.\nبناء الشخصية.",
+"beyondFeature1Title": "عقلية النمو",
+"beyondFeature1Desc": "نعلم الأطفال أن الأخطاء مجرد خطوة في تجربة التعلم الكبرى.",
+"beyondFeature2Title": "الارتباط بالطبيعة",
+"beyondFeature2Desc": "المواد مصدرها أخلاقي، تعلّم الأطفال احترام الطبيعة بقدر ما يتعلمون منها.",
+"beyondFeature3Title": "التفكير النقدي",
+"beyondFeature3Desc": "مجموعاتنا لا تعطي إجابات، بل توفر أدوات للأطفال لطرح الأسئلة الصحيحة.",
+"footerCopyright": "© 2026 تالينتو كيدز. جذورنا في الفضول.",
+"footerSustainability": "الاستدامة",
+"footerShipping": "الشحن",
+"footerReturns": "الإرجاع",
+"footerPrivacy": "سياسة الخصوصية",
+"footerContact": "اتصل بنا",
+"footerAccessibility": "إمكانية الوصول",
+"explorationsTitle": "استكشافات مختارة",
+"explorationsSubtitle": "أكثر مجموعاتنا شعبية هذا الموسم.",
+"explorationsViewAll": "عرض كل المجموعات",
+"card1Title": "عالم النباتات",
+"card1Desc": "اكتشف أسرار أرضية الغابة من خلال حفظ البذور وتحليل التربة.",
+"card1Button": "احصل على المجموعة",
+"card2Title": "مهندس الطيور",
+"card2Desc": "ابنِ وألوِّن وراقب. نظرة أولى في الهندسة الإنشائية والحياة البرية.",
+"card3Title": "إتقان المنشور",
+"card3Desc": "اكتشف فيزياء الضوء واللون مع مجموعة البصريات التجريبية.",
+"featuredBadge": "اختيار المعلمين",
+"featuredTitle": "مكتبة المواهب\nالكاملة",
+"featuredDesc": "احصل على منهجنا الكامل المكون من 24 مجموعة على مدى عامين من النمو.",
+"featuredButton": "اشترك ووفّر 20%",
   "language": "AR",
-
   "yourBasket": "سلة مشترياتك",
 
   "cartItemsCount": "{count} عناصر",
@@ -134,7 +113,6 @@
       }
     }
   },
-
   "recommendedForYou": "موصى به لك",
 
   "cartSummary": "ملخص الطلب",
@@ -148,22 +126,16 @@
 
   "cartSupportNote": "كل عملية شراء تدعم برنامج إعادة التشجير مع شركائنا.",
   "cartDeliveryEstimate": "يصل بحلول الخميس — شحن أرضي قياسي",
-
   "promoCode": "كود الخصم",
   "enterPromoCode": "أدخل الكود",
   "apply": "تطبيق",
-
   "cartRemoveA11y": "إزالة المنتج",
-
   "badgeAddOn": "إضافة",
   "badgeCrossSell": "عرض مكمل",
-
   "cartRec1Title": "مجموعة الطباعة بالحرير",
   "cartRec1Desc": "أضف طبقات زاهية لطبعاتك النباتية بأحبار قابلة للغسل.",
-
   "cartRec2Title": "مجهر 100×",
   "cartRec2Desc": "تعمّق في الأوراق والحشرات مع شرائح موجّهة.",
-
   "cartAddAmount": "أضف +{amount}",
   "@cartAddAmount": {
     "placeholders": {
@@ -172,39 +144,24 @@
       }
     }
   },
-
   "cartLine1Title": "مجموعة عالم النباتات",
   "cartLine1Desc": "الفئة العمرية: 6–9 سنوات. بذور، مفكرة، وأشرطة حموضة التربة.",
-
   "cartLine2Title": "مهندس الطيور",
   "cartLine2Desc": "الفئة العمرية: 8–12 سنة. نماذج وتعلم أساسيات الطيران.",
-
   "cartLine3Title": "إتقان المنشور",
   "cartLine3Desc": "الفئة العمرية: 9–14 سنة. مختبر بصريات مع منشور وصندوق ضوء.",
-
+  "footerInstagram": "إنستغرام",
+  "footerPinterest": "بينتريست",
+  "footerLinkedIn": "لينكد إن",
   "cartCopyrightLine": "© 2024 تالينتو كيدز. جذورنا في الفضول.",
-
-  "cartEmpty": "سلتك فارغة",
-  "cartEmptyDesc": "اكتشف مجموعاتنا الرائعة لطفلك",
-  "discoverKits": "اكتشف المجموعات",
-
-  "retry": "إعادة المحاولة",
-  "addedToCart": "تمت الإضافة إلى السلة",
-  "addToCartFailed": "تعذرت الإضافة إلى السلة. حاول مرة أخرى.",
-
   "nurturingTitle": "تنمية علماء الغد",
-
   "whatsInsideTitle": "ما الذي بداخل المختبر؟",
-
   "explorerTestimonials": "آراء المستكشفين",
   "testimonialsSubtitle": "آراء الآباء والمستكشفين الصغار من حول العالم",
-
   "writeReview": "اكتب مراجعة",
   "addToCart": "أضف إلى السلة",
-
   "partnerQuality": "جودة الشريك",
   "partnerQualitySubtitle": "مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.",
-
   "reviews": "{count} مراجعة",
   "@reviews": {
     "placeholders": {
@@ -213,54 +170,41 @@
       }
     }
   },
-
   "kitDetailsCategory": "الطبيعة والعلوم",
   "kitDetailsName": "مجموعة اكتشاف العالم النباتي",
   "kitDetailsDescription": "أدوات ودلائل مختارة بعناية لمساعدة الصغار على التعرف على العينات، كبس النباتات، وفهم البيئة من الحديقة إلى الطبيعة.",
-
   "kitDetailsAgeTag": "الأعمار 6–12",
   "kitDetailsExperimentsTag": "+15 تجربة",
-
   "kitDetailsPriceCurrent": "84.00 $",
   "kitDetailsPriceOriginal": "110.00 $",
-
   "mindsetCard1Title": "الملاحظة النقدية",
   "mindsetCard1Body": "تنمية الانتباه للتفاصيل والتدوين بصبر ليلاحظ الأطفال الأنماط في العالم الحي.",
-
   "mindsetCard2Title": "الثقافة البيئية",
   "mindsetCard2Body": "ربط النباتات والتربة والموائل لفهم كيف تدعم الأنظمة البيئية بعضها.",
-
   "mindsetCard3Title": "مهارات المختبر",
   "mindsetCard3Body": "تعريف الطفل بالتعامل الحذر مع الأدوات والعينات وبأساليب بسيطة يستخدمها العلماء.",
-
   "kitContent1Title": "عدسة نحاسية دقيقة",
   "kitContent1Desc": "تكبير 10× مع زجاج مقاوم للخدش.",
-
   "kitContent2Title": "مفكرة المستكشف القماشية",
   "kitContent2Desc": "صفحات مقاومة للماء لملاحظات الحقل ورسم العينات.",
-
   "kitContent3Title": "مكبس نباتات خشبي",
   "kitContent3Desc": "مكبس من خشب البلوط من مصادر مستدامة مع أحزمة شد قابلة للتعديل.",
-
   "kitContent4Title": "مجموعة جمع العينات",
   "kitContent4Desc": "تشمل 12 أنبوب اختبار زجاجي وملقط وملصقات للتسمية.",
-
   "testimonial1Body": "حولت هذه المجموعة نزهاتنا في عطلة نهاية الأسبوع إلى دراسات ميدانية حقيقية. ابنتي تحتفظ الآن بمفكرة أوراق مكبوسة على مكتبها.",
   "testimonial1Name": "سارة إلويك",
   "testimonial1Role": "مستكشفة موثقة",
-
   "testimonial2Body": "أدلة واضحة ومواد متينة — أستخدمها في نادي العلوم بعد المدرسة وسأطلب المزيد للفصل القادم.",
   "testimonial2Name": "السيد آلان بورتر",
   "testimonial2Role": "معلم علوم",
-
   "kitDetailsAddToCartDemo": "معاينة فقط — السلة لا تتزامن من هذه الشاشة.",
-
+  "addedToCart": "تمت الإضافة إلى السلة",
+  "addToCartFailed": "تعذرت الإضافة إلى السلة. حاول مرة أخرى.",
+  "retry": "إعادة المحاولة",
   "noReviewsYet": "لا توجد مراجعات بعد",
   "verifiedExplorer": "مستكشف موثق",
-
   "mindsetCriteriaPlaceholder": "ينمّي الفضول والتركيز والتفكير العلمي من خلال استكشاف موجّه.",
   "kitContentItemPlaceholder": "مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.",
-
   "kitDetailsAgePlus": "من عمر {age}+",
   "@kitDetailsAgePlus": {
     "placeholders": {
@@ -269,7 +213,6 @@
       }
     }
   },
-
   "kitDetailsItemsCount": "{count} عنصر",
   "@kitDetailsItemsCount": {
     "placeholders": {
@@ -278,7 +221,6 @@
       }
     }
   },
-
   "kitRatingSummary": "★ {rating} ({count} مراجعة)",
   "@kitRatingSummary": {
     "placeholders": {
@@ -289,5 +231,79 @@
         "type": "int"
       }
     }
-  }
+  },
+  "profileUserName": "سارة",
+  "profileChildName": "ليو",
+  "profileWelcomeBack": "مرحباً بعودتك، {name}.",
+  "@profileWelcomeBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWelcomeSubtitle": "مختبرك العضوي يزدهر. إليك ما يستكشفه {childName} اليوم.",
+  "@profileWelcomeSubtitle": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCuriosityProgress": "تقدم الفضول",
+  "profileKitTitle": "مجموعة اكتشاف الغابة العميقة",
+  "profileKitDescription": "أكمل ليو 4 من 6 تجارب نباتية. وحدة «شبكات الفطر» بانتظار الاكتشاف.",
+  "profileMasteryReached": "تم الوصول إلى {percent}% إتقان",
+  "@profileMasteryReached": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileOrderHistory": "سجل الطلبات",
+  "profileViewAllOrders": "عرض كل الطلبات",
+  "profileOrder1Number": "#TLN-49202",
+  "profileOrder1Subtitle": "مجموعة التنوير الحيوي • 12 سبتمبر",
+  "profileOrder2Number": "#TLN-48115",
+  "profileOrder2Subtitle": "عالم النباتات • 3 أغسطس",
+  "profileOrder3Number": "#TLN-47088",
+  "profileOrder3Subtitle": "مهندس الطيور • 21 يونيو",
+  "profileDelivered": "تم التسليم",
+  "profileManageSubscription": "إدارة الاشتراك",
+  "profileActive": "نشط",
+  "profilePlanName": "خطة المستكشف الشهرية",
+  "profileNextDelivery": "التسليم القادم: 24 أكتوبر 2024",
+  "profileBillingAmount": "مبلغ الفاتورة: 34.00 $/شهر",
+  "profilePauseOrUpdate": "إيقاف أو تحديث الخطة",
+  "profileLeosBadges": "شارات {childName}",
+  "@profileLeosBadges": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileBadgesSubtitle": "أوسمة مكتسبة من الاكتشاف.",
+  "profileViewPortfolio": "عرض المحفظة ←",
+  "profileAccountSettings": "إعدادات الحساب",
+  "profileProfileInformation": "معلومات الملف الشخصي",
+  "profilePaymentMethods": "طرق الدفع",
+  "profileShippingAddress": "عنوان الشحن",
+  "profileSignOut": "تسجيل الخروج",
+  "profileRecommendedForLeo": "موصى به لـ {childName}",
+  "@profileRecommendedForLeo": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRec1Badge": "فيزياء • الأعمار 8-12",
+  "profileRec1Title": "هيدraulics النمو",
+  "profileRec2Badge": "هندسة • الأعمار 8-12",
+  "profileRec2Title": "هندسة الطيور",
+  "profileRec3Badge": "طبيعة • الأعمار 6-10",
+  "profileRec3Title": "حكايات المظلة",
+  "profileMyAccount": "حسابي"
 }

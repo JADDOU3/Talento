@@ -26,14 +26,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _scrollToTop() {
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOut,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -54,10 +46,30 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _DrawerLink(title: l10n.navHome, onTap: () { Navigator.of(context).pop(); _scrollToTop(); }),
+                _DrawerLink(
+                  title: l10n.navHome,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
+                ),
                 _DrawerLink(title: l10n.navAbout, onTap: () => Navigator.of(context).pop()),
                 _DrawerLink(title: l10n.navPricing, onTap: () => Navigator.of(context).pop()),
                 _DrawerLink(title: l10n.navBlog, onTap: () => Navigator.of(context).pop()),
+                _DrawerLink(
+                  title: l10n.yourBasket,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed('/cart');
+                  },
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed('/profile');
+                  },
+                  child: Text(l10n.profileMyAccount),
+                ),
                 const Spacer(),
                 TextButton(
                   onPressed: () => Provider.of<LanguageProvider>(context, listen: false).toggleLanguage(),
@@ -81,7 +93,7 @@ class _HomePageState extends State<HomePage> {
         controller: _scrollController,
         child: Column(
           children: [
-            Navbar(scrollController: _scrollController),
+            Navbar(scrollController: _scrollController, showCartIcon: false),
             const SizedBox(height: 40),
             const HeroSection(),
             JourneySection(),

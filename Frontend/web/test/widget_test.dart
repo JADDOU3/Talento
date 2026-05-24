@@ -2,9 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:web/shared/models/kit_model.dart';
 import 'package:web/shared/models/review_model.dart';
 
-/// Full app widget tests require `dart:html` (web-only). Run on Chrome:
-/// `flutter test -d chrome` or use integration_test.
-/// VM `flutter test` runs pure-Dart tests such as [cart_model_test.dart].
 void main() {
   test('KitModel.fromJson maps kit details API shape', () {
     final kit = KitModel.fromJson({

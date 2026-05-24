@@ -18,7 +18,6 @@ import '../widgets/kit_details/kit_mindset_section.dart';
 import '../widgets/kit_details/kit_testimonials_section.dart';
 import '../widgets/kit_details/kit_whats_inside_section.dart';
 
-/// Kit product page (mock data, no API). Uses shared [Navbar] and [Footer].
 class KitDetailsPage extends StatefulWidget {
   const KitDetailsPage({super.key});
 
@@ -95,7 +94,7 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed('/home');
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                   },
                   child: Text(l10n.navHome),
                 ),

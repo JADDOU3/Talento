@@ -35,6 +35,10 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  void _goHome(BuildContext context) {
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  }
+
   Future<void> _signup() async {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
@@ -76,6 +80,7 @@ class _SignupScreenState extends State<SignupScreen> {
         SnackBar(
           content: Text(result['message']?.toString() ?? 'Registration failed'),
           backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 6),
         ),
       );
     }
@@ -97,7 +102,11 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset('assets/images/logo1.png', height: 60),
+                  InkWell(
+                    onTap: () => _goHome(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset('assets/images/logo1.png', height: 60),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -173,20 +182,36 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Language Toggle
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: TextButton(
-                          onPressed: () => langProvider.toggleLanguage(),
-                          child: Text(
-                            l10n.language,
-                            style: const TextStyle(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () => _goHome(context),
+                            icon: const Icon(
+                              Icons.arrow_back,
                               color: Color(0xFF10a896),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            ),
+                            label: Text(
+                              l10n.navHome,
+                              style: const TextStyle(
+                                color: Color(0xFF10a896),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () => langProvider.toggleLanguage(),
+                            child: Text(
+                              l10n.language,
+                              style: const TextStyle(
+                                color: Color(0xFF10a896),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(l10n.createAccount,
