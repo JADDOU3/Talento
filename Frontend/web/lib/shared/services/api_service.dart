@@ -6,6 +6,11 @@ import 'package:flutter/foundation.dart';
 import '../models/cart_model.dart';
 import 'api_result.dart';
 
+import 'package:flutter/foundation.dart';
+
+import '../models/cart_model.dart';
+import 'api_result.dart';
+
 class ApiService {
   /// Override for local backend: `--dart-define=API_BASE_URL=http://localhost:8080/api`
   static const String baseUrl = String.fromEnvironment(
