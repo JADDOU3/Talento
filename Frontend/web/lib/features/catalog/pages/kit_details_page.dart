@@ -18,6 +18,7 @@ import '../widgets/kit_details/kit_mindset_section.dart';
 import '../widgets/kit_details/kit_testimonials_section.dart';
 import '../widgets/kit_details/kit_whats_inside_section.dart';
 
+/// Kit product page (mock data, no API). Uses shared [Navbar] and [Footer].
 class KitDetailsPage extends StatefulWidget {
   const KitDetailsPage({super.key});
 

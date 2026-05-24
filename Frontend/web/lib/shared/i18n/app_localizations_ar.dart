@@ -310,9 +310,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yourBasket => 'سلة مشترياتك';
 
   @override
-  String cartItemsCount(int count) {
-    return '$count عناصر';
-  }
+  String cartItemsCount(int count) => '$count عناصر';
 
   @override
   String get recommendedForYou => 'موصى به لك';
@@ -377,9 +375,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cartRec2Desc => 'تعمّق في الأوراق والحشرات مع شرائح موجّهة.';
 
   @override
-  String cartAddAmount(String amount) {
-    return 'أضف +$amount';
-  }
+  String cartAddAmount(String amount) => 'أضف +$amount';
 
   @override
   String get cartLine1Title => 'مجموعة عالم النباتات';
@@ -412,7 +408,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get footerLinkedIn => 'لينكد إن';
 
   @override
-  String get cartCopyrightLine => '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+  String get cartCopyrightLine =>
+      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+
+  @override
+  String get cartEmpty => 'سلتك فارغة';
+
+  @override
+  String get cartEmptyDesc => 'اكتشف مجموعاتنا الرائعة لطفلك';
+
+  @override
+  String get discoverKits => 'اكتشف المجموعات';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get addedToCart => 'تمت الإضافة إلى السلة';
+
+  @override
+  String get addToCartFailed =>
+      'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
 
   @override
   String get nurturingTitle => 'تنمية علماء الغد';
@@ -441,9 +457,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.';
 
   @override
-  String reviews(int count) {
-    return '$count مراجعة';
-  }
+  String reviews(int count) => '$count مراجعة';
 
   @override
   String get kitDetailsCategory => 'الطبيعة والعلوم';
@@ -539,14 +553,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kitDetailsAddToCartDemo =>
       'معاينة فقط — السلة لا تتزامن من هذه الشاشة.';
 
-  @override
-  String get addedToCart => 'تمت الإضافة إلى السلة';
-
-  @override
-  String get addToCartFailed => 'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
-
-  @override
-  String get retry => 'إعادة المحاولة';
+  // -------- Extra merged keys (from conflict resolution) --------
 
   @override
   String get noReviewsYet => 'لا توجد مراجعات بعد';
@@ -563,17 +570,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.';
 
   @override
-  String kitDetailsAgePlus(int age) {
-    return 'من عمر $age+';
-  }
+  String kitDetailsAgePlus(int age) => 'من عمر $age+';
 
   @override
-  String kitDetailsItemsCount(int count) {
-    return '$count عنصر';
-  }
+  String kitDetailsItemsCount(int count) => '$count عنصر';
 
   @override
-  String kitRatingSummary(String rating, int count) {
-    return '★ $rating ($count مراجعة)';
-  }
+  String kitRatingSummary(String rating, int count) =>
+      '★ $rating ($count مراجعة)';
 }

@@ -4,580 +4,578 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for Arabic (`ar`).
+class AppLocalizationsAr extends AppLocalizations {
+  AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get welcomeBack => 'Welcome back';
+  String get welcomeBack => 'مرحباً بعودتك';
 
   @override
-  String get loginSubtitle => 'Log in to your account to continue.';
+  String get loginSubtitle => 'سجّل دخولك للمتابعة.';
 
   @override
-  String get emailAddress => 'EMAIL ADDRESS';
+  String get emailAddress => 'البريد الإلكتروني';
 
   @override
-  String get password => 'PASSWORD';
+  String get password => 'كلمة المرور';
 
   @override
-  String get confirmPassword => 'CONFIRM PASSWORD';
+  String get confirmPassword => 'تأكيد كلمة المرور';
 
   @override
-  String get fullName => 'FULL NAME';
+  String get fullName => 'الاسم الكامل';
 
   @override
-  String get gender => 'GENDER';
+  String get gender => 'الجنس';
 
   @override
-  String get selectGender => 'Select Gender';
+  String get selectGender => 'اختر الجنس';
 
   @override
-  String get male => 'Male';
+  String get male => 'ذكر';
 
   @override
-  String get female => 'Female';
+  String get female => 'انثى';
 
   @override
-  String get forgotPassword => 'Forgot?';
+  String get forgotPassword => 'نسيت؟';
 
   @override
-  String get loginButton => 'Enter the Forest (Login) →';
+  String get loginButton => 'ادخل (تسجيل الدخول)';
 
   @override
-  String get orContinueWith => 'OR CONTINUE WITH';
+  String get orContinueWith => 'او تابع بواسطة';
 
   @override
-  String get dontHaveAccount => 'Don\'t have an account? ';
+  String get dontHaveAccount => 'ليس لديك حساب؟ ';
 
   @override
-  String get signUp => 'Sign up';
+  String get signUp => 'انشاء حساب';
 
   @override
-  String get createAccount => 'Create an account';
+  String get createAccount => 'انشاء حساب جديد';
 
   @override
-  String get signupSubtitle => 'Start your child\'s learning journey today.';
+  String get signupSubtitle => 'ابدا رحلة تعلم طفلك اليوم.';
 
   @override
-  String get signupButton => 'Plant the Seed (Sign Up) →';
+  String get signupButton => 'انشاء حساب';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? ';
+  String get alreadyHaveAccount => 'لديك حساب بالفعل؟ ';
 
   @override
-  String get logIn => 'Log in';
+  String get logIn => 'تسجيل الدخول';
 
   @override
-  String get emailRequired => 'Email is required';
+  String get emailRequired => 'البريد الالكتروني مطلوب';
 
   @override
-  String get passwordRequired => 'Password is required';
+  String get passwordRequired => 'كلمة المرور مطلوبة';
 
   @override
-  String get nameRequired => 'Name is required';
+  String get nameRequired => 'الاسم مطلوب';
 
   @override
-  String get confirmPasswordRequired => 'Please confirm password';
+  String get confirmPasswordRequired => 'يرجى تاكيد كلمة المرور';
 
   @override
-  String get passwordsNotMatch => 'Passwords do not match';
+  String get passwordsNotMatch => 'كلمتا المرور غير متطابقتين';
 
   @override
-  String get nurturingTomorrow => 'NURTURING TOMORROW';
+  String get nurturingTomorrow => 'نرعى الغد';
 
   @override
-  String get trustedByEducators => '4.9/5  •  Trusted by global educators';
+  String get trustedByEducators => '4.9/5 موثوق به من المعلمين';
 
   @override
-  String get copyright => '© 2024 TALENTO KIDS';
+  String get copyright => '2024 تالينتو كيدز';
 
   @override
-  String get aesEncrypted => 'AES-256 ENCRYPTED';
+  String get aesEncrypted => 'تشفير AES-256';
 
   @override
-  String get coppaCompliant => 'COPPA COMPLIANT';
+  String get coppaCompliant => 'متوافق مع COPPA';
 
   @override
-  String get gdprSecured => 'GDPR SECURED';
+  String get gdprSecured => 'محمي بـ GDPR';
 
   @override
-  String get welcomeBackTitle => 'Welcome back to your';
+  String get welcomeBackTitle => 'مرحبا بعودتك الى';
 
   @override
-  String get learningGarden => 'learning garden.';
+  String get learningGarden => 'حديقة التعلم.';
 
   @override
   String get welcomeBackDesc =>
-      'Continue cultivating curiosity and resilience through our research-backed pedagogical ecosystem.';
+      'واصل تنمية الفضول والمرونة من خلال نظامنا التربوي.';
 
   @override
-  String get everyChild => 'Every child is a ';
+  String get everyChild => 'كل طفل هو ';
 
   @override
-  String get hiddenForest => 'hidden forest';
+  String get hiddenForest => 'غابة مخفية';
 
   @override
-  String get untappedPotential => 'of untapped potential.';
+  String get untappedPotential => 'من الامكانات غير المستغلة.';
 
   @override
-  String get signupDesc =>
-      'Join over 50,000 families cultivating curiosity and resilience through our research-backed pedagogical ecosystem.';
+  String get signupDesc => 'انضم لاكثر من 50,000 عائلة تنمي الفضول والمرونة.';
 
   @override
-  String get google => 'Google';
+  String get google => 'جوجل';
 
   @override
-  String get apple => 'Apple';
+  String get apple => 'ابل';
 
   @override
-  String get somethingWentWrong => 'Something went wrong';
+  String get somethingWentWrong => 'حدث خطا ما';
 
   @override
-  String get loginSuccess => 'Login successful!';
+  String get loginSuccess => 'تم تسجيل الدخول بنجاح!';
 
   @override
-  String get accountCreated => 'Account created successfully!';
+  String get accountCreated => 'تم انشاء الحساب بنجاح!';
 
   @override
-  String get pleaseSelectGender => 'Please select a gender';
+  String get pleaseSelectGender => 'يرجى اختيار الجنس';
 
   @override
-  String get navHome => 'Home';
+  String get navHome => 'الرئيسية';
 
   @override
-  String get navAbout => 'About';
+  String get navAbout => 'من نحن';
 
   @override
-  String get navPricing => 'Pricing';
+  String get navPricing => 'الأسعار';
 
   @override
-  String get navBlog => 'Blog';
+  String get navBlog => 'المدونة';
 
   @override
-  String get navLogin => 'Login';
+  String get navLogin => 'تسجيل الدخول';
 
   @override
-  String get navSignUp => 'Sign Up';
+  String get navSignUp => 'إنشاء حساب';
 
   @override
-  String get heroBadge => 'UNLOCKING CHILDHOOD POTENTIAL';
+  String get heroBadge => 'نطلق إمكانات الطفولة';
 
   @override
-  String get heroTitle1 => 'Nurture the';
+  String get heroTitle1 => 'ارعَ';
 
   @override
-  String get heroTitle2 => 'Genius';
+  String get heroTitle2 => 'العبقري';
 
   @override
-  String get heroTitle3 => 'Within.';
+  String get heroTitle3 => 'بداخله.';
 
   @override
   String get heroDesc =>
-      'Thoughtfully curated kits designed by educators to spark lifelong curiosity, critical thinking, and a love for the natural world.';
+      'مجموعات مختارة بعناية من قبل معلمين لإشعال الفضول والتفكير النقدي وحب الطبيعة.';
 
   @override
-  String get heroExplore => 'Explore Kits';
+  String get heroExplore => 'استكشف المجموعات';
 
   @override
-  String get heroLearn => 'Learn Our Story';
+  String get heroLearn => 'تعرف علينا';
 
   @override
-  String get journeyTitle => 'How Your Journey Begins';
+  String get journeyTitle => 'كيف تبدأ رحلتك';
 
   @override
   String get journeySubtitle =>
-      'We simplify the science of learning into three organic steps for families.';
+      'نبسّط علم التعلم في ثلاث خطوات طبيعية للعائلات.';
 
   @override
-  String get journeyCard1Title => 'Select Your Theme';
+  String get journeyCard1Title => 'اختر موضوعك';
 
   @override
   String get journeyCard1Desc =>
-      'Choose from Biology, Engineering, or Fine Arts curated for specific age milestones.';
+      'اختر من علم الأحياء أو الهندسة أو الفنون الجميلة المصممة لمراحل عمرية محددة.';
 
   @override
-  String get journeyCard2Title => 'Delivered Monthly';
+  String get journeyCard2Title => 'توصيل شهري';
 
   @override
   String get journeyCard2Desc =>
-      'Eco-friendly kits arrive at your doorstep packed with everything needed for discovery.';
+      'تصل المجموعات الصديقة للبيئة إلى باب منزلك مع كل ما تحتاجه للاستكشاف.';
 
   @override
-  String get journeyCard3Title => 'Guided Exploration';
+  String get journeyCard3Title => 'استكشاف موجّه';
 
   @override
   String get journeyCard3Desc =>
-      'Interactive guides help parents and kids bond over experiments and storytelling.';
+      'أدلة تفاعلية تساعد الآباء والأطفال على التواصل من خلال التجارب والقصص.';
 
   @override
-  String get beyondBadge => 'MINDSET DISCOVERY';
+  String get beyondBadge => 'اكتشاف العقلية';
 
   @override
-  String get beyondTitle => 'Beyond Knowledge.\nBuilding Character.';
+  String get beyondTitle => 'ما وراء المعرفة.\nبناء الشخصية.';
 
   @override
-  String get beyondFeature1Title => 'Growth Mindset';
+  String get beyondFeature1Title => 'عقلية النمو';
 
   @override
   String get beyondFeature1Desc =>
-      'We teach children that mistakes are just another step in the grand experiment of learning.';
+      'نعلم الأطفال أن الأخطاء مجرد خطوة في تجربة التعلم الكبرى.';
 
   @override
-  String get beyondFeature2Title => 'Nature Connection';
+  String get beyondFeature2Title => 'الارتباط بالطبيعة';
 
   @override
   String get beyondFeature2Desc =>
-      'Materials are sourced ethically, teaching kids to respect the forest as much as they learn from it.';
+      'المواد مصدرها أخلاقي، تعلّم الأطفال احترام الطبيعة بقدر ما يتعلمون منها.';
 
   @override
-  String get beyondFeature3Title => 'Critical Reasoning';
+  String get beyondFeature3Title => 'التفكير النقدي';
 
   @override
   String get beyondFeature3Desc =>
-      'Our kits don\'t give answers; they provide the tools for children to ask the right questions.';
+      'مجموعاتنا لا تعطي إجابات، بل توفر أدوات للأطفال لطرح الأسئلة الصحيحة.';
 
   @override
-  String get footerCopyright => '© 2026 TALENTO KIDS. ROOTED IN CURIOSITY.';
+  String get footerCopyright => '© 2026 تالينتو كيدز. جذورنا في الفضول.';
 
   @override
-  String get footerSustainability => 'SUSTAINABILITY';
+  String get footerSustainability => 'الاستدامة';
 
   @override
-  String get footerShipping => 'SHIPPING';
+  String get footerShipping => 'الشحن';
 
   @override
-  String get footerReturns => 'RETURNS';
+  String get footerReturns => 'الإرجاع';
 
   @override
-  String get footerPrivacy => 'PRIVACY POLICY';
+  String get footerPrivacy => 'سياسة الخصوصية';
 
   @override
-  String get footerContact => 'CONTACT US';
+  String get footerContact => 'اتصل بنا';
 
   @override
-  String get footerAccessibility => 'ACCESSIBILITY';
+  String get footerAccessibility => 'إمكانية الوصول';
 
   @override
-  String get explorationsTitle => 'Curated Explorations';
+  String get explorationsTitle => 'استكشافات مختارة';
 
   @override
-  String get explorationsSubtitle => 'Our most loved kits this season.';
+  String get explorationsSubtitle => 'أكثر مجموعاتنا شعبية هذا الموسم.';
 
   @override
-  String get explorationsViewAll => 'View All Kits';
+  String get explorationsViewAll => 'عرض كل المجموعات';
 
   @override
-  String get card1Title => 'The Botanist Pro';
+  String get card1Title => 'عالم النباتات';
 
   @override
   String get card1Desc =>
-      'Discover the secrets of the forest floor through seed preservation and soil analysis.';
+      'اكتشف أسرار أرضية الغابة من خلال حفظ البذور وتحليل التربة.';
 
   @override
-  String get card1Button => 'Get This Kit';
+  String get card1Button => 'احصل على المجموعة';
 
   @override
-  String get card2Title => 'Avian Architect';
+  String get card2Title => 'مهندس الطيور';
 
   @override
   String get card2Desc =>
-      'Build, paint, and observe. A first look into structural engineering and wildlife.';
+      'ابنِ وألوِّن وراقب. نظرة أولى في الهندسة الإنشائية والحياة البرية.';
 
   @override
-  String get card3Title => 'Prism Mastery';
+  String get card3Title => 'إتقان المنشور';
 
   @override
   String get card3Desc =>
-      'Unlock the physics of light and color with our experimental optics kit.';
+      'اكتشف فيزياء الضوء واللون مع مجموعة البصريات التجريبية.';
 
   @override
-  String get featuredBadge => 'THE EDUCATORS CHOICE';
+  String get featuredBadge => 'اختيار المعلمين';
 
   @override
-  String get featuredTitle => 'Complete Talent\nLibrary';
+  String get featuredTitle => 'مكتبة المواهب\nالكاملة';
 
   @override
   String get featuredDesc =>
-      'Access our full curriculum of 24 kits delivered over two years of developmental growth.';
+      'احصل على منهجنا الكامل المكون من 24 مجموعة على مدى عامين من النمو.';
 
   @override
-  String get featuredButton => 'Subscribe & Save 20%';
+  String get featuredButton => 'اشترك ووفّر 20%';
 
   @override
-  String get language => 'EN';
+  String get language => 'AR';
 
   @override
-  String get yourBasket => 'Your Basket';
+  String get yourBasket => 'سلة مشترياتك';
 
   @override
-  String cartItemsCount(int count) {
-    return '$count Items';
-  }
+  String cartItemsCount(int count) => '$count عناصر';
 
   @override
-  String get recommendedForYou => 'Recommended for You';
+  String get recommendedForYou => 'موصى به لك';
 
   @override
-  String get cartSummary => 'Summary';
+  String get cartSummary => 'ملخص الطلب';
 
   @override
-  String get cartSubtotal => 'Subtotal';
+  String get cartSubtotal => 'المجموع الفرعي';
 
   @override
-  String get cartShipping => 'Shipping';
+  String get cartShipping => 'الشحن';
 
   @override
-  String get cartShippingFree => 'Free';
+  String get cartShippingFree => 'مجاني';
 
   @override
-  String get cartTax => 'Tax';
+  String get cartTax => 'الضريبة';
 
   @override
-  String get cartTotal => 'Total';
+  String get cartTotal => 'الإجمالي';
 
   @override
-  String get proceedToCheckout => 'Proceed to Checkout';
+  String get proceedToCheckout => 'المتابعة للدفع';
 
   @override
   String get cartSupportNote =>
-      'Every purchase supports our Re-Forestation partner program.';
+      'كل عملية شراء تدعم برنامج إعادة التشجير مع شركائنا.';
 
   @override
-  String get cartDeliveryEstimate =>
-      'Arrives by Thursday — Standard Ground Shipping';
+  String get cartDeliveryEstimate => 'يصل بحلول الخميس — شحن أرضي قياسي';
 
   @override
-  String get promoCode => 'Promo Code';
+  String get promoCode => 'كود الخصم';
 
   @override
-  String get enterPromoCode => 'Enter code';
+  String get enterPromoCode => 'أدخل الكود';
 
   @override
-  String get apply => 'Apply';
+  String get apply => 'تطبيق';
 
   @override
-  String get cartRemoveA11y => 'Remove item';
+  String get cartRemoveA11y => 'إزالة المنتج';
 
   @override
-  String get badgeAddOn => 'ADD-ON';
+  String get badgeAddOn => 'إضافة';
 
   @override
-  String get badgeCrossSell => 'CROSS-SELL';
+  String get badgeCrossSell => 'عرض مكمل';
 
   @override
-  String get cartRec1Title => 'Silk Screen Kit';
+  String get cartRec1Title => 'مجموعة الطباعة بالحرير';
 
   @override
   String get cartRec1Desc =>
-      'Add vibrant layers to your botanical prints with washable inks.';
+      'أضف طبقات زاهية لطبعاتك النباتية بأحبار قابلة للغسل.';
 
   @override
-  String get cartRec2Title => 'Microscope 100x';
+  String get cartRec2Title => 'مجهر 100×';
 
   @override
-  String get cartRec2Desc =>
-      'Zoom deeper into leaves and insects with guided slides.';
+  String get cartRec2Desc => 'تعمّق في الأوراق والحشرات مع شرائح موجّهة.';
 
   @override
-  String cartAddAmount(String amount) {
-    return 'Add +$amount';
-  }
+  String cartAddAmount(String amount) => 'أضف +$amount';
 
   @override
-  String get cartLine1Title => 'The Botanist Kit';
+  String get cartLine1Title => 'مجموعة عالم النباتات';
 
   @override
   String get cartLine1Desc =>
-      'Age range: 6–9 years. Seeds, journal, and soil pH strips.';
+      'الفئة العمرية: 6–9 سنوات. بذور، مفكرة، وأشرطة حموضة التربة.';
 
   @override
-  String get cartLine2Title => 'Avian Architect';
+  String get cartLine2Title => 'مهندس الطيور';
 
   @override
   String get cartLine2Desc =>
-      'Age range: 8–12 years. Build models and learn flight basics.';
+      'الفئة العمرية: 8–12 سنة. نماذج وتعلم أساسيات الطيران.';
 
   @override
-  String get cartLine3Title => 'Prism Mastery';
+  String get cartLine3Title => 'إتقان المنشور';
 
   @override
   String get cartLine3Desc =>
-      'Age range: 9–14 years. Optics lab with prism and light box.';
+      'الفئة العمرية: 9–14 سنة. مختبر بصريات مع منشور وصندوق ضوء.';
 
   @override
-  String get footerInstagram => 'INSTAGRAM';
+  String get footerInstagram => 'إنستغرام';
 
   @override
-  String get footerPinterest => 'PINTEREST';
+  String get footerPinterest => 'بينتريست';
 
   @override
-  String get footerLinkedIn => 'LINKEDIN';
+  String get footerLinkedIn => 'لينكد إن';
 
   @override
-  String get cartCopyrightLine => '© 2024 Talento Kids. Rooted in Curiosity.';
+  String get cartCopyrightLine =>
+      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
 
   @override
-  String get nurturingTitle => 'Nurturing Tomorrow\'s Scientists';
+  String get cartEmpty => 'سلتك فارغة';
 
   @override
-  String get whatsInsideTitle => 'What\'s Inside the Laboratory?';
+  String get cartEmptyDesc => 'اكتشف مجموعاتنا الرائعة لطفلك';
 
   @override
-  String get explorerTestimonials => 'Explorer Testimonials';
+  String get discoverKits => 'اكتشف المجموعات';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get addedToCart => 'تمت الإضافة إلى السلة';
+
+  @override
+  String get addToCartFailed =>
+      'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
+
+  @override
+  String get nurturingTitle => 'تنمية علماء الغد';
+
+  @override
+  String get whatsInsideTitle => 'ما الذي بداخل المختبر؟';
+
+  @override
+  String get explorerTestimonials => 'آراء المستكشفين';
 
   @override
   String get testimonialsSubtitle =>
-      'Hear from parents and young explorers around the world';
+      'آراء الآباء والمستكشفين الصغار من حول العالم';
 
   @override
-  String get writeReview => 'Write a Review';
+  String get writeReview => 'اكتب مراجعة';
 
   @override
-  String get addToCart => 'Add to Cart';
+  String get addToCart => 'أضف إلى السلة';
 
   @override
-  String get partnerQuality => 'PARTNER QUALITY';
+  String get partnerQuality => 'جودة الشريك';
 
   @override
   String get partnerQualitySubtitle =>
-      'Built with heirloom-quality materials designed to last for a lifetime of exploration.';
+      'مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.';
 
   @override
-  String reviews(int count) {
-    return '$count Reviews';
-  }
+  String reviews(int count) => '$count مراجعة';
 
   @override
-  String get kitDetailsCategory => 'NATURE & SCIENCE';
+  String get kitDetailsCategory => 'الطبيعة والعلوم';
 
   @override
-  String get kitDetailsName => 'Botanist Discovery Kit';
+  String get kitDetailsName => 'مجموعة اكتشاف العالم النباتي';
 
   @override
   String get kitDetailsDescription =>
-      'Thoughtfully curated tools and guides for young botanists to identify specimens, press plants, and explore ecology from the backyard to the field.';
+      'أدوات ودلائل مختارة بعناية لمساعدة الصغار على التعرف على العينات، كبس النباتات، وفهم البيئة من الحديقة إلى الطبيعة.';
 
   @override
-  String get kitDetailsAgeTag => 'AGES 6-12';
+  String get kitDetailsAgeTag => 'الأعمار 6–12';
 
   @override
-  String get kitDetailsExperimentsTag => '15+ EXPERIMENTS';
+  String get kitDetailsExperimentsTag => '+15 تجربة';
 
   @override
-  String get kitDetailsPriceCurrent => '\$84.00';
+  String get kitDetailsPriceCurrent => '84.00 \$';
 
   @override
-  String get kitDetailsPriceOriginal => '\$110.00';
+  String get kitDetailsPriceOriginal => '110.00 \$';
 
   @override
-  String get mindsetCard1Title => 'Critical Observation';
+  String get mindsetCard1Title => 'الملاحظة النقدية';
 
   @override
   String get mindsetCard1Body =>
-      'Train attention to detail and patient recording so children notice patterns in the living world.';
+      'تنمية الانتباه للتفاصيل والتدوين بصبر ليلاحظ الأطفال الأنماط في العالم الحي.';
 
   @override
-  String get mindsetCard2Title => 'Ecological Literacy';
+  String get mindsetCard2Title => 'الثقافة البيئية';
 
   @override
   String get mindsetCard2Body =>
-      'Connect plants, soil, and habitats so learners understand how ecosystems support one another.';
+      'ربط النباتات والتربة والموائل لفهم كيف تدعم الأنظمة البيئية بعضها.';
 
   @override
-  String get mindsetCard3Title => 'Laboratory Skills';
+  String get mindsetCard3Title => 'مهارات المختبر';
 
   @override
   String get mindsetCard3Body =>
-      'Introduce careful handling of tools, specimens, and simple methods used by real scientists.';
+      'تعريف الطفل بالتعامل الحذر مع الأدوات والعينات وبأساليب بسيطة يستخدمها العلماء.';
 
   @override
-  String get kitContent1Title => 'Precision Brass Magnifier';
+  String get kitContent1Title => 'عدسة نحاسية دقيقة';
 
   @override
-  String get kitContent1Desc =>
-      '10x magnification with scratch-resistant glass lenses.';
+  String get kitContent1Desc => 'تكبير 10× مع زجاج مقاوم للخدش.';
 
   @override
-  String get kitContent2Title => 'Canvas Explorer\'s Journal';
+  String get kitContent2Title => 'مفكرة المستكشف القماشية';
 
   @override
   String get kitContent2Desc =>
-      'Water-resistant pages for field notes and specimen drawings.';
+      'صفحات مقاومة للماء لملاحظات الحقل ورسم العينات.';
 
   @override
-  String get kitContent3Title => 'Wooden Plant Press';
+  String get kitContent3Title => 'مكبس نباتات خشبي';
 
   @override
   String get kitContent3Desc =>
-      'Sustainably sourced oak press with adjustable tension straps.';
+      'مكبس من خشب البلوط من مصادر مستدامة مع أحزمة شد قابلة للتعديل.';
 
   @override
-  String get kitContent4Title => 'Specimen Collection Kit';
+  String get kitContent4Title => 'مجموعة جمع العينات';
 
   @override
   String get kitContent4Desc =>
-      'Includes 12 glass test tubes, tweezers, and labeling stickers.';
+      'تشمل 12 أنبوب اختبار زجاجي وملقط وملصقات للتسمية.';
 
   @override
   String get testimonial1Body =>
-      'This kit turned our weekend walks into real field studies. My daughter now keeps a pressed-leaf journal on her desk.';
+      'حولت هذه المجموعة نزهاتنا في عطلة نهاية الأسبوع إلى دراسات ميدانية حقيقية. ابنتي تحتفظ الآن بمفكرة أوراق مكبوسة على مكتبها.';
 
   @override
-  String get testimonial1Name => 'Sarah Elwick';
+  String get testimonial1Name => 'سارة إلويك';
 
   @override
-  String get testimonial1Role => 'VERIFIED EXPLORER';
+  String get testimonial1Role => 'مستكشفة موثقة';
 
   @override
   String get testimonial2Body =>
-      'Clear guides and durable materials — I use it in my after-school science club and am ordering more for next term.';
+      'أدلة واضحة ومواد متينة — أستخدمها في نادي العلوم بعد المدرسة وسأطلب المزيد للفصل القادم.';
 
   @override
-  String get testimonial2Name => 'Mr. Alan Porter';
+  String get testimonial2Name => 'السيد آلان بورتر';
 
   @override
-  String get testimonial2Role => 'SCIENCE TEACHER';
+  String get testimonial2Role => 'معلم علوم';
 
   @override
   String get kitDetailsAddToCartDemo =>
-      'Preview only — cart is not synced from this screen.';
+      'معاينة فقط — السلة لا تتزامن من هذه الشاشة.';
+
+  // -------- Extra merged keys (from conflict resolution) --------
 
   @override
-  String get addedToCart => 'Added to cart';
+  String get noReviewsYet => 'لا توجد مراجعات بعد';
 
   @override
-  String get addToCartFailed => 'Could not add to cart. Please try again.';
-
-  @override
-  String get retry => 'Retry';
-
-  @override
-  String get noReviewsYet => 'No reviews yet';
-
-  @override
-  String get verifiedExplorer => 'VERIFIED EXPLORER';
+  String get verifiedExplorer => 'مستكشف موثق';
 
   @override
   String get mindsetCriteriaPlaceholder =>
-      'Develops curiosity, focus, and scientific thinking through guided exploration.';
+      'ينمّي الفضول والتركيز والتفكير العلمي من خلال استكشاف موجّه.';
 
   @override
   String get kitContentItemPlaceholder =>
-      'Included in this discovery kit for hands-on learning.';
+      'مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.';
 
   @override
-  String kitDetailsAgePlus(int age) {
-    return 'AGES $age+';
-  }
+  String kitDetailsAgePlus(int age) => 'من عمر $age+';
 
   @override
-  String kitDetailsItemsCount(int count) {
-    return '$count ITEMS';
-  }
+  String kitDetailsItemsCount(int count) => '$count عنصر';
 
   @override
-  String kitRatingSummary(String rating, int count) {
-    return '★ $rating ($count Reviews)';
-  }
+  String kitRatingSummary(String rating, int count) =>
+      '★ $rating ($count مراجعة)';
 }

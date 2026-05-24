@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
+import '../models/cart_model.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -192,6 +193,19 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       ).timeout(const Duration(seconds: 15));
+      final status = request.status;
+      if (status != null && status >= 200 && status < 300) {
+        final responseText = request.responseText;
+        if (responseText != null && responseText.isNotEmpty) {
+          return json.decode(responseText);
+        }
+        return {};
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 
       return ApiResult(
         status: request.status ?? 0,
@@ -350,16 +364,14 @@ class ApiService {
 }
 
 class LocalStorage {
-  static const String _accessTokenKey  = 'access_token';
+  static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
 
   static Future<String?> getAccessToken() async =>
       html.window.localStorage[_accessTokenKey];
 
-  static Future<void> setAccessToken(String token) async {
-    html.window.localStorage[_accessTokenKey] = token;
-    print('Token saved: $token');
-  }
+  static Future<void> setAccessToken(String token) async =>
+      html.window.localStorage[_accessTokenKey] = token;
 
   static Future<String?> getRefreshToken() async =>
       html.window.localStorage[_refreshTokenKey];

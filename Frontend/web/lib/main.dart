@@ -15,6 +15,7 @@ import 'features/catalog/pages/catalog_page.dart';
 import 'features/catalog/pages/kit_details_page.dart';
 import 'features/catalog/cubits/kit/kit_cubit.dart' as catalog;
 import 'util/theme/app_colors.dart';
+import 'features/auth/pages/login_screen.dart';
 
 void main() {
   runApp(
@@ -63,7 +64,8 @@ class TalentoApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => const HomePage(),
+          '/': (context) => LoginScreen(),
+          //'/': (context) => const CartPage(),
           '/home': (context) => const HomePage(),
           '/catalog': (context) => const CatalogPage(),
           '/kit-details': (context) {

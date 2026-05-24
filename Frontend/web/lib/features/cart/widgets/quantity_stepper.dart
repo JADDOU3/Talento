@@ -30,7 +30,13 @@ class QuantityStepper extends StatelessWidget {
         children: [
           _StepperChip(
             label: '−',
-            onTap: count > min ? () => onChanged(count - 1) : null,
+            onTap: () {
+              if (count > min) {
+                onChanged(count - 1);
+              } else if (count == min && min == 1) {
+                onChanged(0);
+              }
+            },
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
