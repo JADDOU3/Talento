@@ -33,6 +33,11 @@ public class Activity {
 
     private String description;
 
+    @Column(length = 2000)
+    private String gameDescription;
+
+    private String coverImageKey;
+
     private Boolean voiceEnabled;
 
     @ManyToOne
