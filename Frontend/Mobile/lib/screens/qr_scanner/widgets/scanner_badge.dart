@@ -4,7 +4,16 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
 class ScannerBadge extends StatelessWidget {
-  const ScannerBadge({super.key});
+  final int currentScans;
+  final int maxScans;
+  final bool isComplete;
+
+  const ScannerBadge({
+    super.key,
+    required this.currentScans,
+    required this.maxScans,
+    required this.isComplete,
+  });
 
   static const Color _badgeBackground = Color(0xFFF3A6A0);
 
@@ -16,7 +25,7 @@ class ScannerBadge extends StatelessWidget {
         vertical: 11,
       ),
       decoration: BoxDecoration(
-        color: _badgeBackground,
+        color: isComplete ? AppColors.primary : _badgeBackground,
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
@@ -36,7 +45,7 @@ class ScannerBadge extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'عدد المسحات: 2/5',
+            'عدد المسحات: $currentScans/$maxScans',
             style: AppTextStyles.bodyLarge.copyWith(
               color: AppColors.white,
               fontWeight: FontWeight.w700,
