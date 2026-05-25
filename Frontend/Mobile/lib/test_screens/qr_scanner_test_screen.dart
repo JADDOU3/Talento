@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-
 /*
 Talento QR Scanner Prototype
 
 Package chosen: mobile_scanner
 Version used: 7.2.0
-
 
 Why mobile_scanner:
 - Supports Android and iOS.
@@ -21,16 +19,15 @@ Prototype behavior:
 - Tracks scans using a counter: 0/5 to 5/5.
 - Allows multiple scans without restarting the camera.
 - Uses a 5-second debounce window to avoid accidental duplicate scans.
-- The same QR can be scanned again after the debounce window.
-- Stops scanning automatically after 5 accepted scans.
+- If the same QR is scanned again after the debounce window:
+  it will not increase the count, but it moves to the end of the list
+  and shows a friendly message that it was scanned before.
+- Stops scanning automatically after 5 accepted unique scans.
 - Shows scanned values in a list.
-- Shows a non-blocking SnackBar after each successful scan.
+- Shows a non-blocking SnackBar after each scan.
 
 Haptic feedback:
 - Uses Flutter built-in HapticFeedback instead of the vibration package.
-- Uses HapticFeedback.heavyImpact() because mediumImpact felt too light during testing.
-- If longer/custom vibration patterns are needed later, the vibration package should be tested.
-
 */
 
 class QrScannerTestScreen extends StatefulWidget {
@@ -53,6 +50,8 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
 
   bool _isScannerStopped = false;
 
+  bool get _hasReachedMaxScans => _scannedValues.length >= _maxScans;
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +70,7 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
   }
 
   void _handleDetect(BarcodeCapture capture) async {
-    if (_isScannerStopped || _scannedValues.length >= _maxScans) return;
+    if (_isScannerStopped || _hasReachedMaxScans) return;
 
     final Barcode? barcode =
     capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
@@ -90,44 +89,117 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
 
     _lastScanTimeByValue[value] = now;
 
+    final bool wasAlreadyScanned = _scannedValues.contains(value);
+
     await HapticFeedback.heavyImpact();
 
     if (!mounted) return;
 
     setState(() {
-
+      /*
+        If the QR was scanned before:
+        - remove it from its old position
+        - add it again at the end
+        - count stays the same
+      */
       _scannedValues.remove(value);
       _scannedValues.add(value);
-
     });
 
-    _showScanMessage(value);
+    _showScanMessage(
+      value: value,
+      wasAlreadyScanned: wasAlreadyScanned,
+    );
 
-    if (_scannedValues.length >= _maxScans) {
+    if (_hasReachedMaxScans) {
       await _stopScanner();
     }
   }
 
-  void _showScanMessage(String value) {
+  void _showScanMessage({
+    required String value,
+    required bool wasAlreadyScanned,
+  }) {
     ScaffoldMessenger.of(context).clearSnackBars();
+
+    final Color backgroundColor =
+    wasAlreadyScanned ? const Color(0xFFFFE7A8) : const Color(0xFF10A896);
+
+    final Color textColor =
+    wasAlreadyScanned ? const Color(0xFF123835) : Colors.white;
+
+    final IconData icon = wasAlreadyScanned
+        ? Icons.info_rounded
+        : Icons.check_circle_rounded;
+
+    final String title =
+    wasAlreadyScanned ? 'هذا الـ QR تم مسحه من قبل' : 'تم مسح البطاقة!';
+
+    final String subtitle = wasAlreadyScanned
+        ? 'قمنا بتحديث ترتيبه بدون زيادة العدد.'
+        : value;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(18),
-        backgroundColor: const Color(0xFF10A896),
+        backgroundColor: backgroundColor,
+        elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
         ),
-        content: Text(
-          'تم مسح البطاقة! — $value',
-          textAlign: TextAlign.right,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
+        content: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: wasAlreadyScanned
+                    ? Colors.white.withValues(alpha: 0.75)
+                    : Colors.white.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: textColor,
+                size: 23,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                      fontSize: 14.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textDirection:
+                    wasAlreadyScanned ? TextDirection.rtl : TextDirection.ltr,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: textColor.withValues(alpha: 0.88),
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        duration: const Duration(milliseconds: 1200),
+        duration: const Duration(milliseconds: 1700),
       ),
     );
   }
@@ -140,6 +212,16 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
     });
 
     await _scannerController.stop();
+  }
+
+  Future<void> _resumeScanner() async {
+    if (!_isScannerStopped || _hasReachedMaxScans) return;
+
+    setState(() {
+      _isScannerStopped = false;
+    });
+
+    await _scannerController.start();
   }
 
   Future<void> _restartScanner() async {
@@ -219,7 +301,7 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
   }
 
   Widget _buildScannerBadge() {
-    final isComplete = _scannedValues.length >= _maxScans;
+    final isComplete = _hasReachedMaxScans;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -262,6 +344,8 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
   Widget _buildCameraViewfinder() {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final viewfinderHeight = (screenWidth - 40) * 1.08;
+
+    final bool isComplete = _hasReachedMaxScans;
 
     return Container(
       height: viewfinderHeight.clamp(330.0, 440.0),
@@ -341,11 +425,13 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
                 if (_isScannerStopped)
                   Container(
                     color: Colors.black.withValues(alpha: 0.55),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'تم إيقاف المسح\nوصلتِ إلى 5/5',
+                        isComplete
+                            ? 'تم إيقاف المسح\nوصلتِ إلى 5/5'
+                            : 'تم إيقاف المسح مؤقتًا\nيمكنكِ تشغيله مرة ثانية',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
@@ -377,8 +463,10 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
                     ),
                     child: Text(
                       _isScannerStopped
-                          ? 'اضغطي إعادة التجربة لبدء جلسة جديدة'
-                          : 'وجّهي الكاميرا نحو بطاقة تالينتو!',
+                          ? isComplete
+                          ? 'اضغط إعادة التجربة لبدء جلسة جديدة'
+                          : 'اضغط تشغيل المسح للمتابعة'
+                          : 'وجّه الكاميرا نحو بطاقة تالينتو!',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Color(0xFF123835),
@@ -471,6 +559,8 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
   }
 
   Widget _buildActionButtons() {
+    final bool isComplete = _hasReachedMaxScans;
+
     return Row(
       children: [
         Expanded(
@@ -483,12 +573,22 @@ class _QrScannerTestScreenState extends State<QrScannerTestScreen>
         const SizedBox(width: 14),
         Expanded(
           child: _ScannerActionButton(
-            icon: _isScannerStopped
+            icon: isComplete
+                ? Icons.check_circle_rounded
+                : _isScannerStopped
                 ? Icons.play_arrow_rounded
                 : Icons.stop_rounded,
-            label: _isScannerStopped ? 'تشغيل المسح' : 'إيقاف المسح',
-            onTap: _isScannerStopped ? _restartScanner : _stopScanner,
-            isMuted: _scannedValues.length >= _maxScans,
+            label: isComplete
+                ? 'اكتملت الجلسة'
+                : _isScannerStopped
+                ? 'تشغيل المسح'
+                : 'إيقاف المسح',
+            onTap: isComplete
+                ? null
+                : _isScannerStopped
+                ? _resumeScanner
+                : _stopScanner,
+            isMuted: isComplete,
           ),
         ),
       ],
@@ -592,7 +692,7 @@ class _ScannerActionButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool isMuted;
 
   @override

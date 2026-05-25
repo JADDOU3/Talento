@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const  TestMenuScreen(),
+      home: const  QrScannerScreen(),
 
     );
   }
