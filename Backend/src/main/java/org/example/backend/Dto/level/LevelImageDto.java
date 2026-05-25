@@ -7,10 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateLevelDto {
-    private Integer levelNumber;
-    private Integer difficulty;
+public class LevelImageDto {
+    private String s3Key;
+    private String role;
+    private String label;
     private String description;
-    private java.util.List<LevelImageDto> images;
-    private Integer activityId;
+    private Integer sortOrder;
+    private String meta;
 }
+
