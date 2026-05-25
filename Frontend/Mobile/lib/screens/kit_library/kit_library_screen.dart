@@ -11,7 +11,7 @@ import '../../models/kit/kit_enums.dart';
 import '../../services/kit/kit_service.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import 'kit_details_screen.dart';
 import 'widgets/category_chip.dart';
 import 'widgets/library_kit_card.dart';

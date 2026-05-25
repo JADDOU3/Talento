@@ -5,7 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../cubits/home/home_cubit.dart';
 import '../../cubits/home/home_state.dart';
 import '../../services/home/home_service.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import 'new_user.dart';
 import 'old_user_screen.dart';
 

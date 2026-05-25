@@ -9,7 +9,7 @@ import '../../../cubits/community/post_cubit.dart';
 import '../../../cubits/community/post_state.dart';
 import '../../../models/community/create_comment.dart';
 import '../../../models/community/post.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 
 class PostDetailsScreen extends StatefulWidget {
   final int postId;

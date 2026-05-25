@@ -6,7 +6,7 @@ import 'package:mobile/screens/profile/widgets/profile_header.dart';
 import 'package:mobile/screens/profile/widgets/profile_progress_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../cubits/profile/profile_cubit.dart';
