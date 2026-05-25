@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
 import 'button.dart';
 import 'mascot.dart';
 
@@ -17,7 +18,8 @@ class ActivityIntroTemplate extends StatelessWidget {
   final Color? startButtonColor;
   final Color? replayButtonColor;
 
-  final EdgeInsetsGeometry contentPadding;
+  final Alignment mascotAlignment;
+  final double mascotWidthFactor;
 
   const ActivityIntroTemplate({
     super.key,
@@ -26,10 +28,11 @@ class ActivityIntroTemplate extends StatelessWidget {
     required this.onStartPressed,
     required this.onReplayPressed,
     this.startButtonText = 'ابدأ التجربة',
-    this.replayButtonText = 'اسمع الشرح مرة اخرى',
+    this.replayButtonText = 'اسمع الشرح مرة أخرى',
     this.startButtonColor,
     this.replayButtonColor,
-    this.contentPadding = const EdgeInsets.symmetric(horizontal: 26),
+    this.mascotAlignment = Alignment.bottomRight,
+    this.mascotWidthFactor = 0.75,
   });
 
   @override
@@ -42,6 +45,7 @@ class ActivityIntroTemplate extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: Stack(
+          clipBehavior: Clip.none,
           children: [
             Positioned.fill(child: background),
             SafeArea(
@@ -49,46 +53,64 @@ class ActivityIntroTemplate extends StatelessWidget {
                 width: double.infinity,
                 height: double.infinity,
                 child: Padding(
-                  padding: contentPadding,
-                  child: Column(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      SizedBox(height: screenHeight * 0.12),
-
-                      ActivityTemplateButton(
-                        text: startButtonText,
-                        onPressed: onStartPressed,
-                        backgroundColor:
-                        startButtonColor ?? AppColors.primary,
-                        height: screenHeight * 0.13,
-                        borderRadius: 30,
-                        fontSize: screenWidth * 0.105,
-                      ),
-
-                      SizedBox(height: screenHeight * 0.05),
-
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.12,
+                      Positioned(
+                        top: screenHeight * 0.25,
+                        left: 0,
+                        right: 0,
+                        child: Column(
+                          children: [
+                            ActivityTemplateButton(
+                              text: startButtonText,
+                              onPressed: onStartPressed,
+                              backgroundColor: startButtonColor ?? AppColors.primary,
+                              height: 82,
+                              borderRadius: 30,
+                              fontSize: screenWidth * 0.09,
+                              textStyle: AppTextStyles.headlineLarge.copyWith(
+                                color: AppColors.white,
+                                fontFamily: 'DGAgnadeen',
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.035),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.07,
+                              ),
+                              child: ActivityTemplateButton(
+                                text: replayButtonText,
+                                onPressed: onReplayPressed,
+                                backgroundColor: replayButtonColor ?? AppColors.pink,
+                                height: 62,
+                                borderRadius: 28,
+                                fontSize: screenWidth * 0.042,
+                                textStyle: AppTextStyles.button.copyWith(
+                                  color: AppColors.white,
+                                  fontFamily: 'DGAgnadeen',
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: ActivityTemplateButton(
-                          text: replayButtonText,
-                          onPressed: onReplayPressed,
-                          backgroundColor:
-                          replayButtonColor ?? AppColors.pink,
-                          height: screenHeight * 0.085,
-                          borderRadius: 28,
-                          fontSize: screenWidth * 0.045,
+                      ),
+                      Align(
+                        alignment: mascotAlignment,
+                        child: Transform.translate(
+                          offset: const Offset(45, 15),
+                          child: ActivityMascot(
+                            assetPath: mascotAssetPath,
+                            width: screenWidth * mascotWidthFactor,
+                            animateFloat: true,
+                          ),
                         ),
                       ),
-
-                      const Spacer(),
-
-                      ActivityMascot(
-                        assetPath: mascotAssetPath,
-                        width: screenWidth * 0.78,
-                      ),
-
-                      SizedBox(height: screenHeight * 0.03),
                     ],
                   ),
                 ),
