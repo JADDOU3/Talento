@@ -1,11 +1,22 @@
-// lib/features/catalog/pages/kit_details_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../cubits/kit/kit_cubit.dart';
-import '../cubits/kit/kit_state.dart';
-import '../../../shared/models/kit_model.dart';
+import 'package:provider/provider.dart';
+import '../../../cubits/cart/cart_cubit.dart';
+import '../../../cubits/kit/kit_cubit.dart';
+import '../../../cubits/kit/kit_state.dart';
+import '../../../cubits/reviews/kit_reviews_cubit.dart';
+import '../../../cubits/reviews/kit_reviews_state.dart';
+import '../../../shared/components/footer/footer.dart';
+import '../../../shared/components/navbar/navbar.dart';
+import '../../../shared/i18n/app_localizations.dart';
+import '../../../shared/providers/language_provider.dart';
 import '../../../util/theme/app_colors.dart';
+import '../widgets/kit_details/kit_details_constants.dart';
+import '../widgets/kit_details/kit_details_skeleton.dart';
+import '../widgets/kit_details/kit_hero_section.dart';
+import '../widgets/kit_details/kit_mindset_section.dart';
+import '../widgets/kit_details/kit_testimonials_section.dart';
+import '../widgets/kit_details/kit_whats_inside_section.dart';
 
 class KitDetailsPage extends StatefulWidget {
   const KitDetailsPage({super.key});
@@ -15,341 +26,224 @@ class KitDetailsPage extends StatefulWidget {
 }
 
 class _KitDetailsPageState extends State<KitDetailsPage> {
-  bool _initialized = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _addingToCart = false;
+  int? _kitId;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initialized) {
-      _initialized = true;
-      final kitId = ModalRoute.of(context)?.settings.arguments as int?;
-      if (kitId != null) {
-        context.read<KitCubit>().getKitById(kitId);
-      }
-    }
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Kit Details',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
-        ),
-      ),
-      body: BlocBuilder<KitCubit, KitState>(
-        builder: (context, state) {
-          if (state is KitLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.teal),
-            );
-          }
+  int _resolveKitId(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    return args is int ? args : 1;
+  }
 
-          if (state is KitError) {
-            return _ErrorView(
-              message: state.message,
-              onRetry: () {
-                final kitId =
-                    ModalRoute.of(context)?.settings.arguments as int?;
-                if (kitId != null) {
-                  context.read<KitCubit>().getKitById(kitId);
-                }
-              },
-            );
-          }
+  Future<void> _onAddToCart(BuildContext context, KitLoaded loaded) async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _addingToCart = true);
 
-          if (state is KitDetailsLoaded) {
-            return _DetailsBody(kit: state.kit);
-          }
+    final ok = await context.read<CartCubit>().addItem(loaded.kit.id, 1);
 
-          return const SizedBox.shrink();
-        },
+    if (!context.mounted) return;
+    setState(() => _addingToCart = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? l10n.addedToCart : l10n.addToCartFailed),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: ok ? AppColors.cartForestGreen : Colors.redAccent,
       ),
     );
   }
-}
-
-// ─── Details Body ──────────────────────────────────────────────────────────────
-class _DetailsBody extends StatelessWidget {
-  final KitModel kit;
-  const _DetailsBody({required this.kit});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Hero Image ──────────────────────────────────────────────────
-          _KitImage(imageURL: kit.imageURL),
+    final l10n = AppLocalizations.of(context)!;
+    final width = MediaQuery.sizeOf(context).width;
+    final hPad = width >= 768 ? 40.0 : 20.0;
+    _kitId ??= _resolveKitId(context);
 
-          // ── Content ─────────────────────────────────────────────────────
-          Padding(
+    return Scaffold(
+      backgroundColor: AppColors.cartPageBackground,
+      endDrawer: Drawer(
+        child: SafeArea(
+          child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Labels row
-                Row(
-                  children: [
-                    if (kit.type.isNotEmpty)
-                      _Label(label: kit.type, color: AppColors.teal),
-                    if (kit.mindsetName != null &&
-                        kit.mindsetName!.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      _Label(
-                          label: kit.mindsetName!,
-                          color: const Color(0xFFFF6B6B)),
-                    ],
-                    if (kit.isNew) ...[
-                      const SizedBox(width: 8),
-                      _Label(
-                          label: 'NEW',
-                          color: const Color(0xFFFF4D6D),
-                          filled: true),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Title
-                Text(
-                  kit.name,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
+                Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
-                const SizedBox(height: 12),
-
-                // Price
-                Text(
-                  '\$${kit.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.teal,
-                  ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    Provider.of<LanguageProvider>(context, listen: false)
+                        .toggleLanguage();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(l10n.language),
                 ),
-                const SizedBox(height: 16),
-
-                // Description
-                Text(
-                  kit.description,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Colors.black54,
-                    height: 1.65,
-                  ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
+                  child: Text(l10n.navHome),
                 ),
-
-                // Kit Items
-                if (kit.kitItems.isNotEmpty) ...[
-                  const SizedBox(height: 28),
-                  const Text(
-                    "What's Inside",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...kit.kitItems.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(top: 5),
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.teal,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              item,
-                              style: const TextStyle(
-                                  fontSize: 14, color: Colors.black87),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 40),
-
-                // Add to Cart
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.teal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('${kit.name} added to cart'),
-                          duration: const Duration(seconds: 1),
-                          backgroundColor: AppColors.teal,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.shopping_cart_outlined),
-                    label: const Text(
-                      'Add to Cart',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.navAbout),
                 ),
-                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.navPricing),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.navBlog),
+                ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Sub-widgets ───────────────────────────────────────────────────────────────
-class _KitImage extends StatelessWidget {
-  final String imageURL;
-  const _KitImage({required this.imageURL});
-
-  @override
-  Widget build(BuildContext context) {
-    if (imageURL.isEmpty) {
-      return Container(
-        height: 300,
-        color: Colors.grey[200],
-        child: const Center(
-            child: Icon(Icons.image_not_supported,
-                size: 60, color: Colors.grey)),
-      );
-    }
-
-    return SizedBox(
-      height: 320,
-      width: double.infinity,
-      child: Image.network(
-        imageURL,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          height: 320,
-          color: Colors.grey[200],
-          child: const Center(
-              child:
-                  Icon(Icons.broken_image, size: 60, color: Colors.grey)),
         ),
-        loadingBuilder: (_, child, progress) {
-          if (progress == null) return child;
-          return Container(
-            height: 320,
-            color: Colors.grey[100],
-            child: const Center(
-                child:
-                    CircularProgressIndicator(color: AppColors.teal)),
+      ),
+      body: BlocBuilder<KitCubit, KitState>(
+        builder: (context, state) {
+          return SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                Navbar(
+                  scrollController: _scrollController,
+                  isLoggedIn: true,
+                ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(hPad, 28, hPad, 0),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1180),
+                      child: _buildContent(context, l10n, state),
+                    ),
+                  ),
+                ),
+                Footer(scrollController: _scrollController),
+              ],
+            ),
           );
         },
       ),
     );
   }
-}
 
-class _Label extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool filled;
+  Widget _buildContent(BuildContext context, AppLocalizations l10n, KitState state) {
+    if (state is KitLoading || state is KitInitial) {
+      return const KitDetailsSkeleton();
+    }
 
-  const _Label({
-    required this.label,
-    required this.color,
-    this.filled = false,
-  });
+    if (state is KitError) {
+      return _KitErrorView(
+        message: state.message,
+        onRetry: () => context.read<KitCubit>().getKitById(_kitId!),
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: filled ? color : color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          color: filled ? Colors.white : color,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
+    if (state is KitLoaded) {
+      final kit = state.kit;
+      final criteria = kit.mindset?.criteria ?? [];
+      final reviewCount = _reviewCount(context);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          KitHeroSection(
+            l10n: l10n,
+            kit: kit,
+            reviewCount: reviewCount,
+            rating: _averageRating(context) ?? kit.rating,
+            fallbackMainAsset: KitDetailsConstants.heroMain,
+            fallbackThumbAssets: const [
+              KitDetailsConstants.heroThumb1,
+              KitDetailsConstants.heroThumb2,
+            ],
+            isAddingToCart: _addingToCart,
+            onAddToCart: () => _onAddToCart(context, state),
+          ),
+          const SizedBox(height: 56),
+          KitMindsetSection(
+            l10n: l10n,
+            criteria: criteria,
+          ),
+          const SizedBox(height: 56),
+          KitWhatsInsideSection(
+            l10n: l10n,
+            items: kit.kitItems,
+            imageUrl: kit.imageURL,
+            fallbackImageAsset: KitDetailsConstants.whatsInsideImage,
+          ),
+          const SizedBox(height: 56),
+          KitTestimonialsSection(l10n: l10n),
+          const SizedBox(height: 48),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  int _reviewCount(BuildContext context) {
+    final rState = context.watch<KitReviewsCubit>().state;
+    if (rState is KitReviewsLoaded) return rState.totalReviews;
+    return 0;
+  }
+
+  double? _averageRating(BuildContext context) {
+    final rState = context.watch<KitReviewsCubit>().state;
+    if (rState is KitReviewsLoaded) return rState.averageRating;
+    return null;
   }
 }
 
-class _ErrorView extends StatelessWidget {
+class _KitErrorView extends StatelessWidget {
+  const _KitErrorView({
+    required this.message,
+    required this.onRetry,
+  });
+
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorView({required this.message, required this.onRetry});
-
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              message == 'Unauthorized'
-                  ? Icons.lock_outline
-                  : Icons.error_outline,
-              size: 64,
-              color: Colors.grey[300],
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 80),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline, size: 56, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: onRetry,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.cartTeal,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
             ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.teal,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-              ),
-              onPressed: onRetry,
-              child: const Text('Retry', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
+            child: Text(l10n.retry),
+          ),
+        ],
       ),
     );
   }

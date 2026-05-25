@@ -56,10 +56,13 @@ public class Parent {
     @OneToOne(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
 
+    @JsonIgnore
+    @OneToMany(mappedBy="parent")
+    private List<Review> reviews;
+
 
     private boolean childModeEnabled;
     private String childModePin;
 
-    
-    //todo implement Web Relations
+
 }

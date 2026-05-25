@@ -13,14 +13,28 @@ class TopBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Hamburger menu
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(
+                  Icons.menu_rounded,
+                  color: AppColors.textPrimary,
+                  size: 28,
+                ),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ),
 
+            // Logo
             Image.asset(
               'assets/icons/logo1.png',
               height: 56,
               fit: BoxFit.contain,
             ),
 
-
+            // Avatar
             Container(
               width: 45,
               height: 45,

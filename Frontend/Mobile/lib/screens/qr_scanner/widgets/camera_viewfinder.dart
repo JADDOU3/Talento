@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
 class CameraViewfinder extends StatefulWidget {
-  const CameraViewfinder({super.key});
+  final MobileScannerController scannerController;
+  final void Function(BarcodeCapture capture) onDetect;
+  final bool isScannerStopped;
+  final bool hasReachedMaxScans;
+
+  const CameraViewfinder({
+    super.key,
+    required this.scannerController,
+    required this.onDetect,
+    required this.isScannerStopped,
+    required this.hasReachedMaxScans,
+  });
 
   @override
   State<CameraViewfinder> createState() => _CameraViewfinderState();
@@ -61,31 +73,18 @@ class _CameraViewfinderState extends State<CameraViewfinder>
             return Stack(
               fit: StackFit.expand,
               children: [
-                const _MockCameraFeed(),
+                MobileScanner(
+                  controller: widget.scannerController,
+                  onDetect: widget.onDetect,
+                ),
+
+                Container(
+                  color: AppColors.black.withValues(alpha: 0.08),
+                ),
 
                 CustomPaint(
                   painter: _CameraGridPainter(
                     color: AppColors.white.withValues(alpha: 0.16),
-                  ),
-                ),
-
-                Center(
-                  child: Container(
-                    width: 130,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.30),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.35),
-                        width: 4,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.qr_code_2_rounded,
-                      size: 100,
-                      color: AppColors.yellow.withValues(alpha: 0.55),
-                    ),
                   ),
                 ),
 
@@ -123,6 +122,25 @@ class _CameraViewfinderState extends State<CameraViewfinder>
                   ),
                 ),
 
+                if (widget.isScannerStopped)
+                  Container(
+                    color: AppColors.black.withValues(alpha: 0.55),
+                    child: Center(
+                      child: Text(
+                        widget.hasReachedMaxScans
+                            ? 'تم إيقاف المسح\nوصلتِ إلى 5/5'
+                            : 'تم إيقاف المسح مؤقتًا\nيمكنك تشغيله مرة ثانية',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.headlineMedium.copyWith(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+
                 Positioned(
                   left: 24,
                   right: 24,
@@ -144,7 +162,11 @@ class _CameraViewfinderState extends State<CameraViewfinder>
                       ],
                     ),
                     child: Text(
-                      'وجّه الكاميرا نحو بطاقة تالينتو!',
+                      widget.isScannerStopped
+                          ? widget.hasReachedMaxScans
+                          ? 'اضغط إعادة التجربة لبدء جلسة جديدة'
+                          : 'اضغط تشغيل المسح للمتابعة'
+                          : 'وجّه الكاميرا نحو بطاقة تالينتو!',
                       textAlign: TextAlign.center,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textPrimary,
@@ -157,88 +179,6 @@ class _CameraViewfinderState extends State<CameraViewfinder>
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-class _MockCameraFeed extends StatelessWidget {
-  const _MockCameraFeed();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFD7F4EE),
-            Color(0xFFFFF4D7),
-            Color(0xFFF8D7DC),
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 34,
-            left: 35,
-            child: _cameraBlob(
-              size: 104,
-              color: AppColors.secondary.withValues(alpha: 0.24),
-            ),
-          ),
-
-          Positioned(
-            bottom: 86,
-            left: 34,
-            child: _cameraBlob(
-              size: 118,
-              color: AppColors.yellow.withValues(alpha: 0.24),
-            ),
-          ),
-          Positioned(
-            bottom: 132,
-            right: 38,
-            child: _cameraBlob(
-              size: 92,
-              color: AppColors.pink.withValues(alpha: 0.16),
-            ),
-          ),
-          Positioned(
-            top: 65,
-            right: 80,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: AppColors.yellow.withValues(alpha: 0.5),
-              size: 40,
-            ),
-          ),
-          Positioned(
-            top: 145,
-            left: 72,
-            child: Icon(
-              Icons.center_focus_strong_rounded,
-              color: AppColors.white.withValues(alpha: 0.22),
-              size: 42,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _cameraBlob({
-    required double size,
-    required Color color,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
       ),
     );
   }

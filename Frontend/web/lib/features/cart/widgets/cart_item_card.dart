@@ -54,11 +54,10 @@ class CartItemCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.asset(
-                    imageAsset,
+                  child: _CartLineImage(
+                    pathOrUrl: imageAsset,
                     width: 96,
                     height: 96,
-                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -124,6 +123,67 @@ class CartItemCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CartLineImage extends StatelessWidget {
+  final String pathOrUrl;
+  final double width;
+  final double height;
+
+  const _CartLineImage({
+    required this.pathOrUrl,
+    required this.width,
+    required this.height,
+  });
+
+  static const String _fallback = 'assets/images/img1.jpg';
+
+  bool get _isNetwork =>
+      pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://');
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isNetwork) {
+      return Image.network(
+        pathOrUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => Image.asset(
+          _fallback,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+        ),
+        loadingBuilder: (_, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            width: width,
+            height: height,
+            child: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+      );
+    }
+    return Image.asset(
+      pathOrUrl.isEmpty ? _fallback : pathOrUrl,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => Image.asset(
+        _fallback,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
       ),
     );
   }

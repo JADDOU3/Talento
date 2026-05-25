@@ -54,6 +54,10 @@ public class Kit {
     @JsonIgnore
     @OneToMany(mappedBy = "kit")
     private List<ChildKit> childKits;
+
+    @JsonIgnore
+    @OneToMany(mappedBy="kit")
+    private List<Review> reviews;
     @OneToMany(mappedBy = "kit")
     private List<CartItem> cartItems = new ArrayList<>();
 

@@ -8,14 +8,17 @@ import '../../../cubits/community/like_cubit.dart';
 import '../../../cubits/community/like_state.dart';
 import '../../../cubits/community/post_cubit.dart';
 import '../../../models/community/post.dart';
+import '../../../services/community/post.dart';
 import '../post_details_screen.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
+  final bool isChildMode;
 
   const PostCard({
     super.key,
     required this.post,
+    this.isChildMode = false,
   });
 
   @override
@@ -26,20 +29,23 @@ class _PostCardState extends State<PostCard> {
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() {
       context.read<LikeCubit>().getLikeCount(widget.post.id);
     });
   }
 
   void _openPostDetails() {
+    // Save comment cubit reference before navigation
+    final commentCubit = context.read<CommentCubit>();
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => MultiBlocProvider(
           providers: [
-            BlocProvider.value(value: context.read<PostCubit>()),
-            BlocProvider.value(value: context.read<CommentCubit>()),
+            // ✅ New independent PostCubit — won't affect CommunityScreen state
+            BlocProvider(create: (_) => PostCubit(PostService())),
+            BlocProvider.value(value: commentCubit),
           ],
           child: PostDetailsScreen(postId: widget.post.id),
         ),
@@ -51,7 +57,6 @@ class _PostCardState extends State<PostCard> {
   Widget build(BuildContext context) {
     final imageUrl =
     widget.post.media.isNotEmpty ? widget.post.media.first.url : null;
-
     final childName = widget.post.child?.name ?? 'طفل تالينتو';
 
     return InkWell(
@@ -62,7 +67,8 @@ class _PostCardState extends State<PostCard> {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+          border:
+          Border.all(color: AppColors.border.withValues(alpha: 0.65)),
           boxShadow: [
             BoxShadow(
               color: AppColors.black.withValues(alpha: 0.045),
@@ -74,16 +80,14 @@ class _PostCardState extends State<PostCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Header
             Row(
               children: [
                 const CircleAvatar(
                   radius: 18,
                   backgroundColor: AppColors.inputFill,
-                  child: Icon(
-                    Icons.person_rounded,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
+                  child: Icon(Icons.person_rounded,
+                      color: AppColors.primary, size: 20),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -110,13 +114,12 @@ class _PostCardState extends State<PostCard> {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.more_horiz_rounded,
-                  color: AppColors.textSecondary,
-                  size: 22,
-                ),
+                const Icon(Icons.more_horiz_rounded,
+                    color: AppColors.textSecondary, size: 22),
               ],
             ),
+
+            // Image
             if (imageUrl != null && imageUrl.isNotEmpty) ...[
               const SizedBox(height: 12),
               ClipRRect(
@@ -128,42 +131,52 @@ class _PostCardState extends State<PostCard> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: AppColors.inputFill,
-                      child: const Icon(Icons.image_not_supported_outlined),
+                      child:
+                      const Icon(Icons.image_not_supported_outlined),
                     ),
                   ),
                 ),
               ),
             ],
+
             const SizedBox(height: 12),
+
             BlocBuilder<LikeCubit, LikeState>(
               builder: (context, state) {
                 final likeCubit = context.read<LikeCubit>();
-
-                final count = likeCubit.likeCounts[widget.post.id] ?? 0;
-                final isLiked = likeCubit.likedPosts[widget.post.id] ?? false;
+                final count =
+                    likeCubit.likeCounts[widget.post.id] ?? 0;
+                final isLiked =
+                    likeCubit.likedPosts[widget.post.id] ?? false;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Row(
                       children: [
-                        InkWell(
-                          onTap: () {
-                            context
+                        // Like button hidden in child mode, count always visible
+                        if (!widget.isChildMode)
+                          InkWell(
+                            onTap: () => context
                                 .read<LikeCubit>()
-                                .toggleLike(widget.post.id);
-                          },
-                          borderRadius: BorderRadius.circular(30),
-                          child: Icon(
-                            isLiked
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: isLiked
-                                ? AppColors.pink
-                                : AppColors.textSecondary,
+                                .toggleLike(widget.post.id),
+                            borderRadius: BorderRadius.circular(30),
+                            child: Icon(
+                              isLiked
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: isLiked
+                                  ? AppColors.pink
+                                  : AppColors.textSecondary,
+                              size: 23,
+                            ),
+                          ),
+                        if (widget.isChildMode)
+                          const Icon(
+                            Icons.favorite_rounded,
+                            color: AppColors.pink,
                             size: 23,
                           ),
-                        ),
                         const SizedBox(width: 5),
                         Text(
                           count.toString(),
@@ -174,10 +187,11 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                         const SizedBox(width: 18),
+                        // Comment icon — read-only in child mode
                         InkWell(
                           onTap: _openPostDetails,
                           borderRadius: BorderRadius.circular(30),
-                          child: Icon(
+                          child: const Icon(
                             Icons.mode_comment_outlined,
                             color: AppColors.textSecondary,
                             size: 21,
@@ -231,7 +245,6 @@ class _PostCardState extends State<PostCard> {
 
   String _formatDate(String value) {
     if (value.isEmpty) return '';
-
     try {
       final date = DateTime.parse(value);
       return '${date.year}/${date.month}/${date.day}';

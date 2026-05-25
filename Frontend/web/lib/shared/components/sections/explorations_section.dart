@@ -6,6 +6,15 @@ class ExplorationsSection extends StatelessWidget {
 
   static const double kRowHeight = 420.0;
 
+  /// Backend kit IDs aligned with home marketing cards (catalog uses live IDs).
+  static const int _botanistKitId = 1;
+  static const int _avianKitId = 2;
+  static const int _prismKitId = 3;
+
+  void _openKitDetails(BuildContext context, int kitId) {
+    Navigator.pushNamed(context, '/kit-details', arguments: kitId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -21,7 +30,9 @@ class ExplorationsSection extends StatelessWidget {
             children: [
               _header(l10n, mobile: width < 768),
               const SizedBox(height: 32),
-              width >= 768 ? _buildDesktop(l10n) : _buildMobile(l10n),
+              width >= 768
+                  ? _buildDesktop(context, l10n)
+                  : _buildMobile(context, l10n),
             ],
           ),
         ),
@@ -80,7 +91,7 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktop(AppLocalizations l10n) {
+  Widget _buildDesktop(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
         SizedBox(
@@ -88,9 +99,9 @@ class ExplorationsSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(flex: 2, child: _bigCard(l10n)),
+              Expanded(flex: 2, child: _bigCard(context, l10n)),
               const SizedBox(width: 20),
-              Expanded(child: _avianCard(l10n)),
+              Expanded(child: _avianCard(context, l10n)),
             ],
           ),
         ),
@@ -100,9 +111,9 @@ class ExplorationsSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: _prismCard(l10n)),
+              Expanded(child: _prismCard(context, l10n)),
               const SizedBox(width: 20),
-              Expanded(flex: 2, child: _featured(l10n)),
+              Expanded(flex: 2, child: _featured(context, l10n)),
             ],
           ),
         ),
@@ -110,22 +121,60 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildMobile(AppLocalizations l10n) {
+  Widget _buildMobile(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
-        _mobileCard(imagePath: "assets/images/img5.png", tag: "AGES 6-9", tagColor: Colors.green, title: l10n.card1Title, description: l10n.card1Desc, hasButton: true, buttonText: l10n.card1Button),
+        _mobileCard(
+          context: context,
+          kitId: _botanistKitId,
+          imagePath: 'assets/images/img5.png',
+          tag: 'AGES 6-9',
+          tagColor: Colors.green,
+          title: l10n.card1Title,
+          description: l10n.card1Desc,
+          hasButton: true,
+          buttonText: l10n.card1Button,
+        ),
         const SizedBox(height: 16),
-        _mobileCard(imagePath: "assets/images/img6.png", tag: "AGES 4-6", tagColor: const Color(0xFFE91E8C), title: l10n.card2Title, description: l10n.card2Desc),
+        _mobileCard(
+          context: context,
+          kitId: _avianKitId,
+          imagePath: 'assets/images/img6.png',
+          tag: 'AGES 4-6',
+          tagColor: const Color(0xFFE91E8C),
+          title: l10n.card2Title,
+          description: l10n.card2Desc,
+        ),
         const SizedBox(height: 16),
-        _mobileCard(imagePath: "assets/images/img7.png", tag: "AGES 8-12", tagColor: Colors.blue, title: l10n.card3Title, description: l10n.card3Desc),
+        _mobileCard(
+          context: context,
+          kitId: _prismKitId,
+          imagePath: 'assets/images/img7.png',
+          tag: 'AGES 8-12',
+          tagColor: Colors.blue,
+          title: l10n.card3Title,
+          description: l10n.card3Desc,
+        ),
         const SizedBox(height: 16),
-        _featuredMobile(l10n),
+        _featuredMobile(context, l10n),
       ],
     );
   }
 
-  Widget _mobileCard({required String imagePath, required String tag, required Color tagColor, required String title, required String description, bool hasButton = false, String? buttonText}) {
-    return Container(
+  Widget _mobileCard({
+    required BuildContext context,
+    required int kitId,
+    required String imagePath,
+    required String tag,
+    required Color tagColor,
+    required String title,
+    required String description,
+    bool hasButton = false,
+    String? buttonText,
+  }) {
+    return GestureDetector(
+      onTap: () => _openKitDetails(context, kitId),
+      child: Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +199,7 @@ class ExplorationsSection extends StatelessWidget {
                     width: double.infinity,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(foregroundColor: Colors.green, side: const BorderSide(color: Colors.green, width: 1.5), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                      onPressed: () {},
+                      onPressed: () => _openKitDetails(context, kitId),
                       child: Text(buttonText, style: const TextStyle(fontSize: 15)),
                     ),
                   ),
@@ -160,11 +209,14 @@ class ExplorationsSection extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _featuredMobile(AppLocalizations l10n) {
-    return ClipRRect(
+  Widget _featuredMobile(BuildContext context, AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: () => _openKitDetails(context, _botanistKitId),
+      child: ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Stack(
         children: [
@@ -191,7 +243,7 @@ class ExplorationsSection extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF2DC5A2), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                    onPressed: () {},
+                    onPressed: () => _openKitDetails(context, _botanistKitId),
                     child: Text(l10n.featuredButton, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   ),
                 ),
@@ -200,11 +252,14 @@ class ExplorationsSection extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _bigCard(AppLocalizations l10n) {
-    return Container(
+  Widget _bigCard(BuildContext context, AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: () => _openKitDetails(context, _botanistKitId),
+      child: Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       child: Row(
         children: [
@@ -228,7 +283,7 @@ class ExplorationsSection extends StatelessWidget {
                   ),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(foregroundColor: Colors.green, side: const BorderSide(color: Colors.green, width: 1.5), padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                    onPressed: () {},
+                    onPressed: () => _openKitDetails(context, _botanistKitId),
                     child: Text(l10n.card1Button, style: const TextStyle(fontSize: 16)),
                   ),
                 ],
@@ -237,11 +292,14 @@ class ExplorationsSection extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _avianCard(AppLocalizations l10n) {
-    return Container(
+  Widget _avianCard(BuildContext context, AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: () => _openKitDetails(context, _avianKitId),
+      child: Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -263,11 +321,14 @@ class ExplorationsSection extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _prismCard(AppLocalizations l10n) {
-    return Container(
+  Widget _prismCard(BuildContext context, AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: () => _openKitDetails(context, _prismKitId),
+      child: Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -289,11 +350,14 @@ class ExplorationsSection extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _featured(AppLocalizations l10n) {
-    return ClipRRect(
+  Widget _featured(BuildContext context, AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: () => _openKitDetails(context, _botanistKitId),
+      child: ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: Stack(
         fit: StackFit.expand,
@@ -318,7 +382,7 @@ class ExplorationsSection extends StatelessWidget {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF2DC5A2), elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                  onPressed: () {},
+                  onPressed: () => _openKitDetails(context, _botanistKitId),
                   child: Text(l10n.featuredButton, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 ),
               ],
@@ -326,6 +390,7 @@ class ExplorationsSection extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

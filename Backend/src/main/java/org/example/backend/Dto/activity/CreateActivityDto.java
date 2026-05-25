@@ -12,5 +12,8 @@ import org.example.backend.util.enums.Type;
 public class CreateActivityDto {
     private String name;
     private String description;
+    private String gameDescription;
+    private String coverImageKey;
     private Type type;
+    private Boolean voiceEnabled;
 }

@@ -310,9 +310,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yourBasket => 'سلة مشترياتك';
 
   @override
-  String cartItemsCount(int count) {
-    return '$count عناصر';
-  }
+  String cartItemsCount(int count) => '$count عناصر';
 
   @override
   String get recommendedForYou => 'موصى به لك';
@@ -377,9 +375,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cartRec2Desc => 'تعمّق في الأوراق والحشرات مع شرائح موجّهة.';
 
   @override
-  String cartAddAmount(String amount) {
-    return 'أضف +$amount';
-  }
+  String cartAddAmount(String amount) => 'أضف +$amount';
 
   @override
   String get cartLine1Title => 'مجموعة عالم النباتات';
@@ -412,6 +408,294 @@ class AppLocalizationsAr extends AppLocalizations {
   String get footerLinkedIn => 'لينكد إن';
 
   @override
-  String get cartCopyrightLine =>
-      '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+  String get cartCopyrightLine => '© 2024 تالينتو كيدز. جذورنا في الفضول.';
+
+  @override
+  String get nurturingTitle => 'تنمية علماء الغد';
+
+  @override
+  String get whatsInsideTitle => 'ما الذي بداخل المختبر؟';
+
+  @override
+  String get explorerTestimonials => 'آراء المستكشفين';
+
+  @override
+  String get testimonialsSubtitle =>
+      'آراء الآباء والمستكشفين الصغار من حول العالم';
+
+  @override
+  String get writeReview => 'اكتب مراجعة';
+
+  @override
+  String get addToCart => 'أضف إلى السلة';
+
+  @override
+  String get partnerQuality => 'جودة الشريك';
+
+  @override
+  String get partnerQualitySubtitle =>
+      'مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.';
+
+  @override
+  String reviews(int count) => '$count مراجعة';
+
+  @override
+  String get kitDetailsCategory => 'الطبيعة والعلوم';
+
+  @override
+  String get kitDetailsName => 'مجموعة اكتشاف العالم النباتي';
+
+  @override
+  String get kitDetailsDescription =>
+      'أدوات ودلائل مختارة بعناية لمساعدة الصغار على التعرف على العينات، كبس النباتات، وفهم البيئة من الحديقة إلى الطبيعة.';
+
+  @override
+  String get kitDetailsAgeTag => 'الأعمار 6–12';
+
+  @override
+  String get kitDetailsExperimentsTag => '+15 تجربة';
+
+  @override
+  String get kitDetailsPriceCurrent => '84.00 \$';
+
+  @override
+  String get kitDetailsPriceOriginal => '110.00 \$';
+
+  @override
+  String get mindsetCard1Title => 'الملاحظة النقدية';
+
+  @override
+  String get mindsetCard1Body =>
+      'تنمية الانتباه للتفاصيل والتدوين بصبر ليلاحظ الأطفال الأنماط في العالم الحي.';
+
+  @override
+  String get mindsetCard2Title => 'الثقافة البيئية';
+
+  @override
+  String get mindsetCard2Body =>
+      'ربط النباتات والتربة والموائل لفهم كيف تدعم الأنظمة البيئية بعضها.';
+
+  @override
+  String get mindsetCard3Title => 'مهارات المختبر';
+
+  @override
+  String get mindsetCard3Body =>
+      'تعريف الطفل بالتعامل الحذر مع الأدوات والعينات وبأساليب بسيطة يستخدمها العلماء.';
+
+  @override
+  String get kitContent1Title => 'عدسة نحاسية دقيقة';
+
+  @override
+  String get kitContent1Desc => 'تكبير 10× مع زجاج مقاوم للخدش.';
+
+  @override
+  String get kitContent2Title => 'مفكرة المستكشف القماشية';
+
+  @override
+  String get kitContent2Desc =>
+      'صفحات مقاومة للماء لملاحظات الحقل ورسم العينات.';
+
+  @override
+  String get kitContent3Title => 'مكبس نباتات خشبي';
+
+  @override
+  String get kitContent3Desc =>
+      'مكبس من خشب البلوط من مصادر مستدامة مع أحزمة شد قابلة للتعديل.';
+
+  @override
+  String get kitContent4Title => 'مجموعة جمع العينات';
+
+  @override
+  String get kitContent4Desc =>
+      'تشمل 12 أنبوب اختبار زجاجي وملقط وملصقات للتسمية.';
+
+  @override
+  String get testimonial1Body =>
+      'حولت هذه المجموعة نزهاتنا في عطلة نهاية الأسبوع إلى دراسات ميدانية حقيقية. ابنتي تحتفظ الآن بمفكرة أوراق مكبوسة على مكتبها.';
+
+  @override
+  String get testimonial1Name => 'سارة إلويك';
+
+  @override
+  String get testimonial1Role => 'مستكشفة موثقة';
+
+  @override
+  String get testimonial2Body =>
+      'أدلة واضحة ومواد متينة — أستخدمها في نادي العلوم بعد المدرسة وسأطلب المزيد للفصل القادم.';
+
+  @override
+  String get testimonial2Name => 'السيد آلان بورتر';
+
+  @override
+  String get testimonial2Role => 'معلم علوم';
+
+  @override
+  String get kitDetailsAddToCartDemo =>
+      'معاينة فقط — السلة لا تتزامن من هذه الشاشة.';
+
+  @override
+  String get addedToCart => 'تمت الإضافة إلى السلة';
+
+  @override
+  String get addToCartFailed => 'تعذرت الإضافة إلى السلة. حاول مرة أخرى.';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get noReviewsYet => 'لا توجد مراجعات بعد';
+
+  @override
+  String get verifiedExplorer => 'مستكشف موثق';
+
+  @override
+  String get mindsetCriteriaPlaceholder =>
+      'ينمّي الفضول والتركيز والتفكير العلمي من خلال استكشاف موجّه.';
+
+  @override
+  String get kitContentItemPlaceholder =>
+      'مضمّن في مجموعة الاكتشاف هذه للتعلم العملي.';
+
+  @override
+  String kitDetailsAgePlus(int age) {
+    return 'من عمر $age+';
+  }
+
+  @override
+  String kitDetailsItemsCount(int count) {
+    return '$count عنصر';
+  }
+
+  @override
+  String kitRatingSummary(String rating, int count) {
+    return '★ $rating ($count مراجعة)';
+  }
+
+  @override
+  String get profileUserName => 'سارة';
+
+  @override
+  String get profileChildName => 'ليو';
+
+  @override
+  String profileWelcomeBack(String name) {
+    return 'مرحباً بعودتك، $name.';
+  }
+
+  @override
+  String profileWelcomeSubtitle(String childName) {
+    return 'مختبرك العضوي يزدهر. إليك ما يستكشفه $childName اليوم.';
+  }
+
+  @override
+  String get profileCuriosityProgress => 'تقدم الفضول';
+
+  @override
+  String get profileKitTitle => 'مجموعة اكتشاف الغابة العميقة';
+
+  @override
+  String get profileKitDescription =>
+      'أكمل ليو 4 من 6 تجارب نباتية. وحدة «شبكات الفطر» بانتظار الاكتشاف.';
+
+  @override
+  String profileMasteryReached(int percent) {
+    return 'تم الوصول إلى $percent% إتقان';
+  }
+
+  @override
+  String get profileOrderHistory => 'سجل الطلبات';
+
+  @override
+  String get profileViewAllOrders => 'عرض كل الطلبات';
+
+  @override
+  String get profileOrder1Number => '#TLN-49202';
+
+  @override
+  String get profileOrder1Subtitle => 'مجموعة التنوير الحيوي • 12 سبتمبر';
+
+  @override
+  String get profileOrder2Number => '#TLN-48115';
+
+  @override
+  String get profileOrder2Subtitle => 'عالم النباتات • 3 أغسطس';
+
+  @override
+  String get profileOrder3Number => '#TLN-47088';
+
+  @override
+  String get profileOrder3Subtitle => 'مهندس الطيور • 21 يونيو';
+
+  @override
+  String get profileDelivered => 'تم التسليم';
+
+  @override
+  String get profileManageSubscription => 'إدارة الاشتراك';
+
+  @override
+  String get profileActive => 'نشط';
+
+  @override
+  String get profilePlanName => 'خطة المستكشف الشهرية';
+
+  @override
+  String get profileNextDelivery => 'التسليم القادم: 24 أكتوبر 2024';
+
+  @override
+  String get profileBillingAmount => 'مبلغ الفاتورة: 34.00 \$/شهر';
+
+  @override
+  String get profilePauseOrUpdate => 'إيقاف أو تحديث الخطة';
+
+  @override
+  String profileLeosBadges(String childName) {
+    return 'شارات $childName';
+  }
+
+  @override
+  String get profileBadgesSubtitle => 'أوسمة مكتسبة من الاكتشاف.';
+
+  @override
+  String get profileViewPortfolio => 'عرض المحفظة ←';
+
+  @override
+  String get profileAccountSettings => 'إعدادات الحساب';
+
+  @override
+  String get profileProfileInformation => 'معلومات الملف الشخصي';
+
+  @override
+  String get profilePaymentMethods => 'طرق الدفع';
+
+  @override
+  String get profileShippingAddress => 'عنوان الشحن';
+
+  @override
+  String get profileSignOut => 'تسجيل الخروج';
+
+  @override
+  String profileRecommendedForLeo(String childName) {
+    return 'موصى به لـ $childName';
+  }
+
+  @override
+  String get profileRec1Badge => 'فيزياء • الأعمار 8-12';
+
+  @override
+  String get profileRec1Title => 'هيدraulics النمو';
+
+  @override
+  String get profileRec2Badge => 'هندسة • الأعمار 8-12';
+
+  @override
+  String get profileRec2Title => 'هندسة الطيور';
+
+  @override
+  String get profileRec3Badge => 'طبيعة • الأعمار 6-10';
+
+  @override
+  String get profileRec3Title => 'حكايات المظلة';
+
+  @override
+  String get profileMyAccount => 'حسابي';
 }

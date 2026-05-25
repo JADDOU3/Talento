@@ -103,7 +103,10 @@ class _CartPageState extends State<CartPage> {
                   child: Text(l10n.language),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
                   child: Text(l10n.navHome),
                 ),
                 TextButton(
