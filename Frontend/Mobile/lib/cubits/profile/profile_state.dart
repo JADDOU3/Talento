@@ -1,7 +1,7 @@
 import '../../models/kit/kit_model.dart';
 
-import '../../models/user_model.dart';
-import '../../models/child_model.dart';
+import '../../models/childmode/user_model.dart';
+import '../../models/childmode/child_model.dart';
 
 
 abstract class ProfileState {}

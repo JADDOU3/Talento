@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/child_mode/child_mode_state.dart';
 import '../../cubits/community/post_cubit.dart';
 import '../../cubits/community/post_state.dart';
 import '../../cubits/community/like_cubit.dart';
@@ -12,11 +14,12 @@ import '../../services/community/post.dart';
 import '../../services/community/like.dart';
 import '../../services/community/comment.dart';
 import '../../services/community/media.dart';
+import '../../shared/layout/app_drawer.dart';
+import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/app_background.dart';
 import 'widgets/action_icon_button.dart';
 import 'widgets/category_chip.dart';
-import 'widgets/custom_bottom_nav.dart';
 import 'widgets/feature_card.dart';
 import 'widgets/post_card.dart';
 import 'create_post_sheet.dart';
@@ -28,18 +31,10 @@ class CommunityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => PostCubit(PostService())..getAllPosts(),
-        ),
-        BlocProvider(
-          create: (_) => LikeCubit(LikeService()),
-        ),
-        BlocProvider(
-          create: (_) => CommentCubit(CommentService()),
-        ),
-        BlocProvider(
-          create: (_) => MediaCubit(MediaService()),
-        ),
+        BlocProvider(create: (_) => PostCubit(PostService())..getAllPosts()),
+        BlocProvider(create: (_) => LikeCubit(LikeService())),
+        BlocProvider(create: (_) => CommentCubit(CommentService())),
+        BlocProvider(create: (_) => MediaCubit(MediaService())),
       ],
       child: const _CommunityView(),
     );
@@ -65,18 +60,11 @@ class _CommunityViewState extends State<_CommunityView> {
 
   void _onCategoryTap(int index) {
     setState(() => selectedChip = index);
-
     final postCubit = context.read<PostCubit>();
-
-    if (index == 0) {
-      postCubit.getAllPosts();
-    } else if (index == 1) {
-      postCubit.getMyPosts();
-    } else if (index == 2) {
-      postCubit.getPostsByMindset(1);
-    } else if (index == 3) {
-      postCubit.getPostsByKit(1);
-    }
+    if (index == 0) postCubit.getAllPosts();
+    else if (index == 1) postCubit.getMyPosts();
+    else if (index == 2) postCubit.getPostsByMindset(1);
+    else if (index == 3) postCubit.getPostsByKit(1);
   }
 
   void _openCreatePostSheet() {
@@ -96,9 +84,14 @@ class _CommunityViewState extends State<_CommunityView> {
 
   @override
   Widget build(BuildContext context) {
+    final childModeState = context.watch<ChildModeCubit>().state;
+    final isChildMode =
+        childModeState is ChildModeStatus && childModeState.isChildMode;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        drawer: const AppDrawer(),
         backgroundColor: AppColors.background,
         body: AppBackground(
           child: Column(
@@ -138,13 +131,18 @@ class _CommunityViewState extends State<_CommunityView> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              Center(
-                                child: ActionIconButton(
-                                  text: 'شارك قصتك',
-                                  onTap: _openCreatePostSheet,
+
+                              // Hidden in child mode
+                              if (!isChildMode)
+                                Center(
+                                  child: ActionIconButton(
+                                    text: 'شارك قصتك',
+                                    onTap: _openCreatePostSheet,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 28),
+
+                              if (!isChildMode) const SizedBox(height: 28),
+
                               Text(
                                 'القصص الحديثة',
                                 textAlign: TextAlign.right,
@@ -165,7 +163,6 @@ class _CommunityViewState extends State<_CommunityView> {
                                       ),
                                     );
                                   }
-
                                   if (state is PostError) {
                                     return Center(
                                       child: Text(
@@ -174,7 +171,6 @@ class _CommunityViewState extends State<_CommunityView> {
                                       ),
                                     );
                                   }
-
                                   if (state is PostLoaded) {
                                     if (state.posts.isEmpty) {
                                       return const Center(
@@ -184,18 +180,19 @@ class _CommunityViewState extends State<_CommunityView> {
                                         ),
                                       );
                                     }
-
                                     return Column(
                                       children: state.posts.map((post) {
                                         return Padding(
-                                          padding:
-                                          const EdgeInsets.only(bottom: 18),
-                                          child: PostCard(post: post),
+                                          padding: const EdgeInsets.only(
+                                              bottom: 18),
+                                          child: PostCard(
+                                            post: post,
+                                            isChildMode: isChildMode,
+                                          ),
                                         );
                                       }).toList(),
                                     );
                                   }
-
                                   return const SizedBox.shrink();
                                 },
                               ),
@@ -207,7 +204,8 @@ class _CommunityViewState extends State<_CommunityView> {
                   ),
                 ),
               ),
-              const CustomBottomNav(selectedIndex: 2),
+              // ✅ Same BottomNavBar as all other screens
+              const BottomNavBar(selectedIndex: 2),
             ],
           ),
         ),
@@ -224,9 +222,7 @@ class _SearchBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: AppColors.border.withValues(alpha: 0.55),
-        ),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.55)),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.05),
@@ -246,16 +242,11 @@ class _SearchBar extends StatelessWidget {
             fontSize: 12.5,
             fontWeight: FontWeight.w600,
           ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: AppColors.hint,
-            size: 22,
-          ),
+          prefixIcon: const Icon(Icons.search_rounded,
+              color: AppColors.hint, size: 22),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 15,
-          ),
+              horizontal: 18, vertical: 15),
         ),
       ),
     );

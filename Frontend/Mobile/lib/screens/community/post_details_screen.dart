@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../cubits/child_mode/child_mode_cubit.dart';
+import '../../../cubits/child_mode/child_mode_state.dart';
 import '../../../cubits/community/comment_cubit.dart';
 import '../../../cubits/community/comment_state.dart';
 import '../../../cubits/community/post_cubit.dart';
@@ -29,7 +31,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() {
       context.read<PostCubit>().getPostById(widget.postId);
       context.read<CommentCubit>().getCommentsByPost(widget.postId);
@@ -44,9 +45,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   void _sendComment() {
     final text = _commentController.text.trim();
-
     if (text.isEmpty) return;
-
     context.read<CommentCubit>().createComment(
       CreateComment(
         postId: widget.postId,
@@ -55,12 +54,16 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
         parentId: null,
       ),
     );
-
     _commentController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Check child mode
+    final childModeState = context.watch<ChildModeCubit>().state;
+    final isChildMode =
+        childModeState is ChildModeStatus && childModeState.isChildMode;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -76,7 +79,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           ),
         ),
       ),
-      extendBodyBehindAppBar: false,
       body: AppBackground(
         child: Column(
           children: [
@@ -84,17 +86,11 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               child: BlocBuilder<PostCubit, PostState>(
                 builder: (context, state) {
                   if (state is PostLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
-
                   if (state is PostError) {
-                    return Center(
-                      child: Text(state.message),
-                    );
+                    return Center(child: Text(state.message));
                   }
-
                   if (state is PostDetailsLoaded) {
                     return SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
@@ -114,34 +110,33 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
+                          // Comments list — readable in child mode
                           _CommentsList(postId: widget.postId),
                         ],
                       ),
                     );
                   }
-
                   return const SizedBox.shrink();
                 },
               ),
             ),
-            _CommentInput(
-              controller: _commentController,
-              onSend: _sendComment,
-            ),
+
+            // Comment input hidden in child mode
+            if (!isChildMode)
+              _CommentInput(
+                controller: _commentController,
+                onSend: _sendComment,
+              ),
           ],
         ),
       ),
     );
   }
-
 }
 
 class _PostDetailsCard extends StatelessWidget {
   final Post post;
-
-  const _PostDetailsCard({
-    required this.post,
-  });
+  const _PostDetailsCard({required this.post});
 
   @override
   Widget build(BuildContext context) {
@@ -153,9 +148,7 @@ class _PostDetailsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.border.withValues(alpha: 0.65),
-        ),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.045),
@@ -172,10 +165,7 @@ class _PostDetailsCard extends StatelessWidget {
               const CircleAvatar(
                 radius: 20,
                 backgroundColor: AppColors.inputFill,
-                child: Icon(
-                  Icons.person_rounded,
-                  color: AppColors.primary,
-                ),
+                child: Icon(Icons.person_rounded, color: AppColors.primary),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -199,9 +189,7 @@ class _PostDetailsCard extends StatelessWidget {
                 errorBuilder: (_, __, ___) => Container(
                   height: 180,
                   color: AppColors.inputFill,
-                  child: const Icon(
-                    Icons.image_not_supported_outlined,
-                  ),
+                  child: const Icon(Icons.image_not_supported_outlined),
                 ),
               ),
             ),
@@ -225,10 +213,7 @@ class _PostDetailsCard extends StatelessWidget {
 
 class _CommentsList extends StatelessWidget {
   final int postId;
-
-  const _CommentsList({
-    required this.postId,
-  });
+  const _CommentsList({required this.postId});
 
   @override
   Widget build(BuildContext context) {
@@ -242,25 +227,18 @@ class _CommentsList extends StatelessWidget {
             ),
           );
         }
-
         if (state is CommentError) {
-          return Text(
-            state.message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red),
-          );
+          return Text(state.message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red));
         }
-
         if (state is CommentLoaded) {
           if (state.comments.isEmpty) {
             return const Padding(
               padding: EdgeInsets.all(18),
-              child: Center(
-                child: Text('لا توجد تعليقات بعد'),
-              ),
+              child: Center(child: Text('لا توجد تعليقات بعد')),
             );
           }
-
           return Column(
             children: state.comments.map((comment) {
               return Container(
@@ -270,8 +248,7 @@ class _CommentsList extends StatelessWidget {
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: AppColors.border.withValues(alpha: 0.6),
-                  ),
+                      color: AppColors.border.withValues(alpha: 0.6)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,11 +256,8 @@ class _CommentsList extends StatelessWidget {
                     const CircleAvatar(
                       radius: 16,
                       backgroundColor: AppColors.inputFill,
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 17,
-                        color: AppColors.primary,
-                      ),
+                      child: Icon(Icons.person_rounded,
+                          size: 17, color: AppColors.primary),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -303,21 +277,18 @@ class _CommentsList extends StatelessWidget {
             }).toList(),
           );
         }
-
         return const SizedBox.shrink();
       },
     );
   }
 }
 
+// Comment input — only shown when NOT in child mode
 class _CommentInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
 
-  const _CommentInput({
-    required this.controller,
-    required this.onSend,
-  });
+  const _CommentInput({required this.controller, required this.onSend});
 
   @override
   Widget build(BuildContext context) {
@@ -328,19 +299,14 @@ class _CommentInput extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.background,
           border: Border(
-            top: BorderSide(
-              color: AppColors.border.withValues(alpha: 0.7),
-            ),
+            top: BorderSide(color: AppColors.border.withValues(alpha: 0.7)),
           ),
         ),
         child: Row(
           children: [
             IconButton(
               onPressed: onSend,
-              icon: const Icon(
-                Icons.send_rounded,
-                color: AppColors.primary,
-              ),
+              icon: const Icon(Icons.send_rounded, color: AppColors.primary),
             ),
             Expanded(
               child: TextField(

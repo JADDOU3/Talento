@@ -1,8 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../core/theme/app_colors.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../services/auth/token_storage_service.dart';
+import '../../shared/widgets/app_background.dart';
 import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 
@@ -25,15 +29,31 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final accessToken = await TokenStorageService.getAccessToken();
-    final refreshToken = await TokenStorageService.getRefreshToken();
+    String? accessToken;
+    String? refreshToken;
+
+    try {
+      accessToken = await TokenStorageService.getAccessToken()
+          .timeout(const Duration(seconds: 5));
+      refreshToken = await TokenStorageService.getRefreshToken()
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      accessToken = null;
+      refreshToken = null;
+    }
 
     if (!mounted) return;
 
-    if (accessToken != null &&
+    final isLoggedIn = accessToken != null &&
         accessToken.isNotEmpty &&
         refreshToken != null &&
-        refreshToken.isNotEmpty) {
+        refreshToken.isNotEmpty;
+
+    if (isLoggedIn) {
+      await context.read<ChildModeCubit>().checkChildMode();
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -41,6 +61,8 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     } else {
+      context.read<ChildModeCubit>().reset();
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
