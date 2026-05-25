@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/config/api_constants.dart';
-import '../models/childmode/user_model.dart';
-import '../models/childmode/child_model.dart';
+import '../../models/user_model.dart';
+import '../../models/child_model.dart';
 import '../models/kit/kit_model.dart';
 import 'auth/auth_service.dart';
 import 'auth/token_storage_service.dart';
@@ -70,6 +70,33 @@ class ProfileService {
     return response;
   }
 
+  Future<http.Response> _putWithRefresh(String url) async {
+    var headers = await _getHeaders();
+
+    debugPrint('PUT URL: $url');
+    debugPrint('HAS TOKEN: ${headers['Authorization'] != null}');
+
+    var response = await http.put(
+      Uri.parse(url),
+      headers: headers,
+    );
+
+    if (response.statusCode == 401) {
+      final refreshed = await AuthService().refreshToken();
+
+      if (refreshed) {
+        headers = await _getHeaders();
+
+        response = await http.put(
+          Uri.parse(url),
+          headers: headers,
+        );
+      }
+    }
+
+    return response;
+  }
+
   Future<UserModel> getCurrentUser() async {
     final response = await _getWithRefresh(ApiConstants.currentUser);
 
@@ -100,6 +127,10 @@ class ProfileService {
 
     debugPrint('getSelectedChild: ${response.statusCode} - ${response.body}');
 
+    if (response.statusCode == 404) {
+      return null;
+    }
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
@@ -125,6 +156,10 @@ class ProfileService {
     );
 
     debugPrint('getKitsByChild: ${response.statusCode} - ${response.body}');
+
+    if (response.statusCode == 404) {
+      return [];
+    }
 
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);

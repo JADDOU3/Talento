@@ -11,7 +11,6 @@ class AvailableKitsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // لو في كيتات من الـ API استخدمهم، غير هيك استخدم الوهمية
     final hasRealKits = kits != null && kits!.isNotEmpty;
 
     final colors = [
@@ -28,7 +27,6 @@ class AvailableKitsSection extends StatelessWidget {
       Icons.pets_rounded,
     ];
 
-    // Mock kits للعرض لو ما في بيانات
     final mockKits = [
       {'name': 'مستكشف الفضاء', 'status': 'جديد'},
       {'name': 'اكتشاف الطبيعة', 'status': '8 أنشطة متبقية'},
@@ -41,13 +39,7 @@ class AvailableKitsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'الحقائب النشطة',
-          style: AppTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
+
         const SizedBox(height: 12),
         GridView.builder(
           shrinkWrap: true,

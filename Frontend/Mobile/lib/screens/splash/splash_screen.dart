@@ -8,7 +8,7 @@ import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../services/auth/token_storage_service.dart';
 import '../../shared/widgets/app_background.dart';
 import '../auth/login_screen.dart';
-import '../home/new_user.dart';
+import '../home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -56,14 +56,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const NewUser()),
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ),
       );
     } else {
       context.read<ChildModeCubit>().reset();
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
       );
     }
   }

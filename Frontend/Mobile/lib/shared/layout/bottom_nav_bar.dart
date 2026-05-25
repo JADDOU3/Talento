@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../cubits/child_mode/child_mode_cubit.dart';
-import '../../cubits/child_mode/child_mode_state.dart';
 import '../../screens/home/new_user.dart';
+import '../../screens/profile/profile_screen.dart';
 import '../../screens/kit_library/kit_library_screen.dart';
 import '../../screens/journal/journal_screen.dart';
 import '../../screens/community/community_screen.dart';
