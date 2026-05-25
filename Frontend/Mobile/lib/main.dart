@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
-import 'screens/owned_kit/owned_kit_screen.dart';
-import 'screens/community/community_screen.dart';
-import 'screens/qr_scanner/qr_scanner_screen.dart';
-import 'test_screens/test_menu_screen.dart';
-import 'activities/activity_intro_example.dart';
 
 
 void main() {
@@ -25,7 +20,7 @@ class MyApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const  ActivityIntroExample(),
+      home: const  SplashScreen(),
 
     );
   }
