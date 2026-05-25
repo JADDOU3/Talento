@@ -142,12 +142,18 @@ class ProfileService {
     return null;
   }
 
-  Future<void> selectChild(int childId) async {
-    final headers = await _getHeaders();
-    await http.put(
-      Uri.parse(ApiConstants.setSelectedChild(childId)),
-      headers: headers,
+  Future<void> setSelectedChild(int childId) async {
+    final response = await _putWithRefresh(
+      ApiConstants.setSelectedChild(childId),
     );
+
+    debugPrint('setSelectedChild: ${response.statusCode} - ${response.body}');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    throw Exception('Failed to set selected child: ${response.statusCode}');
   }
 
   Future<List<KitModel>> getKitsByChild(int childId) async {

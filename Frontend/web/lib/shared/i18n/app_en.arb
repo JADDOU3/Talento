@@ -1,5 +1,6 @@
 {
   "@@locale": "en",
+
   "welcomeBack": "Welcome back",
   "loginSubtitle": "Log in to your account to continue.",
   "emailAddress": "EMAIL ADDRESS",
@@ -20,6 +21,7 @@
   "signupButton": "Plant the Seed (Sign Up) →",
   "alreadyHaveAccount": "Already have an account? ",
   "logIn": "Log in",
+
   "emailRequired": "Email is required",
   "passwordRequired": "Password is required",
   "nameRequired": "Name is required",
@@ -141,5 +143,157 @@
   "footerInstagram": "INSTAGRAM",
   "footerPinterest": "PINTEREST",
   "footerLinkedIn": "LINKEDIN",
-  "cartCopyrightLine": "© 2024 Talento Kids. Rooted in Curiosity."
+  "cartCopyrightLine": "© 2024 Talento Kids. Rooted in Curiosity.",
+  "nurturingTitle": "Nurturing Tomorrow's Scientists",
+  "whatsInsideTitle": "What's Inside the Laboratory?",
+  "explorerTestimonials": "Explorer Testimonials",
+  "testimonialsSubtitle": "Hear from parents and young explorers around the world",
+  "writeReview": "Write a Review",
+  "addToCart": "Add to Cart",
+  "partnerQuality": "PARTNER QUALITY",
+  "partnerQualitySubtitle": "Built with heirloom-quality materials designed to last for a lifetime of exploration.",
+  "reviews": "{count} Reviews",
+  "@reviews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kitDetailsCategory": "NATURE & SCIENCE",
+  "kitDetailsName": "Botanist Discovery Kit",
+  "kitDetailsDescription": "Thoughtfully curated tools and guides for young botanists to identify specimens, press plants, and explore ecology from the backyard to the field.",
+  "kitDetailsAgeTag": "AGES 6-12",
+  "kitDetailsExperimentsTag": "15+ EXPERIMENTS",
+  "kitDetailsPriceCurrent": "$84.00",
+  "kitDetailsPriceOriginal": "$110.00",
+  "mindsetCard1Title": "Critical Observation",
+  "mindsetCard1Body": "Train attention to detail and patient recording so children notice patterns in the living world.",
+  "mindsetCard2Title": "Ecological Literacy",
+  "mindsetCard2Body": "Connect plants, soil, and habitats so learners understand how ecosystems support one another.",
+  "mindsetCard3Title": "Laboratory Skills",
+  "mindsetCard3Body": "Introduce careful handling of tools, specimens, and simple methods used by real scientists.",
+  "kitContent1Title": "Precision Brass Magnifier",
+  "kitContent1Desc": "10x magnification with scratch-resistant glass lenses.",
+  "kitContent2Title": "Canvas Explorer's Journal",
+  "kitContent2Desc": "Water-resistant pages for field notes and specimen drawings.",
+  "kitContent3Title": "Wooden Plant Press",
+  "kitContent3Desc": "Sustainably sourced oak press with adjustable tension straps.",
+  "kitContent4Title": "Specimen Collection Kit",
+  "kitContent4Desc": "Includes 12 glass test tubes, tweezers, and labeling stickers.",
+  "testimonial1Body": "This kit turned our weekend walks into real field studies. My daughter now keeps a pressed-leaf journal on her desk.",
+  "testimonial1Name": "Sarah Elwick",
+  "testimonial1Role": "VERIFIED EXPLORER",
+  "testimonial2Body": "Clear guides and durable materials — I use it in my after-school science club and am ordering more for next term.",
+  "testimonial2Name": "Mr. Alan Porter",
+  "testimonial2Role": "SCIENCE TEACHER",
+  "kitDetailsAddToCartDemo": "Preview only — cart is not synced from this screen.",
+  "addedToCart": "Added to cart",
+  "addToCartFailed": "Could not add to cart. Please try again.",
+  "retry": "Retry",
+  "noReviewsYet": "No reviews yet",
+  "verifiedExplorer": "VERIFIED EXPLORER",
+  "mindsetCriteriaPlaceholder": "Develops curiosity, focus, and scientific thinking through guided exploration.",
+  "kitContentItemPlaceholder": "Included in this discovery kit for hands-on learning.",
+  "kitDetailsAgePlus": "AGES {age}+",
+  "@kitDetailsAgePlus": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "kitDetailsItemsCount": "{count} ITEMS",
+  "@kitDetailsItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kitRatingSummary": "★ {rating} ({count} Reviews)",
+  "@kitRatingSummary": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileUserName": "Sarah",
+  "profileChildName": "Leo",
+  "profileWelcomeBack": "Welcome back, {name}.",
+  "@profileWelcomeBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWelcomeSubtitle": "Your organic laboratory is thriving. Here's what {childName} is exploring today.",
+  "@profileWelcomeSubtitle": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCuriosityProgress": "CURIOSITY PROGRESS",
+  "profileKitTitle": "Deep Forest Discovery Kit",
+  "profileKitDescription": "Leo has completed 4 out of 6 botanical experiments. The 'Fungal Networks' module is waiting to be discovered.",
+  "profileMasteryReached": "{percent}% Mastery Reached",
+  "@profileMasteryReached": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileOrderHistory": "Order History",
+  "profileViewAllOrders": "View All Orders",
+  "profileOrder1Number": "#TLN-49202",
+  "profileOrder1Subtitle": "Bio-Luminary Kit • Sep 12",
+  "profileOrder2Number": "#TLN-48115",
+  "profileOrder2Subtitle": "Botanist Pro • Aug 03",
+  "profileOrder3Number": "#TLN-47088",
+  "profileOrder3Subtitle": "Avian Architect • Jun 21",
+  "profileDelivered": "DELIVERED",
+  "profileManageSubscription": "Manage Subscription",
+  "profileActive": "ACTIVE",
+  "profilePlanName": "The Explorer Monthly Plan",
+  "profileNextDelivery": "Next Delivery: Oct 24, 2024",
+  "profileBillingAmount": "Billing Amount: $34.00/mo",
+  "profilePauseOrUpdate": "Pause or Update Plan",
+  "profileLeosBadges": "{childName}'s Badges",
+  "@profileLeosBadges": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileBadgesSubtitle": "Honors earned through discovery.",
+  "profileViewPortfolio": "VIEW PORTFOLIO →",
+  "profileAccountSettings": "Account Settings",
+  "profileProfileInformation": "Profile Information",
+  "profilePaymentMethods": "Payment Methods",
+  "profileShippingAddress": "Shipping Address",
+  "profileSignOut": "Sign Out",
+  "profileRecommendedForLeo": "Recommended for {childName}",
+  "@profileRecommendedForLeo": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRec1Badge": "PHYSICS • AGES 8-12",
+  "profileRec1Title": "The Hydraulics of Growth",
+  "profileRec2Badge": "ENGINEERING • AGES 8-12",
+  "profileRec2Title": "Avian Architecture",
+  "profileRec3Badge": "NATURE • AGES 6-10",
+  "profileRec3Title": "Tales of the Canopy",
+  "profileMyAccount": "My Account"
 }

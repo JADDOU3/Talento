@@ -36,8 +36,10 @@ class ProfileCubit extends Cubit<ProfileState> {
       emit(ProfileError(e.toString()));
     }
   }
+
   Future<void> selectChild(ChildModel child) async {
     if (state is! ProfileLoaded) return;
+
     final current = state as ProfileLoaded;
 
     emit(ProfileKitsLoading(
@@ -53,10 +55,11 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       final selectedChild = await _service.getSelectedChild();
       final kits = await _service.getKitsByChild(child.id);
+
       emit(ProfileLoaded(
         user: current.user,
         children: current.children,
-        selectedChild: child,
+        selectedChild: selectedChild ?? child,
         kits: kits,
       ));
     } catch (e) {
@@ -77,6 +80,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     required String gender,
   }) async {
     if (state is! ProfileLoaded) return;
+
     final current = state as ProfileLoaded;
 
     try {
@@ -85,6 +89,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         dateOfBirth: dateOfBirth,
         gender: gender,
       );
+
       final updatedChildren = [...current.children, newChild];
 
       final selectedChild = await _service.getSelectedChild();

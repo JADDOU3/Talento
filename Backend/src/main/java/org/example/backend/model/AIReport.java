@@ -19,6 +19,17 @@ public class AIReport {
     private String summary;
     private LocalDateTime generatedAt;
 
+    private String focusTrend;
+    private String confidenceTrend;
+    private String stressResponsePattern;
+    private String learningBehaviorPattern;
+    private String recommendedFutureObservation;
+    private String analysisVersion;
+    private Float analysisConfidence;
+
+    @Column(columnDefinition = "TEXT")
+    private String mindsetScoresJson;
+
     @ManyToOne
     @JoinColumn(name = "child_id")
     private Child child;

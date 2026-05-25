@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../cards/journey_card.dart';
 import '../layout/section_heading.dart';
 import '../../../util/theme/app_colors.dart';
-import '../../i18n/app_localizations.dart';
+import '../../../shared/i18n/app_localizations.dart';
 
 class JourneySection extends StatelessWidget {
   const JourneySection({super.key});

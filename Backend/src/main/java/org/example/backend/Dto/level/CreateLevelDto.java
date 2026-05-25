@@ -11,5 +11,6 @@ public class CreateLevelDto {
     private Integer levelNumber;
     private Integer difficulty;
     private String description;
+    private java.util.List<LevelImageDto> images;
     private Integer activityId;
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../buttons/primary_button.dart';
 import '../../../util/theme/app_text_styles.dart';
-import '../../i18n/app_localizations.dart';
+import '../../../shared/i18n/app_localizations.dart';
 
 class HeroSection extends StatelessWidget {
   const HeroSection({super.key});

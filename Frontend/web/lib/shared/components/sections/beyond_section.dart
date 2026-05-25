@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../i18n/app_localizations.dart';
+import '../../../shared/i18n/app_localizations.dart';
 import '../../../util/theme/app_colors.dart';
 
 class BeyondSection extends StatelessWidget {

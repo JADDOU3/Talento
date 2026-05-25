@@ -24,7 +24,10 @@ public class ActivityService {
         Activity activity = new Activity();
         activity.setName(createActivityDto.getName());
         activity.setDescription(createActivityDto.getDescription());
+        activity.setGameDescription(createActivityDto.getGameDescription());
+        activity.setCoverImageKey(createActivityDto.getCoverImageKey());
         activity.setType(createActivityDto.getType());
+        activity.setVoiceEnabled(createActivityDto.getVoiceEnabled());
         return activityRepo.save(activity);
     }
 
@@ -41,7 +44,12 @@ public class ActivityService {
         if (activity == null) return null;
         if (updateActivityDto.getName() != null) activity.setName(updateActivityDto.getName());
         if (updateActivityDto.getDescription() != null) activity.setDescription(updateActivityDto.getDescription());
+        if (updateActivityDto.getGameDescription() != null) {
+            activity.setGameDescription(updateActivityDto.getGameDescription());
+        }
+        if (updateActivityDto.getCoverImageKey() != null) activity.setCoverImageKey(updateActivityDto.getCoverImageKey());
         if (updateActivityDto.getType() != null) activity.setType(updateActivityDto.getType());
+        if (updateActivityDto.getVoiceEnabled() != null) activity.setVoiceEnabled(updateActivityDto.getVoiceEnabled());
         return activityRepo.save(activity);
     }
 

@@ -5,18 +5,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'cubits/cart/cart_cubit.dart';
+import 'cubits/kit/kit_cubit.dart';
+import 'cubits/reviews/kit_reviews_cubit.dart';
 import 'shared/providers/language_provider.dart';
 import 'shared/i18n/app_localizations.dart';
 import 'features/home/pages/home_page.dart';
 import 'features/catalog/pages/catalog_page.dart';
-import 'features/cart/pages/cart_page.dart';
 import 'features/catalog/pages/kit_details_page.dart';
-import 'features/catalog/cubits/kit/kit_cubit.dart';
+import 'features/catalog/cubits/kit/kit_cubit.dart' as catalog;
+import 'features/cart/pages/cart_page.dart';
+import 'features/profile/pages/profile_page.dart';
 import 'util/theme/app_colors.dart';
 
 void main() {
   runApp(
-    // LanguageProvider يغلف الكل عشان اللغة تشتغل في كل مكان
     ChangeNotifierProvider(
       create: (_) => LanguageProvider(),
       child: const TalentoApp(),
@@ -32,9 +35,11 @@ class TalentoApp extends StatelessWidget {
     final languageProvider = Provider.of<LanguageProvider>(context);
     final isArabic = languageProvider.locale.languageCode == 'ar';
 
-    return BlocProvider(
-      // KitCubit على مستوى الـ app عشان يبقى موجود بين الصفحات
-      create: (_) => KitCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => catalog.KitCubit()),
+        BlocProvider(create: (_) => CartCubit()..loadCart()),
+      ],
       child: MaterialApp(
         title: 'Talento',
         debugShowCheckedModeBanner: false,
@@ -63,17 +68,25 @@ class TalentoApp extends StatelessWidget {
           '/': (context) => const HomePage(),
           '/home': (context) => const HomePage(),
           '/catalog': (context) => const CatalogPage(),
-          '/kit-details': (context) => const KitDetailsPage(),
+          '/cart': (context) => const CartPage(),
+          '/profile': (context) => const ProfilePage(),
+          '/kit-details': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments;
+            final kitId = args is int ? args : 1;
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) => KitCubit()..getKitById(kitId),
+                ),
+                BlocProvider(
+                  create: (_) => KitReviewsCubit()..loadForKit(kitId),
+                ),
+              ],
+              child: const KitDetailsPage(),
+            );
+          },
         },
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const CartPage(),
-        '/home': (context) => const HomePage(),
-        '/catalog': (context) => const CatalogPage(),
-       // '/cart': (context) => const CartPage(),
-      },
-
     );
   }
 }

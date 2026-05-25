@@ -108,9 +108,11 @@ class _ProfileView extends StatelessWidget {
                     final user = state is ProfileLoaded
                         ? state.user
                         : (state as ProfileKitsLoading).user;
+
                     final children = state is ProfileLoaded
                         ? state.children
                         : (state as ProfileKitsLoading).children;
+
                     final selectedChild = state is ProfileLoaded
                         ? state.selectedChild
                         : (state as ProfileKitsLoading).selectedChild;
