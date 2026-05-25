@@ -1,10 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../core/theme/app_colors.dart';
-import '../../shared/widgets/app_background.dart';
-import '../../services/auth/token_storage_service.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../services/auth/token_storage_service.dart';
+import '../../shared/widgets/app_background.dart';
 import '../auth/login_screen.dart';
 import '../home/new_user.dart';
 
@@ -42,20 +44,23 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    if (accessToken != null &&
+    final isLoggedIn = accessToken != null &&
         accessToken.isNotEmpty &&
         refreshToken != null &&
-        refreshToken.isNotEmpty) {
-      // ✅ نادي checkChildMode بعد ما نتأكد إنه logged in
-      if (mounted) {
-        context.read<ChildModeCubit>().checkChildMode();
-      }
+        refreshToken.isNotEmpty;
+
+    if (isLoggedIn) {
+      await context.read<ChildModeCubit>().checkChildMode();
+
+      if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const NewUser()),
       );
     } else {
+      context.read<ChildModeCubit>().reset();
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),

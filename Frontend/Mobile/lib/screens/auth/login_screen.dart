@@ -9,6 +9,8 @@ import '../../shared/widgets/app_background.dart';
 import '../../services/auth/auth_service.dart';
 import '../home/new_user.dart';
 import 'signup_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -75,6 +77,10 @@ class _LoginScreenState extends State<LoginScreen> {
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+
+      if (!mounted) return;
+
+      await context.read<ChildModeCubit>().checkChildMode();
 
       if (!mounted) return;
 
