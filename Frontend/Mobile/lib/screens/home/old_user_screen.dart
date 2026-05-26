@@ -6,7 +6,7 @@ import '../../shared/layout/app_drawer.dart';
 import '../../cubits/home/home_data.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import '../kit_library/kit_details_screen.dart';
 import '../kit_library/kit_library_screen.dart';
 import '../profile/profile_screen.dart';

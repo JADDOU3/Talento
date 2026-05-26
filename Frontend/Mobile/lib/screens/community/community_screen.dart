@@ -17,7 +17,7 @@ import '../../services/community/media.dart';
 import '../../shared/layout/app_drawer.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import 'widgets/action_icon_button.dart';
 import 'widgets/category_chip.dart';
 import 'widgets/feature_card.dart';

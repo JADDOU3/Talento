@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/layout/app_background.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../services/auth/token_storage_service.dart';
 import '../../shared/widgets/app_background.dart';
