@@ -1517,6 +1517,23 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "Upload Level Media",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/media/upload/level/color-lab",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "media", "upload", "level", "color-lab"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "file", "type": "file" }
+                  ]
+                }
+              }
             }
           ]
         }
