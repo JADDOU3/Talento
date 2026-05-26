@@ -28,4 +28,21 @@ public class MediaController {
         String s3Key = s3Service.uploadFile(file, "posts");
         return ResponseEntity.ok(Map.of("s3Key", s3Key));
     }
+
+    @PostMapping("/upload/level/{gameName}")
+    public ResponseEntity<Map<String, String>> uploadLevelMedia(
+            @PathVariable String gameName,
+            @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "File must not be empty"));
+        }
+        if (gameName == null || gameName.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Game name must not be empty"));
+        }
+        String normalizedName = gameName.trim().toLowerCase().replace(" ", "-");
+        String s3Key = s3Service.uploadFile(file, "level/" + normalizedName);
+        return ResponseEntity.ok(Map.of("s3Key", s3Key));
+    }
 }
