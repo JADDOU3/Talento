@@ -47,6 +47,12 @@ class ApiConstants {
   static const String addChild = '$baseUrl/children/';
   static const String selectedChild = '$baseUrl/children/selected';
 
-  static String setSelectedChild(int childId) =>
-      '$baseUrl/children/selected/$childId';
+  // Child Mode
+  static const String isChildMode = '$baseUrl/isChildMode';
+  static const String childModeHasPin = '$baseUrl/childMode/hasPin';
+  static const String childModeEnable = '$baseUrl/childMode/enable';
+  static const String childModeDisable = '$baseUrl/childMode/disable';
+  static const String childModeSetPin = '$baseUrl/childMode/setPin';
+
+  static String setSelectedChild(int childId) => '$baseUrl/children/selected/$childId';
 }

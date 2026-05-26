@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../models/childmode/child_model.dart';
 import '../../services/profile/profile_service.dart';
 import '../../models/child_model.dart';
 import '../../models/kit/kit_model.dart';
@@ -48,6 +49,8 @@ class ProfileCubit extends Cubit<ProfileState> {
     ));
 
     try {
+      // ✅ أخبر الـ backend
+      await _service.selectChild(child.id);
       await _service.setSelectedChild(child.id);
 
       final selectedChild = await _service.getSelectedChild();

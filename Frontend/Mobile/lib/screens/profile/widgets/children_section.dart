@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../models/child_model.dart';
+import '../../../models/childmode/child_model.dart';
 import '../../../cubits/profile/profile_cubit.dart';
 
 class ChildrenSection extends StatefulWidget {
   final List<ChildModel> children;
   final ChildModel? selectedChild;
+  final Function(ChildModel)? onChildSelected;
   final bool openAddChildDialog;
 
   const ChildrenSection({
     super.key,
     required this.children,
     this.selectedChild,
+    this.onChildSelected,
     this.openAddChildDialog = false,
   });
 
@@ -71,10 +74,16 @@ class _ChildrenSectionState extends State<ChildrenSection> {
   }
 
   Widget _buildChildItem(BuildContext context, ChildModel child) {
-    final isSelected = widget.selectedChild?.id == child.id;
+    final isSelected = selectedChild?.id == child.id;
 
     return GestureDetector(
-      onTap: () => context.read<ProfileCubit>().selectChild(child),
+      onTap: () {
+        if (onChildSelected != null) {
+          onChildSelected!(child);
+        } else {
+          context.read<ProfileCubit>().selectChild(child);
+        }
+      },
       onLongPress: () => _showChildInfoDialog(context, child),
       child: Column(
         children: [
@@ -98,27 +107,15 @@ class _ChildrenSectionState extends State<ChildrenSection> {
                   : [],
             ),
             child: ClipOval(
-              child: child.avatarUrl != null
-                  ? Image.network(
-                child.avatarUrl!,
+              child: Image.network(
+                child.avatarUrl ??
+                    'https://api.dicebear.com/7.x/adventurer/png?seed=${child.name}',
                 width: 56,
                 height: 56,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: AppColors.inputFill,
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: AppColors.hint,
-                  ),
-                ),
-              )
-                  : Container(
-                width: 56,
-                height: 56,
-                color: AppColors.inputFill,
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.hint,
+                  child: const Icon(Icons.person_rounded, color: AppColors.hint),
                 ),
               ),
             ),
@@ -137,6 +134,7 @@ class _ChildrenSectionState extends State<ChildrenSection> {
     );
   }
 
+  // ✅ Fixed: add button now works
   Widget _buildAddButton(BuildContext context) {
     return GestureDetector(
       onTap: () => _showAddChildDialog(context),

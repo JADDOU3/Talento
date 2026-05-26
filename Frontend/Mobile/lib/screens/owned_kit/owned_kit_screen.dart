@@ -2,23 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/layout/top_bar.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/app_background.dart';
 
 import 'widgets/primary_button.dart';
 import 'widgets/secondary_button.dart';
-import 'widgets/journey_step_item.dart';
-import 'widgets/learning_card.dart';
-import 'widgets/section_title.dart';
 
 class OwnedKitScreen extends StatelessWidget {
-  const OwnedKitScreen({super.key});
+  final dynamic kit;
 
-  static const String kitTitle = 'حقيبة مستكشف الفضاء';
+  const OwnedKitScreen({
+    super.key,
+    required this.kit,
+  });
+
   static const String kitBadge = 'حقيبة مبتدئ';
-  static const String kitDescription =
-      'انطلق في رحلة عبر النجوم لاكتشاف أسرار الفلك والمجرات';
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +27,9 @@ class OwnedKitScreen extends StatelessWidget {
         body: AppBackground(
           child: Column(
             children: [
-              const TopBar(),
+              // ✅ Custom header with back button instead of TopBar
+              _buildHeader(context),
+
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -37,17 +37,13 @@ class OwnedKitScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _KitHeader(),
+                      _KitHeader(kit: kit),
                       const SizedBox(height: 22),
-                      const _MainKitImage(),
-                      const SizedBox(height: 26),
-                      const _JourneyProgressSection(),
-                      const SizedBox(height: 24),
-                      const _LearningPathSection(),
                     ],
                   ),
                 ),
               ),
+
               const BottomNavBar(selectedIndex: 1),
             ],
           ),
@@ -55,10 +51,64 @@ class OwnedKitScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      child: Row(
+        children: [
+          // ✅ Back button
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+
+          // Title
+          Expanded(
+            child: Center(
+              child: Text(
+                'تفاصيل الحقيبة',
+                style: AppTextStyles.headlineMedium.copyWith(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 38),
+        ],
+      ),
+    );
+  }
 }
 
-
 class _KitHeader extends StatelessWidget {
+  final dynamic kit;
+
+  const _KitHeader({required this.kit});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -69,9 +119,10 @@ class _KitHeader extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.pink.withOpacity(0.16),
+                color: AppColors.pink.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -88,37 +139,29 @@ class _KitHeader extends StatelessWidget {
           const SizedBox(height: 16),
 
           Text(
-            OwnedKitScreen.kitTitle,
+            kit.name ?? '',
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineLarge.copyWith(
               color: AppColors.primary,
               fontSize: 30,
-              height: 1.15,
               fontWeight: FontWeight.w900,
-              letterSpacing: 0.2,
             ),
           ),
 
           const SizedBox(height: 12),
 
-          SizedBox(
-            width: 330,
-            child: Text(
-              OwnedKitScreen.kitDescription,
-              textAlign: TextAlign.right,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontSize: 13.5,
-                height: 1.75,
-                fontWeight: FontWeight.w600,
-              ),
+          Text(
+            kit.description ?? '',
+            textAlign: TextAlign.right,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
             ),
           ),
 
           const SizedBox(height: 22),
 
-          Row(
-            children: const [
+          const Row(
+            children: [
               Expanded(
                 child: PrimaryButton(
                   text: 'استكمال النشاط',
@@ -138,195 +181,4 @@ class _KitHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-class _MainKitImage extends StatelessWidget {
-  const _MainKitImage();
-
-  @override
-  Widget build(BuildContext context) {
-    final double size = MediaQuery.sizeOf(context).width.clamp(0, 390) * 0.66;
-
-    return Center(
-      child: Transform.rotate(
-        angle: -0.075,
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withOpacity(0.16),
-                blurRadius: 24,
-                spreadRadius: 1,
-                offset: const Offset(0, 15),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Image.network(
-            'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=900&q=80',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              color: AppColors.inputFill,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.rocket_launch_rounded,
-                size: 72,
-                color: AppColors.primary.withOpacity(0.55),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _JourneyProgressSection extends StatelessWidget {
-  const _JourneyProgressSection();
-
-  @override
-  Widget build(BuildContext context) {
-    const steps = [
-      JourneyStepData(
-        label: 'مكتمل',
-        status: JourneyStepStatus.completed,
-        icon: Icons.check_rounded,
-      ),
-      JourneyStepData(
-        label: 'مكتمل',
-        status: JourneyStepStatus.completed,
-        icon: Icons.check_rounded,
-      ),
-      JourneyStepData(
-        label: 'الحالي',
-        status: JourneyStepStatus.current,
-        icon: Icons.rocket_launch_rounded,
-      ),
-      JourneyStepData(
-        label: 'قادم',
-        status: JourneyStepStatus.upcoming,
-        icon: Icons.flag_rounded,
-      ),
-      JourneyStepData(
-        label: 'مقفل',
-        status: JourneyStepStatus.locked,
-        icon: Icons.lock_rounded,
-      ),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionTitle(title: 'خريطة الرحلة الحالية'),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 82,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    Positioned(
-                      left: 30,
-                      right: 30,
-                      top: 22,
-                      child: Container(
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.border.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 30,
-                      top: 22,
-                      width: (constraints.maxWidth - 60) * 0.50,
-                      child: Container(
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.78),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: steps
-                          .map(
-                            (step) => JourneyStepItem(
-                              label: step.label,
-                              status: step.status,
-                              icon: step.icon,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LearningPathSection extends StatelessWidget {
-  const _LearningPathSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionTitle(title: 'مسار التعلم'),
-        SizedBox(height: 14),
-        LearningCard(
-          title: 'بناء الصاروخ',
-          subtitle: 'ابدأ في بناء مشروعك الأول',
-          icon: Icons.rocket_launch_rounded,
-          type: LearningCardType.active,
-        ),
-        SizedBox(height: 16),
-        LearningCard(
-          title: 'مهمة التحدي',
-          subtitle: 'تحدى نفسك في بناء نموذج مبسط للمركبة الفضائية',
-          icon: Icons.stars_rounded,
-          type: LearningCardType.challenge,
-          buttonText: 'ابدأ الآن',
-        ),
-        SizedBox(height: 10),
-      ],
-    );
-  }
-}
-
-class JourneyStepData {
-  final String label;
-  final JourneyStepStatus status;
-  final IconData icon;
-
-  const JourneyStepData({
-    required this.label,
-    required this.status,
-    required this.icon,
-  });
 }

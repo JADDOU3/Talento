@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
+import 'cubits/child_mode/child_mode_cubit.dart';
 import 'screens/splash/splash_screen.dart';
 
 
@@ -12,16 +14,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Talento',
-      theme: AppTheme.lightTheme,
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
+    return BlocProvider(
+      create: (_) => ChildModeCubit(), // ✅ لا تنادي checkChildMode هون — بتنادى بعد login
+      child: AppLifecycleHandler(
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Talento',
+          theme: AppTheme.lightTheme,
+          builder: (context, child) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: child!,
+          ),
+          home: const SplashScreen(),
+        ),
       ),
-      home: const  SplashScreen(),
-
     );
   }
 }
