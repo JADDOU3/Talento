@@ -8,6 +8,10 @@ import '../../screens/profile/profile_screen.dart';
 import '../../screens/kit_library/kit_library_screen.dart';
 import '../../screens/journal/journal_screen.dart';
 import '../../screens/community/community_screen.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/child_mode/child_mode_state.dart';
+import '../../screens/home/new_user.dart';
+
 
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;

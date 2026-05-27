@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../../core/config/api_constants.dart';
 import '../../cubits/home/home_data.dart';
-import '../../models/child_model.dart';
+import '../../models/childmode/child_model.dart';
 import '../../models/kit/kit_model.dart';
 import '../auth/auth_api_client.dart';
 import '../kit/kit_service.dart';
