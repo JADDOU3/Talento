@@ -3,7 +3,10 @@ package org.example.backend.controller.challenge;
 import org.example.backend.Dto.challenge.CreateChallengeAttemptDto;
 import org.example.backend.model.challengeCard.ChallengeAttempt;
 import org.example.backend.service.Challenge.ChallengeAttemptService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,18 +36,18 @@ public class ChallengeAttemptController {
     }
 
     @GetMapping("/activity-session/{activitySessionId}")
-    public ResponseEntity<List<ChallengeAttempt>> getChallengeAttemptsByActivitySession(
-            @PathVariable int activitySessionId) {
+    public ResponseEntity<Page<ChallengeAttempt>> getChallengeAttemptsByActivitySession(
+            @PathVariable int activitySessionId, Pageable pageable) {
         return new ResponseEntity<>(
-                challengeAttemptService.getChallengeAttemptsByActivitySession(activitySessionId),
+                PaginationUtil.paginate(challengeAttemptService.getChallengeAttemptsByActivitySession(activitySessionId), pageable),
                 HttpStatus.OK);
     }
 
     @GetMapping("/challenge-card/{challengeCardId}")
-    public ResponseEntity<List<ChallengeAttempt>> getChallengeAttemptsByChallengeCard(
-            @PathVariable int challengeCardId) {
+    public ResponseEntity<Page<ChallengeAttempt>> getChallengeAttemptsByChallengeCard(
+            @PathVariable int challengeCardId, Pageable pageable) {
         return new ResponseEntity<>(
-                challengeAttemptService.getChallengeAttemptsByChallengeCard(challengeCardId),
+                PaginationUtil.paginate(challengeAttemptService.getChallengeAttemptsByChallengeCard(challengeCardId), pageable),
                 HttpStatus.OK);
     }
 

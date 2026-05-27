@@ -4,7 +4,10 @@ import org.example.backend.Dto.score.CreateChildMindsetScoreDto;
 import org.example.backend.Dto.score.UpdateChildMindsetScoreDto;
 import org.example.backend.model.mindset.ChildMindsetScore;
 import org.example.backend.service.mindset.ChildMindsetScoreService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,8 @@ public class ChildMindsetScoreController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ChildMindsetScore>> getAll() {
-        return ResponseEntity.ok(childMindsetScoreService.getAll());
+    public ResponseEntity<Page<ChildMindsetScore>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(childMindsetScoreService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,13 +38,13 @@ public class ChildMindsetScoreController {
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<List<ChildMindsetScore>> getScoresByChild(@PathVariable int childId) {
-        return ResponseEntity.ok(childMindsetScoreService.getScoresByChild(childId));
+    public ResponseEntity<Page<ChildMindsetScore>> getScoresByChild(@PathVariable int childId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(childMindsetScoreService.getScoresByChild(childId), pageable));
     }
 
     @GetMapping("/mindset/{mindsetId}")
-    public ResponseEntity<List<ChildMindsetScore>> getScoresByMindset(@PathVariable int mindsetId) {
-        return ResponseEntity.ok(childMindsetScoreService.getScoresByMindset(mindsetId));
+    public ResponseEntity<Page<ChildMindsetScore>> getScoresByMindset(@PathVariable int mindsetId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(childMindsetScoreService.getScoresByMindset(mindsetId), pageable));
     }
 
     @PutMapping("/{id}")

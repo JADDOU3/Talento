@@ -3,7 +3,10 @@ package org.example.backend.controller.level;
 import org.example.backend.Dto.levelAttempt.CreateLevelAttemptDto;
 import org.example.backend.model.level.LevelAttempt;
 import org.example.backend.service.level.LevelAttemptService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +26,8 @@ public class LevelAttemptController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LevelAttempt>> getAll() {
-        return ResponseEntity.ok(levelAttemptService.getAll());
+    public ResponseEntity<Page<LevelAttempt>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(levelAttemptService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -34,8 +37,8 @@ public class LevelAttemptController {
     }
 
     @GetMapping("/activity-session/{activitySessionId}")
-    public ResponseEntity<List<LevelAttempt>> getByActivitySession(@PathVariable int activitySessionId) {
-        return ResponseEntity.ok(levelAttemptService.getAttemptsByActivitySession(activitySessionId));
+    public ResponseEntity<Page<LevelAttempt>> getByActivitySession(@PathVariable int activitySessionId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(levelAttemptService.getAttemptsByActivitySession(activitySessionId), pageable));
     }
 
     @PutMapping("/{id}")

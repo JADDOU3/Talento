@@ -4,7 +4,10 @@ import org.example.backend.Dto.level.CreateLevelDto;
 import org.example.backend.Dto.level.UpdateLevelDto;
 import org.example.backend.model.level.Level;
 import org.example.backend.service.level.LevelService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,8 @@ public class LevelController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Level>> getAll() {
-        return ResponseEntity.ok(levelService.getAll());
+    public ResponseEntity<Page<Level>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(levelService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,8 +38,8 @@ public class LevelController {
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<List<Level>> getLevelsByActivity(@PathVariable int activityId) {
-        return ResponseEntity.ok(levelService.getLevelsByActivity(activityId));
+    public ResponseEntity<Page<Level>> getLevelsByActivity(@PathVariable int activityId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(levelService.getLevelsByActivity(activityId), pageable));
     }
 
     @PutMapping("/{id}")

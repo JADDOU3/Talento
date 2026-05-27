@@ -4,7 +4,10 @@ import org.example.backend.Dto.activityCriteria.CreateActivityCriteriaDto;
 import org.example.backend.Dto.activityCriteria.UpdateActivityCriteriaDto;
 import org.example.backend.model.activity.ActivityCriteria;
 import org.example.backend.service.activity.ActivityCriteriaService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,8 @@ public class ActivityCriteriaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ActivityCriteria>> getAll() {
-        return ResponseEntity.ok(activityCriteriaService.getAll());
+    public ResponseEntity<Page<ActivityCriteria>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(activityCriteriaService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,13 +38,13 @@ public class ActivityCriteriaController {
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<List<ActivityCriteria>> getByActivity(@PathVariable int activityId) {
-        return ResponseEntity.ok(activityCriteriaService.getByActivity(activityId));
+    public ResponseEntity<Page<ActivityCriteria>> getByActivity(@PathVariable int activityId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(activityCriteriaService.getByActivity(activityId), pageable));
     }
 
     @GetMapping("/criteria/{criteriaId}")
-    public ResponseEntity<List<ActivityCriteria>> getByCriteria(@PathVariable int criteriaId) {
-        return ResponseEntity.ok(activityCriteriaService.getByCriteria(criteriaId));
+    public ResponseEntity<Page<ActivityCriteria>> getByCriteria(@PathVariable int criteriaId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(activityCriteriaService.getByCriteria(criteriaId), pageable));
     }
 
     @PutMapping("/{id}")
