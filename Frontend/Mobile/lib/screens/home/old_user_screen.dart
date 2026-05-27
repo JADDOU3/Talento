@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/layout/app_drawer.dart';
 import '../../cubits/home/home_data.dart';
+import '../../shared/layout/app_background.dart';
+import '../../shared/layout/app_drawer.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
 import '../kit_library/kit_details_screen.dart';
 import '../kit_library/kit_library_screen.dart';
 import '../profile/profile_screen.dart';
@@ -61,6 +61,7 @@ class OldUserScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        drawer: const AppDrawer(),
         body: AppBackground(
           child: Column(
             children: [
@@ -72,20 +73,6 @@ class OldUserScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 12),
-    return Scaffold(
-      drawer: const AppDrawer(),
-
-      body: AppBackground(
-        child: Column(
-          children: [
-            const TopBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
 
                       _buildHeader(childName),
 

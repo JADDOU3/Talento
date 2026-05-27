@@ -3,7 +3,10 @@ package org.example.backend.controller;
 import org.example.backend.Dto.CreateHelpLogDto;
 import org.example.backend.model.HelpLog;
 import org.example.backend.service.HelpLogService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,10 +34,10 @@ public class HelpLogController {
     }
 
     @GetMapping("/activity-session/{activitySessionId}")
-    public ResponseEntity<List<HelpLog>> getHelpLogsByActivitySession(
-            @PathVariable int activitySessionId) {
+    public ResponseEntity<Page<HelpLog>> getHelpLogsByActivitySession(
+            @PathVariable int activitySessionId, Pageable pageable) {
         return new ResponseEntity<>(
-                helpLogService.getHelpLogsByActivitySession(activitySessionId), HttpStatus.OK);
+                PaginationUtil.paginate(helpLogService.getHelpLogsByActivitySession(activitySessionId), pageable), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

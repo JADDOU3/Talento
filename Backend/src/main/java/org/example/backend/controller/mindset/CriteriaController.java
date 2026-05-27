@@ -4,7 +4,10 @@ import org.example.backend.Dto.criteria.CreateCriteriaDto;
 import org.example.backend.Dto.criteria.UpdateCriteriaDto;
 import org.example.backend.model.mindset.Criteria;
 import org.example.backend.service.mindset.CriteriaService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,8 @@ public class CriteriaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Criteria>> getAllCriteria() {
-        return ResponseEntity.ok(criteriaService.getAllCriteria());
+    public ResponseEntity<Page<Criteria>> getAllCriteria(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(criteriaService.getAllCriteria(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,8 +38,8 @@ public class CriteriaController {
     }
 
     @GetMapping("/mindset/{mindsetId}")
-    public ResponseEntity<List<Criteria>> getCriteriaByMindset(@PathVariable int mindsetId) {
-        return ResponseEntity.ok(criteriaService.getCriteriaByMindset(mindsetId));
+    public ResponseEntity<Page<Criteria>> getCriteriaByMindset(@PathVariable int mindsetId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(criteriaService.getCriteriaByMindset(mindsetId), pageable));
     }
 
     @PutMapping("/{id}")

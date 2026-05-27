@@ -4,7 +4,10 @@ import org.example.backend.Dto.mindset.CreateMindsetDto;
 import org.example.backend.Dto.mindset.UpdateMindsetDto;
 import org.example.backend.model.mindset.Mindset;
 import org.example.backend.service.mindset.MindsetService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +26,8 @@ public class MindsetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Mindset>> getAllMindsets() {
-        return ResponseEntity.ok(mindsetService.getAllMindsets());
+    public ResponseEntity<Page<Mindset>> getAllMindsets(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(mindsetService.getAllMindsets(), pageable));
     }
 
     @GetMapping("/{id}")

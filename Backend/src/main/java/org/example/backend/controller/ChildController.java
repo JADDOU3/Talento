@@ -4,8 +4,11 @@ import org.example.backend.Dto.child.ChildUpdateDto;
 import org.example.backend.Dto.child.CreateChildDto;
 import org.example.backend.model.Child;
 import org.example.backend.service.ChildService;
+import org.example.backend.util.PaginationUtil;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +31,10 @@ public class ChildController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Child>> getChildrenByCurrentUser(){
+    public ResponseEntity<Page<Child>> getChildrenByCurrentUser(Pageable pageable){
         List<Child> children = childService.getAllChildrenByUser(SecurityUtils.getCurrentUser().getId());
         if(children != null)
-            return new ResponseEntity<>(children , HttpStatus.OK);
+            return new ResponseEntity<>(PaginationUtil.paginate(children, pageable) , HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }

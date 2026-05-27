@@ -5,7 +5,10 @@ import org.example.backend.model.Session;
 import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
 import org.example.backend.service.SessionService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,17 +47,17 @@ public class SessionController {
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<List<Session>> getAllSessionsByChild(@PathVariable int childId) {
+    public ResponseEntity<Page<Session>> getAllSessionsByChild(@PathVariable int childId, Pageable pageable) {
         if(childService.getChildById(childId) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(sessionService.getAllSessionsByChild(childId), HttpStatus.OK);
+        return new ResponseEntity<>(PaginationUtil.paginate(sessionService.getAllSessionsByChild(childId), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/kit/{kitId}")
-    public ResponseEntity<List<Session>> getAllSessionsByKit(@PathVariable int kitId) {
+    public ResponseEntity<Page<Session>> getAllSessionsByKit(@PathVariable int kitId, Pageable pageable) {
         if(kitService.getKitById(kitId) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(sessionService.getAllSessionsByKit(kitId), HttpStatus.OK);
+        return new ResponseEntity<>(PaginationUtil.paginate(sessionService.getAllSessionsByKit(kitId), pageable), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

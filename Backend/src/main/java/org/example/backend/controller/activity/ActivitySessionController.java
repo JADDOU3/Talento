@@ -6,7 +6,10 @@ import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.service.activity.ActivityService;
 import org.example.backend.service.activity.ActivitySessionService;
 import org.example.backend.service.SessionService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,8 +38,8 @@ public class ActivitySessionController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<ActivitySession>> getAllActivitySessions(){
-        return new ResponseEntity<>(activitySessionService.getAllActivitySessions() , HttpStatus.OK);
+    public ResponseEntity<Page<ActivitySession>> getAllActivitySessions(Pageable pageable){
+        return new ResponseEntity<>(PaginationUtil.paginate(activitySessionService.getAllActivitySessions(), pageable) , HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -48,10 +51,10 @@ public class ActivitySessionController {
     }
 
     @GetMapping("/session/{sessionId}")
-    public ResponseEntity<List<ActivitySession>> getAllActivitySessionsBySession(@PathVariable int sessionId) {
+    public ResponseEntity<Page<ActivitySession>> getAllActivitySessionsBySession(@PathVariable int sessionId, Pageable pageable) {
         if(sessionService.getSessionById(sessionId) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(activitySessionService.getAllActivitySessionsBySession(sessionId), HttpStatus.OK);
+        return new ResponseEntity<>(PaginationUtil.paginate(activitySessionService.getAllActivitySessionsBySession(sessionId), pageable), HttpStatus.OK);
     }
 
     @PutMapping("/")

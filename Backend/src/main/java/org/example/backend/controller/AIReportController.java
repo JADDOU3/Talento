@@ -4,7 +4,10 @@ import org.example.backend.Dto.aiReport.CreateAIReportDto;
 import org.example.backend.Dto.aiReport.UpdateAIReportDto;
 import org.example.backend.model.AIReport;
 import org.example.backend.service.AIReportService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,8 @@ public class AIReportController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AIReport>> getAll() {
-        return ResponseEntity.ok(aiReportService.getAll());
+    public ResponseEntity<Page<AIReport>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(aiReportService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,8 +38,8 @@ public class AIReportController {
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<List<AIReport>> getReportsByChild(@PathVariable int childId) {
-        return ResponseEntity.ok(aiReportService.getReportsByChild(childId));
+    public ResponseEntity<Page<AIReport>> getReportsByChild(@PathVariable int childId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(aiReportService.getReportsByChild(childId), pageable));
     }
 
     @PutMapping("/{id}")

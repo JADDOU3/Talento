@@ -4,7 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import 'widgets/camera_viewfinder.dart';
 import 'widgets/pro_tip_card.dart';
 import 'widgets/scanner_action_button.dart';

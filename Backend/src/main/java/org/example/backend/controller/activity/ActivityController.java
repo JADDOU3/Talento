@@ -7,7 +7,10 @@ import org.example.backend.Dto.activity.UpdateActivityDto;
 import org.example.backend.model.activity.Activity;
 import org.example.backend.service.activity.ActivityService;
 import org.example.backend.service.KitService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,9 +43,9 @@ public class ActivityController {
 
 
     @GetMapping("/")
-    public ResponseEntity<List<Activity>> getAllActivities(){
+    public ResponseEntity<Page<Activity>> getAllActivities(Pageable pageable){
         List<Activity> activities = activityService.getAllActivities();
-        return new ResponseEntity<>(activities , HttpStatus.OK);
+        return new ResponseEntity<>(PaginationUtil.paginate(activities, pageable) , HttpStatus.OK);
     }
 
 
@@ -70,10 +73,10 @@ public class ActivityController {
 
 
     @GetMapping("/kit/{kitId}")
-    public ResponseEntity<List<Activity>> getAllActivitiesByKit(@PathVariable int kitId){
+    public ResponseEntity<Page<Activity>> getAllActivitiesByKit(@PathVariable int kitId, Pageable pageable){
         List<Activity> activities = activityService.getActivitiesByKit(kitId);
         if(activities != null)
-            return new ResponseEntity<>(activities , HttpStatus.OK);
+            return new ResponseEntity<>(PaginationUtil.paginate(activities, pageable) , HttpStatus.OK);
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 

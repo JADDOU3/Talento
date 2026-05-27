@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../models/childmode/child_model.dart';
 import '../../../cubits/profile/profile_cubit.dart';
+import '../../../models/childmode/child_model.dart';
 
 class ChildrenSection extends StatefulWidget {
   final List<ChildModel> children;
@@ -74,12 +74,12 @@ class _ChildrenSectionState extends State<ChildrenSection> {
   }
 
   Widget _buildChildItem(BuildContext context, ChildModel child) {
-    final isSelected = selectedChild?.id == child.id;
+    final isSelected = widget.selectedChild?.id == child.id;
 
     return GestureDetector(
       onTap: () {
-        if (onChildSelected != null) {
-          onChildSelected!(child);
+        if (widget.onChildSelected != null) {
+          widget.onChildSelected!(child);
         } else {
           context.read<ProfileCubit>().selectChild(child);
         }
@@ -99,10 +99,10 @@ class _ChildrenSectionState extends State<ChildrenSection> {
               boxShadow: isSelected
                   ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   blurRadius: 8,
                   spreadRadius: 1,
-                )
+                ),
               ]
                   : [],
             ),
@@ -115,7 +115,10 @@ class _ChildrenSectionState extends State<ChildrenSection> {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: AppColors.inputFill,
-                  child: const Icon(Icons.person_rounded, color: AppColors.hint),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.hint,
+                  ),
                 ),
               ),
             ),
@@ -134,7 +137,6 @@ class _ChildrenSectionState extends State<ChildrenSection> {
     );
   }
 
-  // ✅ Fixed: add button now works
   Widget _buildAddButton(BuildContext context) {
     return GestureDetector(
       onTap: () => _showAddChildDialog(context),

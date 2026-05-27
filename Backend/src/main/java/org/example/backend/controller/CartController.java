@@ -6,8 +6,11 @@ import org.example.backend.Dto.CartItem.CartItemDTO;
 import org.example.backend.Dto.CartItem.CreateCartItemDTO;
 import org.example.backend.Dto.CartItem.UpdateCartItemDTO;
 import org.example.backend.service.CartService;
+import org.example.backend.util.PaginationUtil;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,11 +77,11 @@ public class CartController {
     }
 
     @GetMapping("/items")
-    public ResponseEntity<List<CartItemDTO>> getItems() {
+    public ResponseEntity<Page<CartItemDTO>> getItems(Pageable pageable) {
         int parentId = SecurityUtils.getCurrentUser().getId();
         List<CartItemDTO> items = cartService.getItems(parentId);
         if (items != null)
-            return new ResponseEntity<>(items, HttpStatus.OK);
+            return new ResponseEntity<>(PaginationUtil.paginate(items, pageable), HttpStatus.OK);
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

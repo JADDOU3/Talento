@@ -8,6 +8,7 @@ import org.example.backend.model.ChildKit;
 import org.example.backend.model.Kit;
 import org.example.backend.service.ChildService;
 import org.example.backend.service.KitService;
+import org.example.backend.util.PaginationUtil;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -65,11 +66,11 @@ public class KitController {
     }
 
     @GetMapping("/child/{id}")
-    public ResponseEntity<List<ChildKit>> getKitsByChildId(@PathVariable int id) {
+    public ResponseEntity<Page<ChildKit>> getKitsByChildId(@PathVariable int id, Pageable pageable) {
         Child child = childService.getChildById(id);
         if (child == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(kitService.getKitsByChildId(id), HttpStatus.OK);
+        return new ResponseEntity<>(PaginationUtil.paginate(kitService.getKitsByChildId(id), pageable), HttpStatus.OK);
     }
 
     @PostMapping("/child/")
@@ -94,17 +95,17 @@ public class KitController {
     }
 
     @GetMapping("/type/{type}")
-    public ResponseEntity<List<Kit>> getKitsByType(@PathVariable Type type) {
-        return new ResponseEntity<>(kitService.getKitsByType(type), HttpStatus.OK);
+    public ResponseEntity<Page<Kit>> getKitsByType(@PathVariable Type type, Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(kitService.getKitsByType(type), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/mindset/{mindsetId}")
-    public ResponseEntity<List<Kit>> getKitsByMindset(@PathVariable int mindsetId) {
-        return new ResponseEntity<>(kitService.getKitsByMindset(mindsetId), HttpStatus.OK);
+    public ResponseEntity<Page<Kit>> getKitsByMindset(@PathVariable int mindsetId, Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(kitService.getKitsByMindset(mindsetId), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Kit>> searchKits(@RequestParam String keyword) {
-        return new ResponseEntity<>(kitService.searchKitsByName(keyword), HttpStatus.OK);
+    public ResponseEntity<Page<Kit>> searchKits(@RequestParam String keyword, Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(kitService.searchKitsByName(keyword), pageable), HttpStatus.OK);
     }
 }

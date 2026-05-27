@@ -8,7 +8,7 @@ import '../../cubits/child_mode/child_mode_state.dart';
 import '../../shared/layout/app_drawer.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 
 import 'widgets/insight_item.dart';
 import 'widgets/journal_card.dart';

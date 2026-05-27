@@ -4,7 +4,10 @@ import org.example.backend.Dto.performance.CreatePerformanceDto;
 import org.example.backend.Dto.performance.UpdatePerformanceDto;
 import org.example.backend.model.Performance;
 import org.example.backend.service.PerformanceService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,8 @@ public class PerformanceController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Performance>> getAll() {
-        return ResponseEntity.ok(performanceService.getAll());
+    public ResponseEntity<Page<Performance>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(performanceService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,13 +38,13 @@ public class PerformanceController {
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<List<Performance>> getPerformanceByChild(@PathVariable int childId) {
-        return ResponseEntity.ok(performanceService.getPerformanceByChild(childId));
+    public ResponseEntity<Page<Performance>> getPerformanceByChild(@PathVariable int childId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(performanceService.getPerformanceByChild(childId), pageable));
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<List<Performance>> getPerformanceByActivity(@PathVariable int activityId) {
-        return ResponseEntity.ok(performanceService.getPerformanceByActivity(activityId));
+    public ResponseEntity<Page<Performance>> getPerformanceByActivity(@PathVariable int activityId, Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(performanceService.getPerformanceByActivity(activityId), pageable));
     }
 
     @PutMapping("/{id}")

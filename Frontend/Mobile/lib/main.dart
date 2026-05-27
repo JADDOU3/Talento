@@ -4,11 +4,6 @@ import 'core/theme/app_theme.dart';
 import 'cubits/child_mode/child_mode_cubit.dart';
 import 'screens/splash/splash_screen.dart';
 import 'core/lifecycle/app_lifecycle_handler.dart';
-import 'screens/owned_kit/owned_kit_screen.dart';
-import 'screens/community/community_screen.dart';
-import 'screens/qr_scanner/qr_scanner_screen.dart';
-import 'test_screens/test_menu_screen.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ChildModeCubit(), // ✅ لا تنادي checkChildMode هون — بتنادى بعد login
+      create: (_) => ChildModeCubit(),
       child: AppLifecycleHandler(
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

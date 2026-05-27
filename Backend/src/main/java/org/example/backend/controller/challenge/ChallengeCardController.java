@@ -4,7 +4,10 @@ import org.example.backend.Dto.challenge.CreateChallengeCardDto;
 import org.example.backend.Dto.challenge.UpdateChallengeCardDto;
 import org.example.backend.model.challengeCard.ChallengeCard;
 import org.example.backend.service.Challenge.ChallengeCardService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +29,8 @@ public class ChallengeCardController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<ChallengeCard>> getAllChallengeCards() {
-        return new ResponseEntity<>(challengeCardService.getAllChallengeCards(), HttpStatus.OK);
+    public ResponseEntity<Page<ChallengeCard>> getAllChallengeCards(Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(challengeCardService.getAllChallengeCards(), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -39,10 +42,10 @@ public class ChallengeCardController {
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<List<ChallengeCard>> getChallengeCardsByActivity(
-            @PathVariable int activityId) {
+    public ResponseEntity<Page<ChallengeCard>> getChallengeCardsByActivity(
+            @PathVariable int activityId, Pageable pageable) {
         return new ResponseEntity<>(
-                challengeCardService.getChallengeCardsByActivity(activityId), HttpStatus.OK);
+                PaginationUtil.paginate(challengeCardService.getChallengeCardsByActivity(activityId), pageable), HttpStatus.OK);
     }
 
     @PutMapping("/")

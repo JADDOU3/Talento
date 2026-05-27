@@ -4,7 +4,10 @@ import org.example.backend.Dto.Review.CreateReviewDto;
 import org.example.backend.Dto.Review.ReviewDto;
 import org.example.backend.Dto.Review.UpdateReviewDto;
 import org.example.backend.service.ReviewService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,18 +24,18 @@ public class ReviewController {
     private ReviewService reviewService;
 
     @GetMapping("/")
-    public ResponseEntity<List<ReviewDto>> getAllReviews() {
-        return new ResponseEntity<>(reviewService.getAllReviews(), HttpStatus.OK);
+    public ResponseEntity<Page<ReviewDto>> getAllReviews(Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(reviewService.getAllReviews(), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/kit/{kitId}")
-    public ResponseEntity<List<ReviewDto>> getReviewsByKit(@PathVariable int kitId) {
-        return new ResponseEntity<>(reviewService.getReviewsByKit(kitId), HttpStatus.OK);
+    public ResponseEntity<Page<ReviewDto>> getReviewsByKit(@PathVariable int kitId, Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(reviewService.getReviewsByKit(kitId), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<ReviewDto>> getMyReviews() {
-        return new ResponseEntity<>(reviewService.getMyReviews(), HttpStatus.OK);
+    public ResponseEntity<Page<ReviewDto>> getMyReviews(Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(reviewService.getMyReviews(), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

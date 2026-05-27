@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/screens/profile/widgets/available_kits_section.dart';
-import 'package:mobile/screens/profile/widgets/children_section.dart';
-import 'package:mobile/screens/profile/widgets/profile_header.dart';
-import 'package:mobile/screens/profile/widgets/profile_progress_card.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/widgets/app_background.dart';
-import '../../shared/layout/top_bar.dart';
-import '../../shared/layout/bottom_nav_bar.dart';
-import '../../cubits/profile/profile_cubit.dart';
-import '../../cubits/profile/profile_state.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../cubits/child_mode/child_mode_state.dart';
-
+import '../../cubits/profile/profile_cubit.dart';
+import '../../cubits/profile/profile_state.dart';
+import '../../models/kit/kit_model.dart';
+import '../../shared/layout/app_background.dart';
+import '../../shared/layout/app_drawer.dart';
+import '../../shared/layout/bottom_nav_bar.dart';
+import '../../shared/layout/top_bar.dart';
 import 'widgets/available_kits_section.dart';
 import 'widgets/children_section.dart';
 import 'widgets/profile_header.dart';
@@ -48,7 +46,6 @@ class _ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Watch child mode state — UI updates automatically without navigation
     final childModeState = context.watch<ChildModeCubit>().state;
     final isChildMode =
         childModeState is ChildModeStatus && childModeState.isChildMode;
@@ -122,7 +119,7 @@ class _ProfileView extends StatelessWidget {
                         : <KitModel>[];
 
                     final isKitsLoading = state is ProfileKitsLoading;
-                    // In child mode: show selected child's name instead of parent
+
                     final displayName = isChildMode && selectedChild != null
                         ? selectedChild.name
                         : user.name;
@@ -131,7 +128,6 @@ class _ProfileView extends StatelessWidget {
                         ? (selectedChild.avatarUrl ??
                         'https://api.dicebear.com/7.x/adventurer/png?seed=${selectedChild.name}')
                         : (user.avatarUrl ?? '');
-
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -146,20 +142,25 @@ class _ProfileView extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
 
-                          // Children section — only shown in parent mode
                           if (!isChildMode)
                             ChildrenSection(
                               children: children,
                               selectedChild: selectedChild,
+                              openAddChildDialog: openAddChildDialog,
                               onChildSelected: (child) {
                                 context
                                     .read<ProfileCubit>()
                                     .selectChild(child);
+
                                 Future.delayed(
                                   const Duration(milliseconds: 150),
-                                      () => context
-                                      .read<ChildModeCubit>()
-                                      .checkChildMode(),
+                                      () {
+                                    if (context.mounted) {
+                                      context
+                                          .read<ChildModeCubit>()
+                                          .checkChildMode();
+                                    }
+                                  },
                                 );
                               },
                             ),
@@ -171,6 +172,7 @@ class _ProfileView extends StatelessWidget {
                             progress: 0.7,
                           ),
                           const SizedBox(height: 24),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -184,6 +186,7 @@ class _ProfileView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
+
                           if (isKitsLoading)
                             const Center(
                               child: CircularProgressIndicator(
@@ -200,10 +203,10 @@ class _ProfileView extends StatelessWidget {
                               ),
                             )
                           else
-                            AvailableKitsSection(kits: kits as dynamic),
+                            AvailableKitsSection(kits: kits),
+
                           const SizedBox(height: 24),
 
-                          // Settings only in parent mode
                           if (!isChildMode) const SettingsSection(),
 
                           const SizedBox(height: 24),
