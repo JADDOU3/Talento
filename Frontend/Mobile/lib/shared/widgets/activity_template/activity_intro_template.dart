@@ -48,6 +48,7 @@ class ActivityIntroTemplate extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(child: background),
+
             SafeArea(
               child: SizedBox(
                 width: double.infinity,
@@ -58,6 +59,14 @@ class ActivityIntroTemplate extends StatelessWidget {
                     clipBehavior: Clip.none,
                     children: [
                       Positioned(
+                        top: 12,
+                        right: 0,
+                        child: _BackButton(
+                          onTap: () => Navigator.pop(context),
+                        ),
+                      ),
+
+                      Positioned(
                         top: screenHeight * 0.25,
                         left: 0,
                         right: 0,
@@ -66,7 +75,8 @@ class ActivityIntroTemplate extends StatelessWidget {
                             ActivityTemplateButton(
                               text: startButtonText,
                               onPressed: onStartPressed,
-                              backgroundColor: startButtonColor ?? AppColors.primary,
+                              backgroundColor:
+                              startButtonColor ?? AppColors.primary,
                               height: 82,
                               borderRadius: 30,
                               fontSize: screenWidth * 0.09,
@@ -85,7 +95,8 @@ class ActivityIntroTemplate extends StatelessWidget {
                               child: ActivityTemplateButton(
                                 text: replayButtonText,
                                 onPressed: onReplayPressed,
-                                backgroundColor: replayButtonColor ?? AppColors.pink,
+                                backgroundColor:
+                                replayButtonColor ?? AppColors.pink,
                                 height: 62,
                                 borderRadius: 28,
                                 fontSize: screenWidth * 0.042,
@@ -100,6 +111,7 @@ class ActivityIntroTemplate extends StatelessWidget {
                           ],
                         ),
                       ),
+
                       Align(
                         alignment: mascotAlignment,
                         child: Transform.translate(
@@ -117,6 +129,48 @@ class ActivityIntroTemplate extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _BackButton({
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.92),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.16),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: AppColors.primary,
+            size: 18,
+          ),
         ),
       ),
     );
