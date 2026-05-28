@@ -63,7 +63,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
       return;
     }
 
-    final itemHeight = 214.0;
+    final itemHeight = 230.0;
     final reversedIndexFromTop = widget.activities.length - 1 - currentIndex;
 
     final targetOffset = (reversedIndexFromTop * itemHeight).clamp(
@@ -89,9 +89,9 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   @override
   Widget build(BuildContext context) {
     final children = <Widget>[
-      const SizedBox(height: 14),
+      const SizedBox(height: 18),
       const RoadmapBonusChest(),
-      const SizedBox(height: 8),
+      const SizedBox(height: 10),
     ];
 
     for (int visualIndex = widget.activities.length - 1;
@@ -109,10 +109,8 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
       );
 
       children.add(
-        _DecoratedRoadmapStep(
+        _RoadmapStep(
           isRight: isRight,
-          isCurrent: activity.isCurrent,
-          mascotAssetPath: widget.mascotAssetPath,
           child: RoadmapActivityTile(
             activity: activity,
             index: originalIndex,
@@ -122,7 +120,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
       );
     }
 
-    children.add(const SizedBox(height: 46));
+    children.add(const SizedBox(height: 220));
 
     return Stack(
       children: [
@@ -131,27 +129,44 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
             child: _RoadmapBackgroundDecorations(),
           ),
         ),
+
         ListView(
           controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(6, 10, 6, 24),
           children: children,
         ),
+
+        const Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: _TopFogOverlay(),
+          ),
+        ),
+
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            child: _RoadStartGuide(
+              mascotAssetPath: widget.mascotAssetPath,
+            ),
+          ),
+        ),
       ],
     );
   }
 }
 
-class _DecoratedRoadmapStep extends StatelessWidget {
+class _RoadmapStep extends StatelessWidget {
   final bool isRight;
-  final bool isCurrent;
-  final String mascotAssetPath;
   final Widget child;
 
-  const _DecoratedRoadmapStep({
+  const _RoadmapStep({
     required this.isRight,
-    required this.isCurrent,
-    required this.mascotAssetPath,
     required this.child,
   });
 
@@ -160,115 +175,235 @@ class _DecoratedRoadmapStep extends StatelessWidget {
     final alignment = isRight ? Alignment.centerRight : Alignment.centerLeft;
 
     return SizedBox(
-      height: isCurrent ? 244 : 174,
+      height: 194,
+      child: Align(
+        alignment: alignment,
+        child: Padding(
+          padding: EdgeInsets.only(
+            right: isRight ? 10 : 0,
+            left: isRight ? 0 : 10,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoadStartGuide extends StatelessWidget {
+  final String mascotAssetPath;
+
+  const _RoadStartGuide({
+    required this.mascotAssetPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 190,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Align(
-            alignment: alignment,
-            child: Padding(
-              padding: EdgeInsets.only(
-                right: isRight ? 10 : 0,
-                left: isRight ? 0 : 10,
-                top: isCurrent ? 42 : 0,
+          Positioned(
+            left: -20,
+            right: -20,
+            bottom: -30,
+            child: Container(
+              height: 118,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppColors.background.withValues(alpha: 1.0),
+                    AppColors.background.withValues(alpha: 0.92),
+                    AppColors.background.withValues(alpha: 0.0),
+                  ],
+                ),
               ),
-              child: child,
             ),
           ),
-          if (isCurrent)
-            Positioned(
-              top: 0,
-              right: isRight ? null : 82,
-              left: isRight ? 82 : null,
-              child: _CurrentMascot(
-                assetPath: mascotAssetPath,
-                flip: isRight,
+
+          Positioned(
+            left: 4,
+            bottom: 14,
+            child: Image.asset(
+              mascotAssetPath,
+              width: 165,
+              height: 165,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) {
+                return Container(
+                  width: 118,
+                  height: 118,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.smart_toy_rounded,
+                    color: AppColors.primary,
+                    size: 60,
+                  ),
+                );
+              },
+            ),
+          ),
+
+          Positioned(
+            left: 132,
+            bottom: 110,
+            child: Transform.rotate(
+              angle: 0.03,
+              child: Container(
+                width: 154,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.97),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.18),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.07),
+                      blurRadius: 16,
+                      offset: const Offset(0, 7),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'ابدئي الرحلة من هنا ✨',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12.3,
+                    height: 1.25,
+                  ),
+                ),
               ),
             ),
+          ),
+
+          Positioned(
+            left: 122,
+            bottom: 100,
+            child: CustomPaint(
+              size: const Size(22, 18),
+              painter: _BubbleTailPainter(),
+            ),
+          ),
+
+          Positioned(
+            right: 34,
+            bottom: 48,
+            child: _MiniDecorationDot(
+              color: AppColors.pink.withValues(alpha: 0.55),
+              size: 9,
+            ),
+          ),
+
+          Positioned(
+            right: 76,
+            bottom: 78,
+            child: _MiniDecorationDot(
+              color: AppColors.yellow.withValues(alpha: 0.75),
+              size: 12,
+            ),
+          ),
+
+          Positioned(
+            right: 120,
+            bottom: 40,
+            child: _MiniDecorationDot(
+              color: AppColors.primary.withValues(alpha: 0.50),
+              size: 7,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _CurrentMascot extends StatelessWidget {
-  final String assetPath;
-  final bool flip;
+class _TopFogOverlay extends StatelessWidget {
+  const _TopFogOverlay();
 
-  const _CurrentMascot({
-    required this.assetPath,
-    required this.flip,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 74,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.background.withValues(alpha: 0.98),
+            AppColors.background.withValues(alpha: 0.76),
+            AppColors.background.withValues(alpha: 0.0),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniDecorationDot extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _MiniDecorationDot({
+    required this.color,
+    required this.size,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      textDirection: flip ? TextDirection.rtl : TextDirection.ltr,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()..scale(flip ? -1.0 : 1.0, 1.0),
-          child: Image.asset(
-            assetPath,
-            width: 96,
-            height: 96,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
-              return Container(
-                width: 78,
-                height: 78,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.smart_toy_rounded,
-                  color: AppColors.primary,
-                  size: 42,
-                ),
-              );
-            },
-          ),
-        ),
-        Transform.translate(
-          offset: Offset(flip ? 8 : -8, 8),
-          child: Transform.rotate(
-            angle: flip ? -0.035 : 0.035,
-            child: Container(
-              width: 92,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.96),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.06),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Text(
-                'يلا نكمل!',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 11.8,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
     );
+  }
+}
+
+class _BubbleTailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..quadraticBezierTo(
+        size.width * 0.60,
+        size.height * 0.28,
+        size.width,
+        size.height,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.40,
+        size.height * 0.78,
+        0,
+        0,
+      )
+      ..close();
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = AppColors.white.withValues(alpha: 0.97)
+        ..style = PaintingStyle.fill,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BubbleTailPainter oldDelegate) {
+    return false;
   }
 }
 
@@ -358,6 +493,7 @@ class _RoadmapDecorationsPainter extends CustomPainter {
       Offset(center.dx + 5, center.dy),
       paint,
     );
+
     canvas.drawLine(
       Offset(center.dx, center.dy - 5),
       Offset(center.dx, center.dy + 5),
