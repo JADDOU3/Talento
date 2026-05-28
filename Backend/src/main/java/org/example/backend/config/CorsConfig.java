@@ -24,7 +24,6 @@ public class CorsConfig {
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
-        // Bearer/Basic tokens are sent via Authorization header, not cookies.
         config.setAllowCredentials(false);
         config.setMaxAge(3600L);
 
