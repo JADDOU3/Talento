@@ -71,7 +71,7 @@ class RoadmapActivityModel {
       return '';
     }
 
-    return 'Level $currentLevelNumber of $totalLevels';
+    return 'المستوى $currentLevelNumber من $totalLevels';
   }
 
   static RoadmapActivityStatus _parseStatus(dynamic value) {

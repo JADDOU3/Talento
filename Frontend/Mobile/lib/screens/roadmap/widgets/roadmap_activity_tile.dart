@@ -23,31 +23,31 @@ class RoadmapActivityTile extends StatelessWidget {
     final rotation = _rotationForIndex(index);
 
     return Transform.rotate(
-      angle: activity.isLocked ? 0 : rotation,
+      angle: activity.isLocked ? rotation * 0.45 : rotation,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(32),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 260),
-            width: activity.isCurrent ? 186 : 170,
-            padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+            width: activity.isCurrent ? 188 : 170,
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
             decoration: BoxDecoration(
               color: tileColor,
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(32),
               border: Border.all(
                 color: activity.isCurrent
-                    ? AppColors.white.withValues(alpha: 0.95)
-                    : AppColors.white.withValues(alpha: 0.65),
-                width: activity.isCurrent ? 2.4 : 1.6,
+                    ? AppColors.white.withValues(alpha: 0.98)
+                    : AppColors.white.withValues(alpha: 0.72),
+                width: activity.isCurrent ? 2.6 : 1.7,
               ),
               boxShadow: [
                 BoxShadow(
                   color: statusColor.withValues(
-                    alpha: activity.isCurrent ? 0.35 : 0.18,
+                    alpha: activity.isCurrent ? 0.38 : 0.18,
                   ),
-                  blurRadius: activity.isCurrent ? 28 : 18,
+                  blurRadius: activity.isCurrent ? 30 : 18,
                   offset: const Offset(0, 10),
                 ),
               ],
@@ -59,12 +59,12 @@ class RoadmapActivityTile extends StatelessWidget {
                   activity: activity,
                   color: statusColor,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 _ActivityIcon(
                   activity: activity,
                   color: statusColor,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   activity.activityName.trim().isEmpty
                       ? 'نشاط ${index + 1}'
@@ -74,27 +74,15 @@ class RoadmapActivityTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: activity.isLocked
-                        ? AppColors.textSecondary
+                        ? AppColors.textPrimary
                         : AppColors.textPrimary,
                     fontWeight: FontWeight.w900,
-                    fontSize: 14.5,
-                    height: 1.25,
+                    fontSize: activity.isCurrent ? 14.8 : 14,
+                    height: 1.18,
                   ),
                 ),
                 const SizedBox(height: 5),
-                Text(
-                  _subtitle,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: activity.isLocked
-                        ? AppColors.hint
-                        : AppColors.textSecondary,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                _ActivitySubtitle(activity: activity),
               ],
             ),
           ),
@@ -104,23 +92,24 @@ class RoadmapActivityTile extends StatelessWidget {
   }
 
   Color get _tileColor {
-    if (activity.isLocked) {
-      return AppColors.inputFill.withValues(alpha: 0.92);
-    }
-
     final colors = <Color>[
-      AppColors.primary.withValues(alpha: 0.92),
+      AppColors.primary.withValues(alpha: 0.90),
+      AppColors.yellow.withValues(alpha: 0.90),
+      AppColors.secondary.withValues(alpha: 0.90),
       AppColors.pink.withValues(alpha: 0.90),
-      AppColors.yellow.withValues(alpha: 0.92),
-      const Color(0xFF48C5DC).withValues(alpha: 0.92),
+      const Color(0xFF48C5DC).withValues(alpha: 0.90),
     ];
 
     if (activity.isCompleted) {
-      return AppColors.primary.withValues(alpha: 0.92);
+      return AppColors.primary.withValues(alpha: 0.90);
     }
 
     if (activity.isCurrent) {
       return AppColors.pink.withValues(alpha: 0.92);
+    }
+
+    if (activity.isLocked) {
+      return colors[index % colors.length].withValues(alpha: 0.46);
     }
 
     return colors[index % colors.length];
@@ -129,7 +118,50 @@ class RoadmapActivityTile extends StatelessWidget {
   Color get _statusColor {
     if (activity.isCompleted) return AppColors.primary;
     if (activity.isCurrent) return AppColors.pink;
-    return AppColors.hint;
+    return AppColors.textPrimary;
+  }
+
+  static double _rotationForIndex(int index) {
+    final rotations = <double>[-0.040, 0.034, -0.024, 0.030];
+    return rotations[index % rotations.length];
+  }
+}
+
+class _ActivitySubtitle extends StatelessWidget {
+  final RoadmapActivityModel activity;
+
+  const _ActivitySubtitle({
+    required this.activity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final text = _subtitle;
+    final color = activity.isCurrent
+        ? AppColors.white
+        : AppColors.textPrimary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: activity.isCurrent
+            ? AppColors.white.withValues(alpha: 0.20)
+            : AppColors.white.withValues(alpha: 0.64),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: color,
+          fontSize: 11.2,
+          fontWeight: FontWeight.w900,
+          height: 1.05,
+        ),
+      ),
+    );
   }
 
   String get _subtitle {
@@ -142,11 +174,6 @@ class RoadmapActivityTile extends StatelessWidget {
     }
 
     return 'مغلق';
-  }
-
-  static double _rotationForIndex(int index) {
-    final rotations = <double>[-0.045, 0.04, -0.025, 0.035];
-    return rotations[index % rotations.length];
   }
 }
 
@@ -166,35 +193,19 @@ class _ActivityIcon extends StatelessWidget {
     }
 
     return Container(
-      width: 64,
-      height: 64,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: activity.isLocked ? 0.58 : 0.9),
+        color: AppColors.white.withValues(
+          alpha: activity.isLocked ? 0.82 : 0.92,
+        ),
         shape: BoxShape.circle,
       ),
-      child: _buildContent(),
-    );
-  }
-
-  Widget _buildContent() {
-    if (activity.hasCoverImage && !activity.isLocked) {
-      return ClipOval(
-        child: Image.network(
-          activity.coverImageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Icon(
-            _fallbackIcon,
-            color: color,
-            size: 34,
-          ),
-        ),
-      );
-    }
-
-    return Icon(
-      _fallbackIcon,
-      color: activity.isLocked ? AppColors.hint : color,
-      size: 34,
+      child: Icon(
+        _fallbackIcon,
+        color: activity.isLocked ? AppColors.textPrimary : color,
+        size: 31,
+      ),
     );
   }
 
@@ -252,37 +263,23 @@ class _PulsingIconState extends State<_PulsingIcon>
     return ScaleTransition(
       scale: _scale,
       child: Container(
-        width: 70,
-        height: 70,
+        width: 66,
+        height: 66,
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.94),
+          color: AppColors.white.withValues(alpha: 0.96),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.pink.withValues(alpha: 0.34),
+              color: AppColors.pink.withValues(alpha: 0.36),
               blurRadius: 22,
-              spreadRadius: 4,
+              spreadRadius: 3,
             ),
           ],
         ),
-        child: widget.activity.hasCoverImage
-            ? ClipOval(
-          child: Image.network(
-            widget.activity.coverImageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) {
-              return const Icon(
-                Icons.play_arrow_rounded,
-                color: AppColors.pink,
-                size: 40,
-              );
-            },
-          ),
-        )
-            : const Icon(
+        child: const Icon(
           Icons.play_arrow_rounded,
           color: AppColors.pink,
-          size: 40,
+          size: 39,
         ),
       ),
     );
@@ -309,16 +306,23 @@ class _StatusBadge extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        width: 28,
-        height: 28,
+        width: 27,
+        height: 27,
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.92),
+          color: AppColors.white.withValues(alpha: 0.94),
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Icon(
           icon,
-          size: 17,
-          color: color,
+          size: 16,
+          color: activity.isLocked ? AppColors.textPrimary : color,
         ),
       ),
     );

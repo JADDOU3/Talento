@@ -35,7 +35,7 @@ class RoadmapHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'اتبعي المسار واكتشفي الأنشطة خطوة بخطوة',
+                'اتبع المسار واكتشف الأنشطة خطوة بخطوة',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
