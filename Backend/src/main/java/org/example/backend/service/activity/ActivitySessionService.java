@@ -62,7 +62,7 @@ public class ActivitySessionService {
         if(updateActivitySessionDto.getEndedAt() != null) activitySession.setEndedAt(updateActivitySessionDto.getEndedAt());
 
 
-        activitySession.setActivity(activityService.getActivityById(updateActivitySessionDto.getActivityId()));
+        activitySession.setActivity(activityService.getRawActivityById(updateActivitySessionDto.getActivityId()));
         activitySession.setSession(sessionService.getSessionById(updateActivitySessionDto.getSessionId()));
 
         return activitySessionRepo.save(activitySession);

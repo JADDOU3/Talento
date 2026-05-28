@@ -66,7 +66,7 @@ public class EventService {
         event.setSession(sessionService.getSessionById(createChallengeEventDto.getSessionId()));
         event.setAction(createChallengeEventDto.getAction());
         if (createChallengeEventDto.getActivityId() != null) {
-            event.setActivity(activityService.getActivityById(createChallengeEventDto.getActivityId()));
+            event.setActivity(activityService.getRawActivityById(createChallengeEventDto.getActivityId()));
         }
         ChallengeEvent saved = challengeEventRepo.save(event);
         aiAnalysisService.triggerAnalysisIfCompleted(
@@ -108,7 +108,7 @@ public class EventService {
         event.setCreatedAt(LocalDateTime.now());
         event.setChild(childService.getChildById(createActivityEventDto.getChildId()));
         event.setSession(sessionService.getSessionById(createActivityEventDto.getSessionId()));
-        event.setActivity(activityService.getActivityById(createActivityEventDto.getActivityId()));
+        event.setActivity(activityService.getRawActivityById(createActivityEventDto.getActivityId()));
         event.setAction(createActivityEventDto.getAction());
         ActivityEvent saved = activityEventRepo.save(event);
         aiAnalysisService.triggerAnalysisIfCompleted(
