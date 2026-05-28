@@ -97,6 +97,30 @@ class ProfileService {
     return response;
   }
 
+  List<dynamic> _extractListFromResponse(dynamic decoded) {
+    if (decoded is List) {
+      return decoded;
+    }
+
+    if (decoded is Map<String, dynamic> && decoded['content'] is List) {
+      return decoded['content'] as List<dynamic>;
+    }
+
+    return [];
+  }
+
+  String _extractErrorMessage(String body, String fallback) {
+    try {
+      final decoded = jsonDecode(body);
+
+      if (decoded is Map<String, dynamic>) {
+        return (decoded['message'] ?? decoded['error'] ?? fallback).toString();
+      }
+    } catch (_) {}
+
+    return body.trim().isEmpty ? fallback : body.trim();
+  }
+
   Future<UserModel> getCurrentUser() async {
     final response = await _getWithRefresh(ApiConstants.currentUser);
 
@@ -106,7 +130,12 @@ class ProfileService {
       return UserModel.fromJson(jsonDecode(response.body));
     }
 
-    throw Exception('Failed to load user: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load user: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<List<ChildModel>> getChildren() async {
@@ -114,12 +143,26 @@ class ProfileService {
 
     debugPrint('getChildren: ${response.statusCode} - ${response.body}');
 
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => ChildModel.fromJson(e)).toList();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+      final data = _extractListFromResponse(decoded);
+
+      return data
+          .whereType<Map>()
+          .map(
+            (item) => ChildModel.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
+      )
+          .toList();
     }
 
-    throw Exception('Failed to load children: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load children: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<ChildModel?> getSelectedChild() async {
@@ -131,12 +174,20 @@ class ProfileService {
       return null;
     }
 
-    if (response.statusCode == 200) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        return null;
+      }
+
       final data = jsonDecode(response.body);
 
       if (data == null) return null;
 
-      return ChildModel.fromJson(data);
+      if (data is Map<String, dynamic>) {
+        return ChildModel.fromJson(data);
+      }
+
+      return null;
     }
 
     return null;
@@ -153,7 +204,12 @@ class ProfileService {
       return;
     }
 
-    throw Exception('Failed to set selected child: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to set selected child: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<void> selectChild(int childId) async {
@@ -171,12 +227,30 @@ class ProfileService {
       return [];
     }
 
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => KitModel.fromJson(e)).toList();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        return [];
+      }
+
+      final decoded = jsonDecode(response.body);
+      final data = _extractListFromResponse(decoded);
+
+      return data
+          .whereType<Map>()
+          .map(
+            (item) => KitModel.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
+      )
+          .toList();
     }
 
-    throw Exception('Failed to load kits: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load kits: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<ChildModel> addChild({
@@ -210,6 +284,11 @@ class ProfileService {
       return ChildModel.fromJson(jsonDecode(response.body));
     }
 
-    throw Exception('Failed to add child: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to add child: ${response.statusCode}',
+      ),
+    );
   }
 }

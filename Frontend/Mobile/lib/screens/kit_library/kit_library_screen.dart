@@ -49,7 +49,9 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
   // Child mode kits state
   List<KitModel> _childKits = [];
   bool _childKitsLoading = false;
+  bool _childKitsLoadScheduled = false;
   String? _childKitsError;
+  int? _selectedChildId;
 
   final List<_MindsetFilterOption> _mindsetFilters = const [
     _MindsetFilterOption(label: 'الكل'),
@@ -59,16 +61,29 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
     _MindsetFilterOption(label: 'المخترع', mindset: Mindset.inventor),
   ];
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Load child kits when child mode is active
-    final childModeState = context.read<ChildModeCubit>().state;
-    final isChildMode =
-        childModeState is ChildModeStatus && childModeState.isChildMode;
-    if (isChildMode && _childKits.isEmpty && !_childKitsLoading) {
-      _loadChildKits();
+  void _scheduleChildKitsLoadIfNeeded(bool isChildMode) {
+    if (!isChildMode ||
+        _childKitsLoading ||
+        _childKitsLoadScheduled ||
+        _childKits.isNotEmpty) {
+      return;
     }
+
+    _childKitsLoadScheduled = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _childKitsLoadScheduled = false;
+
+      final childModeState = context.read<ChildModeCubit>().state;
+      final stillInChildMode =
+          childModeState is ChildModeStatus && childModeState.isChildMode;
+
+      if (stillInChildMode && _childKits.isEmpty && !_childKitsLoading) {
+        _loadChildKits();
+      }
+    });
   }
 
   Future<void> _loadChildKits() async {
@@ -76,22 +91,34 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       _childKitsLoading = true;
       _childKitsError = null;
     });
+
     try {
       final service = ProfileService();
       final selectedChild = await service.getSelectedChild();
+
+      if (!mounted) return;
+
       if (selectedChild == null) {
         setState(() {
+          _selectedChildId = null;
           _childKits = [];
           _childKitsLoading = false;
         });
         return;
       }
+
       final kits = await service.getKitsByChild(selectedChild.id);
+
+      if (!mounted) return;
+
       setState(() {
+        _selectedChildId = selectedChild.id;
         _childKits = kits;
         _childKitsLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _childKitsError = e.toString();
         _childKitsLoading = false;
@@ -112,10 +139,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
     final isChildMode =
         childModeState is ChildModeStatus && childModeState.isChildMode;
 
-    // Reload child kits when child mode becomes active
-    if (isChildMode && _childKits.isEmpty && !_childKitsLoading) {
-      _loadChildKits();
-    }
+    _scheduleChildKitsLoadIfNeeded(isChildMode);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -128,7 +152,9 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -143,7 +169,6 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 16),
 
                       // Search & filters only in normal mode
@@ -198,6 +223,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final kit = _childKits[index];
+
         return LibraryKitCard(
           title: kit.name,
           description: kit.description,
@@ -207,7 +233,12 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
           age: kit.age,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => OwnedKitScreen(kit: kit)),
+            MaterialPageRoute(
+              builder: (_) => OwnedKitScreen(
+                kit: kit,
+                childId: _selectedChildId,
+              ),
+            ),
           ),
         );
       },
@@ -244,6 +275,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
             separatorBuilder: (_, __) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final kit = state.kits[index];
+
               return LibraryKitCard(
                 title: kit.name,
                 description: kit.description,
@@ -285,14 +317,17 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
         textAlign: TextAlign.right,
         onChanged: (value) {
           _debounce?.cancel();
+
           _debounce = Timer(const Duration(milliseconds: 300), () {
             context.read<KitCubit>().searchKits(value);
           });
         },
         decoration: InputDecoration(
           hintText: 'ابحثي عن تجربة',
-          prefixIcon:
-          const Icon(Icons.search_rounded, color: AppColors.primary),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.primary,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(26),
             borderSide: BorderSide.none,
@@ -311,6 +346,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final option = _mindsetFilters[index];
+
           return CategoryChip(
             label: option.label,
             isSelected: _selectedLabel == option.label,
@@ -323,10 +359,13 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 
   void _onMindsetSelected(_MindsetFilterOption option) {
     setState(() => _selectedLabel = option.label);
+
     if (_searchController.text.trim().isNotEmpty) {
       _searchController.clear();
     }
+
     final cubit = context.read<KitCubit>();
+
     if (option.mindset == null) {
       cubit.getAllKits();
     } else {
@@ -344,15 +383,25 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 52, color: AppColors.hint),
+          Icon(
+            icon,
+            size: 52,
+            color: AppColors.hint,
+          ),
           const SizedBox(height: 12),
-          Text(message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: AppColors.textSecondary)),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
           if (buttonLabel != null && onPressed != null) ...[
             const SizedBox(height: 14),
-            ElevatedButton(onPressed: onPressed, child: Text(buttonLabel)),
+            ElevatedButton(
+              onPressed: onPressed,
+              child: Text(buttonLabel),
+            ),
           ],
         ],
       ),
@@ -363,5 +412,9 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 class _MindsetFilterOption {
   final String label;
   final Mindset? mindset;
-  const _MindsetFilterOption({required this.label, this.mindset});
+
+  const _MindsetFilterOption({
+    required this.label,
+    this.mindset,
+  });
 }
