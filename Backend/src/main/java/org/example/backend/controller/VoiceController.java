@@ -27,7 +27,7 @@ public class VoiceController {
         @RequestParam("activityId") int activityId,
         @RequestParam("file") MultipartFile file
     ) throws IOException {
-        Activity activity = activityService.getActivityById(activityId);
+        Activity activity = activityService.getRawActivityById(activityId);
         if (activity == null) {
             return ResponseEntity.notFound().build();
         }
