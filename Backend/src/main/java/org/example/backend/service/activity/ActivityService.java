@@ -75,7 +75,7 @@ public class ActivityService {
     }
 
     private ActivityResponseDto toResponseDto(Activity activity) {
-        String url = (activity.getCoverImageKey() != null)
+        String url = (activity.getCoverImageKey() != null && !activity.getCoverImageKey().isEmpty())
                 ? s3Service.generatePresignedUrl(activity.getCoverImageKey())
                 : null;
         return new ActivityResponseDto(activity, url);

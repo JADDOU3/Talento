@@ -14,8 +14,6 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Flutter web dev uses arbitrary ports (--web-port=0). Fixed origins like localhost:3000
-        // block signup/login from http://localhost:<random>. Use patterns instead.
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",

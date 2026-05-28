@@ -89,7 +89,9 @@ public class LevelService {
                 ? level.getImages().stream()
                   .map(img -> new LevelImageResponseDto(
                           img,
-                          s3Service.generatePresignedUrl(img.getS3Key())
+                          img.getS3Key() != null && !img.getS3Key().isEmpty()
+                          ? s3Service.generatePresignedUrl(img.getS3Key())
+                          : null
                   )).toList()
                 : Collections.emptyList();
         return new LevelResponseDto(level, imageDtos);
