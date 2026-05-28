@@ -237,11 +237,23 @@ class ProfileService {
 
       return data
           .whereType<Map>()
-          .map(
-            (item) => KitModel.fromJson(
-          Map<String, dynamic>.from(item),
-        ),
-      )
+          .map((item) {
+        final map = Map<String, dynamic>.from(item);
+
+        // Some endpoints return child-kit collection objects:
+        // { id: collectionId, kit: { id: realKitId, ... } }
+        // In this case we must parse the nested kit, not the wrapper.
+        final kitJson = map['kit'];
+
+        if (kitJson is Map) {
+          return KitModel.fromJson(
+            Map<String, dynamic>.from(kitJson),
+          );
+        }
+
+        // Fallback for old response shape where the item itself is the kit.
+        return KitModel.fromJson(map);
+      })
           .toList();
     }
 
