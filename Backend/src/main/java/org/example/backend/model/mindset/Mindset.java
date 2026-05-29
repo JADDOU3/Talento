@@ -22,6 +22,7 @@ public class Mindset {
     @Column(length = 2000)
     private String description;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "mindset")
     private List<Criteria> criteria;
     @JsonIgnore
