@@ -1,12 +1,14 @@
 package org.example.backend.service;
 
 import org.example.backend.Dto.CreateHelpLogDto;
+import org.example.backend.Dto.helpLog.HelpLogResponseDto;
 import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.HelpLog;
 import org.example.backend.repo.activity.ActivitySessionRepo;
 import org.example.backend.repo.HelpLogRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +22,8 @@ public class HelpLogService {
     @Autowired
     private ActivitySessionRepo activitySessionRepo;
 
-    public HelpLog createHelpLog(CreateHelpLogDto createHelpLogDto) {
+    @Transactional
+    public HelpLogResponseDto createHelpLog(CreateHelpLogDto createHelpLogDto) {
         ActivitySession activitySession = activitySessionRepo.findById(createHelpLogDto.getActivitySessionId())
                 .orElseThrow(() -> new RuntimeException("ActivitySession not found"));
 
@@ -29,15 +32,18 @@ public class HelpLogService {
         helpLog.setCreatedAt(LocalDateTime.now());
         helpLog.setActivitySession(activitySession);
 
-        return helpRepo.save(helpLog);
+        return HelpLogResponseDto.from(helpRepo.save(helpLog));
     }
 
-    public HelpLog getHelpLogById(int id) {
-        return helpRepo.findById(id).orElse(null);
+    @Transactional(readOnly = true)
+    public HelpLogResponseDto getHelpLogById(int id) {
+        return helpRepo.findById(id).map(HelpLogResponseDto::from).orElse(null);
     }
 
-    public List<HelpLog> getHelpLogsByActivitySession(int activitySessionId) {
-        return helpRepo.findByActivitySessionId(activitySessionId);
+    @Transactional(readOnly = true)
+    public List<HelpLogResponseDto> getHelpLogsByActivitySession(int activitySessionId) {
+        return helpRepo.findByActivitySessionId(activitySessionId).stream()
+                .map(HelpLogResponseDto::from).toList();
     }
 
     public void deleteHelpLog(int id) {

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.example.backend.model.Child;
 
 import java.time.LocalDateTime;
@@ -23,10 +24,12 @@ public class ActivityPreference {
     private int timesCompleted;
     private LocalDateTime lastPlayed;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "child_id")
     private Child child;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;

@@ -44,6 +44,7 @@ public class Activity {
     @JoinColumn(name = "kit_id")
     private Kit kit;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "activity")
     private List<ActivitySession> activitySessions;
 

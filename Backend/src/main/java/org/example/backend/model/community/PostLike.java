@@ -27,6 +27,7 @@ public class PostLike {
     @JoinColumn(name = "child_id")
     private Child child;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Parent parent;
