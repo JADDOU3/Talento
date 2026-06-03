@@ -35,17 +35,17 @@ public class ChildController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/")
-    public ResponseEntity<ChildResponseDto> addChild(@RequestBody CreateChildDto childDto) {
+    @PostMapping({"", "/"})
+    public ResponseEntity<Child> addChild(@RequestBody CreateChildDto childDto){
         return new ResponseEntity<>(childService.createChild(childDto), HttpStatus.CREATED);
     }
-
-    @PutMapping("/")
-    public ResponseEntity<ChildResponseDto> updateChild(@RequestBody ChildUpdateDto childUpdateDto) {
-        ChildResponseDto child = childService.updateChild(childUpdateDto);
-        if (child != null)
-            return new ResponseEntity<>(child, HttpStatus.OK);
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PutMapping({"", "/"})
+    public ResponseEntity<Child> updateChild(@RequestBody ChildUpdateDto childUpdateDto){
+        Child child = childService.updateChild(childUpdateDto);
+        if(child != null)
+            return new ResponseEntity<>(child , HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")
