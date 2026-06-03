@@ -54,14 +54,23 @@ public class LevelService {
     }
 
     public LevelResponseDto updateLevel(int id, UpdateLevelDto dto) {
+
         Level level = levelRepo.findById(id).orElse(null);
         if (level == null) return null;
+
         level.setLevelNumber(dto.getLevelNumber());
         level.setDifficulty(dto.getDifficulty());
         level.setDescription(dto.getDescription());
-        if (dto.getImages() != null) {
-            level.setImages(mapImages(dto.getImages(), level));
+
+        if (level.getImages() != null) {
+            level.getImages().clear();
         }
+
+        if (dto.getImages() != null) {
+            List<LevelImage> newImages = mapImages(dto.getImages(), level);
+            level.setImages(newImages);
+        }
+
         return toResponseDto(levelRepo.save(level));
     }
 

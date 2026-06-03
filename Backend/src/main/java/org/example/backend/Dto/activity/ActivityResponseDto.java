@@ -1,7 +1,7 @@
 package org.example.backend.Dto.activity;
 
 import lombok.Data;
-import org.example.backend.model.Kit;
+import org.example.backend.Dto.common.KitSummaryDto;
 import org.example.backend.model.activity.Activity;
 import org.example.backend.util.enums.Type;
 
@@ -15,7 +15,7 @@ public class ActivityResponseDto {
     private String coverImageKey;
     private String coverImageUrl;
     private Boolean voiceEnabled;
-    private Kit kit;
+    private KitSummaryDto kit;
 
     public ActivityResponseDto(Activity activity, String coverImageUrl) {
         this.id = activity.getId();
@@ -26,6 +26,6 @@ public class ActivityResponseDto {
         this.coverImageKey = activity.getCoverImageKey();
         this.coverImageUrl = coverImageUrl;
         this.voiceEnabled = activity.getVoiceEnabled();
-        this.kit = activity.getKit();
+        this.kit = KitSummaryDto.from(activity.getKit());
     }
 }

@@ -1,8 +1,8 @@
 package org.example.backend.controller;
 
+import org.example.backend.Dto.aiReport.AIReportResponseDto;
 import org.example.backend.Dto.aiReport.CreateAIReportDto;
 import org.example.backend.Dto.aiReport.UpdateAIReportDto;
-import org.example.backend.model.AIReport;
 import org.example.backend.service.AIReportService;
 import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/ai-reports")
@@ -21,31 +19,33 @@ public class AIReportController {
     private AIReportService aiReportService;
 
     @PostMapping
-    public ResponseEntity<AIReport> createReport(@RequestBody CreateAIReportDto dto) {
-        AIReport report = aiReportService.createReport(dto);
-        return report != null ? ResponseEntity.ok(report) : ResponseEntity.badRequest().build();
+    public ResponseEntity<AIReportResponseDto> createReport(@RequestBody CreateAIReportDto dto) {
+        var report = aiReportService.createReport(dto);
+        return report != null ? ResponseEntity.ok(AIReportResponseDto.from(report)) : ResponseEntity.badRequest().build();
     }
 
     @GetMapping
-    public ResponseEntity<Page<AIReport>> getAll(Pageable pageable) {
-        return ResponseEntity.ok(PaginationUtil.paginate(aiReportService.getAll(), pageable));
+    public ResponseEntity<Page<AIReportResponseDto>> getAll(Pageable pageable) {
+        var dtos = aiReportService.getAll().stream().map(AIReportResponseDto::from).toList();
+        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AIReport> getById(@PathVariable int id) {
-        AIReport report = aiReportService.getById(id);
-        return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
+    public ResponseEntity<AIReportResponseDto> getById(@PathVariable int id) {
+        var report = aiReportService.getById(id);
+        return report != null ? ResponseEntity.ok(AIReportResponseDto.from(report)) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<Page<AIReport>> getReportsByChild(@PathVariable int childId, Pageable pageable) {
-        return ResponseEntity.ok(PaginationUtil.paginate(aiReportService.getReportsByChild(childId), pageable));
+    public ResponseEntity<Page<AIReportResponseDto>> getReportsByChild(@PathVariable int childId, Pageable pageable) {
+        var dtos = aiReportService.getReportsByChild(childId).stream().map(AIReportResponseDto::from).toList();
+        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AIReport> updateReport(@PathVariable int id, @RequestBody UpdateAIReportDto dto) {
-        AIReport report = aiReportService.updateReport(id, dto);
-        return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
+    public ResponseEntity<AIReportResponseDto> updateReport(@PathVariable int id, @RequestBody UpdateAIReportDto dto) {
+        var report = aiReportService.updateReport(id, dto);
+        return report != null ? ResponseEntity.ok(AIReportResponseDto.from(report)) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
