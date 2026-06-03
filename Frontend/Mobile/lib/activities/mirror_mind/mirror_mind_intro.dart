@@ -36,13 +36,24 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     });
 
     try {
+      print('MIRROR MIND: start pressed');
+      print('MIRROR MIND: resolving game data...');
+
       final resolvedData = await _resolveGameData();
 
-      final activitySessionId =
-      await _mirrorMindService.createActivitySession(
+      print('MIRROR MIND: resolved childId = ${resolvedData.childId}');
+      print('MIRROR MIND: resolved sessionId = ${resolvedData.sessionId}');
+      print('MIRROR MIND: resolved kitId = ${resolvedData.kitId}');
+      print('MIRROR MIND: resolved activityId = ${resolvedData.activityId}');
+
+      print('MIRROR MIND: creating activity session...');
+
+      final activitySessionId = await _mirrorMindService.createActivitySession(
         activityId: resolvedData.activityId,
         sessionId: resolvedData.sessionId,
       );
+
+      print('MIRROR MIND: created activitySessionId = $activitySessionId');
 
       if (!mounted) return;
 
@@ -58,6 +69,8 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
         ),
       );
     } catch (error) {
+      print('MIRROR MIND START ERROR: $error');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +79,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
             'تعذر بدء النشاط: ${error.toString()}',
             textDirection: TextDirection.rtl,
           ),
+          duration: const Duration(seconds: 6),
         ),
       );
     } finally {
@@ -84,70 +98,55 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     final kitIdFromWidget = widget.kitId;
     final activityIdFromWidget = widget.activityId;
 
-    if (sessionIdFromWidget != null && activityIdFromWidget != null) {
+    if (kitIdFromWidget == null || kitIdFromWidget == 0) {
+      throw Exception('Kit id was not provided.');
+    }
+
+    if (activityIdFromWidget == null || activityIdFromWidget == 0) {
+      throw Exception('Activity id was not provided.');
+    }
+
+    if (sessionIdFromWidget != null && sessionIdFromWidget != 0) {
       return _MirrorMindResolvedData(
         childId: childId,
         sessionId: sessionIdFromWidget,
-        kitId: kitIdFromWidget ?? 0,
+        kitId: kitIdFromWidget,
         activityId: activityIdFromWidget,
       );
     }
+
+    print('MIRROR MIND: getting latest session for childId = $childId');
 
     final latestSession =
     await _mirrorMindService.getLatestSessionForChild(childId);
 
-    if (latestSession == null) {
-      throw Exception('No latest session was found for the selected child.');
-    }
+    int sessionId = 0;
 
-    final sessionId = sessionIdFromWidget ??
-        _mirrorMindService.readSessionId(latestSession);
+    if (latestSession != null) {
+      sessionId = _mirrorMindService.readSessionId(latestSession);
+      print('MIRROR MIND: latest sessionId = $sessionId');
+    }
 
     if (sessionId == 0) {
-      throw Exception('Session id was not found.');
-    }
-
-    final kitId = kitIdFromWidget ?? _mirrorMindService.readKitId(latestSession);
-
-    if (kitId == 0) {
-      throw Exception('Kit id was not found.');
-    }
-
-    if (activityIdFromWidget != null) {
-      return _MirrorMindResolvedData(
+      print('MIRROR MIND: no latest session, creating new session...');
+      sessionId = await _mirrorMindService.createSession(
         childId: childId,
-        sessionId: sessionId,
-        kitId: kitId,
-        activityId: activityIdFromWidget,
+        kitId: kitIdFromWidget,
       );
+      print('MIRROR MIND: created sessionId = $sessionId');
     }
 
-    final roadmapActivities = await _mirrorMindService.getRoadmapActivities(
-      kitId: kitId,
-      childId: childId,
-    );
-
-    final currentActivity =
-    _mirrorMindService.findCurrentActivity(roadmapActivities);
-
-    if (currentActivity == null) {
-      throw Exception('No current activity was found.');
-    }
-
-    final activityId = _mirrorMindService.readActivityId(currentActivity);
-
-    if (activityId == 0) {
-      throw Exception('Activity id was not found.');
+    if (sessionId == 0) {
+      throw Exception('Session id was not found or created.');
     }
 
     return _MirrorMindResolvedData(
       childId: childId,
       sessionId: sessionId,
-      kitId: kitId,
-      activityId: activityId,
+      kitId: kitIdFromWidget,
+      activityId: activityIdFromWidget,
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Stack(

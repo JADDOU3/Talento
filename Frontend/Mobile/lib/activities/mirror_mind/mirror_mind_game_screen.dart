@@ -110,12 +110,12 @@ class _LoadedGameView extends StatelessWidget {
     final selectedChoice = _selectedChoiceOrNull();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
       child: Column(
         children: [
           _TopInfoBar(elapsed: state.elapsed),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           _LevelHeader(state: state),
 
@@ -126,7 +126,7 @@ class _LoadedGameView extends StatelessWidget {
             selectedChoice: selectedChoice,
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
 
           _TonkyHint(
             text: _hintTextForLevel(state.currentLevelIndex),
@@ -206,29 +206,90 @@ class _TopInfoBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _InfoPill(
-          icon: Icons.timer_rounded,
-          text: _formatDuration(elapsed),
+    return Container(
+      height: 54,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.10),
         ),
-        const Spacer(),
-        _InfoPill(
-          icon: Icons.star_rounded,
-          text: '120',
-          color: AppColors.yellow,
-        ),
-        const Spacer(),
-        const Text(
-          'Talento',
-          style: TextStyle(
-            fontFamily: 'BerlinSans',
-            fontSize: 25,
-            fontWeight: FontWeight.w800,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _TopCircleButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icons.arrow_back_ios_new_rounded,
+          ),
+
+          const SizedBox(width: 8),
+
+          _InfoPill(
+            icon: Icons.timer_rounded,
+            text: _formatDuration(elapsed),
+          ),
+
+          const Spacer(),
+
+          Image.asset(
+            'assets/icons/logo1.png',
+            height: 50,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) {
+              return const Text(
+                'Talento',
+                style: TextStyle(
+                  fontFamily: 'BerlinSans',
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopCircleButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  const _TopCircleButton({
+    required this.onPressed,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white.withOpacity(0.95),
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: AppColors.black.withOpacity(0.08),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 38,
+          height: 38,
+          child: Icon(
+            icon,
             color: AppColors.primary,
+            size: 21,
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -250,11 +311,14 @@ class _InfoPill extends StatelessWidget {
       height: 38,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.9),
+        color: AppColors.white.withOpacity(0.96),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: color.withOpacity(0.10),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.06),
+            color: AppColors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -269,7 +333,7 @@ class _InfoPill extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'ArialRounded',
               fontSize: 15,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               color: AppColors.textPrimary,
             ),
           ),
@@ -337,31 +401,43 @@ class _TonkyHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Image.asset(
-          'assets/images/template_mascot.png',
-          width: 74,
-          height: 74,
-          fit: BoxFit.contain,
+        Transform.translate(
+          offset: const Offset(8, 0),
+          child: Image.asset(
+            'assets/images/template_mascot.png',
+            width: 132,
+            height: 132,
+            fit: BoxFit.contain,
+          ),
         ),
-        const SizedBox(width: 10),
+
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            transform: Matrix4.translationValues(6, 0, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
             decoration: BoxDecoration(
-              color: AppColors.pink.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(22),
+              color: AppColors.pink.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.pink.withOpacity(0.18),
+                color: AppColors.pink.withOpacity(0.22),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.pink.withOpacity(0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Text(
               text,
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'ArialRounded',
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
                 height: 1.35,
               ),

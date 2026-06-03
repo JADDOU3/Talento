@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../activities/activity_intro_example.dart';
+import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
@@ -121,7 +121,13 @@ class _RoadmapView extends StatelessWidget {
       BuildContext context,
       RoadmapActivityModel activity,
       ) {
-    if (activity.isLocked) {
+    final isMirrorMind =
+        activity.activityName.trim().toLowerCase() == 'mirror mind';
+
+    // TEMPORARY TESTING BYPASS:
+    // Mirror Mind is still LOCKED from backend, so we allow opening it
+    // only for frontend testing. Remove this once backend makes it CURRENT.
+    if (activity.isLocked && !isMirrorMind) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('أكملي الأنشطة السابقة أولًا'),
@@ -138,7 +144,11 @@ class _RoadmapView extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ActivityIntroExample(),
+        builder: (_) => MirrorMindIntro(
+          childId: childId,
+          kitId: kitId,
+          activityId: activity.activityId,
+        ),
       ),
     ).then((_) {
       if (context.mounted) {

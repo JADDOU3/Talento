@@ -61,8 +61,8 @@ class _ChoiceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          width: icons.length >= 3 ? 118 : 96,
-          height: 82,
+          width: icons.length >= 3 ? 142 : 116,
+          height: 90,
           padding: const EdgeInsets.all(10),
           alignment: Alignment.center,
           decoration: BoxDecoration(
