@@ -32,6 +32,7 @@ public class Parent {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @JsonIgnore
     private String password;
 
     private String phone;
@@ -51,6 +52,7 @@ public class Parent {
     @JsonIgnore
     @OneToMany(mappedBy = "parent")
     private List<PostLike> likes;
+    @JsonIgnore
     @OneToOne(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
 
@@ -60,6 +62,8 @@ public class Parent {
 
 
     private boolean childModeEnabled;
+
+    @JsonIgnore
     private String childModePin;
 
 

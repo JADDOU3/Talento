@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,6 +32,7 @@ public class AIReport {
     @Column(columnDefinition = "TEXT")
     private String mindsetScoresJson;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "child_id")
     private Child child;
