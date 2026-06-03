@@ -25,6 +25,24 @@ class ApiConstants {
   static String levelAttemptsByActivitySession(int activitySessionId) =>
       '$baseUrl/level-attempts/activity-session/$activitySessionId';
 
+  // Mirror Mind / Activity Runtime
+  static const String sessions = '$baseUrl/sessions/';
+  static const String activitySessions = '$baseUrl/activity-sessions/';
+  static const String levelAttempts = '$baseUrl/level-attempts';
+  static const String activityEvents = '$baseUrl/events/activity';
+  static const String levelEvents = '$baseUrl/events/level';
+
+  static String endSession(int sessionId) => '$baseUrl/sessions/$sessionId/end';
+
+  static String activitySessionById(int activitySessionId) =>
+      '$baseUrl/activity-sessions/$activitySessionId';
+
+  static String levelsByActivity(int activityId) =>
+      '$baseUrl/levels/activity/$activityId';
+
+  static String levelAttemptById(int attemptId) =>
+      '$baseUrl/level-attempts/$attemptId';
+
   // Roadmap
   static String roadmapByKitAndChild(int kitId, int childId) =>
       '$baseUrl/roadmap/kit/$kitId/child/$childId';
