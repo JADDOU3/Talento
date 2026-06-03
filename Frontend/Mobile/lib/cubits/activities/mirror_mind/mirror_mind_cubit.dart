@@ -22,6 +22,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
   late int _sessionId;
 
   bool _activityCompleted = false;
+  bool _gameLoaded = false;
 
   Future<void> loadGame({
     required int activityId,
@@ -36,6 +37,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     _childId = childId;
     _sessionId = sessionId;
     _activityCompleted = false;
+    _gameLoaded = false;
 
     try {
       final levels = await _mirrorMindService.getLevelsByActivity(activityId);
@@ -69,12 +71,14 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
         action: 'STARTED',
       );
 
+      _gameLoaded = true;
+
       emit(
         MirrorMindLoaded(
           levels: playableLevels,
           currentLevelIndex: 0,
           currentChallengeIndex: 0,
-          selectedIcon: null,
+          selectedChoiceIndex: null,
           currentAttemptId: firstAttemptId,
           attemptNumber: 1,
           elapsed: Duration.zero,
@@ -87,17 +91,21 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     }
   }
 
-  void selectChoice(String iconName) {
+  void selectChoice(int choiceIndex) {
     final currentState = state;
 
     if (currentState is! MirrorMindLoaded) return;
 
-    if (currentState.selectedIcon == iconName) {
-      emit(currentState.copyWith(clearSelectedIcon: true));
+    if (choiceIndex < 0 || choiceIndex >= currentState.challenge.choices.length) {
       return;
     }
 
-    emit(currentState.copyWith(selectedIcon: iconName));
+    if (currentState.selectedChoiceIndex == choiceIndex) {
+      emit(currentState.copyWith(clearSelectedChoice: true));
+      return;
+    }
+
+    emit(currentState.copyWith(selectedChoiceIndex: choiceIndex));
   }
 
   void clearSelection() {
@@ -105,7 +113,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     if (currentState is! MirrorMindLoaded) return;
 
-    emit(currentState.copyWith(clearSelectedIcon: true));
+    emit(currentState.copyWith(clearSelectedChoice: true));
   }
 
   Future<void> submitAnswer() async {
@@ -113,10 +121,13 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     if (currentState is! MirrorMindLoaded) return;
     if (!currentState.canSubmit) return;
+    if (!currentState.hasValidSelectedChoice) return;
 
-    final selectedIcon = currentState.selectedIcon!;
+    final selectedChoiceIndex = currentState.selectedChoiceIndex!;
 
-    final isCorrect = currentState.challenge.isCorrectChoice(selectedIcon);
+    final isCorrect = currentState.challenge.isCorrectChoiceIndex(
+      selectedChoiceIndex,
+    );
 
     try {
       if (isCorrect) {
@@ -158,12 +169,12 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     final loadedState = latestState.previousState;
 
     if (!loadedState.isLastChallengeInLevel) {
-      final nextState = loadedState.copyWith(
-        currentChallengeIndex: loadedState.currentChallengeIndex + 1,
-        clearSelectedIcon: true,
+      emit(
+        loadedState.copyWith(
+          currentChallengeIndex: loadedState.currentChallengeIndex + 1,
+          clearSelectedChoice: true,
+        ),
       );
-
-      emit(nextState);
       return;
     }
 
@@ -173,7 +184,12 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       return;
     }
 
-    emit(MirrorMindLevelComplete(previousState: loadedState));
+    emit(
+      MirrorMindLevelComplete(
+        previousState: loadedState,
+        message: _levelCompleteMessage(loadedState.currentLevelIndex),
+      ),
+    );
 
     await Future.delayed(const Duration(milliseconds: 900));
 
@@ -224,7 +240,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       currentState.copyWith(
         currentAttemptId: nextAttemptId,
         attemptNumber: nextAttemptNumber,
-        clearSelectedIcon: true,
+        clearSelectedChoice: true,
       ),
     );
   }
@@ -249,7 +265,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       previousState.copyWith(
         currentLevelIndex: nextLevelIndex,
         currentChallengeIndex: 0,
-        clearSelectedIcon: true,
+        clearSelectedChoice: true,
         currentAttemptId: nextAttemptId,
         attemptNumber: 1,
       ),
@@ -304,8 +320,21 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     );
   }
 
+  String _levelCompleteMessage(int levelIndex) {
+    if (levelIndex == 0) {
+      return 'لقد اكتشفت أول سر للمرآة!';
+    }
+
+    if (levelIndex == 1) {
+      return 'رائع! أصبحت تفهم انعكاس أكثر من شكل.';
+    }
+
+    return 'ممتاز! لقد أتقنت اتجاهات المرآة.';
+  }
+
   Future<void> endActivityIfNotCompleted() async {
     if (_activityCompleted) return;
+    if (!_gameLoaded) return;
 
     try {
       await _mirrorMindService.postActivityEvent(

@@ -23,7 +23,7 @@ class MirrorMindLoaded extends MirrorMindState {
   final List<MirrorMindLevelModel> levels;
   final int currentLevelIndex;
   final int currentChallengeIndex;
-  final String? selectedIcon;
+  final int? selectedChoiceIndex;
   final int currentAttemptId;
   final int attemptNumber;
   final Duration elapsed;
@@ -32,7 +32,7 @@ class MirrorMindLoaded extends MirrorMindState {
     required this.levels,
     required this.currentLevelIndex,
     required this.currentChallengeIndex,
-    required this.selectedIcon,
+    required this.selectedChoiceIndex,
     required this.currentAttemptId,
     required this.attemptNumber,
     required this.elapsed,
@@ -45,6 +45,10 @@ class MirrorMindLoaded extends MirrorMindState {
 
   int get totalChallenges => level.challenges.length;
 
+  int get currentChallengeNumber => currentChallengeIndex + 1;
+
+  int get currentLevelNumber => currentLevelIndex + 1;
+
   bool get isLastChallengeInLevel {
     return currentChallengeIndex >= level.challenges.length - 1;
   }
@@ -53,14 +57,21 @@ class MirrorMindLoaded extends MirrorMindState {
     return currentLevelIndex >= 2;
   }
 
-  bool get canSubmit => selectedIcon != null && selectedIcon!.isNotEmpty;
+  bool get canSubmit => selectedChoiceIndex != null;
+
+  bool get hasValidSelectedChoice {
+    if (selectedChoiceIndex == null) return false;
+
+    return selectedChoiceIndex! >= 0 &&
+        selectedChoiceIndex! < challenge.choices.length;
+  }
 
   MirrorMindLoaded copyWith({
     List<MirrorMindLevelModel>? levels,
     int? currentLevelIndex,
     int? currentChallengeIndex,
-    String? selectedIcon,
-    bool clearSelectedIcon = false,
+    int? selectedChoiceIndex,
+    bool clearSelectedChoice = false,
     int? currentAttemptId,
     int? attemptNumber,
     Duration? elapsed,
@@ -69,8 +80,9 @@ class MirrorMindLoaded extends MirrorMindState {
       levels: levels ?? this.levels,
       currentLevelIndex: currentLevelIndex ?? this.currentLevelIndex,
       currentChallengeIndex: currentChallengeIndex ?? this.currentChallengeIndex,
-      selectedIcon:
-      clearSelectedIcon ? null : selectedIcon ?? this.selectedIcon,
+      selectedChoiceIndex: clearSelectedChoice
+          ? null
+          : selectedChoiceIndex ?? this.selectedChoiceIndex,
       currentAttemptId: currentAttemptId ?? this.currentAttemptId,
       attemptNumber: attemptNumber ?? this.attemptNumber,
       elapsed: elapsed ?? this.elapsed,
@@ -90,9 +102,11 @@ class MirrorMindChallengeResult extends MirrorMindState {
 
 class MirrorMindLevelComplete extends MirrorMindState {
   final MirrorMindLoaded previousState;
+  final String message;
 
   const MirrorMindLevelComplete({
     required this.previousState,
+    required this.message,
   });
 }
 

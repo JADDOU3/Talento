@@ -1,9 +1,9 @@
 import 'mirror_mind_choice_model.dart';
 
 enum MirrorMindChallengeType {
-  targetIdentification,
+  simpleReflection,
   mirrorSequence,
-  arrowMirroring,
+  directionReflection,
   unknown,
 }
 
@@ -16,11 +16,11 @@ class MirrorMindChallengeModel {
 
   // Level 2
   final List<String> left;
-  final String? expectedRight;
+  final List<String> expectedRight;
 
   // Level 3
   final List<String> sequence;
-  final String? expectedNext;
+  final List<String> expectedNext;
 
   final List<MirrorMindChoiceModel> choices;
 
@@ -29,26 +29,36 @@ class MirrorMindChallengeModel {
     required this.type,
     this.target,
     this.left = const [],
-    this.expectedRight,
+    this.expectedRight = const [],
     this.sequence = const [],
-    this.expectedNext,
+    this.expectedNext = const [],
     this.choices = const [],
   });
 
-  String? get correctIcon {
+  List<String> get originalSideIcons {
+    if (target != null && target!.isNotEmpty) return [target!];
+    if (left.isNotEmpty) return left;
+    if (sequence.isNotEmpty) return sequence;
+    return <String>[];
+  }
+
+  List<String> get correctIcons {
     for (final choice in choices) {
-      if (choice.isCorrect) return choice.icon;
+      if (choice.isCorrect) return choice.displayIcons;
     }
 
-    return expectedRight ?? expectedNext ?? target;
+    if (expectedRight.isNotEmpty) return expectedRight;
+    if (expectedNext.isNotEmpty) return expectedNext;
+    if (target != null && target!.isNotEmpty) return [target!];
+
+    return <String>[];
   }
 
   bool get hasChoices => choices.isNotEmpty;
 
-  bool isCorrectChoice(String iconName) {
-    return choices.any(
-          (choice) => choice.icon == iconName && choice.isCorrect,
-    );
+  bool isCorrectChoiceIndex(int choiceIndex) {
+    if (choiceIndex < 0 || choiceIndex >= choices.length) return false;
+    return choices[choiceIndex].isCorrect;
   }
 
   MirrorMindChallengeModel copyWith({
@@ -56,9 +66,9 @@ class MirrorMindChallengeModel {
     MirrorMindChallengeType? type,
     String? target,
     List<String>? left,
-    String? expectedRight,
+    List<String>? expectedRight,
     List<String>? sequence,
-    String? expectedNext,
+    List<String>? expectedNext,
     List<MirrorMindChoiceModel>? choices,
   }) {
     return MirrorMindChallengeModel(
@@ -82,7 +92,7 @@ class MirrorMindChallengeModel {
     if (meta.containsKey('target')) {
       return MirrorMindChallengeModel(
         challengeId: challengeId,
-        type: MirrorMindChallengeType.targetIdentification,
+        type: MirrorMindChallengeType.simpleReflection,
         target: (meta['target'] ?? '').toString(),
         choices: choices,
       );
@@ -93,7 +103,7 @@ class MirrorMindChallengeModel {
         challengeId: challengeId,
         type: MirrorMindChallengeType.mirrorSequence,
         left: _parseStringList(meta['left']),
-        expectedRight: meta['expectedRight']?.toString(),
+        expectedRight: _parseFlexibleStringList(meta['expectedRight']),
         choices: choices,
       );
     }
@@ -101,9 +111,9 @@ class MirrorMindChallengeModel {
     if (meta.containsKey('sequence')) {
       return MirrorMindChallengeModel(
         challengeId: challengeId,
-        type: MirrorMindChallengeType.arrowMirroring,
+        type: MirrorMindChallengeType.directionReflection,
         sequence: _parseStringList(meta['sequence']),
-        expectedNext: meta['expectedNext']?.toString(),
+        expectedNext: _parseFlexibleStringList(meta['expectedNext']),
         choices: choices,
       );
     }
@@ -130,7 +140,20 @@ class MirrorMindChallengeModel {
 
   static List<String> _parseStringList(dynamic value) {
     if (value is! List) return <String>[];
-
     return value.map((item) => item.toString()).toList();
+  }
+
+  static List<String> _parseFlexibleStringList(dynamic value) {
+    if (value == null) return <String>[];
+
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+
+    if (value.toString().isNotEmpty) {
+      return [value.toString()];
+    }
+
+    return <String>[];
   }
 }
