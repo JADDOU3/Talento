@@ -15,6 +15,7 @@ class MirrorMindGameScreen extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int initialLevelNumber;
 
   const MirrorMindGameScreen({
     super.key,
@@ -22,6 +23,7 @@ class MirrorMindGameScreen extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.initialLevelNumber = 1,
   });
 
   @override
@@ -33,6 +35,7 @@ class MirrorMindGameScreen extends StatelessWidget {
           activitySessionId: activitySessionId,
           childId: childId,
           sessionId: sessionId,
+          initialLevelNumber: initialLevelNumber,
         ),
       child: const _MirrorMindGameView(),
     );
@@ -109,69 +112,73 @@ class _LoadedGameView extends StatelessWidget {
     final challenge = state.challenge;
     final selectedChoice = _selectedChoiceOrNull();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-      child: Column(
-        children: [
-          _TopInfoBar(elapsed: state.elapsed),
-
-          const SizedBox(height: 12),
-
-          _LevelHeader(state: state),
-
-          const SizedBox(height: 14),
-
-          MirrorTargetWidget(
-            challenge: challenge,
-            selectedChoice: selectedChoice,
-          ),
-
-          const SizedBox(height: 18),
-
-          _TonkyHint(
-            text: _hintTextForLevel(state.currentLevelIndex),
-          ),
-
-          const SizedBox(height: 14),
-
-          MirrorChoicesWidget(
-            choices: challenge.choices,
-            selectedChoiceIndex: state.selectedChoiceIndex,
-            onChoiceSelected: (index) {
-              context.read<MirrorMindCubit>().selectChoice(index);
-            },
-          ),
-
-          const Spacer(),
-
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: state.canSubmit
-                  ? () => context.read<MirrorMindCubit>().submitAnswer()
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                disabledBackgroundColor: AppColors.border,
-                foregroundColor: AppColors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                elevation: state.canSubmit ? 4 : 0,
-              ),
-              child: const Text(
-                'تأكيد الإجابة',
-                style: TextStyle(
-                  fontFamily: 'DGAgnadeen',
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 28,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  _TopInfoBar(elapsed: state.elapsed),
+                  const SizedBox(height: 12),
+                  _LevelHeader(state: state),
+                  const SizedBox(height: 14),
+                  MirrorTargetWidget(
+                    challenge: challenge,
+                    selectedChoice: selectedChoice,
+                  ),
+                  const SizedBox(height: 18),
+                  _TonkyHint(
+                    text: _hintTextForLevel(state.currentLevelIndex),
+                  ),
+                  const SizedBox(height: 14),
+                  MirrorChoicesWidget(
+                    choices: challenge.choices,
+                    selectedChoiceIndex: state.selectedChoiceIndex,
+                    onChoiceSelected: (index) {
+                      context.read<MirrorMindCubit>().selectChoice(index);
+                    },
+                  ),
+                  const SizedBox(height: 18),
+                  const Spacer(),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: state.canSubmit
+                          ? () =>
+                          context.read<MirrorMindCubit>().submitAnswer()
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: AppColors.border,
+                        foregroundColor: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        elevation: state.canSubmit ? 4 : 0,
+                      ),
+                      child: const Text(
+                        'تأكيد الإجابة',
+                        style: TextStyle(
+                          fontFamily: 'DGAgnadeen',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -229,16 +236,12 @@ class _TopInfoBar extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             icon: Icons.arrow_back_ios_new_rounded,
           ),
-
           const SizedBox(width: 8),
-
           _InfoPill(
             icon: Icons.timer_rounded,
             text: _formatDuration(elapsed),
           ),
-
           const Spacer(),
-
           Image.asset(
             'assets/icons/logo1.png',
             height: 50,
@@ -412,7 +415,6 @@ class _TonkyHint extends StatelessWidget {
             fit: BoxFit.contain,
           ),
         ),
-
         Expanded(
           child: Container(
             transform: Matrix4.translationValues(6, 0, 0),

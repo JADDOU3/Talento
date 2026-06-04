@@ -26,6 +26,7 @@ class MirrorMindLoaded extends MirrorMindState {
   final int? selectedChoiceIndex;
   final int currentAttemptId;
   final int attemptNumber;
+  final String currentAttemptStartedAt;
   final Duration elapsed;
 
   const MirrorMindLoaded({
@@ -35,6 +36,7 @@ class MirrorMindLoaded extends MirrorMindState {
     required this.selectedChoiceIndex,
     required this.currentAttemptId,
     required this.attemptNumber,
+    required this.currentAttemptStartedAt,
     required this.elapsed,
   });
 
@@ -74,6 +76,7 @@ class MirrorMindLoaded extends MirrorMindState {
     bool clearSelectedChoice = false,
     int? currentAttemptId,
     int? attemptNumber,
+    String? currentAttemptStartedAt,
     Duration? elapsed,
   }) {
     return MirrorMindLoaded(
@@ -85,6 +88,8 @@ class MirrorMindLoaded extends MirrorMindState {
           : selectedChoiceIndex ?? this.selectedChoiceIndex,
       currentAttemptId: currentAttemptId ?? this.currentAttemptId,
       attemptNumber: attemptNumber ?? this.attemptNumber,
+      currentAttemptStartedAt:
+      currentAttemptStartedAt ?? this.currentAttemptStartedAt,
       elapsed: elapsed ?? this.elapsed,
     );
   }

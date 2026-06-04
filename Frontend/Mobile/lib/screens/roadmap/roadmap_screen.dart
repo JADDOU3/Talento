@@ -8,6 +8,7 @@ import '../../cubits/roadmap/roadmap_state.dart';
 import '../../models/roadmap/roadmap_activity_model.dart';
 import '../../services/roadmap/roadmap_service.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
@@ -121,39 +122,112 @@ class _RoadmapView extends StatelessWidget {
       BuildContext context,
       RoadmapActivityModel activity,
       ) {
-    final isMirrorMind =
-        activity.activityName.trim().toLowerCase() == 'mirror mind';
-
-    // TEMPORARY TESTING BYPASS:
-    // Mirror Mind is still LOCKED from backend, so we allow opening it
-    // only for frontend testing. Remove this once backend makes it CURRENT.
-    if (activity.isLocked && !isMirrorMind) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('أكملي الأنشطة السابقة أولًا'),
-          backgroundColor: AppColors.textPrimary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
+    if (activity.isLocked) {
+      _showMessage(
+        context,
+        'أكملي الأنشطة السابقة أولًا',
       );
       return;
     }
 
-    Navigator.push(
+    final activityName = activity.activityName.trim().toLowerCase();
+
+    if (activityName == 'mirror mind') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MirrorMindIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) {
+        _refreshRoadmapIfMounted(context);
+      });
+
+      return;
+    }
+
+    if (activityName == 'color lab') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const _ColorLabIntroExample(),
+        ),
+      ).then((_) {
+        _refreshRoadmapIfMounted(context);
+      });
+
+      return;
+    }
+
+    _showMessage(
       context,
-      MaterialPageRoute(
-        builder: (_) => MirrorMindIntro(
-          childId: childId,
-          kitId: kitId,
-          activityId: activity.activityId,
+      'النشاط "${activity.activityName}" غير جاهز بعد',
+    );
+  }
+
+  void _refreshRoadmapIfMounted(BuildContext context) {
+    if (context.mounted) {
+      context.read<RoadmapCubit>().refreshRoadmap();
+    }
+  }
+
+  void _showMessage(
+      BuildContext context,
+      String message,
+      ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.textPrimary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
-    ).then((_) {
-      if (context.mounted) {
-        context.read<RoadmapCubit>().refreshRoadmap();
-      }
-    });
+    );
+  }
+}
+
+class _ColorLabIntroExample extends StatelessWidget {
+  const _ColorLabIntroExample();
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: ActivityIntroTemplate(
+          background: const AppBackground(
+            child: SizedBox.expand(),
+          ),
+          mascotAssetPath: 'assets/images/template_mascot.png',
+          onStartPressed: () {
+            _showComingSoonMessage(context);
+          },
+          onReplayPressed: () {
+            _showComingSoonMessage(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showComingSoonMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('هذا مثال لصفحة الانترو فقط، النشاط غير مربوط بعد'),
+        backgroundColor: AppColors.textPrimary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
   }
 }

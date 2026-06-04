@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../models/activities/mirror_mind/mirror_mind_level_model.dart';
 import '../../../services/activities/mirror_mind_service.dart';
@@ -13,6 +15,9 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
         super(const MirrorMindInitial());
 
   final MirrorMindService _mirrorMindService;
+
+  static const FlutterSecureStorage _progressStorage =
+  FlutterSecureStorage();
 
   Timer? _timer;
 
@@ -29,6 +34,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     required int activitySessionId,
     required int childId,
     required int sessionId,
+    required int initialLevelNumber,
   }) async {
     emit(const MirrorMindLoading());
 
@@ -52,8 +58,15 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
         return;
       }
 
-      final firstAttemptId = await _createAttemptForLevel(
-        level: playableLevels.first,
+      final startPosition = await _resolveStartPosition(
+        levels: playableLevels,
+        initialLevelNumber: initialLevelNumber,
+      );
+
+      final startLevel = playableLevels[startPosition.levelIndex];
+
+      final firstAttempt = await _createAttemptForLevel(
+        level: startLevel,
         attemptNumber: 1,
       );
 
@@ -76,13 +89,19 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       emit(
         MirrorMindLoaded(
           levels: playableLevels,
-          currentLevelIndex: 0,
-          currentChallengeIndex: 0,
+          currentLevelIndex: startPosition.levelIndex,
+          currentChallengeIndex: startPosition.challengeIndex,
           selectedChoiceIndex: null,
-          currentAttemptId: firstAttemptId,
+          currentAttemptId: firstAttempt.id,
           attemptNumber: 1,
+          currentAttemptStartedAt: firstAttempt.startedAt,
           elapsed: Duration.zero,
         ),
+      );
+
+      await _saveProgress(
+        levelIndex: startPosition.levelIndex,
+        challengeIndex: startPosition.challengeIndex,
       );
 
       _startTimer();
@@ -141,18 +160,6 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
   }
 
   Future<void> _handleCorrectAnswer(MirrorMindLoaded currentState) async {
-    await _mirrorMindService.updateLevelAttempt(
-      attemptId: currentState.currentAttemptId,
-      completed: true,
-    );
-
-    await _mirrorMindService.postLevelEvent(
-      childId: _childId,
-      sessionId: _sessionId,
-      activitySessionId: _activitySessionId,
-      action: 'COMPLETED',
-    );
-
     emit(
       MirrorMindChallengeResult(
         isCorrect: true,
@@ -168,15 +175,37 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     final loadedState = latestState.previousState;
 
+    // إذا مش آخر challenge في الليفل:
+    // لا نرسل completed للباك، فقط ننتقل للتحدي التالي ونحفظ المكان محليًا.
     if (!loadedState.isLastChallengeInLevel) {
+      final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
+
+      await _saveProgress(
+        levelIndex: loadedState.currentLevelIndex,
+        challengeIndex: nextChallengeIndex,
+      );
+
       emit(
         loadedState.copyWith(
-          currentChallengeIndex: loadedState.currentChallengeIndex + 1,
+          currentChallengeIndex: nextChallengeIndex,
           clearSelectedChoice: true,
         ),
       );
       return;
     }
+
+    // هون فقط الليفل اكتمل فعليًا، لأنه آخر challenge في الليفل.
+    await _updateCurrentAttempt(
+      currentState: loadedState,
+      completed: true,
+    );
+
+    await _mirrorMindService.postLevelEvent(
+      childId: _childId,
+      sessionId: _sessionId,
+      activitySessionId: _activitySessionId,
+      action: 'COMPLETED',
+    );
 
     if (loadedState.isLastPartOneLevel ||
         loadedState.currentLevelIndex >= loadedState.levels.length - 1) {
@@ -197,8 +226,8 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
   }
 
   Future<void> _handleWrongAnswer(MirrorMindLoaded currentState) async {
-    await _mirrorMindService.updateLevelAttempt(
-      attemptId: currentState.currentAttemptId,
+    await _updateCurrentAttempt(
+      currentState: currentState,
       completed: false,
     );
 
@@ -211,7 +240,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     final nextAttemptNumber = currentState.attemptNumber + 1;
 
-    final nextAttemptId = await _createAttemptForLevel(
+    final nextAttempt = await _createAttemptForLevel(
       level: currentState.level,
       attemptNumber: nextAttemptNumber,
     );
@@ -236,10 +265,16 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     if (latestState is! MirrorMindChallengeResult) return;
 
+    await _saveProgress(
+      levelIndex: currentState.currentLevelIndex,
+      challengeIndex: currentState.currentChallengeIndex,
+    );
+
     emit(
       currentState.copyWith(
-        currentAttemptId: nextAttemptId,
+        currentAttemptId: nextAttempt.id,
         attemptNumber: nextAttemptNumber,
+        currentAttemptStartedAt: nextAttempt.startedAt,
         clearSelectedChoice: true,
       ),
     );
@@ -249,7 +284,12 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     final nextLevelIndex = previousState.currentLevelIndex + 1;
     final nextLevel = previousState.levels[nextLevelIndex];
 
-    final nextAttemptId = await _createAttemptForLevel(
+    await _saveProgress(
+      levelIndex: nextLevelIndex,
+      challengeIndex: 0,
+    );
+
+    final nextAttempt = await _createAttemptForLevel(
       level: nextLevel,
       attemptNumber: 1,
     );
@@ -266,8 +306,9 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
         currentLevelIndex: nextLevelIndex,
         currentChallengeIndex: 0,
         clearSelectedChoice: true,
-        currentAttemptId: nextAttemptId,
+        currentAttemptId: nextAttempt.id,
         attemptNumber: 1,
+        currentAttemptStartedAt: nextAttempt.startedAt,
       ),
     );
   }
@@ -285,17 +326,41 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     await _mirrorMindService.completeActivitySession(_activitySessionId);
 
+    await _clearProgress();
+
     emit(MirrorMindPartOneComplete(elapsed: elapsed));
   }
 
-  Future<int> _createAttemptForLevel({
+  Future<_AttemptInfo> _createAttemptForLevel({
     required MirrorMindLevelModel level,
     required int attemptNumber,
-  }) {
-    return _mirrorMindService.createLevelAttempt(
+  }) async {
+    final startedAt = DateTime.now().toIso8601String();
+
+    final attemptId = await _mirrorMindService.createLevelAttempt(
       attemptNumber: attemptNumber,
+      startedAt: startedAt,
       activitySessionId: _activitySessionId,
       levelId: level.id,
+    );
+
+    return _AttemptInfo(
+      id: attemptId,
+      startedAt: startedAt,
+    );
+  }
+
+  Future<void> _updateCurrentAttempt({
+    required MirrorMindLoaded currentState,
+    required bool completed,
+  }) {
+    return _mirrorMindService.updateLevelAttempt(
+      attemptId: currentState.currentAttemptId,
+      attemptNumber: currentState.attemptNumber,
+      startedAt: currentState.currentAttemptStartedAt,
+      activitySessionId: _activitySessionId,
+      levelId: currentState.level.id,
+      completed: completed,
     );
   }
 
@@ -332,6 +397,120 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     return 'ممتاز! لقد أتقنت اتجاهات المرآة.';
   }
 
+  String get _progressStorageKey {
+    return 'mirror_mind_progress_child_${_childId}_activity_${_activityId}';
+  }
+
+  Future<_SavedProgress?> _readSavedProgress() async {
+    final rawProgress = await _progressStorage.read(
+      key: _progressStorageKey,
+    );
+
+    if (rawProgress == null || rawProgress.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final data = jsonDecode(rawProgress);
+
+      if (data is! Map<String, dynamic>) return null;
+
+      final levelIndex = data['levelIndex'];
+      final challengeIndex = data['challengeIndex'];
+
+      if (levelIndex is! int || challengeIndex is! int) {
+        return null;
+      }
+
+      return _SavedProgress(
+        levelIndex: levelIndex,
+        challengeIndex: challengeIndex,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _saveProgress({
+    required int levelIndex,
+    required int challengeIndex,
+  }) async {
+    await _progressStorage.write(
+      key: _progressStorageKey,
+      value: jsonEncode({
+        'levelIndex': levelIndex,
+        'challengeIndex': challengeIndex,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
+  }
+
+  Future<void> _clearProgress() async {
+    await _progressStorage.delete(
+      key: _progressStorageKey,
+    );
+  }
+
+  Future<_SavedProgress> _resolveStartPosition({
+    required List<MirrorMindLevelModel> levels,
+    required int initialLevelNumber,
+  }) async {
+    // TEMPORARY PART 1 BEHAVIOR:
+    // Currently the frontend supports only the first 3 levels of Mirror Mind.
+    // If the roadmap says currentLevelNumber is 4 or higher, this means Part 1
+    // is completed, but Part 2 is not implemented yet.
+    // So for now, when the user opens Mirror Mind again, restart from
+    // Level 1 / Challenge 1.
+    if (initialLevelNumber > levels.length) {
+      await _clearProgress();
+
+      return const _SavedProgress(
+        levelIndex: 0,
+        challengeIndex: 0,
+      );
+    }
+
+    final roadmapLevelIndex = (initialLevelNumber - 1).clamp(
+      0,
+      levels.length - 1,
+    );
+
+    final savedProgress = await _readSavedProgress();
+
+    if (savedProgress == null) {
+      return _SavedProgress(
+        levelIndex: roadmapLevelIndex,
+        challengeIndex: 0,
+      );
+    }
+
+    if (savedProgress.levelIndex < roadmapLevelIndex) {
+      return _SavedProgress(
+        levelIndex: roadmapLevelIndex,
+        challengeIndex: 0,
+      );
+    }
+
+    if (savedProgress.levelIndex >= levels.length) {
+      return _SavedProgress(
+        levelIndex: roadmapLevelIndex,
+        challengeIndex: 0,
+      );
+    }
+
+    final savedLevel = levels[savedProgress.levelIndex];
+
+    if (savedProgress.challengeIndex < 0 ||
+        savedProgress.challengeIndex >= savedLevel.challenges.length) {
+      return _SavedProgress(
+        levelIndex: savedProgress.levelIndex,
+        challengeIndex: 0,
+      );
+    }
+
+    return savedProgress;
+  }
+
   Future<void> endActivityIfNotCompleted() async {
     if (_activityCompleted) return;
     if (!_gameLoaded) return;
@@ -354,4 +533,24 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     await endActivityIfNotCompleted();
     return super.close();
   }
+}
+
+class _AttemptInfo {
+  final int id;
+  final String startedAt;
+
+  const _AttemptInfo({
+    required this.id,
+    required this.startedAt,
+  });
+}
+
+class _SavedProgress {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _SavedProgress({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
 }

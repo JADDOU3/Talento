@@ -10,6 +10,7 @@ class MirrorMindIntro extends StatefulWidget {
   final int? sessionId;
   final int? kitId;
   final int? activityId;
+  final int initialLevelNumber;
 
   const MirrorMindIntro({
     super.key,
@@ -17,6 +18,7 @@ class MirrorMindIntro extends StatefulWidget {
     this.sessionId,
     this.kitId,
     this.activityId,
+    this.initialLevelNumber = 1,
   });
 
   @override
@@ -45,6 +47,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
       print('MIRROR MIND: resolved sessionId = ${resolvedData.sessionId}');
       print('MIRROR MIND: resolved kitId = ${resolvedData.kitId}');
       print('MIRROR MIND: resolved activityId = ${resolvedData.activityId}');
+      print('MIRROR MIND: initialLevelNumber = ${widget.initialLevelNumber}');
 
       print('MIRROR MIND: creating activity session...');
 
@@ -65,6 +68,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
             activitySessionId: activitySessionId,
             childId: resolvedData.childId,
             sessionId: resolvedData.sessionId,
+            initialLevelNumber: widget.initialLevelNumber,
           ),
         ),
       );
@@ -92,7 +96,8 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
   }
 
   Future<_MirrorMindResolvedData> _resolveGameData() async {
-    final childId = widget.childId ?? await _mirrorMindService.getSelectedChildId();
+    final childId =
+        widget.childId ?? await _mirrorMindService.getSelectedChildId();
 
     final sessionIdFromWidget = widget.sessionId;
     final kitIdFromWidget = widget.kitId;
@@ -147,6 +152,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
       activityId: activityIdFromWidget,
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -159,7 +165,6 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
           onStartPressed: _prepareAndStartGame,
           onReplayPressed: _prepareAndStartGame,
         ),
-
         if (_isPreparing)
           Positioned.fill(
             child: Container(
