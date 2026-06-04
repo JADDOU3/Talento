@@ -1,6 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'http://15.224.101.253/api';
-
+  static const String baseUrl = 'https://talentokids.com/api';
   // Auth
   static const String register = '$baseUrl/register';
   static const String login = '$baseUrl/login';
