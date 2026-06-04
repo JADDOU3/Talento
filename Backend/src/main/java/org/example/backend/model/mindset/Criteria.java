@@ -23,6 +23,7 @@ public class Criteria {
     private String name;
     private Float weight;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "mindset_id")
     private Mindset mindset;

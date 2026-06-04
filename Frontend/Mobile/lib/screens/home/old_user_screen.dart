@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../cubits/home/home_data.dart';
+import '../../shared/layout/app_background.dart';
+import '../../shared/layout/app_drawer.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
-import '../kit_library/kit_details_screen.dart';
 import '../kit_library/kit_library_screen.dart';
+import '../owned_kit/owned_kit_screen.dart';
 import '../profile/profile_screen.dart';
 import 'widgets/current_kit_card.dart';
 import 'widgets/progression_card.dart';
@@ -30,15 +31,19 @@ class OldUserScreen extends StatelessWidget {
     );
   }
 
-  void _goToKitDetails(BuildContext context) {
+  void _goToOwnedKit(BuildContext context) {
     final kit = data.lastUsedKit;
+    final childId = data.selectedChild?.id;
 
     if (kit == null) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => KitDetailsScreen(kitId: kit.id),
+        builder: (_) => OwnedKitScreen(
+          kit: kit,
+          childId: childId,
+        ),
       ),
     );
   }
@@ -60,6 +65,7 @@ class OldUserScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        drawer: const AppDrawer(),
         body: AppBackground(
           child: Column(
             children: [
@@ -71,11 +77,8 @@ class OldUserScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 12),
-
                       _buildHeader(childName),
-
                       const SizedBox(height: 18),
-
                       if (!data.hasSelectedChild) ...[
                         _buildNoSelectedChildCard(context),
                       ] else ...[
@@ -87,13 +90,9 @@ class OldUserScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 22),
                         ],
-
                         const QuickActions(),
-
                         const SizedBox(height: 22),
-
                         _buildCurrentKitSection(context),
-
                         const SizedBox(height: 24),
                       ],
                     ],
@@ -158,7 +157,6 @@ class OldUserScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-
         if (data.hasLastUsedKit)
           CurrentKitCard(
             kitTitle: kit?.name ?? 'الحزمة الحالية',
@@ -166,7 +164,7 @@ class OldUserScreen extends StatelessWidget {
             'تم إنجاز ${data.activitiesDoneCount} من أصل ${data.totalActivitiesCount} أنشطة',
             imagePath: kit?.imageUrl ?? '',
             progress: data.progress,
-            onContinue: () => _goToKitDetails(context),
+            onContinue: () => _goToOwnedKit(context),
           )
         else
           _buildStartFirstKitCard(context),

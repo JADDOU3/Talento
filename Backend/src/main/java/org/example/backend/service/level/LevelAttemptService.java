@@ -1,6 +1,7 @@
 package org.example.backend.service.level;
 
 import org.example.backend.Dto.levelAttempt.CreateLevelAttemptDto;
+import org.example.backend.Dto.levelAttempt.LevelAttemptResponseDto;
 import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.level.Level;
 import org.example.backend.model.level.LevelAttempt;
@@ -9,6 +10,7 @@ import org.example.backend.repo.level.LevelAttemptRepo;
 import org.example.backend.repo.level.LevelRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,7 +26,8 @@ public class LevelAttemptService {
     @Autowired
     private LevelRepo levelRepo;
 
-    public LevelAttempt createLevelAttempt(CreateLevelAttemptDto dto) {
+    @Transactional
+    public LevelAttemptResponseDto createLevelAttempt(CreateLevelAttemptDto dto) {
         ActivitySession session = activitySessionRepo.findById(dto.getActivitySessionId()).orElse(null);
         Level level = levelRepo.findById(dto.getLevelId()).orElse(null);
 
@@ -37,31 +40,34 @@ public class LevelAttemptService {
         attempt.setCompleted(dto.getCompleted());
         attempt.setActivitySession(session);
         attempt.setLevel(level);
-        return levelAttemptRepo.save(attempt);
+        return LevelAttemptResponseDto.from(levelAttemptRepo.save(attempt));
     }
 
-    public List<LevelAttempt> getAll() {
-        return levelAttemptRepo.findAll();
+    @Transactional(readOnly = true)
+    public List<LevelAttemptResponseDto> getAll() {
+        return levelAttemptRepo.findAll().stream().map(LevelAttemptResponseDto::from).toList();
     }
 
-    public LevelAttempt getLevelAttemptById(int id) {
-        return levelAttemptRepo.findById(id).orElse(null);
+    @Transactional(readOnly = true)
+    public LevelAttemptResponseDto getLevelAttemptById(int id) {
+        return levelAttemptRepo.findById(id).map(LevelAttemptResponseDto::from).orElse(null);
     }
 
-    public List<LevelAttempt> getAttemptsByActivitySession(int activitySessionId) {
-        return levelAttemptRepo.findByActivitySessionId(activitySessionId);
+    @Transactional(readOnly = true)
+    public List<LevelAttemptResponseDto> getAttemptsByActivitySession(int activitySessionId) {
+        return levelAttemptRepo.findByActivitySessionId(activitySessionId).stream()
+                .map(LevelAttemptResponseDto::from).toList();
     }
 
-    public LevelAttempt updateLevelAttempt(int id, CreateLevelAttemptDto dto) {
-        LevelAttempt attempt = getLevelAttemptById(id);
-        if (attempt != null) {
-            attempt.setAttemptNumber(dto.getAttemptNumber());
-            attempt.setStartedAt(dto.getStartedAt());
-            attempt.setEndedAt(dto.getEndedAt());
-            attempt.setCompleted(dto.getCompleted());
-            return levelAttemptRepo.save(attempt);
-        }
-        return null;
+    @Transactional
+    public LevelAttemptResponseDto updateLevelAttempt(int id, CreateLevelAttemptDto dto) {
+        LevelAttempt attempt = levelAttemptRepo.findById(id).orElse(null);
+        if (attempt == null) return null;
+        attempt.setAttemptNumber(dto.getAttemptNumber());
+        attempt.setStartedAt(dto.getStartedAt());
+        attempt.setEndedAt(dto.getEndedAt());
+        attempt.setCompleted(dto.getCompleted());
+        return LevelAttemptResponseDto.from(levelAttemptRepo.save(attempt));
     }
 
     public void deleteLevelAttempt(int id) {

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../models/child_model.dart';
 import '../../../cubits/profile/profile_cubit.dart';
+import '../../../models/childmode/child_model.dart';
 
 class ChildrenSection extends StatefulWidget {
   final List<ChildModel> children;
   final ChildModel? selectedChild;
+  final Function(ChildModel)? onChildSelected;
   final bool openAddChildDialog;
 
   const ChildrenSection({
     super.key,
     required this.children,
     this.selectedChild,
+    this.onChildSelected,
     this.openAddChildDialog = false,
   });
 
@@ -74,7 +77,13 @@ class _ChildrenSectionState extends State<ChildrenSection> {
     final isSelected = widget.selectedChild?.id == child.id;
 
     return GestureDetector(
-      onTap: () => context.read<ProfileCubit>().selectChild(child),
+      onTap: () {
+        if (widget.onChildSelected != null) {
+          widget.onChildSelected!(child);
+        } else {
+          context.read<ProfileCubit>().selectChild(child);
+        }
+      },
       onLongPress: () => _showChildInfoDialog(context, child),
       child: Column(
         children: [
@@ -90,17 +99,17 @@ class _ChildrenSectionState extends State<ChildrenSection> {
               boxShadow: isSelected
                   ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   blurRadius: 8,
                   spreadRadius: 1,
-                )
+                ),
               ]
                   : [],
             ),
             child: ClipOval(
-              child: child.avatarUrl != null
-                  ? Image.network(
-                child.avatarUrl!,
+              child: Image.network(
+                child.avatarUrl ??
+                    'https://api.dicebear.com/7.x/adventurer/png?seed=${child.name}',
                 width: 56,
                 height: 56,
                 fit: BoxFit.cover,
@@ -110,15 +119,6 @@ class _ChildrenSectionState extends State<ChildrenSection> {
                     Icons.person_rounded,
                     color: AppColors.hint,
                   ),
-                ),
-              )
-                  : Container(
-                width: 56,
-                height: 56,
-                color: AppColors.inputFill,
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.hint,
                 ),
               ),
             ),

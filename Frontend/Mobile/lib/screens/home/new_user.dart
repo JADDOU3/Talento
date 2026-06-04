@@ -3,9 +3,10 @@
 // ============================================================
 import 'package:flutter/material.dart';
 
+import '../../shared/layout/app_drawer.dart';
 import '../../models/kit/kit_model.dart';
 import '../../services/kit/kit_service.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
 import '../journal/journal_screen.dart';
@@ -88,6 +89,7 @@ class _NewUser extends State<NewUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       body: AppBackground(
         child: Column(
           children: [

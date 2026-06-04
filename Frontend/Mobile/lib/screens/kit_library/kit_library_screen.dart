@@ -5,14 +5,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/child_mode/child_mode_state.dart';
 import '../../cubits/kit/kit_cubit.dart';
 import '../../cubits/kit/kit_state.dart';
 import '../../models/kit/kit_enums.dart';
+import '../../models/kit/kit_model.dart';
 import '../../services/kit/kit_service.dart';
+import '../../services/profile/profile_service.dart';
+import '../../shared/layout/app_drawer.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import 'kit_details_screen.dart';
+import '../owned_kit/owned_kit_screen.dart';
 import 'widgets/category_chip.dart';
 import 'widgets/library_kit_card.dart';
 
@@ -38,28 +44,87 @@ class _KitLibraryView extends StatefulWidget {
 class _KitLibraryViewState extends State<_KitLibraryView> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
-
   String _selectedLabel = 'الكل';
+
+  // Child mode kits state
+  List<KitModel> _childKits = [];
+  bool _childKitsLoading = false;
+  bool _childKitsLoadScheduled = false;
+  String? _childKitsError;
+  int? _selectedChildId;
 
   final List<_MindsetFilterOption> _mindsetFilters = const [
     _MindsetFilterOption(label: 'الكل'),
-    _MindsetFilterOption(
-      label: 'البنّاء',
-      mindset: Mindset.builder,
-    ),
-    _MindsetFilterOption(
-      label: 'العالِم',
-      mindset: Mindset.scientist,
-    ),
-    _MindsetFilterOption(
-      label: 'المستكشف',
-      mindset: Mindset.explorer,
-    ),
-    _MindsetFilterOption(
-      label: 'المخترع',
-      mindset: Mindset.inventor,
-    ),
+    _MindsetFilterOption(label: 'البنّاء', mindset: Mindset.builder),
+    _MindsetFilterOption(label: 'العالِم', mindset: Mindset.scientist),
+    _MindsetFilterOption(label: 'المستكشف', mindset: Mindset.explorer),
+    _MindsetFilterOption(label: 'المخترع', mindset: Mindset.inventor),
   ];
+
+  void _scheduleChildKitsLoadIfNeeded(bool isChildMode) {
+    if (!isChildMode ||
+        _childKitsLoading ||
+        _childKitsLoadScheduled ||
+        _childKits.isNotEmpty) {
+      return;
+    }
+
+    _childKitsLoadScheduled = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _childKitsLoadScheduled = false;
+
+      final childModeState = context.read<ChildModeCubit>().state;
+      final stillInChildMode =
+          childModeState is ChildModeStatus && childModeState.isChildMode;
+
+      if (stillInChildMode && _childKits.isEmpty && !_childKitsLoading) {
+        _loadChildKits();
+      }
+    });
+  }
+
+  Future<void> _loadChildKits() async {
+    setState(() {
+      _childKitsLoading = true;
+      _childKitsError = null;
+    });
+
+    try {
+      final service = ProfileService();
+      final selectedChild = await service.getSelectedChild();
+
+      if (!mounted) return;
+
+      if (selectedChild == null) {
+        setState(() {
+          _selectedChildId = null;
+          _childKits = [];
+          _childKitsLoading = false;
+        });
+        return;
+      }
+
+      final kits = await service.getKitsByChild(selectedChild.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        _selectedChildId = selectedChild.id;
+        _childKits = kits;
+        _childKitsLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _childKitsError = e.toString();
+        _childKitsLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -70,9 +135,16 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 
   @override
   Widget build(BuildContext context) {
+    final childModeState = context.watch<ChildModeCubit>().state;
+    final isChildMode =
+        childModeState is ChildModeStatus && childModeState.isChildMode;
+
+    _scheduleChildKitsLoadIfNeeded(isChildMode);
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        drawer: const AppDrawer(),
         body: AppBackground(
           child: Column(
             children: [
@@ -89,81 +161,28 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: Text(
-                          'مكتبة الحزم',
+                          isChildMode ? 'حقائبي' : 'مكتبة الحزم',
                           style: AppTextStyles.headlineMedium.copyWith(
                             color: AppColors.primary,
                             fontSize: 30,
                             fontWeight: FontWeight.w800,
                           ),
-                          textAlign: TextAlign.right,
                         ),
                       ),
+                      const SizedBox(height: 16),
 
-                      const SizedBox(height: 4),
-                      const SizedBox(height: 16),
-                      _buildSearchField(context),
-                      const SizedBox(height: 10),
-                      _buildMindsetChips(),
-                      const SizedBox(height: 16),
+                      // Search & filters only in normal mode
+                      if (!isChildMode) ...[
+                        _buildSearchField(context),
+                        const SizedBox(height: 10),
+                        _buildMindsetChips(),
+                        const SizedBox(height: 16),
+                      ],
+
                       Expanded(
-                        child: BlocBuilder<KitCubit, KitState>(
-                          builder: (context, state) {
-                            if (state is KitLoading) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            if (state is KitError) {
-                              return _buildMessageState(
-                                icon: Icons.error_outline_rounded,
-                                message: state.message,
-                                buttonLabel: 'إعادة المحاولة',
-                                onPressed: () =>
-                                    context.read<KitCubit>().getAllKits(),
-                              );
-                            }
-
-                            if (state is KitLoaded) {
-                              if (state.kits.isEmpty) {
-                                return _buildMessageState(
-                                  icon: Icons.inbox_outlined,
-                                  message: 'لا توجد حزم حالياً.',
-                                );
-                              }
-
-                              return ListView.separated(
-                                itemCount: state.kits.length,
-                                separatorBuilder: (_, __) =>
-                                const SizedBox(height: 16),
-                                itemBuilder: (context, index) {
-                                  final kit = state.kits[index];
-
-                                  return LibraryKitCard(
-                                    title: kit.name,
-                                    description: kit.description,
-                                    mindset: kit.mindset,
-                                    imageUrl: kit.imageUrl,
-                                    rating: kit.rating,
-                                    age: kit.age,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => KitDetailsScreen(
-                                            kitId: kit.id,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            }
-
-                            return const SizedBox.shrink();
-                          },
-                        ),
+                        child: isChildMode
+                            ? _buildChildKitsList()
+                            : _buildAllKitsList(),
                       ),
                     ],
                   ),
@@ -174,6 +193,109 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
         ),
         bottomNavigationBar: const BottomNavBar(selectedIndex: 1),
       ),
+    );
+  }
+
+  // Child mode: show only owned kits
+  Widget _buildChildKitsList() {
+    if (_childKitsLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_childKitsError != null) {
+      return _buildMessageState(
+        icon: Icons.error_outline_rounded,
+        message: _childKitsError!,
+        buttonLabel: 'إعادة المحاولة',
+        onPressed: _loadChildKits,
+      );
+    }
+
+    if (_childKits.isEmpty) {
+      return _buildMessageState(
+        icon: Icons.inbox_outlined,
+        message: 'لا توجد حقائب مملوكة حتى الآن',
+      );
+    }
+
+    return ListView.separated(
+      itemCount: _childKits.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final kit = _childKits[index];
+
+        return LibraryKitCard(
+          title: kit.name,
+          description: kit.description,
+          mindset: kit.mindset,
+          imageUrl: kit.imageUrl,
+          rating: kit.rating,
+          age: kit.age,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OwnedKitScreen(
+                kit: kit,
+                childId: _selectedChildId,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Normal mode: show all kits from API
+  Widget _buildAllKitsList() {
+    return BlocBuilder<KitCubit, KitState>(
+      builder: (context, state) {
+        if (state is KitLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state is KitError) {
+          return _buildMessageState(
+            icon: Icons.error_outline_rounded,
+            message: state.message,
+            buttonLabel: 'إعادة المحاولة',
+            onPressed: () => context.read<KitCubit>().getAllKits(),
+          );
+        }
+
+        if (state is KitLoaded) {
+          if (state.kits.isEmpty) {
+            return _buildMessageState(
+              icon: Icons.inbox_outlined,
+              message: 'لا توجد حزم حالياً.',
+            );
+          }
+
+          return ListView.separated(
+            itemCount: state.kits.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final kit = state.kits[index];
+
+              return LibraryKitCard(
+                title: kit.name,
+                description: kit.description,
+                mindset: kit.mindset,
+                imageUrl: kit.imageUrl,
+                rating: kit.rating,
+                age: kit.age,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => KitDetailsScreen(kitId: kit.id),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -195,6 +317,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
         textAlign: TextAlign.right,
         onChanged: (value) {
           _debounce?.cancel();
+
           _debounce = Timer(const Duration(milliseconds: 300), () {
             context.read<KitCubit>().searchKits(value);
           });
@@ -205,29 +328,14 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
             Icons.search_rounded,
             color: AppColors.primary,
           ),
-          filled: true,
-          fillColor: AppColors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 14,
-          ),
-          enabledBorder: OutlineInputBorder(
+          border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(26),
             borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(26),
-            borderSide: const BorderSide(
-              color: AppColors.primary,
-              width: 1.2,
-            ),
           ),
         ),
       ),
     );
   }
-
-
 
   Widget _buildMindsetChips() {
     return SizedBox(
@@ -250,9 +358,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
   }
 
   void _onMindsetSelected(_MindsetFilterOption option) {
-    setState(() {
-      _selectedLabel = option.label;
-    });
+    setState(() => _selectedLabel = option.label);
 
     if (_searchController.text.trim().isNotEmpty) {
       _searchController.clear();
@@ -277,7 +383,11 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 52, color: AppColors.hint),
+          Icon(
+            icon,
+            size: 52,
+            color: AppColors.hint,
+          ),
           const SizedBox(height: 12),
           Text(
             message,

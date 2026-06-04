@@ -1,5 +1,6 @@
 {
   "@@locale": "ar",
+
   "welcomeBack": "مرحباً بعودتك",
   "loginSubtitle": "سجّل دخولك للمتابعة.",
   "emailAddress": "البريد الإلكتروني",
@@ -25,6 +26,12 @@
   "nameRequired": "الاسم مطلوب",
   "confirmPasswordRequired": "يرجى تاكيد كلمة المرور",
   "passwordsNotMatch": "كلمتا المرور غير متطابقتين",
+  "pleaseSelectGender": "يرجى اختيار الجنس",
+
+  "somethingWentWrong": "حدث خطأ ما",
+  "loginSuccess": "تم تسجيل الدخول بنجاح!",
+  "accountCreated": "تم إنشاء الحساب بنجاح!",
+
   "nurturingTomorrow": "نرعى الغد",
   "trustedByEducators": "4.9/5 موثوق به من المعلمين",
   "copyright": "2024 تالينتو كيدز",
@@ -34,6 +41,7 @@
   "welcomeBackTitle": "مرحبا بعودتك الى",
   "learningGarden": "حديقة التعلم.",
   "welcomeBackDesc": "واصل تنمية الفضول والمرونة من خلال نظامنا التربوي.",
+
   "everyChild": "كل طفل هو ",
   "hiddenForest": "غابة مخفية",
   "untappedPotential": "من الامكانات غير المستغلة.",
@@ -96,6 +104,7 @@
 "featuredButton": "اشترك ووفّر 20%",
   "language": "AR",
   "yourBasket": "سلة مشترياتك",
+
   "cartItemsCount": "{count} عناصر",
   "@cartItemsCount": {
     "placeholders": {
@@ -108,13 +117,16 @@
   "cartEmptyMessage": "استكشف مجموعات الاكتشاف لدينا واعثر على المغامرة المثالية لعالمك الصغير.",
   "discoverKits": "اكتشف المجموعات",
   "recommendedForYou": "موصى به لك",
+
   "cartSummary": "ملخص الطلب",
   "cartSubtotal": "المجموع الفرعي",
   "cartShipping": "الشحن",
   "cartShippingFree": "مجاني",
   "cartTax": "الضريبة",
   "cartTotal": "الإجمالي",
+
   "proceedToCheckout": "المتابعة للدفع",
+
   "cartSupportNote": "كل عملية شراء تدعم برنامج إعادة التشجير مع شركائنا.",
   "cartDeliveryEstimate": "يصل بحلول الخميس — شحن أرضي قياسي",
   "promoCode": "كود الخصم",

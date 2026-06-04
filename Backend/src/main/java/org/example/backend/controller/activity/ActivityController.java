@@ -1,18 +1,18 @@
 package org.example.backend.controller.activity;
 
-
+import org.example.backend.Dto.activity.ActivityResponseDto;
 import org.example.backend.Dto.activity.AssignActivityToKitDto;
 import org.example.backend.Dto.activity.CreateActivityDto;
 import org.example.backend.Dto.activity.UpdateActivityDto;
-import org.example.backend.model.activity.Activity;
 import org.example.backend.service.activity.ActivityService;
 import org.example.backend.service.KitService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/activities")
@@ -24,57 +24,47 @@ public class ActivityController {
     private KitService kitService;
 
     @PostMapping("/")
-    public ResponseEntity<Activity> createActivity(@RequestBody CreateActivityDto createActivityDto){
-          Activity activity = activityService.createActivity(createActivityDto);
-          return new ResponseEntity<>(activity , HttpStatus.CREATED);
+    public ResponseEntity<ActivityResponseDto> createActivity(@RequestBody CreateActivityDto dto) {
+        return new ResponseEntity<>(activityService.createActivity(dto), HttpStatus.CREATED);
     }
-
 
     @GetMapping("/{id}")
-    public ResponseEntity<Activity> getActivityById(@PathVariable int id){
-        Activity activity = activityService.getActivityById(id);
-        if(activity == null)
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(activity , HttpStatus.OK);
+    public ResponseEntity<ActivityResponseDto> getActivityById(@PathVariable int id) {
+        ActivityResponseDto activity = activityService.getActivityById(id);
+        return activity != null ? ResponseEntity.ok(activity) : ResponseEntity.notFound().build();
     }
-
 
     @GetMapping("/")
-    public ResponseEntity<List<Activity>> getAllActivities(){
-        List<Activity> activities = activityService.getAllActivities();
-        return new ResponseEntity<>(activities , HttpStatus.OK);
+    public ResponseEntity<Page<ActivityResponseDto>> getAllActivities(Pageable pageable) {
+        return ResponseEntity.ok(PaginationUtil.paginate(activityService.getAllActivities(), pageable));
     }
 
-
     @PutMapping("/")
-    public ResponseEntity<Activity> updateActivity(@RequestBody UpdateActivityDto updateActivityDto){
-        Activity activity = activityService.updateActivity(updateActivityDto);
-        return new ResponseEntity<>(activity , HttpStatus.OK);
+    public ResponseEntity<ActivityResponseDto> updateActivity(@RequestBody UpdateActivityDto dto) {
+        ActivityResponseDto activity = activityService.updateActivity(dto);
+        return activity != null ? ResponseEntity.ok(activity) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteActivity(@PathVariable int id){
+    public ResponseEntity<String> deleteActivity(@PathVariable int id) {
         activityService.deleteActivity(id);
-        return new ResponseEntity<>("Activity deleted successfully" , HttpStatus.OK);
+        return ResponseEntity.ok("Activity deleted successfully");
     }
 
     @PutMapping("/kit/")
-    public ResponseEntity<Activity> assignActivityToKit(@RequestBody AssignActivityToKitDto assignActivityToKitDto){
-        if(activityService.getActivityById(assignActivityToKitDto.getActivityId()) == null)
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        if(kitService.getKitById(assignActivityToKitDto.getKitId()) == null)
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(activityService.assignActivityToKit(assignActivityToKitDto) , HttpStatus.OK);
-        }
-
-
-    @GetMapping("/kit/{kitId}")
-    public ResponseEntity<List<Activity>> getAllActivitiesByKit(@PathVariable int kitId){
-        List<Activity> activities = activityService.getActivitiesByKit(kitId);
-        if(activities != null)
-            return new ResponseEntity<>(activities , HttpStatus.OK);
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<ActivityResponseDto> assignActivityToKit(@RequestBody AssignActivityToKitDto dto) {
+        if (activityService.getRawActivityById(dto.getActivityId()) == null)
+            return ResponseEntity.notFound().build();
+        if (kitService.getKitById(dto.getKitId()) == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(activityService.assignActivityToKit(dto));
     }
 
+    @GetMapping("/kit/{kitId}")
+    public ResponseEntity<Page<ActivityResponseDto>> getAllActivitiesByKit(@PathVariable int kitId, Pageable pageable) {
+        var activities = activityService.getActivitiesByKit(kitId);
+        return activities != null
+                ? ResponseEntity.ok(PaginationUtil.paginate(activities, pageable))
+                : ResponseEntity.notFound().build();
+    }
 }

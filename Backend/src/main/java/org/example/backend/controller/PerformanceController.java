@@ -1,14 +1,15 @@
 package org.example.backend.controller;
 
 import org.example.backend.Dto.performance.CreatePerformanceDto;
+import org.example.backend.Dto.performance.PerformanceResponseDto;
 import org.example.backend.Dto.performance.UpdatePerformanceDto;
-import org.example.backend.model.Performance;
 import org.example.backend.service.PerformanceService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/performances")
@@ -18,36 +19,39 @@ public class PerformanceController {
     private PerformanceService performanceService;
 
     @PostMapping
-    public ResponseEntity<Performance> createPerformance(@RequestBody CreatePerformanceDto dto) {
-        Performance p = performanceService.createPerformance(dto);
-        return p != null ? ResponseEntity.ok(p) : ResponseEntity.badRequest().build();
+    public ResponseEntity<PerformanceResponseDto> createPerformance(@RequestBody CreatePerformanceDto dto) {
+        var p = performanceService.createPerformance(dto);
+        return p != null ? ResponseEntity.ok(PerformanceResponseDto.from(p)) : ResponseEntity.badRequest().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<Performance>> getAll() {
-        return ResponseEntity.ok(performanceService.getAll());
+    public ResponseEntity<Page<PerformanceResponseDto>> getAll(Pageable pageable) {
+        var dtos = performanceService.getAll().stream().map(PerformanceResponseDto::from).toList();
+        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Performance> getById(@PathVariable int id) {
-        Performance p = performanceService.getById(id);
-        return p != null ? ResponseEntity.ok(p) : ResponseEntity.notFound().build();
+    public ResponseEntity<PerformanceResponseDto> getById(@PathVariable int id) {
+        var p = performanceService.getById(id);
+        return p != null ? ResponseEntity.ok(PerformanceResponseDto.from(p)) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/child/{childId}")
-    public ResponseEntity<List<Performance>> getPerformanceByChild(@PathVariable int childId) {
-        return ResponseEntity.ok(performanceService.getPerformanceByChild(childId));
+    public ResponseEntity<Page<PerformanceResponseDto>> getPerformanceByChild(@PathVariable int childId, Pageable pageable) {
+        var dtos = performanceService.getPerformanceByChild(childId).stream().map(PerformanceResponseDto::from).toList();
+        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<List<Performance>> getPerformanceByActivity(@PathVariable int activityId) {
-        return ResponseEntity.ok(performanceService.getPerformanceByActivity(activityId));
+    public ResponseEntity<Page<PerformanceResponseDto>> getPerformanceByActivity(@PathVariable int activityId, Pageable pageable) {
+        var dtos = performanceService.getPerformanceByActivity(activityId).stream().map(PerformanceResponseDto::from).toList();
+        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Performance> updatePerformance(@PathVariable int id, @RequestBody UpdatePerformanceDto dto) {
-        Performance p = performanceService.updatePerformance(id, dto);
-        return p != null ? ResponseEntity.ok(p) : ResponseEntity.notFound().build();
+    public ResponseEntity<PerformanceResponseDto> updatePerformance(@PathVariable int id, @RequestBody UpdatePerformanceDto dto) {
+        var p = performanceService.updatePerformance(id, dto);
+        return p != null ? ResponseEntity.ok(PerformanceResponseDto.from(p)) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/config/api_constants.dart';
-import '../../models/child_model.dart';
+import '../../models/childmode/child_model.dart';
+import '../../models/childmode/user_model.dart';
 import '../../models/kit/kit_model.dart';
-import '../../models/user_model.dart';
 import '../auth/auth_service.dart';
 import '../auth/token_storage_service.dart';
 
@@ -16,28 +16,21 @@ class ProfileService {
 
     return {
       'Content-Type': 'application/json',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      if (token != null && token.isNotEmpty)
+        'Authorization': 'Bearer $token',
     };
   }
 
   Future<http.Response> _getWithRefresh(String url) async {
     var headers = await _getHeaders();
-
-    var response = await http.get(
-      Uri.parse(url),
-      headers: headers,
-    );
+    var response = await http.get(Uri.parse(url), headers: headers);
 
     if (response.statusCode == 401) {
       final refreshed = await AuthService().refreshToken();
 
       if (refreshed) {
         headers = await _getHeaders();
-
-        response = await http.get(
-          Uri.parse(url),
-          headers: headers,
-        );
+        response = await http.get(Uri.parse(url), headers: headers);
       }
     }
 
@@ -104,6 +97,30 @@ class ProfileService {
     return response;
   }
 
+  List<dynamic> _extractListFromResponse(dynamic decoded) {
+    if (decoded is List) {
+      return decoded;
+    }
+
+    if (decoded is Map<String, dynamic> && decoded['content'] is List) {
+      return decoded['content'] as List<dynamic>;
+    }
+
+    return [];
+  }
+
+  String _extractErrorMessage(String body, String fallback) {
+    try {
+      final decoded = jsonDecode(body);
+
+      if (decoded is Map<String, dynamic>) {
+        return (decoded['message'] ?? decoded['error'] ?? fallback).toString();
+      }
+    } catch (_) {}
+
+    return body.trim().isEmpty ? fallback : body.trim();
+  }
+
   Future<UserModel> getCurrentUser() async {
     final response = await _getWithRefresh(ApiConstants.currentUser);
 
@@ -113,7 +130,12 @@ class ProfileService {
       return UserModel.fromJson(jsonDecode(response.body));
     }
 
-    throw Exception('Failed to load user: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load user: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<List<ChildModel>> getChildren() async {
@@ -121,19 +143,26 @@ class ProfileService {
 
     debugPrint('getChildren: ${response.statusCode} - ${response.body}');
 
-    if (response.statusCode == 200) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
+      final data = _extractListFromResponse(decoded);
 
-      if (decoded is List) {
-        return decoded
-            .map((e) => ChildModel.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
-      }
-
-      return [];
+      return data
+          .whereType<Map>()
+          .map(
+            (item) => ChildModel.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
+      )
+          .toList();
     }
 
-    throw Exception('Failed to load children: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load children: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<ChildModel?> getSelectedChild() async {
@@ -145,8 +174,10 @@ class ProfileService {
       return null;
     }
 
-    if (response.statusCode == 200) {
-      if (response.body.trim().isEmpty) return null;
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        return null;
+      }
 
       final data = jsonDecode(response.body);
 
@@ -173,7 +204,16 @@ class ProfileService {
       return;
     }
 
-    throw Exception('Failed to set selected child: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to set selected child: ${response.statusCode}',
+      ),
+    );
+  }
+
+  Future<void> selectChild(int childId) async {
+    await setSelectedChild(childId);
   }
 
   Future<List<KitModel>> getKitsByChild(int childId) async {
@@ -187,23 +227,42 @@ class ProfileService {
       return [];
     }
 
-    if (response.statusCode == 200) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.trim().isEmpty) {
         return [];
       }
 
       final decoded = jsonDecode(response.body);
+      final data = _extractListFromResponse(decoded);
 
-      if (decoded is List) {
-        return decoded
-            .map((e) => KitModel.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
-      }
+      return data
+          .whereType<Map>()
+          .map((item) {
+        final map = Map<String, dynamic>.from(item);
 
-      return [];
+        // Some endpoints return child-kit collection objects:
+        // { id: collectionId, kit: { id: realKitId, ... } }
+        // In this case we must parse the nested kit, not the wrapper.
+        final kitJson = map['kit'];
+
+        if (kitJson is Map) {
+          return KitModel.fromJson(
+            Map<String, dynamic>.from(kitJson),
+          );
+        }
+
+        // Fallback for old response shape where the item itself is the kit.
+        return KitModel.fromJson(map);
+      })
+          .toList();
     }
 
-    throw Exception('Failed to load kits: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load kits: ${response.statusCode}',
+      ),
+    );
   }
 
   Future<ChildModel> addChild({
@@ -213,8 +272,8 @@ class ProfileService {
   }) async {
     final formattedGender =
     gender.toLowerCase() == 'male' || gender == 'ذكر'
-        ? 'male'
-        : 'female';
+        ? 'Male'
+        : 'Female';
 
     final formattedDate = dateOfBirth.contains('T')
         ? dateOfBirth
@@ -237,6 +296,11 @@ class ProfileService {
       return ChildModel.fromJson(jsonDecode(response.body));
     }
 
-    throw Exception('Failed to add child: ${response.statusCode}');
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to add child: ${response.statusCode}',
+      ),
+    );
   }
 }

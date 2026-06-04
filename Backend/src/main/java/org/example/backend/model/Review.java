@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,10 +20,12 @@ public class Review {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private int id;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="parent_id", nullable=false)
     private Parent parent;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="kit_id", nullable=false)
     private Kit kit;

@@ -1,5 +1,6 @@
 {
   "@@locale": "en",
+
   "welcomeBack": "Welcome back",
   "loginSubtitle": "Log in to your account to continue.",
   "emailAddress": "EMAIL ADDRESS",
@@ -20,6 +21,7 @@
   "signupButton": "Plant the Seed (Sign Up) →",
   "alreadyHaveAccount": "Already have an account? ",
   "logIn": "Log in",
+
   "emailRequired": "Email is required",
   "passwordRequired": "Password is required",
   "nameRequired": "Name is required",

@@ -1,4 +1,4 @@
-import '../../models/child_model.dart';
+import '../../models/childmode/child_model.dart';
 import '../../models/kit/kit_model.dart';
 
 class HomeData {

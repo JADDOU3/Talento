@@ -12,6 +12,7 @@ class ApiConstants {
   static const String kitsByType = '$baseUrl/kits/type';
   static const String kitsByMindset = '$baseUrl/kits/mindset';
   static const String kitsSearch = '$baseUrl/kits/search';
+
   static String kitsByChild(int childId) => '$baseUrl/kits/child/$childId';
 
   // Home / Sessions / Activities / Level Attempts
@@ -24,7 +25,11 @@ class ApiConstants {
   static String levelAttemptsByActivitySession(int activitySessionId) =>
       '$baseUrl/level-attempts/activity-session/$activitySessionId';
 
+  // Roadmap
+  static String roadmapByKitAndChild(int kitId, int childId) =>
+      '$baseUrl/roadmap/kit/$kitId/child/$childId';
 
+  // Posts
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';
   static const String postsByMindset = '$baseUrl/posts/mindset';
@@ -49,4 +54,11 @@ class ApiConstants {
 
   static String setSelectedChild(int childId) =>
       '$baseUrl/children/selected/$childId';
+
+  // Child Mode
+  static const String isChildMode = '$baseUrl/isChildMode';
+  static const String childModeHasPin = '$baseUrl/childMode/hasPin';
+  static const String childModeEnable = '$baseUrl/childMode/enable';
+  static const String childModeDisable = '$baseUrl/childMode/disable';
+  static const String childModeSetPin = '$baseUrl/childMode/setPin';
 }

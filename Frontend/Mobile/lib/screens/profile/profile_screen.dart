@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/screens/profile/widgets/available_kits_section.dart';
-import 'package:mobile/screens/profile/widgets/children_section.dart';
-import 'package:mobile/screens/profile/widgets/profile_header.dart';
-import 'package:mobile/screens/profile/widgets/profile_progress_card.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/widgets/app_background.dart';
-import '../../shared/layout/top_bar.dart';
-import '../../shared/layout/bottom_nav_bar.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/child_mode/child_mode_state.dart';
 import '../../cubits/profile/profile_cubit.dart';
 import '../../cubits/profile/profile_state.dart';
-import 'package:mobile/screens/profile/widgets/settings_section.dart';
+import '../../models/kit/kit_model.dart';
+import '../../shared/layout/app_background.dart';
+import '../../shared/layout/app_drawer.dart';
+import '../../shared/layout/bottom_nav_bar.dart';
+import '../../shared/layout/top_bar.dart';
+import 'widgets/available_kits_section.dart';
+import 'widgets/children_section.dart';
+import 'widgets/profile_header.dart';
+import 'widgets/profile_progress_card.dart';
+import 'widgets/settings_section.dart';
 
 class ProfileScreen extends StatelessWidget {
   final bool openAddChildDialog;
@@ -41,7 +46,12 @@ class _ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final childModeState = context.watch<ChildModeCubit>().state;
+    final isChildMode =
+        childModeState is ChildModeStatus && childModeState.isChildMode;
+
     return Scaffold(
+      drawer: const AppDrawer(),
       body: AppBackground(
         child: Column(
           children: [
@@ -51,10 +61,7 @@ class _ProfileView extends StatelessWidget {
                 listener: (context, state) {
                   if (state is ProfileError) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: AppColors.error,
-                      ),
+                      SnackBar(content: Text(state.message)),
                     );
                   }
                 },
@@ -107,8 +114,20 @@ class _ProfileView extends StatelessWidget {
                         ? state.selectedChild
                         : (state as ProfileKitsLoading).selectedChild;
 
-                    final kits = state is ProfileLoaded ? state.kits : [];
+                    final List<KitModel> kits = state is ProfileLoaded
+                        ? state.kits
+                        : <KitModel>[];
+
                     final isKitsLoading = state is ProfileKitsLoading;
+
+                    final displayName = isChildMode && selectedChild != null
+                        ? selectedChild.name
+                        : user.name;
+
+                    final displayAvatar = isChildMode && selectedChild != null
+                        ? (selectedChild.avatarUrl ??
+                        'https://api.dicebear.com/7.x/adventurer/png?seed=${selectedChild.name}')
+                        : (user.avatarUrl ?? '');
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -117,23 +136,43 @@ class _ProfileView extends StatelessWidget {
                         children: [
                           const SizedBox(height: 12),
                           ProfileHeader(
-                            name: user.name,
-                            email: user.email,
-                            avatarUrl: user.avatarUrl ??
-                                'https://api.dicebear.com/7.x/adventurer/png?seed=${user.name}',
+                            name: displayName,
+                            email: isChildMode ? '' : user.email,
+                            avatarUrl: displayAvatar,
                           ),
                           const SizedBox(height: 24),
-                          ChildrenSection(
-                            children: children,
-                            selectedChild: selectedChild,
-                            openAddChildDialog: openAddChildDialog,
-                          ),
-                          const SizedBox(height: 24),
+
+                          if (!isChildMode)
+                            ChildrenSection(
+                              children: children,
+                              selectedChild: selectedChild,
+                              openAddChildDialog: openAddChildDialog,
+                              onChildSelected: (child) {
+                                context
+                                    .read<ProfileCubit>()
+                                    .selectChild(child);
+
+                                Future.delayed(
+                                  const Duration(milliseconds: 150),
+                                      () {
+                                    if (context.mounted) {
+                                      context
+                                          .read<ChildModeCubit>()
+                                          .checkChildMode();
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+
+                          if (!isChildMode) const SizedBox(height: 24),
+
                           const ProfileProgressCard(
-                            level: 'المستوى 3: مستكشف الطبيعة',
-                            progress: 0.75,
+                            level: 'المستوى 3',
+                            progress: 0.7,
                           ),
                           const SizedBox(height: 24),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -147,6 +186,7 @@ class _ProfileView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
+
                           if (isKitsLoading)
                             const Center(
                               child: CircularProgressIndicator(
@@ -163,19 +203,12 @@ class _ProfileView extends StatelessWidget {
                               ),
                             )
                           else
-                            AvailableKitsSection(kits: kits as dynamic),
+                            AvailableKitsSection(kits: kits),
+
                           const SizedBox(height: 24),
-                          const SettingsSection(),
-                          const SizedBox(height: 12),
-                          Center(
-                            child: Text(
-                              'تمكين الاكتشافات الصغيرة كل يوم ♥',
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                fontSize: 12,
-                                color: AppColors.hint,
-                              ),
-                            ),
-                          ),
+
+                          if (!isChildMode) const SettingsSection(),
+
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -186,7 +219,7 @@ class _ProfileView extends StatelessWidget {
                 },
               ),
             ),
-            const BottomNavBar(selectedIndex: 4),
+            const BottomNavBar(selectedIndex: -1),
           ],
         ),
       ),

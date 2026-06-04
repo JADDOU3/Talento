@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface ActivityRepo extends JpaRepository<Activity, Integer> {
     List<Activity> findByKitId(int kitId);
+    List<Activity> findByKitIdOrderById(int kitId);
 }

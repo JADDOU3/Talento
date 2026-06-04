@@ -447,6 +447,22 @@
       ]
     },
     {
+      "name": "Roadmap",
+      "item": [
+        {
+          "name": "Get Roadmap By Kit And Child",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/kit/1/child/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roadmap", "kit", "1", "child", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Voice",
       "item": [
         {
@@ -480,7 +496,7 @@
             "url": { "raw": "{{baseUrl}}/api/levels", "host": ["{{baseUrl}}"], "path": ["api", "levels"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"levelNumber\": 1,\n  \"difficulty\": 2,\n  \"description\": \"Basic level\",\n  \"activityId\": 1\n}"
+              "raw": "{\n  \"levelNumber\": 1,\n  \"difficulty\": 2,\n  \"description\": \"Basic level\",\n  \"activityId\": 1,\n  \"images\": [\n    {\n      \"s3Key\": \"levels/memory-game/target.png\",\n      \"role\": \"TARGET\",\n      \"label\": \"target\",\n      \"description\": \"Target image\",\n      \"sortOrder\": 1,\n      \"meta\": \"{\\\"slot\\\":1}\"\n    }\n  ]\n}"
             }
           }
         },
@@ -589,7 +605,7 @@
             "url": { "raw": "{{baseUrl}}/api/activities/", "host": ["{{baseUrl}}"], "path": ["api", "activities", ""] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Memory Game\",\n  \"description\": \"A fun game to improve memory\",\n  \"type\": \"GAME\",\n  \"voiceEnabled\": true\n}"
+              "raw": "{\n  \"name\": \"Memory Game\",\n  \"description\": \"A fun game to improve memory\",\n  \"gameDescription\": \"Follow the on-screen instructions to complete memory tasks.\",\n  \"coverImageKey\": \"activities/memory-game/cover.png\",\n  \"type\": \"GAME\",\n  \"voiceEnabled\": true\n}"
             }
           }
         },
@@ -615,7 +631,7 @@
             "url": { "raw": "{{baseUrl}}/api/activities/", "host": ["{{baseUrl}}"], "path": ["api", "activities", ""] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": 1,\n  \"name\": \"Updated Activity\",\n  \"description\": \"Updated description\",\n  \"type\": \"GAME\",\n  \"voiceEnabled\": false\n}"
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"Updated Activity\",\n  \"description\": \"Updated description\",\n  \"gameDescription\": \"Updated game description.\",\n  \"coverImageKey\": \"activities/memory-game/cover-v2.png\",\n  \"type\": \"GAME\",\n  \"voiceEnabled\": false\n}"
             }
           }
         },
@@ -1494,6 +1510,23 @@
               "request": {
                 "method": "POST",
                 "url": { "raw": "{{baseUrl}}/api/media/upload", "host": ["{{baseUrl}}"], "path": ["api", "media", "upload"] },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "file", "type": "file" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Upload Level Media",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/media/upload/level/color-lab",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "media", "upload", "level", "color-lab"]
+                },
                 "body": {
                   "mode": "formdata",
                   "formdata": [

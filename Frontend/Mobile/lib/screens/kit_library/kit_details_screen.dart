@@ -6,7 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/kit/kit_cubit.dart';
 import '../../cubits/kit/kit_state.dart';
 import '../../services/kit/kit_service.dart';
-import '../../shared/widgets/app_background.dart';
+import '../../shared/layout/app_background.dart';
 import 'widgets/inside_item_tile.dart';
 
 class KitDetailsScreen extends StatelessWidget {

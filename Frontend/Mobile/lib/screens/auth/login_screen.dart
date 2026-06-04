@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../services/auth/auth_service.dart';
-import '../../shared/widgets/app_background.dart';
-import '../../shared/widgets/auth_switch_text.dart';
-import '../../shared/widgets/custom_button.dart';
-import '../../shared/widgets/custom_text_field.dart';
-import '../../shared/widgets/social_button.dart';
+import '../../shared/layout/app_background.dart';
+import 'widgets/auth_switch_text.dart';
+import 'widgets/custom_button.dart';
+import 'widgets/custom_text_field.dart';
+import 'widgets/social_button.dart';
 import '../home/home_screen.dart';
 import 'signup_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubits/child_mode/child_mode_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -76,6 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+
+      if (!mounted) return;
+
+      await context.read<ChildModeCubit>().checkChildMode();
 
       if (!mounted) return;
 

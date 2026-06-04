@@ -3,7 +3,10 @@ package org.example.backend.controller;
 import org.example.backend.Dto.Order.OrderDTO;
 import org.example.backend.Dto.Order.OrderItemDTO;
 import org.example.backend.service.OrderService;
+import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +21,13 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping("/")
-    public ResponseEntity<List<OrderDTO>> getAllOrders() {
-        return new ResponseEntity<>(orderService.getAllOrders(), HttpStatus.OK);
+    public ResponseEntity<Page<OrderDTO>> getAllOrders(Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(orderService.getAllOrders(), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<OrderDTO>> getUserOrders() {
-        return new ResponseEntity<>(orderService.getUserOrders(), HttpStatus.OK);
+    public ResponseEntity<Page<OrderDTO>> getUserOrders(Pageable pageable) {
+        return new ResponseEntity<>(PaginationUtil.paginate(orderService.getUserOrders(), pageable), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -50,10 +53,10 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/items")
-    public ResponseEntity<List<OrderItemDTO>> getOrderItems(@PathVariable int orderId) {
+    public ResponseEntity<Page<OrderItemDTO>> getOrderItems(@PathVariable int orderId, Pageable pageable) {
         OrderDTO order=orderService.getOrderById(orderId);
         if (order==null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(order.getItems(), HttpStatus.OK);
+        return new ResponseEntity<>(PaginationUtil.paginate(order.getItems(), pageable), HttpStatus.OK);
     }
 }
