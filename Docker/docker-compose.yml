@@ -66,22 +66,22 @@ services:
     networks:
       - app-network
 
-    ai:
-      build:
-        context: ..
-        dockerfile: Docker/ai/Dockerfile
-      container_name: ai
-      restart: always
-      expose:
-        - "8000"
-      environment:
-        OPENAI_API_KEY: ${OPENAI_API_KEY}
-        CHROMA_HOST: chromadb
-        CHROMA_PORT: 8001
-      depends_on:
-        - chromadb
-      networks:
-        - app-network
+  ai:
+    build:
+      context: ..
+      dockerfile: Docker/ai/Dockerfile
+    container_name: ai
+    restart: always
+    expose:
+      - "8000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8001
+    depends_on:
+      - chromadb
+    networks:
+      - app-network
 
 
 
@@ -91,8 +91,10 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - backend
       - frontend
