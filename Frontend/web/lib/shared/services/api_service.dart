@@ -177,6 +177,39 @@ class ApiService {
     }
   }
 
+  static Future<ApiResult> putWithStatus(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final token = await LocalStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return const ApiResult(status: 401, body: null);
+      }
+
+      final request = await html.HttpRequest.request(
+        '$baseUrl$endpoint',
+        method: 'PUT',
+        sendData: json.encode(body),
+        requestHeaders: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      final status = request.status ?? 0;
+      final raw = request.responseText;
+      return ApiResult(
+        status: status,
+        body: _decodeJson(raw),
+        rawText: raw,
+      );
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[ApiService] PUT $endpoint failed: $e\n$st');
+      return const ApiResult(status: 0, body: null);
+    }
+  }
+
   static Future<ApiResult> deleteWithStatus(String endpoint) async {
     try {
       final token = await LocalStorage.getAccessToken();
@@ -304,8 +337,33 @@ class ApiService {
     };
   }
 
+  static Map<String, dynamic> _cartFromResult(ApiResult result, String fallback) {
+    if (result.isSuccess && result.body is Map<String, dynamic>) {
+      return {
+        'success': true,
+        'cart': CartModel.fromJson(result.body as Map<String, dynamic>),
+      };
+    }
+    if (result.isUnauthorized) {
+      return {'success': false, 'message': 'Unauthorized'};
+    }
+    if (result.isNetworkFailure) {
+      return {'success': false, 'message': 'Network error'};
+    }
+    return {
+      'success': false,
+      'message': decodeResponseBody(result.rawText)['message'] ?? fallback,
+    };
+  }
+
   static Future<Map<String, dynamic>> createCart() async {
     final result = await postWithStatus('/cart/', {});
+    if (result.isSuccess && result.body is Map<String, dynamic>) {
+      return {
+        'success': true,
+        'cart': CartModel.fromJson(result.body as Map<String, dynamic>),
+      };
+    }
     if (result.isSuccess) return {'success': true};
     return {
       'success': false,
@@ -318,13 +376,42 @@ class ApiService {
     required int kitId,
     required int quantity,
   }) async {
-    final result =
-        await postWithStatus('/cart/items', {'kitId': kitId, 'quantity': quantity});
+    final result = await postWithStatus(
+      '/cart/items',
+      {'kitId': kitId, 'quantity': quantity},
+    );
+    return _cartFromResult(result, 'Failed to add item');
+  }
+
+  static Future<Map<String, dynamic>> updateCartItem({
+    required int itemId,
+    required int quantity,
+  }) async {
+    final result = await putWithStatus(
+      '/cart/items/$itemId',
+      {'quantity': quantity},
+    );
+    return _cartFromResult(result, 'Failed to update item');
+  }
+
+  static Future<Map<String, dynamic>> removeCartItem({required int itemId}) async {
+    final result = await deleteWithStatus('/cart/items/$itemId');
+    return _cartFromResult(result, 'Failed to remove item');
+  }
+
+  static Future<Map<String, dynamic>> clearCart() async {
+    final result = await deleteWithStatus('/cart/');
     if (result.isSuccess) return {'success': true};
+    if (result.isUnauthorized) {
+      return {'success': false, 'message': 'Unauthorized'};
+    }
+    if (result.isNetworkFailure) {
+      return {'success': false, 'message': 'Network error'};
+    }
     return {
       'success': false,
       'message':
-          decodeResponseBody(result.rawText)['message'] ?? 'Failed to add item',
+          decodeResponseBody(result.rawText)['message'] ?? 'Failed to clear cart',
     };
   }
 
@@ -337,9 +424,7 @@ class ApiService {
     if (cartResult['notFound'] == true) {
       final created = await createCart();
       if (created['success'] != true) return created;
-      cartResult = await getCart();
-    }
-    if (cartResult['success'] != true) {
+    } else if (cartResult['success'] != true) {
       return {
         'success': false,
         'message': cartResult['message'] ?? 'Could not access cart',

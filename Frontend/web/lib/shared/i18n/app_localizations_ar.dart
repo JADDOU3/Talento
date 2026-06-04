@@ -315,6 +315,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get cartEmptyTitle => 'سلتك فارغة';
+
+  @override
+  String get cartEmptyMessage =>
+      'استكشف مجموعات الاكتشاف لدينا واعثر على المغامرة المثالية لعالمك الصغير.';
+
+  @override
+  String get discoverKits => 'اكتشف المجموعات';
+
+  @override
   String get recommendedForYou => 'موصى به لك';
 
   @override

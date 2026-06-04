@@ -242,7 +242,7 @@ class _CartIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
-        final count = state is CartLoaded ? state.cart.unitCount : 0;
+        final count = state is CartLoaded ? state.cart.lineItemCount : 0;
         return Stack(
           clipBehavior: Clip.none,
           children: [

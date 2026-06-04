@@ -680,6 +680,24 @@ abstract class AppLocalizations {
   /// **'{count} Items'**
   String cartItemsCount(int count);
 
+  /// No description provided for @cartEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your basket is empty'**
+  String get cartEmptyTitle;
+
+  /// No description provided for @cartEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore our discovery kits and find the perfect adventure for your young scientist.'**
+  String get cartEmptyMessage;
+
+  /// No description provided for @discoverKits.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover Kits'**
+  String get discoverKits;
+
   /// No description provided for @recommendedForYou.
   ///
   /// In en, this message translates to:

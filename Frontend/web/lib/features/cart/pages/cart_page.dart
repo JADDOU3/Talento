@@ -1,43 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import '../../../cubits/cart/cart_cubit.dart';
+import '../../../cubits/cart/cart_state.dart';
 import '../../../shared/components/footer/footer.dart';
 import '../../../shared/components/navbar/navbar.dart';
 import '../../../shared/i18n/app_localizations.dart';
+import '../../../shared/models/cart_model.dart';
 import '../../../shared/providers/language_provider.dart';
 import '../../../util/theme/app_colors.dart';
 import '../widgets/cart_item_card.dart';
+import '../widgets/cart_skeleton.dart';
 import '../widgets/order_summary_panel.dart';
 import '../widgets/promo_code_input.dart';
 import '../widgets/recommended_card.dart';
-
-class _CartEntry {
-  final int lineIndex;
-  final String imageAsset;
-  final double unitPrice;
-  int quantity;
-
-  _CartEntry({
-    required this.lineIndex,
-    required this.imageAsset,
-    required this.unitPrice,
-  }) : quantity = 1;
-
-  String name(AppLocalizations l10n) {
-    return switch (lineIndex) {
-      0 => l10n.cartLine1Title,
-      1 => l10n.cartLine2Title,
-      _ => l10n.cartLine3Title,
-    };
-  }
-
-  String description(AppLocalizations l10n) {
-    return switch (lineIndex) {
-      0 => l10n.cartLine1Desc,
-      1 => l10n.cartLine2Desc,
-      _ => l10n.cartLine3Desc,
-    };
-  }
-}
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -50,11 +26,11 @@ class _CartPageState extends State<CartPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _promoController = TextEditingController();
 
-  late final List<_CartEntry> _entries = [
-    _CartEntry(lineIndex: 0, imageAsset: 'assets/images/img1.jpg', unitPrice: 45),
-    _CartEntry(lineIndex: 1, imageAsset: 'assets/images/img2.jpg', unitPrice: 22),
-    _CartEntry(lineIndex: 2, imageAsset: 'assets/images/img3.jpg', unitPrice: 10),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<CartCubit>().loadCart();
+  }
 
   @override
   void dispose() {
@@ -63,14 +39,8 @@ class _CartPageState extends State<CartPage> {
     super.dispose();
   }
 
-  double get _subtotal =>
-      _entries.fold<double>(0, (s, e) => s + e.unitPrice * e.quantity);
-
-  int get _itemCount => _entries.fold<int>(0, (s, e) => s + e.quantity);
-
-  double get _tax => double.parse((_subtotal * 0.08).toStringAsFixed(2));
-
-  double get _total => _subtotal + _tax;
+  double _tax(double subtotal) =>
+      double.parse((subtotal * 0.08).toStringAsFixed(2));
 
   @override
   Widget build(BuildContext context) {
@@ -80,79 +50,45 @@ class _CartPageState extends State<CartPage> {
 
     return Scaffold(
       backgroundColor: AppColors.cartPageBackground,
-      endDrawer: Drawer(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.topEnd,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Provider.of<LanguageProvider>(context, listen: false).toggleLanguage();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(l10n.language),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                  },
-                  child: Text(l10n.navHome),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.navAbout),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.navPricing),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.navBlog),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      endDrawer: _buildDrawer(context, l10n),
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Column(
           children: [
             Navbar(scrollController: _scrollController, isLoggedIn: true),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: width >= 768 ? 40 : 20, vertical: 28),
+              padding: EdgeInsets.symmetric(
+                horizontal: width >= 768 ? 40 : 20,
+                vertical: 28,
+              ),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1180),
-                  child: twoColumn
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(flex: 62, child: _buildMainColumn(context, l10n)),
-                            const SizedBox(width: 32),
-                            Expanded(flex: 38, child: _buildSideColumn(context, l10n)),
-                          ],
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildMainColumn(context, l10n),
-                            const SizedBox(height: 28),
-                            _buildSideColumn(context, l10n),
-                          ],
-                        ),
+                  child: BlocBuilder<CartCubit, CartState>(
+                    builder: (context, state) {
+                      if (state is CartLoading || state is CartInitial) {
+                        return CartSkeleton(twoColumn: twoColumn);
+                      }
+                      if (state is CartError) {
+                        return _CartErrorView(
+                          message: state.message,
+                          onRetry: () => context.read<CartCubit>().loadCart(),
+                        );
+                      }
+                      if (state is CartEmpty) {
+                        return _CartEmptyView(l10n: l10n);
+                      }
+                      if (state is CartLoaded) {
+                        return _buildCartContent(
+                          context,
+                          l10n,
+                          state.cart,
+                          twoColumn,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ),
               ),
             ),
@@ -163,7 +99,100 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildMainColumn(BuildContext context, AppLocalizations l10n) {
+  Widget _buildDrawer(BuildContext context, AppLocalizations l10n) {
+    return Drawer(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: AlignmentDirectional.topEnd,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                  Provider.of<LanguageProvider>(context, listen: false)
+                      .toggleLanguage();
+                  Navigator.of(context).pop();
+                },
+                child: Text(l10n.language),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context)
+                      .pushNamedAndRemoveUntil('/', (route) => false);
+                },
+                child: Text(l10n.navHome),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.navAbout),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.navPricing),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.navBlog),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCartContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    CartModel cart,
+    bool twoColumn,
+  ) {
+    final subtotal = cart.subtotal;
+    final tax = _tax(subtotal);
+    final total = subtotal + tax;
+    final itemCount = cart.lineItemCount;
+
+    final mainColumn = _buildMainColumn(context, l10n, cart, itemCount);
+    final sideColumn = _buildSideColumn(context, l10n, subtotal, tax, total);
+
+    if (twoColumn) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 62, child: mainColumn),
+          const SizedBox(width: 32),
+          Expanded(flex: 38, child: sideColumn),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        mainColumn,
+        const SizedBox(height: 28),
+        sideColumn,
+      ],
+    );
+  }
+
+  Widget _buildMainColumn(
+    BuildContext context,
+    AppLocalizations l10n,
+    CartModel cart,
+    int itemCount,
+  ) {
+    final cubit = context.read<CartCubit>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -183,7 +212,7 @@ class _CartPageState extends State<CartPage> {
               ),
             ),
             Text(
-              l10n.cartItemsCount(_itemCount).toUpperCase(),
+              l10n.cartItemsCount(itemCount).toUpperCase(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -194,21 +223,22 @@ class _CartPageState extends State<CartPage> {
           ],
         ),
         const SizedBox(height: 28),
-        ...List.generate(_entries.length, (index) {
-          final e = _entries[index];
+        ...cart.items.map((item) {
           return CartItemCard(
-            imageAsset: e.imageAsset,
-            name: e.name(l10n),
-            description: e.description(l10n),
-            quantity: e.quantity,
-            unitPrice: e.unitPrice,
+            imageAsset: item.kitImageURL,
+            name: item.kitName,
+            description: item.kitDescription,
+            quantity: item.quantity,
+            unitPrice: item.kitPrice,
             removeTooltip: l10n.cartRemoveA11y,
-            onQuantityChanged: (v) {
-              setState(() => e.quantity = v);
+            onQuantityChanged: (newQty) {
+              if (newQty <= 0) {
+                cubit.removeItem(item.id);
+              } else {
+                cubit.updateItem(item.id, newQty);
+              }
             },
-            onRemove: () {
-              setState(() => _entries.removeAt(index));
-            },
+            onRemove: () => cubit.removeItem(item.id),
           );
         }),
         const SizedBox(height: 36),
@@ -279,14 +309,20 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildSideColumn(BuildContext context, AppLocalizations l10n) {
+  Widget _buildSideColumn(
+    BuildContext context,
+    AppLocalizations l10n,
+    double subtotal,
+    double tax,
+    double total,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         OrderSummaryPanel(
-          subtotal: _subtotal,
-          tax: _tax,
-          total: _total,
+          subtotal: subtotal,
+          tax: tax,
+          total: total,
           onCheckout: () {},
         ),
         const SizedBox(height: 22),
@@ -295,6 +331,99 @@ class _CartPageState extends State<CartPage> {
           onApply: () {},
         ),
       ],
+    );
+  }
+}
+
+class _CartEmptyView extends StatelessWidget {
+  const _CartEmptyView({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 80),
+      child: Column(
+        children: [
+          Icon(
+            Icons.shopping_basket_outlined,
+            size: 72,
+            color: AppColors.cartMutedGrey.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            l10n.cartEmptyTitle,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.cartForestGreen,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.cartEmptyMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              height: 1.5,
+              color: AppColors.cartMutedGrey.withValues(alpha: 0.9),
+            ),
+          ),
+          const SizedBox(height: 32),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pushNamed('/catalog'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.cartTeal,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: const StadiumBorder(),
+            ),
+            child: Text(
+              l10n.discoverKits,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CartErrorView extends StatelessWidget {
+  const _CartErrorView({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 80),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline, size: 56, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: onRetry,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.cartTeal,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+            ),
+            child: Text(l10n.retry),
+          ),
+        ],
+      ),
     );
   }
 }

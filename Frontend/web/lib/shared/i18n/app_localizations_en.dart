@@ -316,6 +316,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get cartEmptyTitle => 'Your basket is empty';
+
+  @override
+  String get cartEmptyMessage =>
+      'Explore our discovery kits and find the perfect adventure for your young scientist.';
+
+  @override
+  String get discoverKits => 'Discover Kits';
+
+  @override
   String get recommendedForYou => 'Recommended for You';
 
   @override

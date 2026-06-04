@@ -104,6 +104,9 @@
       }
     }
   },
+  "cartEmptyTitle": "سلتك فارغة",
+  "cartEmptyMessage": "استكشف مجموعات الاكتشاف لدينا واعثر على المغامرة المثالية لعالمك الصغير.",
+  "discoverKits": "اكتشف المجموعات",
   "recommendedForYou": "موصى به لك",
   "cartSummary": "ملخص الطلب",
   "cartSubtotal": "المجموع الفرعي",

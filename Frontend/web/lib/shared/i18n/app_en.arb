@@ -104,6 +104,9 @@
       }
     }
   },
+  "cartEmptyTitle": "Your basket is empty",
+  "cartEmptyMessage": "Explore our discovery kits and find the perfect adventure for your young scientist.",
+  "discoverKits": "Discover Kits",
   "recommendedForYou": "Recommended for You",
   "cartSummary": "Summary",
   "cartSubtotal": "Subtotal",
