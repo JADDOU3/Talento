@@ -1,10 +1,11 @@
 import io
+from typing import Optional
 from openai import AsyncOpenAI
 
 from core.config import get_settings
 
 settings = get_settings()
-_client: AsyncOpenAI | None = None
+_client: Optional[AsyncOpenAI] = None
 
 
 def _get_client() -> AsyncOpenAI:

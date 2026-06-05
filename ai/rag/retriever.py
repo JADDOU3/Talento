@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from core.config import get_settings
 from models.schemas import AnalysisRequest
@@ -52,7 +52,7 @@ def _query_collection(collection, query: str, top_k: int) -> list[str]:
     return [doc for doc in documents[0] if doc]
 
 
-def retrieve_context(request: AnalysisRequest, top_k: int | None = None) -> dict[str, Any]:
+def retrieve_context(request: AnalysisRequest, top_k: Optional[int] = None) -> dict[str, Any]:
     query = _format_query(request)
     limit = top_k or settings.rag_top_k
     mindsets = _query_collection(get_mindsets_collection(), query, limit)
