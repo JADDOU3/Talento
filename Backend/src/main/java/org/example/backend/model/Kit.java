@@ -61,5 +61,8 @@ public class Kit {
     @JsonIgnore
     @OneToMany(mappedBy = "kit")
     private List<CartItem> cartItems = new ArrayList<>();
+    @JsonIgnore
+    @OneToMany(mappedBy="kit")
+    private List<FavoriteKit> favorites;
 
 }
