@@ -1,8 +1,6 @@
-
 package org.example.backend.Dto.ai.request;
 
 import org.example.backend.Dto.ai.common.MindsetScoreDto;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +18,5 @@ public class PreviousAnalysisSummaryDto {
     private List<MindsetScoreDto> mindsetScores;
     private String lastUpdated;
     private String analysisVersion;
+    private String contextSummary;
 }
-
-

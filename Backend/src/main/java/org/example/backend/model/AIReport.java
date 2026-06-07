@@ -32,6 +32,9 @@ public class AIReport {
     @Column(columnDefinition = "TEXT")
     private String mindsetScoresJson;
 
+    @Column(columnDefinition = "TEXT")
+    private String contextSummary;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "child_id")
