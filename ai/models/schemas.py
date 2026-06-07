@@ -36,10 +36,6 @@ class ChildProfile(BaseModel):
 
 
 class BehavioralSignals(BaseModel):
-    """
-    Extracted by Spring SignalExtractorService before sending to AI.
-    Each field is a normalized signal level derived from raw events.
-    """
     hesitation: SignalLevel
     persistence: SignalLevel
     adaptability: SignalLevel
@@ -50,12 +46,16 @@ class BehavioralSignals(BaseModel):
 
 
 class ActivitySummary(BaseModel):
+    """
+    One entry per unique activity, aggregated across all unanalyzed sessions.
+    If the child played the same activity 3 times, this is the merged total.
+    """
     activity_id: int
     activity_name: str
     activity_type: str
-    duration_seconds: int
+    duration_seconds: int           # total across all sessions for this activity
     completion_status: CompletionStatus
-    attempt_count: int
+    attempt_count: int              # total attempts across all sessions
     hints_used: int
     fail_count: int
     rage_quit: bool
@@ -63,20 +63,33 @@ class ActivitySummary(BaseModel):
     behavioral_observations: list[str] = Field(default_factory=list)
 
 
+class SessionAggregate(BaseModel):
+    """
+    Cross-session totals computed by Spring before sending.
+    Gives the AI the big picture without raw session data.
+    """
+    total_sessions: int
+    total_activities_attempted: int
+    total_duration_seconds: int
+    completed_activities: int
+    completion_rate: float = Field(ge=0.0, le=1.0)
+    total_hints_used: int
+    total_fails: int
+    total_attempts: int
+    rage_quit_count: int
+    avg_duration_per_activity_seconds: int
+
+
 class MindsetScore(BaseModel):
-    """
-    Represents a single mindset score.
-    mindset_name matches the name stored in DB and ChromaDB.
-    """
     mindset_name: str
     score: float = Field(ge=0.0, le=1.0)
 
 
 class PreviousAnalysisSummary(BaseModel):
     """
-    The last stored analysis for this child.
-    Sent by Spring from the AIReport table.
-    Optional — omitted for first-time analysis.
+    Last stored analysis for this child.
+    contextSummary explains WHY the child had those scores —
+    gives the AI causal context, not just numbers.
     """
     focus_trend: Optional[str] = None
     confidence_trend: Optional[str] = None
@@ -85,16 +98,19 @@ class PreviousAnalysisSummary(BaseModel):
     mindset_scores: Optional[list[MindsetScore]] = None
     last_updated: Optional[str] = None
     analysis_version: Optional[str] = None
+    context_summary: Optional[str] = None
 
 
 class AnalysisRequest(BaseModel):
     """
-    Full payload sent from Spring to POST /analyze/session
+    Full payload sent from Spring to POST /analyze
+    Contains aggregated data across ALL unanalyzed sessions — not just one.
     """
     child_profile: ChildProfile
-    activity_summary: ActivitySummary
+    session_aggregate: SessionAggregate
+    activity_summaries: list[ActivitySummary]   # one entry per unique activity
     previous_analysis_summary: Optional[PreviousAnalysisSummary] = None
-    parent_note: Optional[str] = None   # voice-to-text or typed input from parent
+    parent_note: Optional[str] = None
     response_language: Language = Language.ENGLISH
     analysis_version: str = "v1"
 
@@ -105,33 +121,32 @@ class AnalysisRequest(BaseModel):
 
 class InstantAnalysis(BaseModel):
     """
-    Analysis of the current session only.
-    Shown to the parent as the session report.
+    Holistic analysis of everything the child has done since the last report.
+    behavioral_summary is the human-readable report shown to the parent.
     """
     focus_level: float = Field(ge=0.0, le=1.0)
     confidence_level: float = Field(ge=0.0, le=1.0)
     stress_level: float = Field(ge=0.0, le=1.0)
     adaptability: float = Field(ge=0.0, le=1.0)
     decision_making_pattern: str
-    behavioral_summary: str   # in the language specified by caller
+    behavioral_summary: str
 
 
 class UpdatedMemoryState(BaseModel):
     """
-    Updated longitudinal profile for the child.
-    Stored back in DB by Spring — used as previous_analysis_summary next time.
+    Updated longitudinal profile.
+    context_summary explains WHAT drove these specific scores —
+    stored and sent back next time so the AI has narrative continuity.
     """
     focus_trend: str
     confidence_trend: str
     stress_response_pattern: str
     learning_behavior_pattern: str
-    recommended_future_observation: str  # in the language specified by caller
+    recommended_future_observation: str
+    context_summary: str
 
 
 class AnalysisResponse(BaseModel):
-    """
-    Full response returned from FastAPI to Spring.
-    """
     instant_analysis: InstantAnalysis
     updated_memory_state: UpdatedMemoryState
     mindset_scores: list[MindsetScore]
