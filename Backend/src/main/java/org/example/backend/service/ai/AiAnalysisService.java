@@ -64,6 +64,7 @@ public class AiAnalysisService {
     }
 
     // Entry point — called by EventService on COMPLETED event
+
     @Async
     public void triggerAnalysisIfCompleted(Event event, String responseLanguage) {
         if (event == null || event.getChild() == null) return;
@@ -81,30 +82,30 @@ public class AiAnalysisService {
 
     /**
      * Core analysis method — shared by the real async flow and the dev test endpoint.
-     * Collects all unanalyzed ActivitySessions for this child, builds a holistic
+     * Collects all unanalyzed ActivitySessions for this child, builds one holistic
      * aggregated request, calls the AI, and persists everything.
      */
     public AiAnalysisResponseDto runAnalysis(Child child, String responseLanguage) {
-        // ── 1. Find the last report to get the cutoff timestamp
+        // ── 1. Find last report to get the cutoff timestamp ──────────────
         AIReport lastReport = aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(child.getId());
         LocalDateTime cutoff = lastReport != null ? lastReport.getGeneratedAt() : null;
 
-        // ── 2. Collect unanalyzed ActivitySessions
+        // ── 2. Collect unanalyzed ActivitySessions ───────────────────────
         List<ActivitySession> unanalyzed = cutoff == null
                 ? activitySessionRepo.findAllByChildId(child.getId())
                 : activitySessionRepo.findByChildIdAfterCutoff(child.getId(), cutoff);
 
         if (unanalyzed.isEmpty()) return null;
 
-        // ── 3. Build the aggregated request
+        // ── 3. Build aggregated request ──────────────────────────────────
         AiAnalysisRequestDto request = buildRequest(child, unanalyzed, lastReport, responseLanguage);
         if (request == null) return null;
 
-        // ── 4. Call AI
+        // ── 4. Call AI ───────────────────────────────────────────────────
         AiAnalysisResponseDto response = aiClientService.analyze(request);
         if (response == null || response.getInstantAnalysis() == null) return null;
 
-        // ── 5. Persist
+        // ── 5. Persist ───────────────────────────────────────────────────
         saveAiReport(child, response);
         savePerformances(child, unanalyzed, response);
         saveMindsetScores(child, response.getMindsetScores());
@@ -113,13 +114,13 @@ public class AiAnalysisService {
     }
 
     // Request builder
+
     private AiAnalysisRequestDto buildRequest(
             Child child,
             List<ActivitySession> sessions,
             AIReport lastReport,
             String responseLanguage
     ) {
-        // Per-session data collection
         List<ActivitySummaryDto> activitySummaries = buildActivitySummaries(sessions);
         if (activitySummaries.isEmpty()) return null;
 
@@ -143,12 +144,11 @@ public class AiAnalysisService {
     }
 
     /**
-     * Groups ActivitySessions by activity, then aggregates each group
-     * into a single compact ActivitySummaryDto.
-     * If a child played the same activity 3 times, we get one entry with totals.
+     * Groups ActivitySessions by activity, then merges each group into one
+     * compact ActivitySummaryDto. Hints are counted from HelpEvent records
+     * (one HelpEvent per help request the child made during the session).
      */
     private List<ActivitySummaryDto> buildActivitySummaries(List<ActivitySession> sessions) {
-        // Group by activity id
         Map<Integer, List<ActivitySession>> byActivity = sessions.stream()
                 .filter(s -> s.getActivity() != null)
                 .collect(Collectors.groupingBy(s -> s.getActivity().getId()));
@@ -167,12 +167,17 @@ public class AiAnalysisService {
 
             for (ActivitySession as : actSessions) {
                 totalDuration += computeDuration(as);
+
                 List<ChallengeAttempt> attempts = challengeAttemptRepo.findByActivitySessionId(as.getId());
                 totalAttempts += attempts.stream().mapToInt(ChallengeAttempt::getAttemptsCount).sum();
                 totalFails += attempts.stream().filter(a -> Boolean.FALSE.equals(a.getCompleted())).count();
-                // hints: use helpLog if present
-                if (as.getHelpLog() != null) totalHints++;
-                // completion: if endedAt is set and there are no incomplete attempts
+
+                // Count help events for this session (more accurate than HelpLog @OneToOne)
+                if (as.getSession() != null) {
+                    totalHints += helpEventRepo.findBySessionId(as.getSession().getId()).size();
+                }
+
+                // Completed if all challenge attempts are accepted/completed and at least one exists
                 long incomplete = attempts.stream().filter(a -> Boolean.FALSE.equals(a.getCompleted())).count();
                 long complete = attempts.stream().filter(a -> Boolean.TRUE.equals(a.getCompleted())).count();
                 if (complete > 0 && incomplete == 0) anyCompleted = true;
@@ -182,14 +187,16 @@ public class AiAnalysisService {
                     : actSessions.stream().anyMatch(s -> s.getEndedAt() != null) ? "incomplete"
                       : "abandoned";
 
+            int avgDuration = actSessions.size() > 0 ? totalDuration / actSessions.size() : 0;
+
             BehavioralSignalsDto signals = new BehavioralSignalsDto(
-                    levelByThreshold(totalDuration / actSessions.size(), 120, 300), // hesitation
-                    levelByThreshold(totalAttempts, 1, 3),                           // persistence
-                    "medium",                                                         // adaptability
-                    levelByThreshold(totalHints, 1, 3),                              // hint_dependency
-                    levelByThreshold(totalFails, 1, 2),                              // frustration
-                    levelByThreshold(totalDuration / actSessions.size(), 90, 240),   // focus
-                    confidenceFrom(totalFails, totalAttempts)                         // confidence
+                    levelByThreshold(avgDuration, 120, 300),          // hesitation
+                    levelByThreshold(totalAttempts, 1, 3),             // persistence
+                    "medium",                                           // adaptability
+                    levelByThreshold(totalHints, 1, 3),                // hint_dependency
+                    levelByThreshold(totalFails, 1, 2),                // frustration
+                    levelByThreshold(avgDuration, 90, 240),            // focus
+                    confidenceFrom(totalFails, totalAttempts)           // confidence
             );
 
             List<String> observations = List.of(
@@ -222,7 +229,6 @@ public class AiAnalysisService {
             List<ActivitySession> sessions,
             List<ActivitySummaryDto> activitySummaries
     ) {
-        // Count distinct parent Sessions
         long distinctSessions = sessions.stream()
                 .map(s -> s.getSession() != null ? s.getSession().getId() : -1)
                 .distinct().count();
@@ -231,7 +237,8 @@ public class AiAnalysisService {
         int totalHints = activitySummaries.stream().mapToInt(ActivitySummaryDto::getHintsUsed).sum();
         int totalFails = activitySummaries.stream().mapToInt(ActivitySummaryDto::getFailCount).sum();
         int totalAttempts = activitySummaries.stream().mapToInt(ActivitySummaryDto::getAttemptCount).sum();
-        long completed = activitySummaries.stream().filter(a -> "completed".equals(a.getCompletionStatus())).count();
+        long completed = activitySummaries.stream()
+                .filter(a -> "completed".equals(a.getCompletionStatus())).count();
         int total = activitySummaries.size();
         float completionRate = total > 0 ? (float) completed / total : 0f;
         int avgDuration = total > 0 ? totalDuration / total : 0;
@@ -266,6 +273,7 @@ public class AiAnalysisService {
     }
 
     // Persistence
+
     private void saveAiReport(Child child, AiAnalysisResponseDto response) {
         AIReport report = new AIReport();
         report.setChild(child);
@@ -285,12 +293,6 @@ public class AiAnalysisService {
         aiReportRepo.save(report);
     }
 
-    /**
-     * Upserts one Performance row per unique activity in the unanalyzed sessions.
-     * Maps InstantAnalysis scores across all activities uniformly —
-     * the AI gives us one holistic score set, we apply it to every activity
-     * the child worked on in this batch.
-     */
     private void savePerformances(Child child, List<ActivitySession> sessions, AiAnalysisResponseDto response) {
         var instant = response.getInstantAnalysis();
         if (instant == null) return;
@@ -299,7 +301,7 @@ public class AiAnalysisService {
         for (ActivitySession as : sessions) {
             if (as.getActivity() == null) continue;
             Activity activity = as.getActivity();
-            if (!seen.add(activity.getId())) continue; // deduplicate
+            if (!seen.add(activity.getId())) continue;
 
             Performance p = performanceRepo
                     .findByChildIdAndActivityId(child.getId(), activity.getId())
@@ -334,7 +336,10 @@ public class AiAnalysisService {
         }
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Helpers
+    // ─────────────────────────────────────────────────────────────
+
     private int computeDuration(ActivitySession s) {
         if (s.getStartedAt() != null && s.getEndedAt() != null) {
             return (int) Math.max(0, Duration.between(s.getStartedAt(), s.getEndedAt()).getSeconds());
