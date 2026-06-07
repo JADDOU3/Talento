@@ -4,9 +4,12 @@ from models.schemas import AnalysisRequest, Language
 
 SYSTEM_PROMPT = (
     "You are a behavioral analysis AI specialized in children's cognitive and emotional patterns. "
-    "Analyze the child's activity behavior and update their psychological state objectively. "
+    "You receive aggregated data from multiple play sessions — not a single session. "
+    "Analyze the child's overall behavioral patterns across all activities and produce a holistic report. "
     "Do not make medical diagnoses. Focus on behavioral indicators, emotional responses, "
     "confidence, attention patterns, adaptability, frustration handling, and learning tendencies. "
+    "Your context_summary must explain the specific observations that led to your scores — "
+    "it will be shown to the AI in the next analysis so it understands the reasoning chain. "
     "Always respond with valid JSON only."
 )
 
@@ -14,10 +17,10 @@ SYSTEM_PROMPT = (
 def _language_instruction(language: Language) -> str:
     if language == Language.ARABIC:
         return (
-            "Write behavioral_summary and recommended_future_observation in Arabic. "
-            "Keep other fields in English."
+            "Write behavioral_summary, recommended_future_observation, and context_summary in Arabic. "
+            "Keep all other fields (trend names, pattern names) in English."
         )
-    return "Write behavioral_summary and recommended_future_observation in English."
+    return "Write behavioral_summary, recommended_future_observation, and context_summary in English."
 
 
 def _format_rag_context(rag: dict) -> str:
@@ -34,23 +37,38 @@ def _format_rag_context(rag: dict) -> str:
 
 
 def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
-    child_profile = {
+    # ── Child profile ────────────────────────────────────────────
+    child_section = {
         "age": request.child_profile.age,
         "gender": request.child_profile.gender,
         "baseline_traits": request.child_profile.baseline_traits,
     }
+
+    # ── Session aggregate ────────────────────────────────────────
+    aggregate_section = request.session_aggregate.model_dump()
+
+    # ── Activity summaries — compact, one per activity ───────────
+    activities_section = [s.model_dump() for s in request.activity_summaries]
+
     payload = {
-        "child_profile": child_profile,
-        "activity_summary": request.activity_summary.model_dump(),
+        "child_profile": child_section,
+        "session_aggregate": aggregate_section,
+        "activity_summaries": activities_section,
         "response_language": request.response_language.value,
         "analysis_version": request.analysis_version,
     }
+
     if request.previous_analysis_summary:
-        payload["previous_analysis_summary"] = request.previous_analysis_summary.model_dump()
+        prev = request.previous_analysis_summary.model_dump(exclude_none=True)
+        payload["previous_analysis_summary"] = prev
+
     if request.parent_note:
         payload["parent_note"] = request.parent_note
 
+    # ── RAG context ──────────────────────────────────────────────
     rag_context = _format_rag_context(rag)
+
+    # ── Output schema ────────────────────────────────────────────
     output_schema = {
         "instant_analysis": {
             "focus_level": 0.0,
@@ -66,6 +84,7 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
             "stress_response_pattern": "",
             "learning_behavior_pattern": "",
             "recommended_future_observation": "",
+            "context_summary": "",   # explain WHY these scores — used as context next time
         },
         "mindset_scores": [
             {"mindset_name": "", "score": 0.0}

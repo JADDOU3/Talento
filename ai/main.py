@@ -10,7 +10,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     print(f"Starting Talento AI Service [{settings.app_env}]")
     print(f"Analysis model : {settings.analysis_model}")
-    print(f"Whisper model  : {settings.whisper_model}")
+    print(f"Transcription model : {settings.whisper_model}")
     print(f"ChromaDB       : {settings.chroma_host}:{settings.chroma_port}")
     yield
     print("Shutting down Talento AI Service")
