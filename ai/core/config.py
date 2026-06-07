@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str
     analysis_model: str = "gpt-4o-mini"
-    whisper_model: str = "whisper-1"
+    whisper_model: str = "gpt-4o-mini-transcribe"
     embedding_model: str = "text-embedding-3-small"
 
     # Backend API (for seeding)

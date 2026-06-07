@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/child-mindset-scores")
+@RequestMapping("/api/mindset-scores")
 public class ChildMindsetScoreController {
 
     @Autowired

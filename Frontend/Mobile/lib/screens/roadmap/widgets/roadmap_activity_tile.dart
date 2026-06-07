@@ -73,9 +73,7 @@ class RoadmapActivityTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodyLarge.copyWith(
-                    color: activity.isLocked
-                        ? AppColors.textPrimary
-                        : AppColors.textPrimary,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w900,
                     fontSize: activity.isCurrent ? 14.8 : 14,
                     height: 1.18,
@@ -93,31 +91,46 @@ class RoadmapActivityTile extends StatelessWidget {
 
   Color get _tileColor {
     final colors = <Color>[
-      AppColors.primary.withValues(alpha: 0.90),
-      AppColors.yellow.withValues(alpha: 0.90),
-      AppColors.secondary.withValues(alpha: 0.90),
-      AppColors.pink.withValues(alpha: 0.90),
-      const Color(0xFF48C5DC).withValues(alpha: 0.90),
+      AppColors.pink.withValues(alpha: 0.8),
+      AppColors.yellow.withValues(alpha: 0.8),
+      AppColors.secondary.withValues(alpha: 0.8),
+      AppColors.primary.withValues(alpha: 0.8),
+
+      const Color(0xFF48C5DC).withValues(alpha: 0.8),
     ];
+
+    final baseColor = colors[index % colors.length];
 
     if (activity.isCompleted) {
       return AppColors.primary.withValues(alpha: 0.90);
     }
 
-    if (activity.isCurrent) {
-      return AppColors.pink.withValues(alpha: 0.92);
-    }
-
     if (activity.isLocked) {
-      return colors[index % colors.length].withValues(alpha: 0.46);
+      return baseColor.withValues(alpha: 0.46);
     }
 
-    return colors[index % colors.length];
+    // Current keeps its original card color.
+    return baseColor;
   }
 
   Color get _statusColor {
-    if (activity.isCompleted) return AppColors.primary;
-    if (activity.isCurrent) return AppColors.pink;
+    final colors = <Color>[
+      AppColors.pink,
+
+      AppColors.yellow,
+      AppColors.secondary,
+      AppColors.primary,
+      const Color(0xFF48C5DC),
+    ];
+
+    if (activity.isCompleted) {
+      return AppColors.primary;
+    }
+
+    if (activity.isCurrent) {
+      return colors[index % colors.length];
+    }
+
     return AppColors.textPrimary;
   }
 
@@ -137,9 +150,7 @@ class _ActivitySubtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = _subtitle;
-    final color = activity.isCurrent
-        ? AppColors.white
-        : AppColors.textPrimary;
+    final color = activity.isCurrent ? AppColors.white : AppColors.textPrimary;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
@@ -189,7 +200,10 @@ class _ActivityIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (activity.isCurrent) {
-      return _PulsingIcon(activity: activity);
+      return _PulsingIcon(
+        activity: activity,
+        color: color,
+      );
     }
 
     return Container(
@@ -218,9 +232,11 @@ class _ActivityIcon extends StatelessWidget {
 
 class _PulsingIcon extends StatefulWidget {
   final RoadmapActivityModel activity;
+  final Color color;
 
   const _PulsingIcon({
     required this.activity,
+    required this.color,
   });
 
   @override
@@ -270,15 +286,15 @@ class _PulsingIconState extends State<_PulsingIcon>
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.pink.withValues(alpha: 0.36),
+              color: widget.color.withValues(alpha: 0.36),
               blurRadius: 22,
               spreadRadius: 3,
             ),
           ],
         ),
-        child: const Icon(
+        child: Icon(
           Icons.play_arrow_rounded,
-          color: AppColors.pink,
+          color: widget.color,
           size: 39,
         ),
       ),
