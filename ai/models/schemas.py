@@ -1,6 +1,18 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from pydantic.alias_generators import to_camel
 from typing import Optional
 from enum import Enum
+
+
+# ─────────────────────────────────────────
+# Base — all input models accept camelCase from Spring
+# ─────────────────────────────────────────
+
+class CamelModel(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,   # also accept snake_case (useful for tests)
+    )
 
 
 # ─────────────────────────────────────────
@@ -28,14 +40,14 @@ class Language(str, Enum):
 # Input Models
 # ─────────────────────────────────────────
 
-class ChildProfile(BaseModel):
+class ChildProfile(CamelModel):
     child_id: int
     age: int
     gender: str
     baseline_traits: list[str] = Field(default_factory=list)
 
 
-class BehavioralSignals(BaseModel):
+class BehavioralSignals(CamelModel):
     hesitation: SignalLevel
     persistence: SignalLevel
     adaptability: SignalLevel
@@ -45,17 +57,13 @@ class BehavioralSignals(BaseModel):
     confidence: SignalLevel
 
 
-class ActivitySummary(BaseModel):
-    """
-    One entry per unique activity, aggregated across all unanalyzed sessions.
-    If the child played the same activity 3 times, this is the merged total.
-    """
+class ActivitySummary(CamelModel):
     activity_id: int
     activity_name: str
     activity_type: str
-    duration_seconds: int           # total across all sessions for this activity
+    duration_seconds: int
     completion_status: CompletionStatus
-    attempt_count: int              # total attempts across all sessions
+    attempt_count: int
     hints_used: int
     fail_count: int
     rage_quit: bool
@@ -63,11 +71,7 @@ class ActivitySummary(BaseModel):
     behavioral_observations: list[str] = Field(default_factory=list)
 
 
-class SessionAggregate(BaseModel):
-    """
-    Cross-session totals computed by Spring before sending.
-    Gives the AI the big picture without raw session data.
-    """
+class SessionAggregate(CamelModel):
     total_sessions: int
     total_activities_attempted: int
     total_duration_seconds: int
@@ -80,17 +84,12 @@ class SessionAggregate(BaseModel):
     avg_duration_per_activity_seconds: int
 
 
-class MindsetScore(BaseModel):
+class MindsetScore(CamelModel):
     mindset_name: str
     score: float = Field(ge=0.0, le=1.0)
 
 
-class PreviousAnalysisSummary(BaseModel):
-    """
-    Last stored analysis for this child.
-    contextSummary explains WHY the child had those scores —
-    gives the AI causal context, not just numbers.
-    """
+class PreviousAnalysisSummary(CamelModel):
     focus_trend: Optional[str] = None
     confidence_trend: Optional[str] = None
     stress_response_pattern: Optional[str] = None
@@ -101,14 +100,10 @@ class PreviousAnalysisSummary(BaseModel):
     context_summary: Optional[str] = None
 
 
-class AnalysisRequest(BaseModel):
-    """
-    Full payload sent from Spring to POST /analyze
-    Contains aggregated data across ALL unanalyzed sessions — not just one.
-    """
+class AnalysisRequest(CamelModel):
     child_profile: ChildProfile
     session_aggregate: SessionAggregate
-    activity_summaries: list[ActivitySummary]   # one entry per unique activity
+    activity_summaries: list[ActivitySummary]
     previous_analysis_summary: Optional[PreviousAnalysisSummary] = None
     parent_note: Optional[str] = None
     response_language: Language = Language.ENGLISH
@@ -120,10 +115,6 @@ class AnalysisRequest(BaseModel):
 # ─────────────────────────────────────────
 
 class InstantAnalysis(BaseModel):
-    """
-    Holistic analysis of everything the child has done since the last report.
-    behavioral_summary is the human-readable report shown to the parent.
-    """
     focus_level: float = Field(ge=0.0, le=1.0)
     confidence_level: float = Field(ge=0.0, le=1.0)
     stress_level: float = Field(ge=0.0, le=1.0)
@@ -133,11 +124,6 @@ class InstantAnalysis(BaseModel):
 
 
 class UpdatedMemoryState(BaseModel):
-    """
-    Updated longitudinal profile.
-    context_summary explains WHAT drove these specific scores —
-    stored and sent back next time so the AI has narrative continuity.
-    """
     focus_trend: str
     confidence_trend: str
     stress_response_pattern: str
