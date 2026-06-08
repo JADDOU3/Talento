@@ -1,4 +1,5 @@
 import json
+import re
 
 from models.schemas import AnalysisRequest, Language
 
@@ -18,9 +19,25 @@ def _language_instruction(language: Language) -> str:
     if language == Language.ARABIC:
         return (
             "Write behavioral_summary, recommended_future_observation, and context_summary in Arabic. "
-            "Keep all other fields (trend names, pattern names) in English."
+            "Keep all other fields (trend names, pattern names, mindset names) in English."
         )
     return "Write behavioral_summary, recommended_future_observation, and context_summary in English."
+
+
+def _extract_mindset_names(rag: dict) -> list[str]:
+    """
+    Extracts mindset names from the RAG retrieved mindset definitions.
+    Each document looks like: "Mindset: Cognitive. Description: ..."
+    Returns e.g. ["Cognitive", "Social-Emotional", "Sensory-Kinesthetic", "Creative-Visual"]
+    """
+    names = []
+    for doc in rag.get("mindsets", []):
+        match = re.match(r"Mindset:\s*([^.]+)", doc)
+        if match:
+            name = match.group(1).strip()
+            if name:
+                names.append(name)
+    return names
 
 
 def _format_rag_context(rag: dict) -> str:
@@ -47,7 +64,7 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
     # ── Session aggregate ────────────────────────────────────────
     aggregate_section = request.session_aggregate.model_dump()
 
-    # ── Activity summaries — compact, one per activity ───────────
+    # ── Activity summaries ───────────────────────────────────────
     activities_section = [s.model_dump() for s in request.activity_summaries]
 
     payload = {
@@ -59,8 +76,7 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
     }
 
     if request.previous_analysis_summary:
-        prev = request.previous_analysis_summary.model_dump(exclude_none=True)
-        payload["previous_analysis_summary"] = prev
+        payload["previous_analysis_summary"] = request.previous_analysis_summary.model_dump(exclude_none=True)
 
     if request.parent_note:
         payload["parent_note"] = request.parent_note
@@ -68,40 +84,56 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
     # ── RAG context ──────────────────────────────────────────────
     rag_context = _format_rag_context(rag)
 
-    # ── Output schema ────────────────────────────────────────────
-    output_schema = {
-        "instant_analysis": {
-            "focus_level": 0.0,
-            "confidence_level": 0.0,
-            "stress_level": 0.0,
-            "adaptability": 0.0,
-            "decision_making_pattern": "",
-            "behavioral_summary": "",
-        },
-        "updated_memory_state": {
-            "focus_trend": "",
-            "confidence_trend": "",
-            "stress_response_pattern": "",
-            "learning_behavior_pattern": "",
-            "recommended_future_observation": "",
-            "context_summary": "",   # explain WHY these scores — used as context next time
-        },
-        "mindset_scores": [
-            {"mindset_name": "", "score": 0.0}
-        ],
-        "analysis_confidence": 0.0,
-        "analysis_version": request.analysis_version,
-    }
+    # ── Mindset names from RAG — tell AI exactly what to use ─────
+    mindset_names = _extract_mindset_names(rag)
+    if not mindset_names:
+        # Fallback if RAG returned nothing — use known defaults
+        mindset_names = ["Cognitive", "Social-Emotional", "Sensory-Kinesthetic", "Creative-Visual"]
+
+    mindset_scores_schema = [
+        {"mindset_name": name, "score": 0.0}
+        for name in mindset_names
+    ]
+
+    mindset_instruction = (
+        f"You MUST score ALL of these mindsets: {mindset_names}. "
+        "Score each from 0.0 (not observed) to 1.0 (strongly observed) based on the child's actual behavior. "
+        "Do NOT return 0.0 for all — derive real scores from the data."
+    )
+
+    output_instructions = f"""Respond ONLY with a JSON object with this exact structure. All values must be derived from the input data — do NOT use placeholder zeroes or empty strings:
+
+{{
+  "instant_analysis": {{
+    "focus_level": <float 0.0-1.0 based on session duration and engagement>,
+    "confidence_level": <float 0.0-1.0 based on attempts and independence>,
+    "stress_level": <float 0.0-1.0 based on fails, rage quits, frustration signals>,
+    "adaptability": <float 0.0-1.0 based on strategy changes and recovery from failure>,
+    "decision_making_pattern": <short descriptive string e.g. "impulsive", "cautious", "strategic">,
+    "behavioral_summary": <2-4 sentence narrative summary of the child's behavior across all sessions>
+  }},
+  "updated_memory_state": {{
+    "focus_trend": <"improving" | "declining" | "stable" | "low" | "high">,
+    "confidence_trend": <"improving" | "declining" | "stable" | "low" | "high">,
+    "stress_response_pattern": <short string describing how child handles stress>,
+    "learning_behavior_pattern": <short string describing how child learns>,
+    "recommended_future_observation": <1-2 sentences on what to watch next>,
+    "context_summary": <2-3 sentences explaining WHY these specific scores — used as context in next analysis>
+  }},
+  "mindset_scores": {json.dumps(mindset_scores_schema)},
+  "analysis_confidence": <float 0.0-1.0 reflecting how confident you are given the available data>,
+  "analysis_version": "{request.analysis_version}"
+}}
+
+For mindset_scores: keep the mindset_name values exactly as given, only set the score for each based on observed behavior."""
 
     prompt_sections = [
         f"LANGUAGE GUIDANCE:\n{_language_instruction(request.response_language)}",
+        f"MINDSET SCORING INSTRUCTIONS:\n{mindset_instruction}",
         "INPUT DATA (JSON):\n" + json.dumps(payload, ensure_ascii=False),
     ]
     if rag_context:
         prompt_sections.append("RETRIEVED CONTEXT:\n" + rag_context)
-    prompt_sections.append(
-        "Respond ONLY with JSON that matches this schema:\n"
-        + json.dumps(output_schema, ensure_ascii=False)
-    )
+    prompt_sections.append(output_instructions)
 
     return "\n\n".join(prompt_sections)
