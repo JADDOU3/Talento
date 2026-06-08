@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # ChromaDB
     chroma_host: str = "chromadb"
-    chroma_port: int = 8001
+    chroma_port: int = 8000
     chroma_collection_mindsets: str = "mindset_definitions"
     chroma_collection_criteria: str = "activity_criteria"
     chroma_collection_patterns: str = "behavioral_patterns"
