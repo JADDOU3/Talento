@@ -1,7 +1,6 @@
 package org.example.backend.Dto.ai.response;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.example.backend.Dto.ai.common.MindsetScoreDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,11 +11,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AiAnalysisResponseDto {
+    @JsonAlias("instant_analysis")
     private InstantAnalysisDto instantAnalysis;
+    @JsonAlias("updated_memory_state")
     private UpdatedMemoryStateDto updatedMemoryState;
+    @JsonAlias("mindset_scores")
     private List<MindsetScoreDto> mindsetScores;
+    @JsonAlias("analysis_confidence")
     private float analysisConfidence;
+    @JsonAlias("analysis_version")
     private String analysisVersion;
 }
