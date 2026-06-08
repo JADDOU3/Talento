@@ -45,6 +45,7 @@ public class SecurityConfig {
                     .authorizeHttpRequests(request ->
                         request.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers("/api/login", "/api/register", "/api/refresh").permitAll()
+                                .requestMatchers( "/api/mindsets", "/api/criteria", "/api/activity-criteria").permitAll()
                                 .anyRequest().authenticated())
                     .exceptionHandling(exceptions -> exceptions
                             .authenticationEntryPoint(restAuthenticationEntryPoint)

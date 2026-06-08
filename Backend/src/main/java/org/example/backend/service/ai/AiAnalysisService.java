@@ -63,7 +63,9 @@ public class AiAnalysisService {
         this.mindsetRepo = mindsetRepo;
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Entry point — called by EventService on COMPLETED event
+    // ─────────────────────────────────────────────────────────────
 
     @Async
     public void triggerAnalysisIfCompleted(Event event, String responseLanguage) {
@@ -113,7 +115,9 @@ public class AiAnalysisService {
         return response;
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Request builder
+    // ─────────────────────────────────────────────────────────────
 
     private AiAnalysisRequestDto buildRequest(
             Child child,
@@ -260,6 +264,11 @@ public class AiAnalysisService {
     private PreviousAnalysisSummaryDto buildPreviousAnalysisSummary(AIReport lastReport) {
         if (lastReport == null) return null;
         List<MindsetScoreDto> scores = parseMindsetScores(lastReport.getMindsetScoresJson());
+        if (scores != null) {
+            scores = scores.stream()
+                    .filter(s -> s.getMindsetName() != null && !s.getMindsetName().isBlank())
+                    .collect(Collectors.toList());
+        }
         return new PreviousAnalysisSummaryDto(
                 lastReport.getFocusTrend(),
                 lastReport.getConfidenceTrend(),
@@ -272,7 +281,9 @@ public class AiAnalysisService {
         );
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Persistence
+    // ─────────────────────────────────────────────────────────────
 
     private void saveAiReport(Child child, AiAnalysisResponseDto response) {
         AIReport report = new AIReport();

@@ -171,6 +171,8 @@ async def _fetch_backend_list(client: httpx.AsyncClient, path: str) -> list[dict
     payload = response.json()
     if isinstance(payload, dict) and "data" in payload:
         payload = payload["data"]
+    elif isinstance(payload, dict) and "content" in payload:
+        payload = payload["content"]
     if not isinstance(payload, list):
         raise ValueError(f"Unexpected response from {url}")
     return payload

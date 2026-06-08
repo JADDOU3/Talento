@@ -137,15 +137,6 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
           children: children,
         ),
 
-        const Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: IgnorePointer(
-            child: _TopFogOverlay(),
-          ),
-        ),
-
         Positioned(
           left: 0,
           right: 0,
@@ -325,28 +316,6 @@ class _RoadStartGuide extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TopFogOverlay extends StatelessWidget {
-  const _TopFogOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 74,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.background.withValues(alpha: 0.98),
-            AppColors.background.withValues(alpha: 0.76),
-            AppColors.background.withValues(alpha: 0.0),
-          ],
-        ),
       ),
     );
   }
