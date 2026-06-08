@@ -63,7 +63,9 @@ public class AiAnalysisService {
         this.mindsetRepo = mindsetRepo;
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Entry point — called by EventService on COMPLETED event
+    // ─────────────────────────────────────────────────────────────
 
     @Async
     public void triggerAnalysisIfCompleted(Event event, String responseLanguage) {
@@ -113,7 +115,9 @@ public class AiAnalysisService {
         return response;
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Request builder
+    // ─────────────────────────────────────────────────────────────
 
     private AiAnalysisRequestDto buildRequest(
             Child child,
@@ -139,7 +143,7 @@ public class AiAnalysisService {
         request.setActivitySummaries(activitySummaries);
         request.setPreviousAnalysisSummary(buildPreviousAnalysisSummary(lastReport));
         request.setResponseLanguage(normalizeLanguage(responseLanguage));
-        request.setAnalysisVersion("v1");
+        request.setAnalysisVersion(nextVersion(lastReport));
         return request;
     }
 
@@ -260,6 +264,11 @@ public class AiAnalysisService {
     private PreviousAnalysisSummaryDto buildPreviousAnalysisSummary(AIReport lastReport) {
         if (lastReport == null) return null;
         List<MindsetScoreDto> scores = parseMindsetScores(lastReport.getMindsetScoresJson());
+        if (scores != null) {
+            scores = scores.stream()
+                    .filter(s -> s.getMindsetName() != null && !s.getMindsetName().isBlank())
+                    .collect(Collectors.toList());
+        }
         return new PreviousAnalysisSummaryDto(
                 lastReport.getFocusTrend(),
                 lastReport.getConfidenceTrend(),
@@ -272,7 +281,9 @@ public class AiAnalysisService {
         );
     }
 
+    // ─────────────────────────────────────────────────────────────
     // Persistence
+    // ─────────────────────────────────────────────────────────────
 
     private void saveAiReport(Child child, AiAnalysisResponseDto response) {
         AIReport report = new AIReport();
@@ -377,4 +388,15 @@ public class AiAnalysisService {
 
     private float avg(float a, float b) { return (a + b) / 2.0f; }
     private float clamp(float v) { return Math.max(0.0f, Math.min(1.0f, v)); }
+
+    private String nextVersion(AIReport lastReport) {
+        if (lastReport == null || lastReport.getAnalysisVersion() == null) return "v1";
+        try {
+            String last = lastReport.getAnalysisVersion().toLowerCase().replaceAll("[^0-9]", "");
+            int next = Integer.parseInt(last) + 1;
+            return "v" + next;
+        } catch (NumberFormatException e) {
+            return "v1";
+        }
+    }
 }

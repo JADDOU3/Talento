@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.example.backend.model.activity.Activity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,7 +28,7 @@ public class Level {
     private String description;
 
     @OneToMany(mappedBy = "level", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LevelImage> images;
+    private List<LevelImage> images = new ArrayList<>();
 
     @JsonIgnore
     @ManyToOne
