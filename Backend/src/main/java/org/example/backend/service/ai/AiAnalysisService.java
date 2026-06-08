@@ -143,7 +143,7 @@ public class AiAnalysisService {
         request.setActivitySummaries(activitySummaries);
         request.setPreviousAnalysisSummary(buildPreviousAnalysisSummary(lastReport));
         request.setResponseLanguage(normalizeLanguage(responseLanguage));
-        request.setAnalysisVersion("v1");
+        request.setAnalysisVersion(nextVersion(lastReport));
         return request;
     }
 
@@ -388,4 +388,15 @@ public class AiAnalysisService {
 
     private float avg(float a, float b) { return (a + b) / 2.0f; }
     private float clamp(float v) { return Math.max(0.0f, Math.min(1.0f, v)); }
+
+    private String nextVersion(AIReport lastReport) {
+        if (lastReport == null || lastReport.getAnalysisVersion() == null) return "v1";
+        try {
+            String last = lastReport.getAnalysisVersion().toLowerCase().replaceAll("[^0-9]", "");
+            int next = Integer.parseInt(last) + 1;
+            return "v" + next;
+        } catch (NumberFormatException e) {
+            return "v1";
+        }
+    }
 }
