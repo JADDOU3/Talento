@@ -91,7 +91,7 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
         mindset_names = ["Cognitive", "Social-Emotional", "Sensory-Kinesthetic", "Creative-Visual"]
 
     mindset_scores_schema = [
-        {"mindset_name": name, "score": 0.0}
+        {"mindset_name": name, "score": "<float 0.0-1.0>"}
         for name in mindset_names
     ]
 
