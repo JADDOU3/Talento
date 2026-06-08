@@ -193,10 +193,19 @@ public class AiAnalysisService {
 
             int avgDuration = actSessions.size() > 0 ? totalDuration / actSessions.size() : 0;
 
+            String adaptability;
+            if (actSessions.size() >= 3) {
+                adaptability = "high";
+            } else if (actSessions.size() == 2 || (totalFails > 0 && totalAttempts > totalFails)) {
+                adaptability = "medium";
+            } else {
+                adaptability = "low";
+            }
+
             BehavioralSignalsDto signals = new BehavioralSignalsDto(
                     levelByThreshold(avgDuration, 120, 300),          // hesitation
                     levelByThreshold(totalAttempts, 1, 3),             // persistence
-                    "medium",                                           // adaptability
+                    adaptability,                                       // computed above
                     levelByThreshold(totalHints, 1, 3),                // hint_dependency
                     levelByThreshold(totalFails, 1, 2),                // frustration
                     levelByThreshold(avgDuration, 90, 240),            // focus
