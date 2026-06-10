@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../cubits/activities/mirror_mind/mirror_mind_cubit.dart';
 import '../../cubits/activities/mirror_mind/mirror_mind_state.dart';
+import '../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
 import '../../shared/layout/app_background.dart';
 import 'mirror_mind_result_screen.dart';
@@ -37,13 +40,32 @@ class MirrorMindGameScreen extends StatelessWidget {
           sessionId: sessionId,
           initialLevelNumber: initialLevelNumber,
         ),
-      child: const _MirrorMindGameView(),
+      child: MirrorMindGameView(
+        activityId: activityId,
+        activitySessionId: activitySessionId,
+        childId: childId,
+        sessionId: sessionId,
+        initialLevelNumber: initialLevelNumber,
+      ),
     );
   }
 }
 
-class _MirrorMindGameView extends StatelessWidget {
-  const _MirrorMindGameView();
+class MirrorMindGameView extends StatelessWidget {
+  final int activityId;
+  final int activitySessionId;
+  final int childId;
+  final int sessionId;
+  final int initialLevelNumber;
+
+  const MirrorMindGameView({
+    super.key,
+    required this.activityId,
+    required this.activitySessionId,
+    required this.childId,
+    required this.sessionId,
+    required this.initialLevelNumber,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +79,11 @@ class _MirrorMindGameView extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => MirrorMindResultScreen(
                   elapsed: state.elapsed,
+                  activityId: activityId,
+                  activitySessionId: activitySessionId,
+                  childId: childId,
+                  sessionId: sessionId,
+                  initialLevelNumber: 1,
                 ),
               ),
             );
@@ -100,7 +127,7 @@ class _MirrorMindGameView extends StatelessWidget {
   }
 }
 
-class _LoadedGameView extends StatelessWidget {
+class _LoadedGameView extends StatefulWidget {
   final MirrorMindLoaded state;
 
   const _LoadedGameView({
@@ -108,9 +135,42 @@ class _LoadedGameView extends StatelessWidget {
   });
 
   @override
+  State<_LoadedGameView> createState() => _LoadedGameViewState();
+}
+
+class _LoadedGameViewState extends State<_LoadedGameView> {
+  Timer? _memoryTimer;
+  bool _showMemorySequence = true;
+  int? _lastLevelIndex;
+  int? _lastChallengeIndex;
+
+  MirrorMindLoaded get state => widget.state;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetMemorySequenceIfNeeded(force: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant _LoadedGameView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _resetMemorySequenceIfNeeded();
+  }
+
+  @override
+  void dispose() {
+    _memoryTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final challenge = state.challenge;
     final selectedChoice = _selectedChoiceOrNull();
+    final shouldHideChoices =
+        challenge.type == MirrorMindChallengeType.memorySequence &&
+            _showMemorySequence;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -131,18 +191,29 @@ class _LoadedGameView extends StatelessWidget {
                   MirrorTargetWidget(
                     challenge: challenge,
                     selectedChoice: selectedChoice,
+                    showMemorySequence: _showMemorySequence,
                   ),
                   const SizedBox(height: 18),
                   _TonkyHint(
-                    text: _hintTextForLevel(state.currentLevelIndex),
+                    text: _hintTextForChallenge(challenge),
                   ),
                   const SizedBox(height: 14),
-                  MirrorChoicesWidget(
-                    choices: challenge.choices,
-                    selectedChoiceIndex: state.selectedChoiceIndex,
-                    onChoiceSelected: (index) {
-                      context.read<MirrorMindCubit>().selectChoice(index);
-                    },
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: shouldHideChoices
+                        ? const _MemoryWaitMessage()
+                        : MirrorChoicesWidget(
+                      key: ValueKey(
+                        '${state.currentLevelIndex}-${state.currentChallengeIndex}',
+                      ),
+                      choices: challenge.choices,
+                      selectedChoiceIndex: state.selectedChoiceIndex,
+                      onChoiceSelected: (index) {
+                        context
+                            .read<MirrorMindCubit>()
+                            .selectChoice(index);
+                      },
+                    ),
                   ),
                   const SizedBox(height: 18),
                   const Spacer(),
@@ -150,7 +221,7 @@ class _LoadedGameView extends StatelessWidget {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: state.canSubmit
+                      onPressed: state.canSubmit && !shouldHideChoices
                           ? () =>
                           context.read<MirrorMindCubit>().submitAnswer()
                           : null,
@@ -161,7 +232,7 @@ class _LoadedGameView extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        elevation: state.canSubmit ? 4 : 0,
+                        elevation: state.canSubmit && !shouldHideChoices ? 4 : 0,
                       ),
                       child: const Text(
                         'تأكيد الإجابة',
@@ -182,6 +253,34 @@ class _LoadedGameView extends StatelessWidget {
     );
   }
 
+  void _resetMemorySequenceIfNeeded({bool force = false}) {
+    final challenge = state.challenge;
+    final levelChanged = _lastLevelIndex != state.currentLevelIndex;
+    final challengeChanged = _lastChallengeIndex != state.currentChallengeIndex;
+    final needsReset = force || levelChanged || challengeChanged;
+
+    if (!needsReset) return;
+
+    _lastLevelIndex = state.currentLevelIndex;
+    _lastChallengeIndex = state.currentChallengeIndex;
+
+    _memoryTimer?.cancel();
+
+    if (challenge.type == MirrorMindChallengeType.memorySequence) {
+      _showMemorySequence = true;
+
+      _memoryTimer = Timer(const Duration(seconds: 2), () {
+        if (!mounted) return;
+
+        setState(() {
+          _showMemorySequence = false;
+        });
+      });
+    } else {
+      _showMemorySequence = false;
+    }
+  }
+
   MirrorMindChoiceModel? _selectedChoiceOrNull() {
     final index = state.selectedChoiceIndex;
 
@@ -191,16 +290,64 @@ class _LoadedGameView extends StatelessWidget {
     return state.challenge.choices[index];
   }
 
-  String _hintTextForLevel(int levelIndex) {
-    if (levelIndex == 0) {
-      return 'إذا كان الشكل هنا… فأين يظهر انعكاسه؟';
-    }
+  String _hintTextForChallenge(MirrorMindChallengeModel challenge) {
+    switch (challenge.type) {
+      case MirrorMindChallengeType.simpleReflection:
+        return 'إذا كان الشكل هنا… فأين يظهر انعكاسه؟';
 
-    if (levelIndex == 1) {
-      return 'انتبه للترتيب! المرآة تعكس أماكن الأشكال.';
-    }
+      case MirrorMindChallengeType.mirrorSequence:
+        return 'انتبه للترتيب! المرآة تعكس أماكن الأشكال.';
 
-    return 'كيف يبدو هذا الاتجاه في المرآة؟';
+      case MirrorMindChallengeType.directionReflection:
+        return 'كيف يبدو هذا الاتجاه في المرآة؟';
+
+      case MirrorMindChallengeType.symmetryCompletion:
+        return 'اختر النصف الذي يُكمل الشكل في المرآة.';
+
+      case MirrorMindChallengeType.connectDotsMemory:
+        return 'أشعر أن شكلًا يختبئ هنا… ركّز في النقاط.';
+
+      case MirrorMindChallengeType.memorySequence:
+        return _showMemorySequence
+            ? 'احفظ الترتيب بسرعة، سيختفي بعد لحظات!'
+            : 'ممتاز! الآن اختر الترتيب المعكوس.';
+
+      case MirrorMindChallengeType.masterReflection:
+        return 'هنا يوجد أكثر من سر! فكّر بالانعكاس جيدًا.';
+
+      case MirrorMindChallengeType.unknown:
+        return 'اختَر الإجابة الصحيحة.';
+    }
+  }
+}
+
+class _MemoryWaitMessage extends StatelessWidget {
+  const _MemoryWaitMessage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('memory-wait-message'),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.secondary.withOpacity(0.18),
+        ),
+      ),
+      child: const Text(
+        'راقب الأشكال أولًا… بعدها ستظهر الاختيارات',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'ArialRounded',
+          fontSize: 15,
+          fontWeight: FontWeight.w900,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
   }
 }
 
@@ -358,7 +505,7 @@ class _LevelHeader extends StatelessWidget {
     return Column(
       children: [
         Text(
-          _levelTitle(state.currentLevelIndex),
+          _levelTitle(state.currentLevelNumber),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontFamily: 'DGAgnadeen',
@@ -381,16 +528,25 @@ class _LevelHeader extends StatelessWidget {
     );
   }
 
-  String _levelTitle(int levelIndex) {
-    if (levelIndex == 0) {
-      return 'المستوى 1 - انعكاس بسيط';
+  String _levelTitle(int levelNumber) {
+    switch (levelNumber) {
+      case 1:
+        return 'المستوى 1 - انعكاس بسيط';
+      case 2:
+        return 'المستوى 2 - عدة أشكال';
+      case 3:
+        return 'المستوى 3 - اليمين واليسار';
+      case 4:
+        return 'المستوى 4 - أكمل النصف الناقص';
+      case 5:
+        return 'المستوى 5 - الرسم بالنقاط';
+      case 6:
+        return 'المستوى 6 - انعكاس الذاكرة';
+      case 7:
+        return 'المستوى 7 - Master Reflection';
+      default:
+        return 'المستوى $levelNumber - Mirror Mind';
     }
-
-    if (levelIndex == 1) {
-      return 'المستوى 2 - عدة أشكال';
-    }
-
-    return 'المستوى 3 - اليمين واليسار';
   }
 }
 

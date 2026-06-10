@@ -50,7 +50,6 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
       final playableLevels = levels
           .where((level) => level.challenges.isNotEmpty)
-          .take(3)
           .toList();
 
       if (playableLevels.isEmpty) {
@@ -175,8 +174,6 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
     final loadedState = latestState.previousState;
 
-    // إذا مش آخر challenge في الليفل:
-    // لا نرسل completed للباك، فقط ننتقل للتحدي التالي ونحفظ المكان محليًا.
     if (!loadedState.isLastChallengeInLevel) {
       final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
 
@@ -194,7 +191,6 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       return;
     }
 
-    // هون فقط الليفل اكتمل فعليًا، لأنه آخر challenge في الليفل.
     await _updateCurrentAttempt(
       currentState: loadedState,
       completed: true,
@@ -207,16 +203,15 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       action: 'COMPLETED',
     );
 
-    if (loadedState.isLastPartOneLevel ||
-        loadedState.currentLevelIndex >= loadedState.levels.length - 1) {
-      await _completePartOne(loadedState.elapsed);
+    if (loadedState.isLastLevel) {
+      await _completeActivity(loadedState.elapsed);
       return;
     }
 
     emit(
       MirrorMindLevelComplete(
         previousState: loadedState,
-        message: _levelCompleteMessage(loadedState.currentLevelIndex),
+        message: _levelCompleteMessage(loadedState.currentLevelNumber),
       ),
     );
 
@@ -313,7 +308,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     );
   }
 
-  Future<void> _completePartOne(Duration elapsed) async {
+  Future<void> _completeActivity(Duration elapsed) async {
     _activityCompleted = true;
     _timer?.cancel();
 
@@ -385,16 +380,23 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     );
   }
 
-  String _levelCompleteMessage(int levelIndex) {
-    if (levelIndex == 0) {
-      return 'لقد اكتشفت أول سر للمرآة!';
+  String _levelCompleteMessage(int levelNumber) {
+    switch (levelNumber) {
+      case 1:
+        return 'لقد اكتشفت أول سر للمرآة!';
+      case 2:
+        return 'رائع! أصبحت تفهم انعكاس أكثر من شكل.';
+      case 3:
+        return 'ممتاز! لقد أتقنت اتجاهات المرآة.';
+      case 4:
+        return 'جميل! أكملت النصف الناقص ببراعة.';
+      case 5:
+        return 'رائع! اكتشفت الشكل المختبئ بين النقاط.';
+      case 6:
+        return 'مذهل! ذاكرتك تعرف طريق المرآة.';
+      default:
+        return 'أحسنت! اقتربت من سر المرآة الأخير.';
     }
-
-    if (levelIndex == 1) {
-      return 'رائع! أصبحت تفهم انعكاس أكثر من شكل.';
-    }
-
-    return 'ممتاز! لقد أتقنت اتجاهات المرآة.';
   }
 
   String get _progressStorageKey {
@@ -455,12 +457,6 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     required List<MirrorMindLevelModel> levels,
     required int initialLevelNumber,
   }) async {
-    // TEMPORARY PART 1 BEHAVIOR:
-    // Currently the frontend supports only the first 3 levels of Mirror Mind.
-    // If the roadmap says currentLevelNumber is 4 or higher, this means Part 1
-    // is completed, but Part 2 is not implemented yet.
-    // So for now, when the user opens Mirror Mind again, restart from
-    // Level 1 / Challenge 1.
     if (initialLevelNumber > levels.length) {
       await _clearProgress();
 
