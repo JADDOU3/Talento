@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-
 import '../../../core/theme/app_colors.dart';
 import 'symmetry_drawing_widget.dart';
 
@@ -40,32 +39,46 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
     }
 
     final shapePoints = _pointsForShape(widget.shape, size);
+    final userPoints = _userPoints.whereType<Offset>().toList();
 
     final expectedPoints = _sampleExpectedPath(
       points: shapePoints,
       closed: widget.closed,
     );
 
-    final userPoints = _userPoints.whereType<Offset>().toList();
-
     final coverageScore = _calculateCoverageScore(
       expectedPoints: expectedPoints,
       userPoints: userPoints,
-      tolerance: 34,
+      tolerance: 22,
     );
 
-    final dotScore = _calculateDotHitScore(
+    final orderedDotScore = _calculateOrderedDotScore(
       dots: shapePoints,
       userPoints: userPoints,
-      tolerance: 38,
+      tolerance: 28,
     );
 
-    final score = (coverageScore * 0.65) + (dotScore * 0.35);
+    final dotHitScore = _calculateDotHitScore(
+      dots: shapePoints,
+      userPoints: userPoints,
+      tolerance: 28,
+    );
+
+    final score = (coverageScore * 0.55) +
+        (orderedDotScore * 0.10) +
+        (dotHitScore * 0.35);
+
+    print('coverage: $coverageScore');
+    print('ordered: $orderedDotScore');
+    print('dotHit: $dotHitScore');
+    print('total score: $score');
+
+    final isCorrect = score >= 0.80;
 
     return SymmetryDrawingResult(
       hasDrawing: true,
       score: score,
-      isCorrect: score >= 0.62,
+      isCorrect: isCorrect,
     );
   }
 
@@ -117,7 +130,6 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
                     setState(() {
                       _userPoints.add(null);
                     });
-
                     widget.onResultChanged(evaluateDrawing());
                   },
                   child: CustomPaint(
@@ -154,7 +166,6 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
     setState(() {
       _userPoints.add(point);
     });
-
     widget.onResultChanged(evaluateDrawing());
   }
 }
@@ -173,7 +184,6 @@ class _ConnectDotsDrawingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final points = _pointsForShape(shape, size);
-
     _drawGuideStep(canvas, points);
     _drawDots(canvas, points);
     _drawUserStroke(canvas);
@@ -189,7 +199,6 @@ class _ConnectDotsDrawingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // فقط أول خط كبداية: 1 -> 2
     canvas.drawLine(points[0], points[1], guidePaint);
   }
 
@@ -214,7 +223,6 @@ class _ConnectDotsDrawingPainter extends CustomPainter {
       canvas.drawCircle(point, 8.2, borderPaint);
       canvas.drawCircle(point, 5.1, dotPaint);
 
-      // نرقّم فقط أول نقطتين حتى يعرف البداية
       if (i > 1) continue;
 
       final textPainter = TextPainter(
@@ -264,13 +272,8 @@ class _ConnectDotsDrawingPainter extends CustomPainter {
 List<Offset> _pointsForShape(String rawShape, Size size) {
   final shape = rawShape.toLowerCase().trim();
 
-  if (shape == 'flower') {
-    return _flowerPoints(size);
-  }
-
-  if (shape == 'butterfly') {
-    return _butterflyPoints(size);
-  }
+  if (shape == 'flower') return _flowerPoints(size);
+  if (shape == 'butterfly') return _butterflyPoints(size);
 
   return _starPoints(size);
 }
@@ -286,62 +289,75 @@ List<Offset> _starPoints(Size size) {
     final radius = i.isEven ? outerRadius : innerRadius;
     final angle = -math.pi / 2 + i * math.pi / 5;
 
-    points.add(
-      Offset(
-        center.dx + math.cos(angle) * radius,
-        center.dy + math.sin(angle) * radius,
-      ),
-    );
+    points.add(Offset(
+      center.dx + math.cos(angle) * radius,
+      center.dy + math.sin(angle) * radius,
+    ));
   }
 
   return points;
 }
 
 List<Offset> _flowerPoints(Size size) {
-  final center = Offset(size.width / 2, size.height / 2);
+  final cx = size.width / 2;
+  final cy = size.height / 2 + 6;
 
-  // وردة أوضح: النقاط ماشية على حدود بتلات بسيطة حول المركز.
-  return [
-    Offset(center.dx, center.dy - 92), // top petal
-    Offset(center.dx - 34, center.dy - 54),
-    Offset(center.dx - 88, center.dy - 48), // upper left petal
-    Offset(center.dx - 56, center.dy - 10),
-    Offset(center.dx - 72, center.dy + 48), // lower left petal
-    Offset(center.dx - 24, center.dy + 38),
-    Offset(center.dx, center.dy + 92), // bottom petal
-    Offset(center.dx + 24, center.dy + 38),
-    Offset(center.dx + 72, center.dy + 48), // lower right petal
-    Offset(center.dx + 56, center.dy - 10),
-    Offset(center.dx + 88, center.dy - 48), // upper right petal
-    Offset(center.dx + 34, center.dy - 54),
-  ];
+  final outerR = math.min(size.width, size.height) * 0.40;
+  final innerR = outerR * 0.28;
+
+  double toRad(double deg) => deg * math.pi / 180;
+
+  final points = <Offset>[];
+
+  for (int i = 0; i < 5; i++) {
+    final tipAngle = -90.0 + i * 72.0;
+    final leftAngle = tipAngle - 36.0;
+    final rightAngle = tipAngle + 36.0;
+
+    points.add(Offset(
+      cx + innerR * math.cos(toRad(leftAngle)),
+      cy + innerR * math.sin(toRad(leftAngle)),
+    ));
+    points.add(Offset(
+      cx + outerR * math.cos(toRad(tipAngle)),
+      cy + outerR * math.sin(toRad(tipAngle)),
+    ));
+    points.add(Offset(
+      cx + innerR * math.cos(toRad(rightAngle)),
+      cy + innerR * math.sin(toRad(rightAngle)),
+    ));
+  }
+
+  return points;
 }
 
 List<Offset> _butterflyPoints(Size size) {
-  final centerX = size.width / 2;
-  final centerY = size.height / 2 + 5;
+  final cx = size.width / 2;
+  final cy = size.height / 2;
 
-  // فراشة أوضح: نبدأ من الرأس، نمر على الجناح اليسار، الجسم، الجناح اليمين.
+  final w = size.width * 0.42;
+  final h = size.height * 0.38;
+
   return [
-    Offset(centerX, centerY - 100), // head / start
-    Offset(centerX - 18, centerY - 62), // left body top
-    Offset(centerX - 92, centerY - 82), // left upper wing top
-    Offset(centerX - 118, centerY - 25), // left upper wing outer
-    Offset(centerX - 72, centerY + 12), // left upper wing inner bottom
-    Offset(centerX - 92, centerY + 78), // left lower wing outer
-    Offset(centerX - 38, centerY + 92), // left lower wing bottom
-    Offset(centerX - 14, centerY + 28), // left body middle
-    Offset(centerX, centerY + 104), // body bottom
-    Offset(centerX + 14, centerY + 28), // right body middle
-    Offset(centerX + 38, centerY + 92), // right lower wing bottom
-    Offset(centerX + 92, centerY + 78), // right lower wing outer
-    Offset(centerX + 72, centerY + 12), // right upper wing inner bottom
-    Offset(centerX + 118, centerY - 25), // right upper wing outer
-    Offset(centerX + 92, centerY - 82), // right upper wing top
-    Offset(centerX + 18, centerY - 62), // right body top
+
+    Offset(cx, cy - h * 0.85),
+    Offset(cx - w * 0.20, cy - h * 0.45),
+    Offset(cx - w * 0.80, cy - h * 0.72),
+    Offset(cx - w * 0.98, cy - h * 0.18),
+    Offset(cx - w * 0.60, cy + h * 0.10),
+    Offset(cx - w * 0.75, cy + h * 0.65),
+    Offset(cx - w * 0.32, cy + h * 0.82),
+    Offset(cx - w * 0.12, cy + h * 0.25),
+    Offset(cx, cy + h * 0.88),
+    Offset(cx + w * 0.12, cy + h * 0.25),
+    Offset(cx + w * 0.32, cy + h * 0.82),
+    Offset(cx + w * 0.75, cy + h * 0.65),
+    Offset(cx + w * 0.60, cy + h * 0.10),
+    Offset(cx + w * 0.98, cy - h * 0.18),
+    Offset(cx + w * 0.80, cy - h * 0.72),
+    Offset(cx + w * 0.20, cy - h * 0.45),
   ];
 }
-
 List<Offset> _sampleExpectedPath({
   required List<Offset> points,
   required bool closed,
@@ -351,23 +367,11 @@ List<Offset> _sampleExpectedPath({
   final samples = <Offset>[];
 
   for (var i = 0; i < points.length - 1; i++) {
-    samples.addAll(
-      _sampleLine(
-        start: points[i],
-        end: points[i + 1],
-        count: 18,
-      ),
-    );
+    samples.addAll(_sampleLine(start: points[i], end: points[i + 1], count: 22));
   }
 
   if (closed) {
-    samples.addAll(
-      _sampleLine(
-        start: points.last,
-        end: points.first,
-        count: 18,
-      ),
-    );
+    samples.addAll(_sampleLine(start: points.last, end: points.first, count: 22));
   }
 
   return samples;
@@ -382,13 +386,10 @@ List<Offset> _sampleLine({
 
   for (var i = 0; i <= count; i++) {
     final t = i / count;
-
-    points.add(
-      Offset(
-        start.dx + (end.dx - start.dx) * t,
-        start.dy + (end.dy - start.dy) * t,
-      ),
-    );
+    points.add(Offset(
+      start.dx + (end.dx - start.dx) * t,
+      start.dy + (end.dy - start.dy) * t,
+    ));
   }
 
   return points;
@@ -404,11 +405,9 @@ double _calculateCoverageScore({
   var matched = 0;
 
   for (final expected in expectedPoints) {
-    final covered = userPoints.any(
-          (user) => (user - expected).distance <= tolerance,
-    );
-
-    if (covered) matched++;
+    if (userPoints.any((user) => (user - expected).distance <= tolerance)) {
+      matched++;
+    }
   }
 
   return matched / expectedPoints.length;
@@ -424,12 +423,33 @@ double _calculateDotHitScore({
   var hit = 0;
 
   for (final dot in dots) {
-    final touched = userPoints.any(
-          (user) => (user - dot).distance <= tolerance,
-    );
-
-    if (touched) hit++;
+    if (userPoints.any((user) => (user - dot).distance <= tolerance)) {
+      hit++;
+    }
   }
 
   return hit / dots.length;
+
+}
+
+double _calculateOrderedDotScore({
+  required List<Offset> dots,
+  required List<Offset> userPoints,
+  required double tolerance,
+}) {
+  if (dots.isEmpty || userPoints.isEmpty) return 0;
+
+  var nextDotIndex = 0;
+
+  for (final userPoint in userPoints) {
+    if (nextDotIndex >= dots.length) break;
+
+    if ((userPoint - dots[nextDotIndex]).distance <= tolerance) {
+      nextDotIndex++;
+    }
+  }
+
+  return nextDotIndex / dots.length;
+
+
 }

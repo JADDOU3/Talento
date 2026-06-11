@@ -63,18 +63,18 @@ class _ChoiceCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           width: _cardWidth(visualPartsCount),
           height: _cardHeight(visualPartsCount),
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.secondary.withOpacity(0.25)
                 : AppColors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
               color: isSelected
                   ? AppColors.primary
@@ -86,8 +86,8 @@ class _ChoiceCard extends StatelessWidget {
                 color: isSelected
                     ? AppColors.primary.withOpacity(0.18)
                     : AppColors.black.withOpacity(0.06),
-                blurRadius: isSelected ? 16 : 10,
-                offset: const Offset(0, 7),
+                blurRadius: isSelected ? 14 : 9,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -148,37 +148,41 @@ class _ChoiceCard extends StatelessWidget {
       'small_star',
     };
 
-    if (!iconName.contains('_')) return 1;
-    if (safeSingleNames.contains(iconName)) return 1;
+    final normalizedIconName = iconName.trim().toLowerCase();
 
-    return iconName
+    if (!normalizedIconName.contains('_')) return 1;
+    if (safeSingleNames.contains(normalizedIconName)) return 1;
+
+    return normalizedIconName
         .split('_')
         .where((part) => part.trim().isNotEmpty)
         .length;
   }
 
   static double _cardWidth(int visualPartsCount) {
-    if (visualPartsCount >= 4) return 214;
-    if (visualPartsCount == 3) return 180;
-    if (visualPartsCount == 2) return 148;
-    return 122;
+    if (visualPartsCount >= 4) return 174;
+    if (visualPartsCount == 3) return 152;
+    if (visualPartsCount == 2) return 132;
+    return 118;
   }
 
   static double _cardHeight(int visualPartsCount) {
-    if (visualPartsCount >= 3) return 108;
-    return 102;
+    if (visualPartsCount >= 4) return 88;
+    if (visualPartsCount == 3) return 86;
+    if (visualPartsCount == 2) return 84;
+    return 82;
   }
 
   static double _iconSize(int visualPartsCount) {
-    if (visualPartsCount >= 4) return 32;
+    if (visualPartsCount >= 4) return 31;
     if (visualPartsCount == 3) return 36;
-    if (visualPartsCount == 2) return 42;
-    return 48;
+    if (visualPartsCount == 2) return 41;
+    return 47;
   }
 
   static double _spacing(int visualPartsCount) {
-    if (visualPartsCount >= 4) return 7;
-    if (visualPartsCount == 3) return 8;
-    return 10;
+    if (visualPartsCount >= 4) return 6;
+    if (visualPartsCount == 3) return 7;
+    return 9;
   }
 }
