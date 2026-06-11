@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
 import 'mirror_icon_widget.dart';
+import 'symmetry_drawing_widget.dart';
 
 class MirrorTargetWidget extends StatelessWidget {
   final MirrorMindChallengeModel challenge;
@@ -15,11 +16,17 @@ class MirrorTargetWidget extends StatelessWidget {
   /// The game screen will show the sequence for 2 seconds, then pass false.
   final bool showMemorySequence;
 
+  /// Used only for Level 4 drawing mode.
+  final GlobalKey<SymmetryDrawingWidgetState>? symmetryDrawingKey;
+  final ValueChanged<SymmetryDrawingResult>? onSymmetryDrawingResultChanged;
+
   const MirrorTargetWidget({
     super.key,
     required this.challenge,
     this.selectedChoice,
     this.showMemorySequence = true,
+    this.symmetryDrawingKey,
+    this.onSymmetryDrawingResultChanged,
   });
 
   @override
@@ -122,45 +129,11 @@ class MirrorTargetWidget extends StatelessWidget {
   }
 
   Widget _buildSymmetryCompletionLayout() {
-    final shape = challenge.shape ?? 'star';
-    final selectedIcons = selectedChoice?.displayIcons ?? <String>[];
-    final selectedShape = selectedIcons.isNotEmpty ? selectedIcons.first : '';
-
-    final missingSide = challenge.missingSide?.toLowerCase() ?? 'left';
-
-    final missingCard = _MirrorSideCard(
-      label: 'النصف الناقص',
-      isBlank: selectedShape.isEmpty,
-      child: selectedShape.isEmpty
-          ? const _BlankSlot()
-          : _HalfShapeIcon(
-        iconName: selectedShape,
-        size: 66,
-        isFaded: false,
-      ),
-    );
-
-    final visibleCard = _MirrorSideCard(
-      label: 'النصف الظاهر',
-      child: _HalfShapeIcon(
-        iconName: shape,
-        size: 74,
-        isFaded: false,
-      ),
-    );
-
-    final children = missingSide == 'right'
-        ? <Widget>[visibleCard, const _MirrorDivider(), missingCard]
-        : <Widget>[missingCard, const _MirrorDivider(), visibleCard];
-
-    return Row(
-      children: [
-        Expanded(child: children[0]),
-        const SizedBox(width: 12),
-        children[1],
-        const SizedBox(width: 12),
-        Expanded(child: children[2]),
-      ],
+    return SymmetryDrawingWidget(
+      key: symmetryDrawingKey,
+      shape: challenge.shape ?? 'star',
+      missingSide: challenge.missingSide ?? 'right',
+      onResultChanged: onSymmetryDrawingResultChanged ?? (_) {},
     );
   }
 
@@ -361,7 +334,7 @@ class MirrorTargetWidget extends StatelessWidget {
         return 'كيف يبدو الاتجاه في المرآة؟';
 
       case MirrorMindChallengeType.symmetryCompletion:
-        return 'أكمل النصف الناقص';
+        return 'ارسم النصف الناقص';
 
       case MirrorMindChallengeType.connectDotsMemory:
         return 'الرسم بالنقاط';
@@ -517,35 +490,6 @@ class _BlankSlot extends StatelessWidget {
           fontSize: 32,
           fontWeight: FontWeight.w900,
           color: AppColors.primary,
-        ),
-      ),
-    );
-  }
-}
-
-class _HalfShapeIcon extends StatelessWidget {
-  final String iconName;
-  final double size;
-  final bool isFaded;
-
-  const _HalfShapeIcon({
-    required this.iconName,
-    required this.size,
-    required this.isFaded,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: isFaded ? 0.45 : 1,
-      child: ClipRect(
-        child: Align(
-          alignment: Alignment.center,
-          widthFactor: 0.62,
-          child: MirrorIconWidget(
-            iconName: iconName,
-            size: size,
-          ),
         ),
       ),
     );
@@ -767,7 +711,6 @@ class _ConnectDotsPainter extends CustomPainter {
       ];
     }
 
-    // Default: star
     final points = <Offset>[];
     final outerRadius = size.width * 0.38;
     final innerRadius = size.width * 0.17;

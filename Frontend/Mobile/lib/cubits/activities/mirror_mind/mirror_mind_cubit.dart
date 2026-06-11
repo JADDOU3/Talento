@@ -158,6 +158,24 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     }
   }
 
+  Future<void> submitDrawingAnswer({
+    required bool isCorrect,
+  }) async {
+    final currentState = state;
+
+    if (currentState is! MirrorMindLoaded) return;
+
+    try {
+      if (isCorrect) {
+        await _handleCorrectAnswer(currentState);
+      } else {
+        await _handleWrongAnswer(currentState);
+      }
+    } catch (error) {
+      emit(MirrorMindError(error.toString()));
+    }
+  }
+
   Future<void> _handleCorrectAnswer(MirrorMindLoaded currentState) async {
     emit(
       MirrorMindChallengeResult(

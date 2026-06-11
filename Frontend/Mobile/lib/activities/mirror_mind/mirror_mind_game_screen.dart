@@ -12,6 +12,7 @@ import '../../shared/layout/app_background.dart';
 import 'mirror_mind_result_screen.dart';
 import 'widgets/mirror_choices_widget.dart';
 import 'widgets/mirror_target_widget.dart';
+import 'widgets/symmetry_drawing_widget.dart';
 
 class MirrorMindGameScreen extends StatelessWidget {
   final int activityId;
@@ -139,6 +140,16 @@ class _LoadedGameView extends StatefulWidget {
 }
 
 class _LoadedGameViewState extends State<_LoadedGameView> {
+  final GlobalKey<SymmetryDrawingWidgetState> _symmetryDrawingKey =
+  GlobalKey<SymmetryDrawingWidgetState>();
+
+  SymmetryDrawingResult _symmetryDrawingResult =
+  const SymmetryDrawingResult(
+    hasDrawing: false,
+    score: 0,
+    isCorrect: false,
+  );
+
   Timer? _memoryTimer;
   bool _showMemorySequence = true;
   int? _lastLevelIndex;
@@ -168,88 +179,104 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
   Widget build(BuildContext context) {
     final challenge = state.challenge;
     final selectedChoice = _selectedChoiceOrNull();
+
     final shouldHideChoices =
         challenge.type == MirrorMindChallengeType.memorySequence &&
             _showMemorySequence;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight - 28,
+    final isSymmetryDrawingLevel =
+        challenge.type == MirrorMindChallengeType.symmetryCompletion;
+
+    final canSubmit = _canSubmitCurrentChallenge(
+      state: state,
+      isSymmetryDrawingLevel: isSymmetryDrawingLevel,
+      shouldHideChoices: shouldHideChoices,
+    );
+
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+      children: [
+        _TopInfoBar(elapsed: state.elapsed),
+        const SizedBox(height: 12),
+        _LevelHeader(state: state),
+        const SizedBox(height: 14),
+
+        MirrorTargetWidget(
+          challenge: challenge,
+          selectedChoice: selectedChoice,
+          showMemorySequence: _showMemorySequence,
+          symmetryDrawingKey:
+          isSymmetryDrawingLevel ? _symmetryDrawingKey : null,
+          onSymmetryDrawingResultChanged: isSymmetryDrawingLevel
+              ? (result) {
+            setState(() {
+              _symmetryDrawingResult = result;
+            });
+          }
+              : null,
+        ),
+
+        const SizedBox(height: 18),
+
+        _TonkyHint(
+          text: _hintTextForChallenge(challenge),
+        ),
+
+        const SizedBox(height: 14),
+
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: isSymmetryDrawingLevel
+              ? const SizedBox.shrink()
+              : shouldHideChoices
+              ? const _MemoryWaitMessage()
+              : MirrorChoicesWidget(
+            key: ValueKey(
+              '${state.currentLevelIndex}-${state.currentChallengeIndex}',
             ),
-            child: IntrinsicHeight(
-              child: Column(
-                children: [
-                  _TopInfoBar(elapsed: state.elapsed),
-                  const SizedBox(height: 12),
-                  _LevelHeader(state: state),
-                  const SizedBox(height: 14),
-                  MirrorTargetWidget(
-                    challenge: challenge,
-                    selectedChoice: selectedChoice,
-                    showMemorySequence: _showMemorySequence,
-                  ),
-                  const SizedBox(height: 18),
-                  _TonkyHint(
-                    text: _hintTextForChallenge(challenge),
-                  ),
-                  const SizedBox(height: 14),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: shouldHideChoices
-                        ? const _MemoryWaitMessage()
-                        : MirrorChoicesWidget(
-                      key: ValueKey(
-                        '${state.currentLevelIndex}-${state.currentChallengeIndex}',
-                      ),
-                      choices: challenge.choices,
-                      selectedChoiceIndex: state.selectedChoiceIndex,
-                      onChoiceSelected: (index) {
-                        context
-                            .read<MirrorMindCubit>()
-                            .selectChoice(index);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: state.canSubmit && !shouldHideChoices
-                          ? () =>
-                          context.read<MirrorMindCubit>().submitAnswer()
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        disabledBackgroundColor: AppColors.border,
-                        foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        elevation: state.canSubmit && !shouldHideChoices ? 4 : 0,
-                      ),
-                      child: const Text(
-                        'تأكيد الإجابة',
-                        style: TextStyle(
-                          fontFamily: 'DGAgnadeen',
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+            choices: challenge.choices,
+            selectedChoiceIndex: state.selectedChoiceIndex,
+            onChoiceSelected: (index) {
+              context.read<MirrorMindCubit>().selectChoice(index);
+            },
+          ),
+        ),
+
+        const SizedBox(height: 18),
+
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: canSubmit
+                ? () => _submitCurrentChallenge(
+              context: context,
+              isSymmetryDrawingLevel: isSymmetryDrawingLevel,
+            )
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              disabledBackgroundColor: AppColors.border,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              elevation: canSubmit ? 4 : 0,
+            ),
+            child: Text(
+              isSymmetryDrawingLevel ? 'تحقق من الرسم' : 'تأكيد الإجابة',
+              style: const TextStyle(
+                fontFamily: 'DGAgnadeen',
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-        );
-      },
+        ),
+
+        const SizedBox(height: 18),
+      ],
     );
   }
 
@@ -265,6 +292,14 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
     _lastChallengeIndex = state.currentChallengeIndex;
 
     _memoryTimer?.cancel();
+
+    _symmetryDrawingResult = const SymmetryDrawingResult(
+      hasDrawing: false,
+      score: 0,
+      isCorrect: false,
+    );
+
+    _symmetryDrawingKey.currentState?.clearDrawing();
 
     if (challenge.type == MirrorMindChallengeType.memorySequence) {
       _showMemorySequence = true;
@@ -290,6 +325,38 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
     return state.challenge.choices[index];
   }
 
+  bool _canSubmitCurrentChallenge({
+    required MirrorMindLoaded state,
+    required bool isSymmetryDrawingLevel,
+    required bool shouldHideChoices,
+  }) {
+    if (shouldHideChoices) return false;
+
+    if (isSymmetryDrawingLevel) {
+      return _symmetryDrawingResult.hasDrawing;
+    }
+
+    return state.canSubmit;
+  }
+
+  void _submitCurrentChallenge({
+    required BuildContext context,
+    required bool isSymmetryDrawingLevel,
+  }) {
+    if (isSymmetryDrawingLevel) {
+      final result = _symmetryDrawingKey.currentState?.evaluateDrawing() ??
+          _symmetryDrawingResult;
+
+      context.read<MirrorMindCubit>().submitDrawingAnswer(
+        isCorrect: result.isCorrect,
+      );
+
+      return;
+    }
+
+    context.read<MirrorMindCubit>().submitAnswer();
+  }
+
   String _hintTextForChallenge(MirrorMindChallengeModel challenge) {
     switch (challenge.type) {
       case MirrorMindChallengeType.simpleReflection:
@@ -302,7 +369,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
         return 'كيف يبدو هذا الاتجاه في المرآة؟';
 
       case MirrorMindChallengeType.symmetryCompletion:
-        return 'اختر النصف الذي يُكمل الشكل في المرآة.';
+        return 'ارسم النصف الناقص فوق الجهة الفارغة، ثم اضغط تحقق من الرسم.';
 
       case MirrorMindChallengeType.connectDotsMemory:
         return 'أشعر أن شكلًا يختبئ هنا… ركّز في النقاط.';
@@ -537,7 +604,7 @@ class _LevelHeader extends StatelessWidget {
       case 3:
         return 'المستوى 3 - اليمين واليسار';
       case 4:
-        return 'المستوى 4 - أكمل النصف الناقص';
+        return 'المستوى 4 - ارسم النصف الناقص';
       case 5:
         return 'المستوى 5 - الرسم بالنقاط';
       case 6:
