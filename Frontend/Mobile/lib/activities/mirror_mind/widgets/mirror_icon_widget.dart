@@ -14,7 +14,16 @@ class MirrorIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final normalizedIconName = iconName.trim();
+    final normalizedIconName = iconName.trim().toLowerCase();
+
+    final sizedShape = _SizedShapeIconData.tryParse(normalizedIconName);
+    if (sizedShape != null) {
+      return _SizedShapeIcon(
+        shape: sizedShape.shape,
+        size: size,
+        isBig: sizedShape.isBig,
+      );
+    }
 
     if (_shouldRenderAsCombinedIcon(normalizedIconName)) {
       return buildCombinedIcon(normalizedIconName, size: size);
@@ -77,15 +86,13 @@ class MirrorIconWidget extends StatelessWidget {
         return _EmojiIcon(emoji: '🐱', size: size);
 
       case 'small':
-        return _SizeIndicator(
-          label: 'SMALL',
+        return _PlainSizeCircle(
           size: size,
           isBig: false,
         );
 
       case 'big':
-        return _SizeIndicator(
-          label: 'BIG',
+        return _PlainSizeCircle(
           size: size,
           isBig: true,
         );
@@ -167,7 +174,9 @@ class MirrorIconSequence extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (icons.isEmpty) {
+    final normalizedIcons = normalizeMirrorIconSequence(icons);
+
+    if (normalizedIcons.isEmpty) {
       return MirrorIconWidget(
         iconName: 'unknown',
         size: iconSize,
@@ -179,7 +188,7 @@ class MirrorIconSequence extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: spacing,
       runSpacing: spacing,
-      children: icons
+      children: normalizedIcons
           .map(
             (icon) => MirrorIconWidget(
           iconName: icon,
@@ -191,11 +200,56 @@ class MirrorIconSequence extends StatelessWidget {
   }
 }
 
+List<String> normalizeMirrorIconSequence(List<String> icons) {
+  final cleaned = icons
+      .map((icon) => icon.trim().toLowerCase())
+      .where((icon) => icon.isNotEmpty)
+      .toList();
+
+  final result = <String>[];
+
+  var i = 0;
+
+  while (i < cleaned.length) {
+    final current = cleaned[i];
+
+    if (i + 1 < cleaned.length) {
+      final next = cleaned[i + 1];
+
+      if (_isShapeIcon(current) && _isSizeWord(next)) {
+        result.add('${current}_$next');
+        i += 2;
+        continue;
+      }
+
+      if (_isSizeWord(current) && _isShapeIcon(next)) {
+        result.add('${next}_$current');
+        i += 2;
+        continue;
+      }
+    }
+
+    result.add(current);
+    i++;
+  }
+
+  return result;
+}
+
 Widget buildCombinedIcon(
     String iconName, {
       double size = 48,
       double spacing = 6,
     }) {
+  final sizedShape = _SizedShapeIconData.tryParse(iconName);
+  if (sizedShape != null) {
+    return _SizedShapeIcon(
+      shape: sizedShape.shape,
+      size: size,
+      isBig: sizedShape.isBig,
+    );
+  }
+
   final parts = _splitCombinedIconName(iconName);
 
   if (parts.length <= 1) {
@@ -205,12 +259,24 @@ Widget buildCombinedIcon(
     );
   }
 
-  final miniSize = parts.length >= 3 ? size * 0.46 : size * 0.58;
+  final normalizedParts = normalizeMirrorIconSequence(parts);
+
+  if (normalizedParts.length == 1) {
+    return MirrorIconWidget(
+      iconName: normalizedParts.first,
+      size: size,
+    );
+  }
+
+  final miniSize = _miniSizeForCombined(
+    baseSize: size,
+    partsCount: normalizedParts.length,
+  );
 
   return Row(
     mainAxisSize: MainAxisSize.min,
     mainAxisAlignment: MainAxisAlignment.center,
-    children: parts
+    children: normalizedParts
         .map(
           (part) => Padding(
         padding: EdgeInsets.symmetric(horizontal: spacing / 2),
@@ -224,15 +290,27 @@ Widget buildCombinedIcon(
   );
 }
 
+double _miniSizeForCombined({
+  required double baseSize,
+  required int partsCount,
+}) {
+  if (partsCount >= 4) return baseSize * 0.62;
+  if (partsCount == 3) return baseSize * 0.72;
+  if (partsCount == 2) return baseSize * 0.80;
+
+  return baseSize;
+}
+
 bool _shouldRenderAsCombinedIcon(String iconName) {
   if (!iconName.contains('_')) return false;
   if (_singleIconNamesWithUnderscore.contains(iconName)) return false;
+  if (_SizedShapeIconData.tryParse(iconName) != null) return false;
 
   return _splitCombinedIconName(iconName).length > 1;
 }
 
 List<String> _splitCombinedIconName(String iconName) {
-  final trimmedName = iconName.trim();
+  final trimmedName = iconName.trim().toLowerCase();
 
   if (trimmedName.isEmpty) return <String>[];
 
@@ -259,6 +337,18 @@ List<String> _splitCombinedIconName(String iconName) {
         i++;
         continue;
       }
+
+      if (_isShapeIcon(rawParts[i]) && _isSizeWord(rawParts[i + 1])) {
+        parts.add('${rawParts[i]}_${rawParts[i + 1]}');
+        i++;
+        continue;
+      }
+
+      if (_isSizeWord(rawParts[i]) && _isShapeIcon(rawParts[i + 1])) {
+        parts.add('${rawParts[i + 1]}_${rawParts[i]}');
+        i++;
+        continue;
+      }
     }
 
     parts.add(current);
@@ -282,6 +372,122 @@ const Set<String> _singleIconNamesWithUnderscore = {
   'arrow_down_left',
   'arrow_down_right',
 };
+
+bool _isSizeWord(String value) {
+  return value == 'big' || value == 'small';
+}
+
+bool _isShapeIcon(String value) {
+  return value == 'circle' ||
+      value == 'triangle' ||
+      value == 'square' ||
+      value == 'star';
+}
+
+class _SizedShapeIconData {
+  final String shape;
+  final bool isBig;
+
+  const _SizedShapeIconData({
+    required this.shape,
+    required this.isBig,
+  });
+
+  static _SizedShapeIconData? tryParse(String rawIconName) {
+    final iconName = rawIconName.trim().toLowerCase();
+
+    final parts = iconName
+        .split('_')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.length != 2) return null;
+
+    final first = parts[0];
+    final second = parts[1];
+
+    if (_isShapeIcon(first) && _isSizeWord(second)) {
+      return _SizedShapeIconData(
+        shape: first,
+        isBig: second == 'big',
+      );
+    }
+
+    if (_isSizeWord(first) && _isShapeIcon(second)) {
+      return _SizedShapeIconData(
+        shape: second,
+        isBig: first == 'big',
+      );
+    }
+
+    return null;
+  }
+}
+
+class _SizedShapeIcon extends StatelessWidget {
+  final String shape;
+  final double size;
+  final bool isBig;
+
+  const _SizedShapeIcon({
+    required this.shape,
+    required this.size,
+    required this.isBig,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shapeSize = isBig ? size * 0.98 : size * 0.58;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: MirrorIconWidget(
+          iconName: shape,
+          size: shapeSize,
+        ),
+      ),
+    );
+  }
+}
+
+class _PlainSizeCircle extends StatelessWidget {
+  final double size;
+  final bool isBig;
+
+  const _PlainSizeCircle({
+    required this.size,
+    required this.isBig,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final circleSize = isBig ? size * 0.98 : size * 0.58;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: Container(
+          width: circleSize,
+          height: circleSize,
+          decoration: BoxDecoration(
+            color: isBig
+                ? AppColors.primary.withOpacity(0.18)
+                : AppColors.secondary.withOpacity(0.22),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isBig ? AppColors.primary : AppColors.secondary,
+              width: 2.3,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _EmojiIcon extends StatelessWidget {
   final String emoji;
@@ -320,60 +526,6 @@ class _ArrowIcon extends StatelessWidget {
       icon,
       size: size,
       color: AppColors.primary,
-    );
-  }
-}
-
-class _SizeIndicator extends StatelessWidget {
-  final String label;
-  final double size;
-  final bool isBig;
-
-  const _SizeIndicator({
-    required this.label,
-    required this.size,
-    required this.isBig,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final circleSize = isBig ? size * 0.82 : size * 0.48;
-
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: circleSize,
-            height: circleSize,
-            decoration: BoxDecoration(
-              color: isBig
-                  ? AppColors.primary.withOpacity(0.18)
-                  : AppColors.secondary.withOpacity(0.22),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isBig ? AppColors.primary : AppColors.secondary,
-                width: 2,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            child: Text(
-              label,
-              textDirection: TextDirection.ltr,
-              style: TextStyle(
-                fontFamily: 'ArialRounded',
-                fontSize: size * 0.18,
-                fontWeight: FontWeight.w900,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

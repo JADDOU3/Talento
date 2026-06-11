@@ -10,6 +10,7 @@ import '../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
 import '../../shared/layout/app_background.dart';
 import 'mirror_mind_result_screen.dart';
+import 'widgets/connect_dots_drawing_widget.dart';
 import 'widgets/mirror_choices_widget.dart';
 import 'widgets/mirror_target_widget.dart';
 import 'widgets/symmetry_drawing_widget.dart';
@@ -143,7 +144,17 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
   final GlobalKey<SymmetryDrawingWidgetState> _symmetryDrawingKey =
   GlobalKey<SymmetryDrawingWidgetState>();
 
+  final GlobalKey<ConnectDotsDrawingWidgetState> _connectDotsDrawingKey =
+  GlobalKey<ConnectDotsDrawingWidgetState>();
+
   SymmetryDrawingResult _symmetryDrawingResult =
+  const SymmetryDrawingResult(
+    hasDrawing: false,
+    score: 0,
+    isCorrect: false,
+  );
+
+  SymmetryDrawingResult _connectDotsDrawingResult =
   const SymmetryDrawingResult(
     hasDrawing: false,
     score: 0,
@@ -187,9 +198,13 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
     final isSymmetryDrawingLevel =
         challenge.type == MirrorMindChallengeType.symmetryCompletion;
 
+    final isConnectDotsDrawingLevel =
+        challenge.type == MirrorMindChallengeType.connectDotsMemory;
+
     final canSubmit = _canSubmitCurrentChallenge(
       state: state,
       isSymmetryDrawingLevel: isSymmetryDrawingLevel,
+      isConnectDotsDrawingLevel: isConnectDotsDrawingLevel,
       shouldHideChoices: shouldHideChoices,
     );
 
@@ -201,7 +216,6 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
         const SizedBox(height: 12),
         _LevelHeader(state: state),
         const SizedBox(height: 14),
-
         MirrorTargetWidget(
           challenge: challenge,
           selectedChoice: selectedChoice,
@@ -215,19 +229,24 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
             });
           }
               : null,
+          connectDotsDrawingKey:
+          isConnectDotsDrawingLevel ? _connectDotsDrawingKey : null,
+          onConnectDotsDrawingResultChanged: isConnectDotsDrawingLevel
+              ? (result) {
+            setState(() {
+              _connectDotsDrawingResult = result;
+            });
+          }
+              : null,
         ),
-
         const SizedBox(height: 18),
-
         _TonkyHint(
           text: _hintTextForChallenge(challenge),
         ),
-
         const SizedBox(height: 14),
-
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
-          child: isSymmetryDrawingLevel
+          child: isSymmetryDrawingLevel || isConnectDotsDrawingLevel
               ? const SizedBox.shrink()
               : shouldHideChoices
               ? const _MemoryWaitMessage()
@@ -242,9 +261,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
             },
           ),
         ),
-
         const SizedBox(height: 18),
-
         SizedBox(
           width: double.infinity,
           height: 56,
@@ -253,6 +270,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
                 ? () => _submitCurrentChallenge(
               context: context,
               isSymmetryDrawingLevel: isSymmetryDrawingLevel,
+              isConnectDotsDrawingLevel: isConnectDotsDrawingLevel,
             )
                 : null,
             style: ElevatedButton.styleFrom(
@@ -265,7 +283,9 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
               elevation: canSubmit ? 4 : 0,
             ),
             child: Text(
-              isSymmetryDrawingLevel ? 'تحقق من الرسم' : 'تأكيد الإجابة',
+              isSymmetryDrawingLevel || isConnectDotsDrawingLevel
+                  ? 'تحقق من الرسم'
+                  : 'تأكيد الإجابة',
               style: const TextStyle(
                 fontFamily: 'DGAgnadeen',
                 fontSize: 24,
@@ -274,7 +294,6 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
             ),
           ),
         ),
-
         const SizedBox(height: 18),
       ],
     );
@@ -299,7 +318,14 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
       isCorrect: false,
     );
 
+    _connectDotsDrawingResult = const SymmetryDrawingResult(
+      hasDrawing: false,
+      score: 0,
+      isCorrect: false,
+    );
+
     _symmetryDrawingKey.currentState?.clearDrawing();
+    _connectDotsDrawingKey.currentState?.clearDrawing();
 
     if (challenge.type == MirrorMindChallengeType.memorySequence) {
       _showMemorySequence = true;
@@ -328,6 +354,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
   bool _canSubmitCurrentChallenge({
     required MirrorMindLoaded state,
     required bool isSymmetryDrawingLevel,
+    required bool isConnectDotsDrawingLevel,
     required bool shouldHideChoices,
   }) {
     if (shouldHideChoices) return false;
@@ -336,16 +363,32 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
       return _symmetryDrawingResult.hasDrawing;
     }
 
+    if (isConnectDotsDrawingLevel) {
+      return _connectDotsDrawingResult.hasDrawing;
+    }
+
     return state.canSubmit;
   }
 
   void _submitCurrentChallenge({
     required BuildContext context,
     required bool isSymmetryDrawingLevel,
+    required bool isConnectDotsDrawingLevel,
   }) {
     if (isSymmetryDrawingLevel) {
       final result = _symmetryDrawingKey.currentState?.evaluateDrawing() ??
           _symmetryDrawingResult;
+
+      context.read<MirrorMindCubit>().submitDrawingAnswer(
+        isCorrect: result.isCorrect,
+      );
+
+      return;
+    }
+
+    if (isConnectDotsDrawingLevel) {
+      final result = _connectDotsDrawingKey.currentState?.evaluateDrawing() ??
+          _connectDotsDrawingResult;
 
       context.read<MirrorMindCubit>().submitDrawingAnswer(
         isCorrect: result.isCorrect,
@@ -372,7 +415,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
         return 'ارسم النصف الناقص فوق الجهة الفارغة، ثم اضغط تحقق من الرسم.';
 
       case MirrorMindChallengeType.connectDotsMemory:
-        return 'أشعر أن شكلًا يختبئ هنا… ركّز في النقاط.';
+        return 'اتبع أول خطوتين، ثم أكمل توصيل النقاط بنفسك.';
 
       case MirrorMindChallengeType.memorySequence:
         return _showMemorySequence

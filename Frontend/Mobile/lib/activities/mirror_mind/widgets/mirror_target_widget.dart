@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
+import 'connect_dots_drawing_widget.dart';
 import 'mirror_icon_widget.dart';
 import 'symmetry_drawing_widget.dart';
 
@@ -20,6 +21,10 @@ class MirrorTargetWidget extends StatelessWidget {
   final GlobalKey<SymmetryDrawingWidgetState>? symmetryDrawingKey;
   final ValueChanged<SymmetryDrawingResult>? onSymmetryDrawingResultChanged;
 
+  /// Used only for Level 5 drawing mode.
+  final GlobalKey<ConnectDotsDrawingWidgetState>? connectDotsDrawingKey;
+  final ValueChanged<SymmetryDrawingResult>? onConnectDotsDrawingResultChanged;
+
   const MirrorTargetWidget({
     super.key,
     required this.challenge,
@@ -27,6 +32,8 @@ class MirrorTargetWidget extends StatelessWidget {
     this.showMemorySequence = true,
     this.symmetryDrawingKey,
     this.onSymmetryDrawingResultChanged,
+    this.connectDotsDrawingKey,
+    this.onConnectDotsDrawingResultChanged,
   });
 
   @override
@@ -138,39 +145,17 @@ class MirrorTargetWidget extends StatelessWidget {
   }
 
   Widget _buildConnectDotsLayout() {
-    final shape = challenge.shape ?? 'star';
-
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          height: 250,
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(
-              color: AppColors.primary.withOpacity(0.12),
-              width: 1.3,
-            ),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              const Positioned.fill(
-                child: Center(
-                  child: _DashedVerticalLine(height: 210),
-                ),
-              ),
-              CustomPaint(
-                size: const Size(210, 210),
-                painter: _ConnectDotsPainter(shape: shape),
-              ),
-            ],
-          ),
+        ConnectDotsDrawingWidget(
+          key: connectDotsDrawingKey,
+          shape: challenge.shape ?? 'star',
+          closed: challenge.closed,
+          onResultChanged: onConnectDotsDrawingResultChanged ?? (_) {},
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         const Text(
-          'أشعر أن شكلًا يختبئ هنا… هل يمكنك اكتشافه؟',
+          'اتبع أول خطوتين، ثم أكمل توصيل النقاط بنفسك.',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'ArialRounded',
@@ -573,165 +558,5 @@ class _SmallBlankSlot extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _DashedVerticalLine extends StatelessWidget {
-  final double height;
-
-  const _DashedVerticalLine({
-    required this.height,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(2, height),
-      painter: _DashedLinePainter(),
-    );
-  }
-}
-
-class _DashedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.secondary.withOpacity(0.35)
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
-
-    const dashHeight = 7.0;
-    const dashSpace = 6.0;
-
-    var y = 0.0;
-
-    while (y < size.height) {
-      canvas.drawLine(
-        Offset(size.width / 2, y),
-        Offset(size.width / 2, math.min(y + dashHeight, size.height)),
-        paint,
-      );
-      y += dashHeight + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _ConnectDotsPainter extends CustomPainter {
-  final String shape;
-
-  const _ConnectDotsPainter({
-    required this.shape,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final points = _pointsForShape(shape, size);
-
-    final linePaint = Paint()
-      ..color = AppColors.secondary.withOpacity(0.45)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final dotPaint = Paint()
-      ..color = AppColors.primary
-      ..style = PaintingStyle.fill;
-
-    if (points.length > 1) {
-      final path = Path()..moveTo(points.first.dx, points.first.dy);
-
-      for (var i = 1; i < points.length; i++) {
-        path.lineTo(points[i].dx, points[i].dy);
-      }
-
-      if (shape.toLowerCase() == 'star' || shape.toLowerCase() == 'flower') {
-        path.close();
-      }
-
-      canvas.drawPath(path, linePaint);
-    }
-
-    for (var i = 0; i < points.length; i++) {
-      final point = points[i];
-
-      canvas.drawCircle(point, 6.5, Paint()..color = AppColors.white);
-      canvas.drawCircle(point, 5.4, dotPaint);
-
-      if (i < 5) {
-        final textPainter = TextPainter(
-          text: TextSpan(
-            text: '${i + 1}',
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: AppColors.primary,
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-        )..layout();
-
-        textPainter.paint(
-          canvas,
-          Offset(point.dx + 8, point.dy - 15),
-        );
-      }
-    }
-  }
-
-  List<Offset> _pointsForShape(String rawShape, Size size) {
-    final shapeName = rawShape.toLowerCase();
-    final center = Offset(size.width / 2, size.height / 2);
-
-    if (shapeName == 'flower') {
-      return [
-        center,
-        ...List.generate(6, (index) {
-          final angle = -math.pi / 2 + index * (2 * math.pi / 6);
-          return Offset(
-            center.dx + math.cos(angle) * size.width * 0.34,
-            center.dy + math.sin(angle) * size.height * 0.34,
-          );
-        }),
-      ];
-    }
-
-    if (shapeName == 'butterfly') {
-      return [
-        Offset(size.width * 0.50, size.height * 0.20),
-        Offset(size.width * 0.30, size.height * 0.30),
-        Offset(size.width * 0.20, size.height * 0.50),
-        Offset(size.width * 0.34, size.height * 0.66),
-        Offset(size.width * 0.50, size.height * 0.52),
-        Offset(size.width * 0.66, size.height * 0.66),
-        Offset(size.width * 0.80, size.height * 0.50),
-        Offset(size.width * 0.70, size.height * 0.30),
-      ];
-    }
-
-    final points = <Offset>[];
-    final outerRadius = size.width * 0.38;
-    final innerRadius = size.width * 0.17;
-
-    for (var i = 0; i < 10; i++) {
-      final radius = i.isEven ? outerRadius : innerRadius;
-      final angle = -math.pi / 2 + i * math.pi / 5;
-
-      points.add(
-        Offset(
-          center.dx + math.cos(angle) * radius,
-          center.dy + math.sin(angle) * radius,
-        ),
-      );
-    }
-
-    return points;
-  }
-
-  @override
-  bool shouldRepaint(covariant _ConnectDotsPainter oldDelegate) {
-    return oldDelegate.shape != shape;
   }
 }

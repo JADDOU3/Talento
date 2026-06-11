@@ -67,7 +67,7 @@ class _ChoiceCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           width: _cardWidth(visualPartsCount),
-          height: 92,
+          height: _cardHeight(visualPartsCount),
           padding: const EdgeInsets.all(10),
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -94,7 +94,7 @@ class _ChoiceCard extends StatelessWidget {
           child: MirrorIconSequence(
             icons: icons,
             iconSize: _iconSize(visualPartsCount),
-            spacing: 6,
+            spacing: _spacing(visualPartsCount),
           ),
         ),
       ),
@@ -104,9 +104,11 @@ class _ChoiceCard extends StatelessWidget {
   static int _visualPartsCount(List<String> icons) {
     if (icons.isEmpty) return 1;
 
+    final normalizedIcons = normalizeMirrorIconSequence(icons);
+
     var count = 0;
 
-    for (final icon in icons) {
+    for (final icon in normalizedIcons) {
       count += _countPartsForIconName(icon);
     }
 
@@ -128,6 +130,22 @@ class _ChoiceCard extends StatelessWidget {
       'arrow_up_right',
       'arrow_down_left',
       'arrow_down_right',
+      'circle_big',
+      'circle_small',
+      'big_circle',
+      'small_circle',
+      'triangle_big',
+      'triangle_small',
+      'big_triangle',
+      'small_triangle',
+      'square_big',
+      'square_small',
+      'big_square',
+      'small_square',
+      'star_big',
+      'star_small',
+      'big_star',
+      'small_star',
     };
 
     if (!iconName.contains('_')) return 1;
@@ -140,16 +158,27 @@ class _ChoiceCard extends StatelessWidget {
   }
 
   static double _cardWidth(int visualPartsCount) {
-    if (visualPartsCount >= 4) return 172;
-    if (visualPartsCount == 3) return 150;
-    if (visualPartsCount == 2) return 126;
-    return 116;
+    if (visualPartsCount >= 4) return 214;
+    if (visualPartsCount == 3) return 180;
+    if (visualPartsCount == 2) return 148;
+    return 122;
+  }
+
+  static double _cardHeight(int visualPartsCount) {
+    if (visualPartsCount >= 3) return 108;
+    return 102;
   }
 
   static double _iconSize(int visualPartsCount) {
-    if (visualPartsCount >= 4) return 24;
-    if (visualPartsCount == 3) return 28;
-    if (visualPartsCount == 2) return 32;
-    return 38;
+    if (visualPartsCount >= 4) return 32;
+    if (visualPartsCount == 3) return 36;
+    if (visualPartsCount == 2) return 42;
+    return 48;
+  }
+
+  static double _spacing(int visualPartsCount) {
+    if (visualPartsCount >= 4) return 7;
+    if (visualPartsCount == 3) return 8;
+    return 10;
   }
 }
