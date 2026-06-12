@@ -54,31 +54,31 @@ class _AppBackgroundState extends State<AppBackground>
             top: -80,
             left: -60,
             size: 220,
-            color: AppColors.secondary.withValues(alpha: 0.3),
+            color: AppColors.secondary.withValues(alpha: 0.18),
           ),
           _buildShape(
             top: 100,
             right: -60,
             size: 180,
-            color: AppColors.pink.withValues(alpha: 0.3),
+            color: AppColors.pink.withValues(alpha: 0.18),
           ),
           _buildShape(
             bottom: -70,
             left: -40,
             size: 220,
-            color: AppColors.yellow.withValues(alpha: 0.3),
+            color: AppColors.yellow.withValues(alpha: 0.18),
           ),
           _buildShape(
             bottom: 80,
             right: -80,
             size: 200,
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.18),
           ),
           _buildShape(
             top: 250,
             left: -60,
             size: 170,
-            color: AppColors.red.withValues(alpha: 0.3),
+            color: AppColors.red.withValues(alpha: 0.18),
           ),
 
           AnimatedBuilder(
