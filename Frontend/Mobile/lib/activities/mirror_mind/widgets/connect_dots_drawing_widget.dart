@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_colors.dart';
 import 'symmetry_drawing_widget.dart';
 
@@ -68,11 +70,6 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
         (orderedDotScore * 0.10) +
         (dotHitScore * 0.35);
 
-    print('coverage: $coverageScore');
-    print('ordered: $orderedDotScore');
-    print('dotHit: $dotHitScore');
-    print('total score: $score');
-
     final isCorrect = score >= 0.80;
 
     return SymmetryDrawingResult(
@@ -118,27 +115,38 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(26),
-                child: GestureDetector(
+                child: RawGestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onPanStart: (details) {
-                    _addPoint(details.localPosition);
-                  },
-                  onPanUpdate: (details) {
-                    _addPoint(details.localPosition);
-                  },
-                  onPanEnd: (_) {
-                    setState(() {
-                      _userPoints.add(null);
-                    });
-                    widget.onResultChanged(evaluateDrawing());
-                  },
-                  child: CustomPaint(
-                    painter: _ConnectDotsDrawingPainter(
-                      shape: widget.shape,
-                      closed: widget.closed,
-                      userPoints: _userPoints,
+                  gestures: {
+                    EagerGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                        EagerGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                          (instance) {},
                     ),
-                    child: const SizedBox.expand(),
+                  },
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: (event) {
+                      _addPoint(event.localPosition, canvasSize);
+                    },
+                    onPointerMove: (event) {
+                      _addPoint(event.localPosition, canvasSize);
+                    },
+                    onPointerUp: (_) {
+                      _finishStroke();
+                    },
+                    onPointerCancel: (_) {
+                      _finishStroke();
+                    },
+                    child: CustomPaint(
+                      painter: _ConnectDotsDrawingPainter(
+                        shape: widget.shape,
+                        closed: widget.closed,
+                        userPoints: _userPoints,
+                      ),
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
               ),
@@ -162,10 +170,31 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
     );
   }
 
-  void _addPoint(Offset point) {
+  void _finishStroke() {
+    if (_userPoints.isEmpty || _userPoints.last == null) {
+      widget.onResultChanged(evaluateDrawing());
+      return;
+    }
+
+    setState(() {
+      _userPoints.add(null);
+    });
+
+    widget.onResultChanged(evaluateDrawing());
+  }
+
+  void _addPoint(Offset point, Size size) {
+    if (point.dx < 0 ||
+        point.dy < 0 ||
+        point.dx > size.width ||
+        point.dy > size.height) {
+      return;
+    }
+
     setState(() {
       _userPoints.add(point);
     });
+
     widget.onResultChanged(evaluateDrawing());
   }
 }
@@ -289,10 +318,12 @@ List<Offset> _starPoints(Size size) {
     final radius = i.isEven ? outerRadius : innerRadius;
     final angle = -math.pi / 2 + i * math.pi / 5;
 
-    points.add(Offset(
-      center.dx + math.cos(angle) * radius,
-      center.dy + math.sin(angle) * radius,
-    ));
+    points.add(
+      Offset(
+        center.dx + math.cos(angle) * radius,
+        center.dy + math.sin(angle) * radius,
+      ),
+    );
   }
 
   return points;
@@ -314,18 +345,26 @@ List<Offset> _flowerPoints(Size size) {
     final leftAngle = tipAngle - 36.0;
     final rightAngle = tipAngle + 36.0;
 
-    points.add(Offset(
-      cx + innerR * math.cos(toRad(leftAngle)),
-      cy + innerR * math.sin(toRad(leftAngle)),
-    ));
-    points.add(Offset(
-      cx + outerR * math.cos(toRad(tipAngle)),
-      cy + outerR * math.sin(toRad(tipAngle)),
-    ));
-    points.add(Offset(
-      cx + innerR * math.cos(toRad(rightAngle)),
-      cy + innerR * math.sin(toRad(rightAngle)),
-    ));
+    points.add(
+      Offset(
+        cx + innerR * math.cos(toRad(leftAngle)),
+        cy + innerR * math.sin(toRad(leftAngle)),
+      ),
+    );
+
+    points.add(
+      Offset(
+        cx + outerR * math.cos(toRad(tipAngle)),
+        cy + outerR * math.sin(toRad(tipAngle)),
+      ),
+    );
+
+    points.add(
+      Offset(
+        cx + innerR * math.cos(toRad(rightAngle)),
+        cy + innerR * math.sin(toRad(rightAngle)),
+      ),
+    );
   }
 
   return points;
@@ -339,7 +378,6 @@ List<Offset> _butterflyPoints(Size size) {
   final h = size.height * 0.38;
 
   return [
-
     Offset(cx, cy - h * 0.85),
     Offset(cx - w * 0.20, cy - h * 0.45),
     Offset(cx - w * 0.80, cy - h * 0.72),
@@ -358,6 +396,7 @@ List<Offset> _butterflyPoints(Size size) {
     Offset(cx + w * 0.20, cy - h * 0.45),
   ];
 }
+
 List<Offset> _sampleExpectedPath({
   required List<Offset> points,
   required bool closed,
@@ -367,11 +406,23 @@ List<Offset> _sampleExpectedPath({
   final samples = <Offset>[];
 
   for (var i = 0; i < points.length - 1; i++) {
-    samples.addAll(_sampleLine(start: points[i], end: points[i + 1], count: 22));
+    samples.addAll(
+      _sampleLine(
+        start: points[i],
+        end: points[i + 1],
+        count: 22,
+      ),
+    );
   }
 
   if (closed) {
-    samples.addAll(_sampleLine(start: points.last, end: points.first, count: 22));
+    samples.addAll(
+      _sampleLine(
+        start: points.last,
+        end: points.first,
+        count: 22,
+      ),
+    );
   }
 
   return samples;
@@ -386,10 +437,13 @@ List<Offset> _sampleLine({
 
   for (var i = 0; i <= count; i++) {
     final t = i / count;
-    points.add(Offset(
-      start.dx + (end.dx - start.dx) * t,
-      start.dy + (end.dy - start.dy) * t,
-    ));
+
+    points.add(
+      Offset(
+        start.dx + (end.dx - start.dx) * t,
+        start.dy + (end.dy - start.dy) * t,
+      ),
+    );
   }
 
   return points;
@@ -429,7 +483,6 @@ double _calculateDotHitScore({
   }
 
   return hit / dots.length;
-
 }
 
 double _calculateOrderedDotScore({
@@ -450,6 +503,4 @@ double _calculateOrderedDotScore({
   }
 
   return nextDotIndex / dots.length;
-
-
 }

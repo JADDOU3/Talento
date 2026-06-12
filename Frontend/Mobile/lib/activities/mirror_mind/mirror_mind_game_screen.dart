@@ -742,7 +742,7 @@ class _FeedbackView extends StatelessWidget {
           ],
         ),
         child: Text(
-          isCorrect ? 'إجابة صحيحة 🎉' : 'قريب! جرّب مرة أخرى 💪',
+          isCorrect ? 'إجابة صحيحة 🎉' : 'قريب! جرّب مرة أخرى ',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'DGAgnadeen',

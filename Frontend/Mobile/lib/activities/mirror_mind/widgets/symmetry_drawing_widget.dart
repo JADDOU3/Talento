@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -106,28 +107,38 @@ class SymmetryDrawingWidgetState extends State<SymmetryDrawingWidget> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(26),
-                child: GestureDetector(
+                child: RawGestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onPanStart: (details) {
-                    _addPoint(details.localPosition, canvasSize);
-                  },
-                  onPanUpdate: (details) {
-                    _addPoint(details.localPosition, canvasSize);
-                  },
-                  onPanEnd: (_) {
-                    setState(() {
-                      _userPoints.add(null);
-                    });
-
-                    widget.onResultChanged(evaluateDrawing());
-                  },
-                  child: CustomPaint(
-                    painter: _SymmetryDrawingPainter(
-                      shape: widget.shape,
-                      missingSide: widget.missingSide,
-                      userPoints: _userPoints,
+                  gestures: {
+                    EagerGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                        EagerGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                          (instance) {},
                     ),
-                    child: const SizedBox.expand(),
+                  },
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: (event) {
+                      _addPoint(event.localPosition, canvasSize);
+                    },
+                    onPointerMove: (event) {
+                      _addPoint(event.localPosition, canvasSize);
+                    },
+                    onPointerUp: (_) {
+                      _finishStroke();
+                    },
+                    onPointerCancel: (_) {
+                      _finishStroke();
+                    },
+                    child: CustomPaint(
+                      painter: _SymmetryDrawingPainter(
+                        shape: widget.shape,
+                        missingSide: widget.missingSide,
+                        userPoints: _userPoints,
+                      ),
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
               ),
@@ -151,7 +162,27 @@ class SymmetryDrawingWidgetState extends State<SymmetryDrawingWidget> {
     );
   }
 
+  void _finishStroke() {
+    if (_userPoints.isEmpty || _userPoints.last == null) {
+      widget.onResultChanged(evaluateDrawing());
+      return;
+    }
+
+    setState(() {
+      _userPoints.add(null);
+    });
+
+    widget.onResultChanged(evaluateDrawing());
+  }
+
   void _addPoint(Offset point, Size size) {
+    if (point.dx < 0 ||
+        point.dy < 0 ||
+        point.dx > size.width ||
+        point.dy > size.height) {
+      return;
+    }
+
     final isMissingLeft = widget.missingSide.toLowerCase() == 'left';
     final centerX = size.width / 2;
 
@@ -310,20 +341,18 @@ List<Path> _fullPathsForShape(String rawShape, Size size) {
   return _starFullPaths(size);
 }
 
-
 List<Path> _flowerFullPaths(Size size) {
   final center = Offset(size.width / 2, size.height / 2);
 
   final paths = <Path>[];
 
-  // cleaner 6-petal flower with less overlap
   final petalAngles = <double>[
-    -math.pi / 2,       // top
-    -math.pi / 6,       // upper right
-    math.pi / 6,        // lower right
-    math.pi / 2,        // bottom
-    5 * math.pi / 6,    // lower left
-    7 * math.pi / 6,    // upper left
+    -math.pi / 2,
+    -math.pi / 6,
+    math.pi / 6,
+    math.pi / 2,
+    5 * math.pi / 6,
+    7 * math.pi / 6,
   ];
 
   for (final angle in petalAngles) {
@@ -338,7 +367,6 @@ List<Path> _flowerFullPaths(Size size) {
     );
   }
 
-  // center circle - clear but not too large
   paths.add(
     Path()
       ..addOval(
@@ -370,7 +398,6 @@ Path _buildFlowerPetalPath({
     math.cos(angle),
   );
 
-  // Start petals farther from center to reduce overlap.
   final baseCenter = center + dir * centerRadius;
 
   final baseLeft = baseCenter + perp * (width * 0.22);
@@ -378,7 +405,6 @@ Path _buildFlowerPetalPath({
 
   final tip = center + dir * length;
 
-  // Softer petal curve.
   final c1 = center + dir * (length * 0.40) + perp * (width * 0.66);
   final c2 = center + dir * (length * 0.84) + perp * (width * 0.34);
 
@@ -405,11 +431,6 @@ Path _buildFlowerPetalPath({
     );
 }
 
-
-
-
-
-
 List<Path> _butterflyFullPaths(Size size) {
   final centerX = size.width / 2;
   final centerY = size.height / 2 + 6;
@@ -422,7 +443,6 @@ List<Path> _butterflyFullPaths(Size size) {
   final bodyLeft = centerX - (bodyWidth / 2);
   final bodyRight = centerX + (bodyWidth / 2);
 
-  // head - slightly bigger
   paths.add(
     Path()
       ..addOval(
@@ -434,7 +454,6 @@ List<Path> _butterflyFullPaths(Size size) {
       ),
   );
 
-  // body
   paths.add(
     Path()
       ..addRRect(
@@ -450,7 +469,6 @@ List<Path> _butterflyFullPaths(Size size) {
       ),
   );
 
-  // left upper wing - slightly farther from body
   final leftUpper = Path()
     ..moveTo(bodyLeft - 3, centerY - 16)
     ..cubicTo(
@@ -477,7 +495,6 @@ List<Path> _butterflyFullPaths(Size size) {
     )
     ..close();
 
-  // right upper wing - slightly farther from body
   final rightUpper = Path()
     ..moveTo(bodyRight + 3, centerY - 16)
     ..cubicTo(
@@ -504,7 +521,6 @@ List<Path> _butterflyFullPaths(Size size) {
     )
     ..close();
 
-  // left lower wing - slightly farther from body
   final leftLower = Path()
     ..moveTo(bodyLeft - 3, centerY + 18)
     ..cubicTo(
@@ -531,7 +547,6 @@ List<Path> _butterflyFullPaths(Size size) {
     )
     ..close();
 
-  // right lower wing - slightly farther from body
   final rightLower = Path()
     ..moveTo(bodyRight + 3, centerY + 18)
     ..cubicTo(
@@ -558,7 +573,6 @@ List<Path> _butterflyFullPaths(Size size) {
     )
     ..close();
 
-  // antennas - slightly bigger
   final antennas = Path()
     ..moveTo(centerX - 7, bodyTop - 21)
     ..quadraticBezierTo(
@@ -616,14 +630,12 @@ List<Path> _starFullPaths(Size size) {
   return [path];
 }
 
-
 List<Path> _catFaceFullPaths(Size size) {
   final centerX = size.width / 2;
   final centerY = size.height / 2 + 10;
 
   final paths = <Path>[];
 
-  // Base face
   final rawFace = Path()
     ..addOval(
       Rect.fromCenter(
@@ -633,7 +645,6 @@ List<Path> _catFaceFullPaths(Size size) {
       ),
     );
 
-  // Left ear - open path (no base line)
   final leftEar = Path()
     ..moveTo(centerX - 46, centerY - 34)
     ..quadraticBezierTo(
@@ -649,7 +660,6 @@ List<Path> _catFaceFullPaths(Size size) {
       centerY - 62,
     );
 
-  // Right ear - open path
   final rightEar = Path()
     ..moveTo(centerX + 46, centerY - 34)
     ..quadraticBezierTo(
@@ -665,7 +675,6 @@ List<Path> _catFaceFullPaths(Size size) {
       centerY - 62,
     );
 
-  // Cut areas to remove face line under ears
   final leftEarCut = Path()
     ..moveTo(centerX - 48, centerY - 36)
     ..quadraticBezierTo(
@@ -710,7 +719,6 @@ List<Path> _catFaceFullPaths(Size size) {
     )
     ..close();
 
-  // Remove the overlapping face arc under the ears
   final faceWithoutEarOverlap = Path.combine(
     PathOperation.difference,
     Path.combine(
@@ -721,7 +729,6 @@ List<Path> _catFaceFullPaths(Size size) {
     rightEarCut,
   );
 
-  // Eyes
   final leftEye = Path()
     ..addOval(
       Rect.fromCenter(
@@ -740,7 +747,6 @@ List<Path> _catFaceFullPaths(Size size) {
       ),
     );
 
-  // Nose
   final nose = Path()
     ..addOval(
       Rect.fromCenter(
@@ -750,7 +756,6 @@ List<Path> _catFaceFullPaths(Size size) {
       ),
     );
 
-  // Mouth
   final mouth = Path()
     ..moveTo(centerX, centerY + 15)
     ..quadraticBezierTo(
@@ -767,7 +772,6 @@ List<Path> _catFaceFullPaths(Size size) {
       centerY + 24,
     );
 
-  // Whiskers
   final whiskers = Path()
     ..moveTo(centerX - 13, centerY + 8)
     ..lineTo(centerX - 56, centerY + 2)
@@ -838,18 +842,4 @@ double _calculateCoverageScore({
   }
 
   return matched / expectedPoints.length;
-}
-
-class _PetalSpec {
-  final double dx;
-  final double dy;
-  final double width;
-  final double height;
-
-  const _PetalSpec({
-    required this.dx,
-    required this.dy,
-    required this.width,
-    required this.height,
-  });
 }
