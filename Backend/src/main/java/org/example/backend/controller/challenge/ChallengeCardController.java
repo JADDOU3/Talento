@@ -1,8 +1,8 @@
 package org.example.backend.controller.challenge;
 
+import org.example.backend.Dto.challenge.ChallengeCardResponseDto;
 import org.example.backend.Dto.challenge.CreateChallengeCardDto;
 import org.example.backend.Dto.challenge.UpdateChallengeCardDto;
-import org.example.backend.model.challengeCard.ChallengeCard;
 import org.example.backend.service.Challenge.ChallengeCardService;
 import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/challenge-cards")
 public class ChallengeCardController {
@@ -22,39 +20,40 @@ public class ChallengeCardController {
     private ChallengeCardService challengeCardService;
 
     @PostMapping("/")
-    public ResponseEntity<ChallengeCard> createChallengeCard(
+    public ResponseEntity<ChallengeCardResponseDto> createChallengeCard(
             @RequestBody CreateChallengeCardDto createChallengeCardDto) {
         return new ResponseEntity<>(
-                challengeCardService.createChallengeCard(createChallengeCardDto), HttpStatus.CREATED);
+                ChallengeCardResponseDto.from(challengeCardService.createChallengeCard(createChallengeCardDto)), HttpStatus.CREATED);
     }
 
     @GetMapping("/")
-    public ResponseEntity<Page<ChallengeCard>> getAllChallengeCards(Pageable pageable) {
-        return new ResponseEntity<>(PaginationUtil.paginate(challengeCardService.getAllChallengeCards(), pageable), HttpStatus.OK);
+    public ResponseEntity<Page<ChallengeCardResponseDto>> getAllChallengeCards(Pageable pageable) {
+        var dtos = challengeCardService.getAllChallengeCards().stream().map(ChallengeCardResponseDto::from).toList();
+        return new ResponseEntity<>(PaginationUtil.paginate(dtos, pageable), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChallengeCard> getChallengeCardById(@PathVariable int id) {
-        ChallengeCard card = challengeCardService.getChallengeCardById(id);
+    public ResponseEntity<ChallengeCardResponseDto> getChallengeCardById(@PathVariable int id) {
+        var card = challengeCardService.getChallengeCardById(id);
         if (card == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(card, HttpStatus.OK);
+        return new ResponseEntity<>(ChallengeCardResponseDto.from(card), HttpStatus.OK);
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<Page<ChallengeCard>> getChallengeCardsByActivity(
+    public ResponseEntity<Page<ChallengeCardResponseDto>> getChallengeCardsByActivity(
             @PathVariable int activityId, Pageable pageable) {
-        return new ResponseEntity<>(
-                PaginationUtil.paginate(challengeCardService.getChallengeCardsByActivity(activityId), pageable), HttpStatus.OK);
+        var dtos = challengeCardService.getChallengeCardsByActivity(activityId).stream().map(ChallengeCardResponseDto::from).toList();
+        return new ResponseEntity<>(PaginationUtil.paginate(dtos, pageable), HttpStatus.OK);
     }
 
     @PutMapping("/")
-    public ResponseEntity<ChallengeCard> updateChallengeCard(
+    public ResponseEntity<ChallengeCardResponseDto> updateChallengeCard(
             @RequestBody UpdateChallengeCardDto updateChallengeCardDto) {
         if (challengeCardService.getChallengeCardById(updateChallengeCardDto.getId()) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(
-                challengeCardService.updateChallengeCard(updateChallengeCardDto), HttpStatus.OK);
+                ChallengeCardResponseDto.from(challengeCardService.updateChallengeCard(updateChallengeCardDto)), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -65,6 +64,3 @@ public class ChallengeCardController {
         return new ResponseEntity<>("ChallengeCard deleted successfully", HttpStatus.OK);
     }
 }
-
-
-//todo implement the rest of the endpoints & test all (  events , help , challenge, level ) etc

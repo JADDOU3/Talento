@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str
     analysis_model: str = "gpt-4o-mini"
-    whisper_model: str = "whisper-1"
+    whisper_model: str = "gpt-4o-mini-transcribe"
     embedding_model: str = "text-embedding-3-small"
 
     # Backend API (for seeding)
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # ChromaDB
     chroma_host: str = "chromadb"
-    chroma_port: int = 8001
+    chroma_port: int = 8000
     chroma_collection_mindsets: str = "mindset_definitions"
     chroma_collection_criteria: str = "activity_criteria"
     chroma_collection_patterns: str = "behavioral_patterns"

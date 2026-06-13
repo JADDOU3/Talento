@@ -3,6 +3,7 @@ package org.example.backend.service.ai;
 import org.example.backend.Dto.ai.request.AiAnalysisRequestDto;
 import org.example.backend.Dto.ai.response.AiAnalysisResponseDto;
 import org.example.backend.Dto.ai.response.AiVoiceResponseDto;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
@@ -22,7 +23,10 @@ public class AiClientService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
 
-    public AiClientService(RestTemplate restTemplate, @Value("${ai.base-url}") String baseUrl) {
+    public AiClientService(
+            @Qualifier("aiRestTemplate") RestTemplate restTemplate,
+            @Value("${ai.base-url}") String baseUrl
+    ) {
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
     }
@@ -45,9 +49,9 @@ public class AiClientService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
         ResponseEntity<AiVoiceResponseDto> response = restTemplate.postForEntity(
-            baseUrl + "/voice/transcribe",
-            requestEntity,
-            AiVoiceResponseDto.class
+                baseUrl + "/voice/transcribe",
+                requestEntity,
+                AiVoiceResponseDto.class
         );
         return response.getBody();
     }

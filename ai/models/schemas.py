@@ -1,6 +1,18 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from pydantic.alias_generators import to_camel
 from typing import Optional
 from enum import Enum
+
+
+# ─────────────────────────────────────────
+# Base — all input models accept camelCase from Spring
+# ─────────────────────────────────────────
+
+class CamelModel(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,   # also accept snake_case (useful for tests)
+    )
 
 
 # ─────────────────────────────────────────
@@ -28,18 +40,14 @@ class Language(str, Enum):
 # Input Models
 # ─────────────────────────────────────────
 
-class ChildProfile(BaseModel):
+class ChildProfile(CamelModel):
     child_id: int
     age: int
     gender: str
     baseline_traits: list[str] = Field(default_factory=list)
 
 
-class BehavioralSignals(BaseModel):
-    """
-    Extracted by Spring SignalExtractorService before sending to AI.
-    Each field is a normalized signal level derived from raw events.
-    """
+class BehavioralSignals(CamelModel):
     hesitation: SignalLevel
     persistence: SignalLevel
     adaptability: SignalLevel
@@ -49,7 +57,7 @@ class BehavioralSignals(BaseModel):
     confidence: SignalLevel
 
 
-class ActivitySummary(BaseModel):
+class ActivitySummary(CamelModel):
     activity_id: int
     activity_name: str
     activity_type: str
@@ -63,21 +71,25 @@ class ActivitySummary(BaseModel):
     behavioral_observations: list[str] = Field(default_factory=list)
 
 
-class MindsetScore(BaseModel):
-    """
-    Represents a single mindset score.
-    mindset_name matches the name stored in DB and ChromaDB.
-    """
-    mindset_name: str
+class SessionAggregate(CamelModel):
+    total_sessions: int
+    total_activities_attempted: int
+    total_duration_seconds: int
+    completed_activities: int
+    completion_rate: float = Field(ge=0.0, le=1.0)
+    total_hints_used: int
+    total_fails: int
+    total_attempts: int
+    rage_quit_count: int
+    avg_duration_per_activity_seconds: int
+
+
+class MindsetScore(CamelModel):
+    mindset_name: Optional[str] = None
     score: float = Field(ge=0.0, le=1.0)
 
 
-class PreviousAnalysisSummary(BaseModel):
-    """
-    The last stored analysis for this child.
-    Sent by Spring from the AIReport table.
-    Optional — omitted for first-time analysis.
-    """
+class PreviousAnalysisSummary(CamelModel):
     focus_trend: Optional[str] = None
     confidence_trend: Optional[str] = None
     stress_response_pattern: Optional[str] = None
@@ -85,16 +97,15 @@ class PreviousAnalysisSummary(BaseModel):
     mindset_scores: Optional[list[MindsetScore]] = None
     last_updated: Optional[str] = None
     analysis_version: Optional[str] = None
+    context_summary: Optional[str] = None
 
 
-class AnalysisRequest(BaseModel):
-    """
-    Full payload sent from Spring to POST /analyze/session
-    """
+class AnalysisRequest(CamelModel):
     child_profile: ChildProfile
-    activity_summary: ActivitySummary
+    session_aggregate: SessionAggregate
+    activity_summaries: list[ActivitySummary]
     previous_analysis_summary: Optional[PreviousAnalysisSummary] = None
-    parent_note: Optional[str] = None   # voice-to-text or typed input from parent
+    parent_note: Optional[str] = None
     response_language: Language = Language.ENGLISH
     analysis_version: str = "v1"
 
@@ -104,34 +115,24 @@ class AnalysisRequest(BaseModel):
 # ─────────────────────────────────────────
 
 class InstantAnalysis(BaseModel):
-    """
-    Analysis of the current session only.
-    Shown to the parent as the session report.
-    """
     focus_level: float = Field(ge=0.0, le=1.0)
     confidence_level: float = Field(ge=0.0, le=1.0)
     stress_level: float = Field(ge=0.0, le=1.0)
     adaptability: float = Field(ge=0.0, le=1.0)
     decision_making_pattern: str
-    behavioral_summary: str   # in the language specified by caller
+    behavioral_summary: str
 
 
 class UpdatedMemoryState(BaseModel):
-    """
-    Updated longitudinal profile for the child.
-    Stored back in DB by Spring — used as previous_analysis_summary next time.
-    """
     focus_trend: str
     confidence_trend: str
     stress_response_pattern: str
     learning_behavior_pattern: str
-    recommended_future_observation: str  # in the language specified by caller
+    recommended_future_observation: str
+    context_summary: str
 
 
 class AnalysisResponse(BaseModel):
-    """
-    Full response returned from FastAPI to Spring.
-    """
     instant_analysis: InstantAnalysis
     updated_memory_state: UpdatedMemoryState
     mindset_scores: list[MindsetScore]

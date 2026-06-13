@@ -1,10 +1,11 @@
 import chromadb
 from chromadb import Collection
+from typing import Optional
 from core.config import get_settings
 
 settings = get_settings()
 
-_client: chromadb.HttpClient | None = None
+_client: Optional[chromadb.HttpClient] = None
 
 
 def get_chroma_client() -> chromadb.HttpClient:

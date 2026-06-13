@@ -31,7 +31,7 @@ class AuthApiClient {
     );
   }
 
-  // Added PUT — used by Color Lab (level attempts, activity sessions)
+
   Future<http.Response> put(
       Uri uri, {
         Map<String, String>? headers,
@@ -51,7 +51,7 @@ class AuthApiClient {
     );
   }
 
-  // Added PATCH — used to end sessions
+
   Future<http.Response> patch(
       Uri uri, {
         Map<String, String>? headers,

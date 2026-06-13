@@ -18,6 +18,8 @@ public class Mindset {
     private int id;
 
     private String name;
+
+    @Column(length = 2000)
     private String description;
 
     @JsonIgnore

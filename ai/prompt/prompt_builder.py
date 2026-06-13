@@ -1,12 +1,16 @@
 import json
+import re
 
 from models.schemas import AnalysisRequest, Language
 
 SYSTEM_PROMPT = (
     "You are a behavioral analysis AI specialized in children's cognitive and emotional patterns. "
-    "Analyze the child's activity behavior and update their psychological state objectively. "
+    "You receive aggregated data from multiple play sessions — not a single session. "
+    "Analyze the child's overall behavioral patterns across all activities and produce a holistic report. "
     "Do not make medical diagnoses. Focus on behavioral indicators, emotional responses, "
     "confidence, attention patterns, adaptability, frustration handling, and learning tendencies. "
+    "Your context_summary must explain the specific observations that led to your scores — "
+    "it will be shown to the AI in the next analysis so it understands the reasoning chain. "
     "Always respond with valid JSON only."
 )
 
@@ -14,10 +18,26 @@ SYSTEM_PROMPT = (
 def _language_instruction(language: Language) -> str:
     if language == Language.ARABIC:
         return (
-            "Write behavioral_summary and recommended_future_observation in Arabic. "
-            "Keep other fields in English."
+            "Write behavioral_summary, recommended_future_observation, and context_summary in Arabic. "
+            "Keep all other fields (trend names, pattern names, mindset names) in English."
         )
-    return "Write behavioral_summary and recommended_future_observation in English."
+    return "Write behavioral_summary, recommended_future_observation, and context_summary in English."
+
+
+def _extract_mindset_names(rag: dict) -> list[str]:
+    """
+    Extracts mindset names from the RAG retrieved mindset definitions.
+    Each document looks like: "Mindset: Cognitive. Description: ..."
+    Returns e.g. ["Cognitive", "Social-Emotional", "Sensory-Kinesthetic", "Creative-Visual"]
+    """
+    names = []
+    for doc in rag.get("mindsets", []):
+        match = re.match(r"Mindset:\s*([^.]+)", doc)
+        if match:
+            name = match.group(1).strip()
+            if name:
+                names.append(name)
+    return names
 
 
 def _format_rag_context(rag: dict) -> str:
@@ -34,55 +54,86 @@ def _format_rag_context(rag: dict) -> str:
 
 
 def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
-    child_profile = {
+    # ── Child profile ────────────────────────────────────────────
+    child_section = {
         "age": request.child_profile.age,
         "gender": request.child_profile.gender,
         "baseline_traits": request.child_profile.baseline_traits,
     }
+
+    # ── Session aggregate ────────────────────────────────────────
+    aggregate_section = request.session_aggregate.model_dump()
+
+    # ── Activity summaries ───────────────────────────────────────
+    activities_section = [s.model_dump() for s in request.activity_summaries]
+
     payload = {
-        "child_profile": child_profile,
-        "activity_summary": request.activity_summary.model_dump(),
+        "child_profile": child_section,
+        "session_aggregate": aggregate_section,
+        "activity_summaries": activities_section,
         "response_language": request.response_language.value,
         "analysis_version": request.analysis_version,
     }
+
     if request.previous_analysis_summary:
-        payload["previous_analysis_summary"] = request.previous_analysis_summary.model_dump()
+        payload["previous_analysis_summary"] = request.previous_analysis_summary.model_dump(exclude_none=True)
+
     if request.parent_note:
         payload["parent_note"] = request.parent_note
 
+    # ── RAG context ──────────────────────────────────────────────
     rag_context = _format_rag_context(rag)
-    output_schema = {
-        "instant_analysis": {
-            "focus_level": 0.0,
-            "confidence_level": 0.0,
-            "stress_level": 0.0,
-            "adaptability": 0.0,
-            "decision_making_pattern": "",
-            "behavioral_summary": "",
-        },
-        "updated_memory_state": {
-            "focus_trend": "",
-            "confidence_trend": "",
-            "stress_response_pattern": "",
-            "learning_behavior_pattern": "",
-            "recommended_future_observation": "",
-        },
-        "mindset_scores": [
-            {"mindset_name": "", "score": 0.0}
-        ],
-        "analysis_confidence": 0.0,
-        "analysis_version": request.analysis_version,
-    }
+
+    # ── Mindset names from RAG — tell AI exactly what to use ─────
+    mindset_names = _extract_mindset_names(rag)
+    if not mindset_names:
+        # Fallback if RAG returned nothing — use known defaults
+        mindset_names = ["Cognitive", "Social-Emotional", "Sensory-Kinesthetic", "Creative-Visual"]
+
+    mindset_scores_schema = [
+        {"mindset_name": name, "score": "<float 0.0-1.0>"}
+        for name in mindset_names
+    ]
+
+    mindset_instruction = (
+        f"You MUST score ALL of these mindsets: {mindset_names}. "
+        "Score each from 0.0 (not observed) to 1.0 (strongly observed) based on the child's actual behavior. "
+        "Do NOT return 0.0 for all — derive real scores from the data."
+    )
+
+    output_instructions = f"""Respond ONLY with a JSON object with this exact structure. All values must be derived from the input data — do NOT use placeholder zeroes or empty strings:
+
+{{
+  "instant_analysis": {{
+    "focus_level": <float 0.0-1.0 based on session duration and engagement>,
+    "confidence_level": <float 0.0-1.0 based on attempts and independence>,
+    "stress_level": <float 0.0-1.0 based on fails, rage quits, frustration signals>,
+    "adaptability": <float 0.0-1.0 based on strategy changes and recovery from failure>,
+    "decision_making_pattern": <short descriptive string e.g. "impulsive", "cautious", "strategic">,
+    "behavioral_summary": <2-4 sentence narrative summary of the child's behavior across all sessions>
+  }},
+  "updated_memory_state": {{
+    "focus_trend": <"improving" | "declining" | "stable" | "low" | "high">,
+    "confidence_trend": <"improving" | "declining" | "stable" | "low" | "high">,
+    "stress_response_pattern": <short string describing how child handles stress>,
+    "learning_behavior_pattern": <short string describing how child learns>,
+    "recommended_future_observation": <1-2 sentences on what to watch next>,
+    "context_summary": <2-3 sentences explaining WHY these specific scores — used as context in next analysis>
+  }},
+  "mindset_scores": {json.dumps(mindset_scores_schema)},
+  "analysis_confidence": <float 0.0-1.0 reflecting how confident you are given the available data>,
+  "analysis_version": "{request.analysis_version}"
+}}
+
+For mindset_scores: keep the mindset_name values exactly as given, only set the score for each based on observed behavior."""
 
     prompt_sections = [
         f"LANGUAGE GUIDANCE:\n{_language_instruction(request.response_language)}",
+        f"MINDSET SCORING INSTRUCTIONS:\n{mindset_instruction}",
         "INPUT DATA (JSON):\n" + json.dumps(payload, ensure_ascii=False),
     ]
     if rag_context:
         prompt_sections.append("RETRIEVED CONTEXT:\n" + rag_context)
-    prompt_sections.append(
-        "Respond ONLY with JSON that matches this schema:\n"
-        + json.dumps(output_schema, ensure_ascii=False)
-    )
+    prompt_sections.append(output_instructions)
 
     return "\n\n".join(prompt_sections)

@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+
 import '../../activities/color_lab/color_lab_launcher.dart';
+
+import '../../activities/mirror_mind/mirror_mind_intro.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
 import '../../models/roadmap/roadmap_activity_model.dart';
 import '../../services/roadmap/roadmap_service.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
@@ -122,20 +127,49 @@ class _RoadmapView extends StatelessWidget {
       RoadmapActivityModel activity,
       ) {
     if (activity.isLocked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('أكملي الأنشطة السابقة أولًا'),
-          backgroundColor: AppColors.textPrimary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
+      _showMessage(
+        context,
+        'أكملي الأنشطة السابقة أولًا',
       );
       return;
     }
 
-    Navigator.push(
+    final activityName = activity.activityName.trim().toLowerCase();
+
+    if (activityName == 'mirror mind') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MirrorMindIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) {
+        _refreshRoadmapIfMounted(context);
+      });
+
+      return;
+    }
+
+    if (activityName == 'color lab') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const _ColorLabIntroExample(),
+        ),
+      ).then((_) {
+        _refreshRoadmapIfMounted(context);
+      });
+
+      return;
+    }
+
+    _showMessage(
       context,
       MaterialPageRoute(
         builder: (_) => ColorLabLauncher(
@@ -144,10 +178,6 @@ class _RoadmapView extends StatelessWidget {
           childId: childId,
         ),
       ),
-    ).then((_) {
-      if (context.mounted) {
-        context.read<RoadmapCubit>().refreshRoadmap();
-      }
-    });
+    );
   }
 }

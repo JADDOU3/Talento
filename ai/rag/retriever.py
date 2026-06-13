@@ -13,27 +13,52 @@ settings = get_settings()
 
 
 def _format_query(request: AnalysisRequest) -> str:
-    summary = request.activity_summary
-    signals = summary.behavioral_signals
-    observations = "; ".join(summary.behavioral_observations)
+    """
+    Builds a single RAG query string from ALL activity summaries combined.
+    We merge activity names, types, and aggregate signals into one query
+    so ChromaDB returns context relevant to the child's overall session —
+    not just one activity.
+    """
+    aggregate = request.session_aggregate
+    summaries = request.activity_summaries
+
+    activity_names = " ".join(s.activity_name for s in summaries)
+    activity_types = " ".join(set(s.activity_type for s in summaries))
+
+    # Derive dominant signal levels from the aggregate numbers
+    completion_rate = aggregate.completion_rate
+    completion_label = "high" if completion_rate >= 0.7 else "medium" if completion_rate >= 0.4 else "low"
+
+    total_hints = aggregate.total_hints_used
+    hint_label = "high" if total_hints >= 5 else "medium" if total_hints >= 2 else "low"
+
+    total_fails = aggregate.total_fails
+    fail_label = "high" if total_fails >= 4 else "medium" if total_fails >= 2 else "low"
+
+    avg_duration = aggregate.avg_duration_per_activity_seconds
+    focus_label = "high" if avg_duration >= 300 else "medium" if avg_duration >= 90 else "low"
+
     parts = [
-        summary.activity_name,
-        summary.activity_type,
-        f"completion={summary.completion_status}",
-        f"attempts={summary.attempt_count}",
-        f"hints={summary.hints_used}",
-        f"fails={summary.fail_count}",
-        f"rage_quit={summary.rage_quit}",
-        f"hesitation={signals.hesitation}",
-        f"persistence={signals.persistence}",
-        f"adaptability={signals.adaptability}",
-        f"hint_dependency={signals.hint_dependency}",
-        f"frustration={signals.frustration}",
-        f"focus={signals.focus}",
-        f"confidence={signals.confidence}",
-        observations,
+        activity_names,
+        activity_types,
+        f"completion={completion_label}",
+        f"hint_dependency={hint_label}",
+        f"frustration={fail_label}",
+        f"focus={focus_label}",
+        f"sessions={aggregate.total_sessions}",
+        f"activities={aggregate.total_activities_attempted}",
     ]
-    return " ".join([part for part in parts if part]).strip()
+
+    # Also include per-activity behavioral signal words for richer retrieval
+    for s in summaries:
+        sig = s.behavioral_signals
+        parts += [
+            sig.persistence.value,
+            sig.adaptability.value,
+            sig.confidence.value,
+        ]
+
+    return " ".join([p for p in parts if p]).strip()
 
 
 def _query_collection(collection, query: str, top_k: int) -> list[str]:

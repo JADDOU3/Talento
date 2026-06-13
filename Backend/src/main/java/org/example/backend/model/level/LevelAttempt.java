@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.example.backend.model.activity.ActivitySession;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ public class LevelAttempt {
 
     private Boolean completed;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "activity_session_id")
     private ActivitySession activitySession;

@@ -1,8 +1,8 @@
 package org.example.backend.controller.community;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend.Dto.community.CommentResponseDto;
 import org.example.backend.Dto.community.CreateCommentDto;
-import org.example.backend.model.community.Comment;
 import org.example.backend.service.community.CommentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,15 +18,15 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<Comment> createComment(@RequestBody CreateCommentDto dto) {
-        return ResponseEntity.ok(commentService.createComment(dto));
+    public ResponseEntity<CommentResponseDto> createComment(@RequestBody CreateCommentDto dto) {
+        return ResponseEntity.ok(CommentResponseDto.from(commentService.createComment(dto)));
     }
 
     @GetMapping("/post/{postId}")
-    public ResponseEntity<Page<Comment>> getCommentsByPost(
+    public ResponseEntity<Page<CommentResponseDto>> getCommentsByPost(
             @PathVariable int postId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(commentService.getCommentsByPost(postId, pageable));
+        return ResponseEntity.ok(commentService.getCommentsByPost(postId, pageable).map(CommentResponseDto::from));
     }
 
     @DeleteMapping("/{id}")

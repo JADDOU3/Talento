@@ -14,8 +14,10 @@ import org.example.backend.service.community.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class LevelService {
@@ -56,12 +58,22 @@ public class LevelService {
     public LevelResponseDto updateLevel(int id, UpdateLevelDto dto) {
         Level level = levelRepo.findById(id).orElse(null);
         if (level == null) return null;
+
         level.setLevelNumber(dto.getLevelNumber());
         level.setDifficulty(dto.getDifficulty());
         level.setDescription(dto.getDescription());
-        if (dto.getImages() != null) {
-            level.setImages(mapImages(dto.getImages(), level));
+
+        if (level.getImages() != null) {
+            level.getImages().clear();
+        } else {
+            level.setImages(new ArrayList<>());
         }
+
+        if (dto.getImages() != null) {
+            List<LevelImage> newImages = mapImages(dto.getImages(), level);
+            level.getImages().addAll(newImages);
+        }
+
         return toResponseDto(levelRepo.save(level));
     }
 
@@ -81,7 +93,7 @@ public class LevelService {
             image.setMeta(dto.getMeta());
             image.setLevel(level);
             return image;
-        }).toList();
+        }).collect(Collectors.toCollection(ArrayList::new));
     }
 
     private LevelResponseDto toResponseDto(Level level) {

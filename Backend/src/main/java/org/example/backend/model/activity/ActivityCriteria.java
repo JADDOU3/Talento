@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.example.backend.model.mindset.Criteria;
 
 @Entity
@@ -18,10 +19,12 @@ public class ActivityCriteria {
 
     private Float weight;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "criteria_id")
     private Criteria criteria;

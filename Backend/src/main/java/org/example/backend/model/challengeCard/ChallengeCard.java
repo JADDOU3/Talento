@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.example.backend.model.activity.Activity;
 import org.example.backend.util.enums.ChallengeCardType;
 
@@ -25,6 +26,7 @@ public class ChallengeCard {
 
     private String description;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;

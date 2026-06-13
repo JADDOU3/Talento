@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import json
 import os
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
 from uuid import uuid4
 
 import httpx
@@ -30,7 +30,7 @@ def _chunked(items: list[dict[str, Any]], size: int) -> Iterable[list[dict[str, 
         yield items[i:i + size]
 
 
-def _doc_id(prefix: str, primary: Any | None, fallback: Any | None) -> str:
+def _doc_id(prefix: str, primary: Optional[Any], fallback: Optional[Any]) -> str:
     if primary is not None and str(primary).strip():
         return f"{prefix}:{primary}"
     if fallback is not None and str(fallback).strip():
@@ -171,12 +171,14 @@ async def _fetch_backend_list(client: httpx.AsyncClient, path: str) -> list[dict
     payload = response.json()
     if isinstance(payload, dict) and "data" in payload:
         payload = payload["data"]
+    elif isinstance(payload, dict) and "content" in payload:
+        payload = payload["content"]
     if not isinstance(payload, list):
         raise ValueError(f"Unexpected response from {url}")
     return payload
 
 
-async def seed_from_backend(token: str | None, auth_header: str) -> None:
+async def seed_from_backend(token: Optional[str], auth_header: str) -> None:
     timeout = httpx.Timeout(settings.backend_timeout_seconds)
     headers: dict[str, str] = {}
     if token:
@@ -199,7 +201,7 @@ async def seed_from_files() -> None:
     await _upsert_records(get_rules_collection(), _build_static_records(rules, "interpretation_rule"))
 
 
-async def seed_all(token: str | None, auth_header: str) -> None:
+async def seed_all(token: Optional[str], auth_header: str) -> None:
     await seed_from_backend(token, auth_header)
     await seed_from_files()
 

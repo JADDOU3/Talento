@@ -5,8 +5,7 @@ import org.example.backend.Dto.auth.AuthResponseDto;
 import org.example.backend.Dto.auth.LoginDto;
 import org.example.backend.Dto.auth.RefreshTokenDto;
 import org.example.backend.Dto.auth.RegisterDto;
-import org.example.backend.model.Child;
-import org.example.backend.model.Parent;
+import org.example.backend.Dto.auth.ParentProfileDto;
 import org.example.backend.service.AuthService;
 import org.example.backend.service.ChildService;
 import org.example.backend.service.ParentService;
@@ -51,8 +50,8 @@ public class ParentController {
     }
 
     @GetMapping("/currentUser")
-    public ResponseEntity<Parent> getCurrentUser() {
-        return ResponseEntity.ok(SecurityUtils.getCurrentUser());
+    public ResponseEntity<ParentProfileDto> getCurrentUser() {
+        return ResponseEntity.ok(ParentProfileDto.from(SecurityUtils.getCurrentUser()));
     }
 
 
@@ -63,7 +62,7 @@ public class ParentController {
 
     @PostMapping("/childMode/enable")
     public ResponseEntity<String> enableChildMode() {
-        Parent parent = userService.setChildMode(true);
+        var parent = userService.setChildMode(true);
         if (parent.getChildModePin() == null) {
             return ResponseEntity.badRequest().body("PIN is needed to enable child mode");
         }

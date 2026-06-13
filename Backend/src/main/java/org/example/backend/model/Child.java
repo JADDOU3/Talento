@@ -36,6 +36,7 @@ public class Child {
 
     private boolean isSelected;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Parent parent;

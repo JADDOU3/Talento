@@ -13,6 +13,5 @@ public class UpdatedMemoryStateDto {
     private String stressResponsePattern;
     private String learningBehaviorPattern;
     private String recommendedFutureObservation;
+    private String contextSummary;
 }
-
-
