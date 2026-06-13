@@ -97,16 +97,25 @@ public class RoadmapService {
                 currentLevelNumber = 1;
             }
 
+//            boolean completed = totalLevels > 0 && completedLevels == totalLevels;
+//            String status;
+//            if (completed) {
+//                status = "COMPLETED";
+//            } else if (activitySession != null) {
+//                status = "CURRENT";
+//            } else if (i == 0 || previousCompleted) {
+//                status = "CURRENT";
+//            } else {
+//                status = "LOCKED";
+//            }
+
+            //Todo bring back the correct implementation after testing phase
             boolean completed = totalLevels > 0 && completedLevels == totalLevels;
             String status;
             if (completed) {
                 status = "COMPLETED";
-            } else if (activitySession != null) {
-                status = "CURRENT";
-            } else if (i == 0 || previousCompleted) {
-                status = "CURRENT";
             } else {
-                status = "LOCKED";
+                status = "CURRENT";
             }
 
             RoadmapActivityDto activityDto = new RoadmapActivityDto(

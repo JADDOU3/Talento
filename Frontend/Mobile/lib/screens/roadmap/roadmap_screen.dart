@@ -12,6 +12,7 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
+import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -128,6 +129,7 @@ class _RoadmapView extends StatelessWidget {
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
+    print('DEBUG activityName: "$activityName"'); // أضيفي هاد السطر مؤقتاً
 
     if (activityName == 'mirror mind') {
       Navigator.push(
@@ -160,7 +162,30 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-    _showMessage(context, 'هذا النشاط غير متاح حاليًا');
+    if (activityName == 'pattern hacker') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatternHackerIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) {
+        _refreshRoadmapIfMounted(context);
+      });
+
+      return;
+    }
+
+    _showMessage(
+      context,
+      'النشاط "${activity.activityName}" غير جاهز بعد',
+    );
   }
 
   void _refreshRoadmapIfMounted(BuildContext context) {
