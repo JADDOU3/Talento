@@ -25,14 +25,15 @@ class ApiConstants {
   static String levelAttemptsByActivitySession(int activitySessionId) =>
       '$baseUrl/level-attempts/activity-session/$activitySessionId';
 
-  // Mirror Mind / Activity Runtime
+  // Mirror Mind / Activity Runtime / Color Lab — shared endpoints
   static const String sessions = '$baseUrl/sessions/';
   static const String activitySessions = '$baseUrl/activity-sessions/';
   static const String levelAttempts = '$baseUrl/level-attempts';
   static const String activityEvents = '$baseUrl/events/activity';
   static const String levelEvents = '$baseUrl/events/level';
 
-  static String endSession(int sessionId) => '$baseUrl/sessions/$sessionId/end';
+  static String endSession(int sessionId) =>
+      '$baseUrl/sessions/$sessionId/end';
 
   static String activitySessionById(int activitySessionId) =>
       '$baseUrl/activity-sessions/$activitySessionId';
@@ -42,6 +43,16 @@ class ApiConstants {
 
   static String levelAttemptById(int attemptId) =>
       '$baseUrl/level-attempts/$attemptId';
+
+  // ---- Color Lab aliases (same endpoints, names used by color_lab_service) ----
+  static const String eventsActivity = '$baseUrl/events/activity';
+  static const String eventsLevel = '$baseUrl/events/level';
+
+  static String updateActivitySession(int activitySessionId) =>
+      activitySessionById(activitySessionId);
+
+  static String updateLevelAttempt(int attemptId) =>
+      levelAttemptById(attemptId);
 
   // Roadmap
   static String roadmapByKitAndChild(int kitId, int childId) =>
@@ -79,30 +90,4 @@ class ApiConstants {
   static const String childModeEnable = '$baseUrl/childMode/enable';
   static const String childModeDisable = '$baseUrl/childMode/disable';
   static const String childModeSetPin = '$baseUrl/childMode/setPin';
-
-
-
-
-  // Sessions
-  static const String sessions = '$baseUrl/sessions/';
-  static String endSession(int sessionId) =>
-      '$baseUrl/sessions/$sessionId/end';
-
-  // Activity Sessions
-  static const String activitySessions = '$baseUrl/activity-sessions/';
-  static String updateActivitySession(int activitySessionId) =>
-      '$baseUrl/activity-sessions/$activitySessionId';
-
-  // Levels
-  static String levelsByActivity(int activityId) =>
-      '$baseUrl/levels/activity/$activityId';
-
-  // Level Attempts
-  static const String levelAttempts = '$baseUrl/level-attempts';
-  static String updateLevelAttempt(int attemptId) =>
-      '$baseUrl/level-attempts/$attemptId';
-
-  // Events
-  static const String eventsActivity = '$baseUrl/events/activity';
-  static const String eventsLevel = '$baseUrl/events/level';
 }
