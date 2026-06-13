@@ -31,6 +31,46 @@ class AuthApiClient {
     );
   }
 
+  // Added PUT — used by Color Lab (level attempts, activity sessions)
+  Future<http.Response> put(
+      Uri uri, {
+        Map<String, String>? headers,
+        Object? body,
+      }) async {
+    return _sendWithRefresh(
+          () async => http.put(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+          () async => http.put(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+    );
+  }
+
+  // Added PATCH — used to end sessions
+  Future<http.Response> patch(
+      Uri uri, {
+        Map<String, String>? headers,
+        Object? body,
+      }) async {
+    return _sendWithRefresh(
+          () async => http.patch(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+          () async => http.patch(
+        uri,
+        headers: await authHeaders(headers),
+        body: body,
+      ),
+    );
+  }
+
   Future<http.Response> delete(
       Uri uri, {
         Map<String, String>? headers,

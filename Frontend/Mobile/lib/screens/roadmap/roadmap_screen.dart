@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../activities/activity_intro_example.dart';
+import '../../activities/color_lab/color_lab_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
@@ -138,7 +138,11 @@ class _RoadmapView extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ActivityIntroExample(),
+        builder: (_) => ColorLabLauncher(
+          activityId: activity.activityId,
+          kitId: kitId,
+          childId: childId,
+        ),
       ),
     ).then((_) {
       if (context.mounted) {
