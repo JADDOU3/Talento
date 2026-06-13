@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
+import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
+import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
@@ -12,7 +14,6 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
-import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -129,7 +130,6 @@ class _RoadmapView extends StatelessWidget {
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
-    print('DEBUG activityName: "$activityName"'); // أضيفي هاد السطر مؤقتاً
 
     if (activityName == 'mirror mind') {
       Navigator.push(
@@ -175,10 +175,25 @@ class _RoadmapView extends StatelessWidget {
                 : activity.currentLevelNumber,
           ),
         ),
-      ).then((_) {
-        _refreshRoadmapIfMounted(context);
-      });
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
+    if (activityName == 'conflict resolution' ||
+        activityName == 'conflict_resolution') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ConflictResolutionIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
 
