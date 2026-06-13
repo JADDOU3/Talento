@@ -31,6 +31,7 @@ class AuthApiClient {
     );
   }
 
+
   Future<http.Response> put(
       Uri uri, {
         Map<String, String>? headers,
@@ -49,6 +50,7 @@ class AuthApiClient {
       ),
     );
   }
+
 
   Future<http.Response> patch(
       Uri uri, {
