@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+
+import '../../activities/color_lab/color_lab_launcher.dart';
+
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
@@ -167,65 +171,11 @@ class _RoadmapView extends StatelessWidget {
 
     _showMessage(
       context,
-      'النشاط "${activity.activityName}" غير جاهز بعد',
-    );
-  }
-
-  void _refreshRoadmapIfMounted(BuildContext context) {
-    if (context.mounted) {
-      context.read<RoadmapCubit>().refreshRoadmap();
-    }
-  }
-
-  void _showMessage(
-      BuildContext context,
-      String message,
-      ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-}
-
-class _ColorLabIntroExample extends StatelessWidget {
-  const _ColorLabIntroExample();
-
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: ActivityIntroTemplate(
-          background: const AppBackground(
-            child: SizedBox.expand(),
-          ),
-          mascotAssetPath: 'assets/images/template_mascot.png',
-          onStartPressed: () {
-            _showComingSoonMessage(context);
-          },
-          onReplayPressed: () {
-            _showComingSoonMessage(context);
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showComingSoonMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('هذا مثال لصفحة الانترو فقط، النشاط غير مربوط بعد'),
-        backgroundColor: AppColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+      MaterialPageRoute(
+        builder: (_) => ColorLabLauncher(
+          activityId: activity.activityId,
+          kitId: kitId,
+          childId: childId,
         ),
       ),
     );
