@@ -130,16 +130,18 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
 
     final challenge = currentState.challenge;
 
-    if (!challenge.hasCorrectAnswer) {
-      emit(
-        const ConflictResolutionError(
-          'Correct answer is not available yet. TODO: Coordinate with backend on CHOICE data or QR payload format.',
-        ),
-      );
-      return;
-    }
-
-    final isCorrect = challenge.isCorrectQrValue(result);
+    // TEMP TEST ONLY:
+    // Backend currently does not provide CHOICE correct answers for
+    // Conflict Resolution. Until correct answers are restored/provided,
+    // treat any scanned QR as correct so we can test moving through
+    // all challenges and levels.
+    //
+    // TODO: Remove this fallback before final delivery.
+    // Official logic should compare the scanned QR value against
+    // challenge.correctAnswerIcon, or map QR card IDs to icons first.
+    final bool isCorrect = challenge.hasCorrectAnswer
+        ? challenge.isCorrectQrValue(result)
+        : true;
 
     try {
       if (isCorrect) {
@@ -173,8 +175,7 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
 
     if (!loadedState.isLastChallengeInLevel) {
       final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
-      final nextChallenge =
-      loadedState.level.challenges[nextChallengeIndex];
+      final nextChallenge = loadedState.level.challenges[nextChallengeIndex];
 
       emit(
         loadedState.copyWith(

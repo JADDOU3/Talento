@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../services/activities/conflict_resolution_service.dart';
-import '../../services/tts_service.dart';
 import '../../shared/layout/app_background.dart';
-import '../../shared/widgets/activity_template/button.dart';
+import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'conflict_resolution_video_screen.dart';
 
 class ConflictResolutionIntro extends StatefulWidget {
@@ -30,27 +28,8 @@ class ConflictResolutionIntro extends StatefulWidget {
 
 class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
   final ConflictResolutionService _service = ConflictResolutionService();
-  final TtsService _tts = TtsService();
 
   bool _isPreparing = false;
-
-  static const String _introVoice =
-      'مرحباً يا بطل. سنشاهد موقفاً قصيراً، ثم نختار البطاقة المناسبة ونمسح رمزها.';
-
-  @override
-  void initState() {
-    super.initState();
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) _tts.speak(_introVoice);
-    });
-  }
-
-  @override
-  void dispose() {
-    _tts.stop();
-    super.dispose();
-  }
 
   Future<void> _prepareAndStartGame() async {
     if (_isPreparing) return;
@@ -60,12 +39,25 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
     });
 
     try {
-      final data = await _resolveGameData();
+      print('CONFLICT RESOLUTION: start pressed');
+      print('CONFLICT RESOLUTION: resolving game data...');
+
+      final resolvedData = await _resolveGameData();
+
+      print('CONFLICT RESOLUTION: resolved childId = ${resolvedData.childId}');
+      print('CONFLICT RESOLUTION: resolved sessionId = ${resolvedData.sessionId}');
+      print('CONFLICT RESOLUTION: resolved kitId = ${resolvedData.kitId}');
+      print('CONFLICT RESOLUTION: resolved activityId = ${resolvedData.activityId}');
+      print('CONFLICT RESOLUTION: initialLevelNumber = ${widget.initialLevelNumber}');
+
+      print('CONFLICT RESOLUTION: creating activity session...');
 
       final activitySessionId = await _service.createActivitySession(
-        activityId: data.activityId,
-        sessionId: data.sessionId,
+        activityId: resolvedData.activityId,
+        sessionId: resolvedData.sessionId,
       );
+
+      print('CONFLICT RESOLUTION: created activitySessionId = $activitySessionId');
 
       if (!mounted) return;
 
@@ -73,15 +65,17 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
         context,
         MaterialPageRoute(
           builder: (_) => ConflictResolutionVideoScreen(
-            activityId: data.activityId,
+            activityId: resolvedData.activityId,
             activitySessionId: activitySessionId,
-            childId: data.childId,
-            sessionId: data.sessionId,
+            childId: resolvedData.childId,
+            sessionId: resolvedData.sessionId,
             initialLevelNumber: widget.initialLevelNumber,
           ),
         ),
       );
     } catch (error) {
+      print('CONFLICT RESOLUTION START ERROR: $error');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,35 +88,39 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
         ),
       );
     } finally {
-      if (mounted) {
-        setState(() {
-          _isPreparing = false;
-        });
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _isPreparing = false;
+      });
     }
   }
 
-  Future<_ResolvedData> _resolveGameData() async {
+  Future<_ConflictResolutionResolvedData> _resolveGameData() async {
     final childId = widget.childId ?? await _service.getSelectedChildId();
-    final kitId = widget.kitId;
-    final activityId = widget.activityId;
 
-    if (kitId == null || kitId == 0) {
+    final sessionIdFromWidget = widget.sessionId;
+    final kitIdFromWidget = widget.kitId;
+    final activityIdFromWidget = widget.activityId;
+
+    if (kitIdFromWidget == null || kitIdFromWidget == 0) {
       throw Exception('Kit id was not provided.');
     }
 
-    if (activityId == null || activityId == 0) {
+    if (activityIdFromWidget == null || activityIdFromWidget == 0) {
       throw Exception('Activity id was not provided.');
     }
 
-    if (widget.sessionId != null && widget.sessionId != 0) {
-      return _ResolvedData(
+    if (sessionIdFromWidget != null && sessionIdFromWidget != 0) {
+      return _ConflictResolutionResolvedData(
         childId: childId,
-        sessionId: widget.sessionId!,
-        kitId: kitId,
-        activityId: activityId,
+        sessionId: sessionIdFromWidget,
+        kitId: kitIdFromWidget,
+        activityId: activityIdFromWidget,
       );
     }
+
+    print('CONFLICT RESOLUTION: getting latest session for childId = $childId');
 
     final latestSession = await _service.getLatestSessionForChild(childId);
 
@@ -130,115 +128,63 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
 
     if (latestSession != null) {
       sessionId = _service.readSessionId(latestSession);
+      print('CONFLICT RESOLUTION: latest sessionId = $sessionId');
     }
 
     if (sessionId == 0) {
+      print('CONFLICT RESOLUTION: no latest session, creating new session...');
       sessionId = await _service.createSession(
         childId: childId,
-        kitId: kitId,
+        kitId: kitIdFromWidget,
       );
+      print('CONFLICT RESOLUTION: created sessionId = $sessionId');
     }
 
     if (sessionId == 0) {
       throw Exception('Session id was not found or created.');
     }
 
-    return _ResolvedData(
+    return _ConflictResolutionResolvedData(
       childId: childId,
       sessionId: sessionId,
-      kitId: kitId,
-      activityId: activityId,
+      kitId: kitIdFromWidget,
+      activityId: activityIdFromWidget,
     );
-  }
-
-  void _replayExplanation() {
-    _tts.speak(_introVoice);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: AppBackground(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 26),
-              child: Column(
-                children: [
-                  const Spacer(),
-                  Container(
-                    width: 124,
-                    height: 124,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.22),
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.diversity_3_rounded,
-                      color: AppColors.primary,
-                      size: 58,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'حلّ النزاعات',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'DGAgnadeen',
-                      fontSize: 42,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'شاهدي الموقف، ثم اختاري البطاقة المناسبة من الكِت وامسحي رمز QR الخاص بها.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'ArialRounded',
-                      fontSize: 19,
-                      fontWeight: FontWeight.w700,
-                      height: 1.5,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const Spacer(),
-                  ActivityTemplateButton(
-                    text: _isPreparing ? 'جاري التحضير...' : 'ابدأ',
-                    backgroundColor: AppColors.primary,
-                    onPressed: _isPreparing ? () {} : _prepareAndStartGame,
-                  ),
-                  const SizedBox(height: 14),
-                  TextButton.icon(
-                    onPressed: _replayExplanation,
-                    icon: const Icon(Icons.volume_up_rounded),
-                    label: const Text('إعادة الشرح'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                    ),
-                  ),
-                ],
+    return Stack(
+      children: [
+        ActivityIntroTemplate(
+          background: const AppBackground(
+            child: SizedBox.expand(),
+          ),
+          mascotAssetPath: 'assets/images/template_mascot.png',
+          onStartPressed: _prepareAndStartGame,
+          onReplayPressed: _prepareAndStartGame,
+        ),
+        if (_isPreparing)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.18),
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
           ),
-        ),
-      ),
+      ],
     );
   }
 }
 
-class _ResolvedData {
+class _ConflictResolutionResolvedData {
   final int childId;
   final int sessionId;
   final int kitId;
   final int activityId;
 
-  const _ResolvedData({
+  const _ConflictResolutionResolvedData({
     required this.childId,
     required this.sessionId,
     required this.kitId,

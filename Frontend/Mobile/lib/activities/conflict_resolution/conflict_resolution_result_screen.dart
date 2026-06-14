@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 import '../../shared/layout/app_background.dart';
-import '../../shared/widgets/activity_template/button.dart';
 
 class ConflictResolutionResultScreen extends StatelessWidget {
   final bool isCorrect;
@@ -23,23 +21,23 @@ class ConflictResolutionResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = isFinalComplete
-        ? 'رائع جدًا!'
-        : isCorrect
-        ? 'إجابة صحيحة!'
-        : 'جرّبي مرة أخرى';
-
-    final subtitle = isFinalComplete
-        ? 'لقد أكملتِ نشاط حلّ النزاعات بنجاح.'
-        : isCorrect
-        ? 'اختيار ممتاز، لننتقل للتحدي التالي.'
-        : 'لا بأس، اختاري بطاقة أخرى وامسحي رمز QR من جديد.';
-
     final emoji = isFinalComplete
         ? '🎉'
         : isCorrect
         ? '✅'
         : '🔁';
+
+    final title = isFinalComplete
+        ? 'أحسنت!'
+        : isCorrect
+        ? 'إجابة صحيحة!'
+        : 'حاولي مرة أخرى';
+
+    final subtitle = isFinalComplete
+        ? 'لقد أكملتِ نشاط حل النزاعات!'
+        : isCorrect
+        ? 'اختيار رائع، لنكمل التحدي التالي.'
+        : 'لا بأس، اختاري بطاقة أخرى وامسحي رمز QR من جديد.';
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -52,15 +50,22 @@ class ConflictResolutionResultScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 116,
-                    height: 116,
+                    width: 118,
+                    height: 118,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
+                      color: AppColors.yellow.withValues(alpha: 0.22),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.25),
+                        color: AppColors.yellow.withValues(alpha: 0.55),
                         width: 2,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.10),
+                          blurRadius: 22,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: Text(
@@ -84,39 +89,89 @@ class ConflictResolutionResultScreen extends StatelessWidget {
                   Text(
                     subtitle,
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w700,
-                      height: 1.5,
+                    style: const TextStyle(
+                      fontFamily: 'ArialRounded',
+                      fontSize: 21,
+                      height: 1.35,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   if (elapsed != null) ...[
                     const SizedBox(height: 12),
-                    Text(
-                      'الوقت: ${elapsed!.inSeconds} ثانية',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w700,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withValues(alpha: 0.82),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Text(
+                        'الوقت: ${_formatDuration(elapsed!)}',
+                        style: const TextStyle(
+                          fontFamily: 'ArialRounded',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 42),
                   if (!isCorrect && onTryAgain != null)
-                    ActivityTemplateButton(
-                      text: 'أعيد المحاولة',
-                      backgroundColor: AppColors.primary,
-                      height: 64,
-                      fontSize: 24,
-                      onPressed: onTryAgain!,
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: onTryAgain,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text(
+                          'أعيد المحاولة',
+                          style: TextStyle(
+                            fontFamily: 'DGAgnadeen',
+                            fontSize: 23,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                     ),
-                  if (isFinalComplete && onDone != null)
-                    ActivityTemplateButton(
-                      text: 'رجوع',
-                      backgroundColor: AppColors.primary,
-                      height: 64,
-                      fontSize: 24,
-                      onPressed: onDone!,
+                  if (isFinalComplete && onDone != null) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: onDone,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text(
+                          'العودة للخريطة',
+                          style: TextStyle(
+                            fontFamily: 'DGAgnadeen',
+                            fontSize: 23,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                     ),
+                  ],
                 ],
               ),
             ),
@@ -124,5 +179,12 @@ class ConflictResolutionResultScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+
+    return '$minutes:$seconds';
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text_styles.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String? videoUrl;
@@ -126,9 +125,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     final position = controller.value.position;
     final duration = controller.value.duration;
 
-    if (duration != Duration.zero &&
-        position >= duration &&
-        !_hasEnded) {
+    if (duration != Duration.zero && position >= duration && !_hasEnded) {
       _hasEnded = true;
       widget.onVideoEnd();
     }
@@ -141,6 +138,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _hasEnded = false;
 
     if (!_hasVideoUrl || controller == null || !controller.value.isInitialized) {
+      _placeholderNotified = false;
       _notifyPlaceholderFinished();
       return;
     }
@@ -201,39 +199,47 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       return _buildPlaceholder();
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: Container(
-        color: AppColors.black,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: VideoPlayer(controller),
-            ),
-            Positioned(
-              bottom: 16,
-              child: GestureDetector(
-                onTap: _togglePlayPause,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppColors.black.withValues(alpha: 0.45),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    controller.value.isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    color: AppColors.white,
-                    size: 34,
+    return Container(
+      decoration: _softCardDecoration(),
+      padding: const EdgeInsets.all(8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: Container(
+          color: AppColors.black,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: VideoPlayer(controller),
+              ),
+              Positioned(
+                bottom: 16,
+                child: GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.black.withValues(alpha: 0.48),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.white.withValues(alpha: 0.30),
+                        width: 1.4,
+                      ),
+                    ),
+                    child: Icon(
+                      controller.value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: AppColors.white,
+                      size: 38,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -241,12 +247,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   Widget _buildLoading() {
     return Container(
-      height: 230,
+      height: 245,
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(28),
-      ),
+      decoration: _softCardDecoration(),
       child: const Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
@@ -256,53 +259,156 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   Widget _buildPlaceholder() {
+    final storyText = widget.placeholderText.trim().isEmpty
+        ? 'الفيديو غير متوفر حاليًا، لكن يمكنك قراءة الموقف هنا.'
+        : widget.placeholderText;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.18),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
+      decoration: _softCardDecoration(),
+      child: Stack(
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.movie_creation_rounded,
-              color: AppColors.primary,
-              size: 38,
+          const Positioned(
+            top: 18,
+            left: 18,
+            child: _TinySparkle(
+              color: AppColors.yellow,
+              size: 18,
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            widget.placeholderText.trim().isEmpty
-                ? 'الفيديو غير متوفر حاليًا'
-                : widget.placeholderText,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
-              height: 1.5,
+          const Positioned(
+            bottom: 18,
+            right: 20,
+            child: _TinySparkle(
+              color: AppColors.pink,
+              size: 14,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+            child: Column(
+              children: [
+                Container(
+                  width: 82,
+                  height: 82,
+                  decoration: BoxDecoration(
+                    color: AppColors.yellow.withValues(alpha: 0.24),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.yellow.withValues(alpha: 0.55),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.yellow.withValues(alpha: 0.16),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.theater_comedy_rounded,
+                    color: AppColors.primary,
+                    size: 43,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                Text(
+                  storyText,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'ArialRounded',
+                    fontSize: 18,
+                    height: 1.42,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  BoxDecoration _softCardDecoration() {
+    return BoxDecoration(
+      color: AppColors.white.withValues(alpha: 0.90),
+      borderRadius: BorderRadius.circular(32),
+      border: Border.all(
+        color: AppColors.white.withValues(alpha: 0.96),
+        width: 1.4,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          blurRadius: 22,
+          offset: const Offset(0, 10),
+        ),
+        BoxShadow(
+          color: AppColors.yellow.withValues(alpha: 0.06),
+          blurRadius: 18,
+          offset: const Offset(-6, -4),
+        ),
+      ],
+    );
+  }
+}
+
+class _TinySparkle extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _TinySparkle({
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size.square(size),
+      painter: _TinySparklePainter(color),
+    );
+  }
+}
+
+class _TinySparklePainter extends CustomPainter {
+  final Color color;
+
+  const _TinySparklePainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.75)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(size.width / 2, size.height / 2);
+
+    final path = Path()
+      ..moveTo(center.dx, 0)
+      ..lineTo(center.dx + size.width * 0.16, center.dy - size.height * 0.16)
+      ..lineTo(size.width, center.dy)
+      ..lineTo(center.dx + size.width * 0.16, center.dy + size.height * 0.16)
+      ..lineTo(center.dx, size.height)
+      ..lineTo(center.dx - size.width * 0.16, center.dy + size.height * 0.16)
+      ..lineTo(0, center.dy)
+      ..lineTo(center.dx - size.width * 0.16, center.dy - size.height * 0.16)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TinySparklePainter oldDelegate) {
+    return false;
   }
 }

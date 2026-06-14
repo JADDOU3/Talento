@@ -179,8 +179,7 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-    if (activityName == 'conflict resolution' ||
-        activityName == 'conflict_resolution') {
+    if (activityName == 'conflict resolution cards') {
       Navigator.push(
         context,
         MaterialPageRoute(
