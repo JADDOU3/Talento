@@ -57,62 +57,60 @@ class _RoadmapView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: AppBackground(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-              child: Column(
-                children: [
-                  RoadmapHeader(
-                    onBack: () => Navigator.pop(context),
-                    onRefresh: () {
-                      context.read<RoadmapCubit>().loadRoadmap(
-                        kitId,
-                        childId,
-                      );
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+            child: Column(
+              children: [
+                RoadmapHeader(
+                  onBack: () => Navigator.pop(context),
+                  onRefresh: () {
+                    context.read<RoadmapCubit>().loadRoadmap(
+                      kitId,
+                      childId,
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: BlocBuilder<RoadmapCubit, RoadmapState>(
+                    builder: (context, state) {
+                      if (state is RoadmapLoading) {
+                        return const RoadmapLoadingView();
+                      }
+
+                      if (state is RoadmapError) {
+                        return RoadmapErrorView(
+                          message: state.message,
+                          onRetry: () {
+                            context.read<RoadmapCubit>().loadRoadmap(
+                              kitId,
+                              childId,
+                            );
+                          },
+                        );
+                      }
+
+                      if (state is RoadmapLoaded) {
+                        if (state.activities.isEmpty) {
+                          return const RoadmapEmptyView();
+                        }
+
+                        return RoadmapGameBoard(
+                          activities: state.activities,
+                          onActivityTap: (activity) {
+                            _handleActivityTap(
+                              context,
+                              activity,
+                            );
+                          },
+                        );
+                      }
+
+                      return const SizedBox.shrink();
                     },
                   ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: BlocBuilder<RoadmapCubit, RoadmapState>(
-                      builder: (context, state) {
-                        if (state is RoadmapLoading) {
-                          return const RoadmapLoadingView();
-                        }
-
-                        if (state is RoadmapError) {
-                          return RoadmapErrorView(
-                            message: state.message,
-                            onRetry: () {
-                              context.read<RoadmapCubit>().loadRoadmap(
-                                kitId,
-                                childId,
-                              );
-                            },
-                          );
-                        }
-
-                        if (state is RoadmapLoaded) {
-                          if (state.activities.isEmpty) {
-                            return const RoadmapEmptyView();
-                          }
-
-                          return RoadmapGameBoard(
-                            activities: state.activities,
-                            onActivityTap: (activity) {
-                              _handleActivityTap(
-                                context,
-                                activity,
-                              );
-                            },
-                          );
-                        }
-
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

@@ -11,6 +11,13 @@ import 'conflict_resolution_result_screen.dart';
 import 'widgets/timer_bar_widget.dart';
 import 'widgets/video_player_widget.dart';
 
+TextDirection _smartTextDirection(String value) {
+  final arabicCount = RegExp(r'[\u0600-\u06FF]').allMatches(value).length;
+  final englishCount = RegExp(r'[A-Za-z]').allMatches(value).length;
+
+  return englishCount > arabicCount ? TextDirection.ltr : TextDirection.rtl;
+}
+
 class ConflictResolutionVideoScreen extends StatelessWidget {
   final int activityId;
   final int activitySessionId;
@@ -33,12 +40,12 @@ class ConflictResolutionVideoScreen extends StatelessWidget {
       create: (_) => ConflictResolutionCubit(
         conflictResolutionService: ConflictResolutionService(),
       )..loadGame(
-        activityId: activityId,
-        activitySessionId: activitySessionId,
-        childId: childId,
-        sessionId: sessionId,
-        initialLevelNumber: initialLevelNumber,
-      ),
+          activityId: activityId,
+          activitySessionId: activitySessionId,
+          childId: childId,
+          sessionId: sessionId,
+          initialLevelNumber: initialLevelNumber,
+        ),
       child: _ConflictResolutionVideoView(
         activityId: activityId,
         activitySessionId: activitySessionId,
@@ -131,16 +138,16 @@ class _ConflictResolutionVideoViewState
         onTryAgain: state.isCorrect
             ? null
             : () {
-          context
-              .read<ConflictResolutionCubit>()
-              .returnToChallengeAfterWrong(state.previousState);
+                context
+                    .read<ConflictResolutionCubit>()
+                    .returnToChallengeAfterWrong(state.previousState);
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              _openScanner(context);
-            }
-          });
-        },
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    _openScanner(context);
+                  }
+                });
+              },
       );
     }
 
@@ -156,7 +163,7 @@ class _ConflictResolutionVideoViewState
         onDone: () {
           Navigator.popUntil(
             context,
-                (route) => route.isFirst,
+            (route) => route.isFirst,
           );
         },
       );
@@ -205,21 +212,19 @@ class _LoadedConflictView extends StatelessWidget {
         ),
         ListView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 22),
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
           children: [
             const _TopHeader(),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             _LevelHeader(state: state),
-            const SizedBox(height: 14),
-
+            const SizedBox(height: 12),
             if (state.timerSeconds != null && state.timerRemaining != null) ...[
               TimerBarWidget(
                 totalSeconds: state.timerSeconds!,
                 remainingSeconds: state.timerRemaining!,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
             ],
-
             VideoPlayerWidget(
               key: ValueKey(
                 '${state.currentLevelIndex}-${state.currentChallengeIndex}',
@@ -234,22 +239,17 @@ class _LoadedConflictView extends StatelessWidget {
                 context.read<ConflictResolutionCubit>().onVideoFinished();
               },
             ),
-
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 18),
             _TonkyQuestionCard(
               question: challenge.question,
               fallback: challenge.prompt,
             ),
-
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 18),
             _ActionButtonsCard(
               canContinue: state.canContinue,
               onReplay: onReplay,
               onOpenScanner: onOpenScanner,
             ),
-
             const SizedBox(height: 8),
           ],
         ),
@@ -257,24 +257,26 @@ class _LoadedConflictView extends StatelessWidget {
     );
   }
 }
+
 class _TopHeader extends StatelessWidget {
   const _TopHeader();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.10),
+          color: AppColors.white.withValues(alpha: 0.92),
+          width: 1.1,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.05),
-            blurRadius: 14,
+            blurRadius: 13,
             offset: const Offset(0, 6),
           ),
         ],
@@ -288,14 +290,14 @@ class _TopHeader extends StatelessWidget {
           const Spacer(),
           Image.asset(
             'assets/icons/logo1.png',
-            height: 50,
+            height: 42,
             fit: BoxFit.contain,
             errorBuilder: (_, __, ___) {
               return const Text(
                 'Talento',
                 style: TextStyle(
                   fontFamily: 'BerlinSans',
-                  fontSize: 30,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
                   color: AppColors.primary,
                 ),
@@ -328,12 +330,12 @@ class _TopCircleButton extends StatelessWidget {
         onTap: onPressed,
         customBorder: const CircleBorder(),
         child: SizedBox(
-          width: 38,
-          height: 38,
+          width: 36,
+          height: 36,
           child: Icon(
             icon,
             color: AppColors.primary,
-            size: 21,
+            size: 20,
           ),
         ),
       ),
@@ -351,21 +353,23 @@ class _LevelHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalLevels = state.totalLevels <= 0 ? 5 : state.totalLevels;
+    final currentLevel = state.currentLevelNumber.clamp(1, totalLevels);
+    final progress = (currentLevel / totalLevels).clamp(0.0, 1.0);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 15, 18, 15),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
           colors: [
-            AppColors.white.withValues(alpha: 0.78),
+            AppColors.white.withValues(alpha: 0.80),
             AppColors.yellow.withValues(alpha: 0.12),
             AppColors.pink.withValues(alpha: 0.08),
           ],
         ),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: AppColors.white.withValues(alpha: 0.88),
           width: 1.4,
@@ -373,56 +377,60 @@ class _LevelHeader extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withValues(alpha: 0.06),
-            blurRadius: 16,
+            blurRadius: 15,
             offset: const Offset(0, 7),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 39,
+                height: 39,
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.90),
+                    color: AppColors.white.withValues(alpha: 0.92),
                     width: 2,
                   ),
                 ),
                 child: const Icon(
                   Icons.auto_awesome_rounded,
                   color: AppColors.primary,
-                  size: 23,
+                  size: 22,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 11),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _levelTitle(state.currentLevelNumber),
-                      textAlign: TextAlign.start,
+                      _levelTitle(currentLevel),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: 'DGAgnadeen',
-                        fontSize: 24,
+                        fontSize: 23,
                         height: 1.0,
                         fontWeight: FontWeight.w900,
                         color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
-                      _levelSubtitle(state.currentLevelNumber),
-                      textAlign: TextAlign.start,
+                      _levelSubtitle(currentLevel),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: 'ArialRounded',
-                        fontSize: 13.5,
-                        height: 1.2,
+                        fontSize: 13,
+                        height: 1.15,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textSecondary,
                       ),
@@ -430,66 +438,42 @@ class _LevelHeader extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: List.generate(totalLevels, (index) {
-              final levelNumber = index + 1;
-              final isDone = levelNumber < state.currentLevelNumber;
-              final isCurrent = levelNumber == state.currentLevelNumber;
-
-              return Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(
-                    left: index == totalLevels - 1 ? 0 : 7,
-                  ),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    height: isCurrent ? 28 : 22,
-                    decoration: BoxDecoration(
-                      color: isCurrent
-                          ? AppColors.primary
-                          : isDone
-                          ? AppColors.yellow.withValues(alpha: 0.90)
-                          : AppColors.white.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: isCurrent
-                            ? AppColors.primary.withValues(alpha: 0.25)
-                            : AppColors.white.withValues(alpha: 0.90),
-                        width: 1.3,
-                      ),
-                      boxShadow: isCurrent
-                          ? [
-                        BoxShadow(
-                          color:
-                          AppColors.primary.withValues(alpha: 0.26),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                          : [],
-                    ),
-                    child: Center(
-                      child: Icon(
-                        isDone
-                            ? Icons.check_rounded
-                            : isCurrent
-                            ? Icons.star_rounded
-                            : Icons.circle_rounded,
-                        size: isCurrent ? 17 : 11,
-                        color: isCurrent
-                            ? AppColors.white
-                            : isDone
-                            ? AppColors.textPrimary
-                            : AppColors.primary.withValues(alpha: 0.20),
-                      ),
-                    ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.10),
                   ),
                 ),
-              );
-            }),
+                child: Text(
+                  '$currentLevel / $totalLevels',
+                  style: const TextStyle(
+                    fontFamily: 'ArialRounded',
+                    fontSize: 13.5,
+                    height: 1.0,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 13),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: SizedBox(
+              height: 9,
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: AppColors.white.withValues(alpha: 0.72),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColors.primary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -531,54 +515,6 @@ class _LevelHeader extends StatelessWidget {
   }
 }
 
-class _MiniProgressBadge extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final Color color;
-
-  const _MiniProgressBadge({
-    required this.icon,
-    required this.text,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 7,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.11),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withValues(alpha: 0.16),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 16,
-          ),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: TextStyle(
-              fontFamily: 'ArialRounded',
-              fontSize: 12.2,
-              fontWeight: FontWeight.w900,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _TonkyQuestionCard extends StatelessWidget {
   final String question;
   final String fallback;
@@ -590,152 +526,165 @@ class _TonkyQuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = question.trim().isNotEmpty ? question : fallback;
+    final text = question.trim().isNotEmpty ? question.trim() : fallback.trim();
+    final questionText = text.isEmpty ? 'ما البطاقة الصحيحة؟' : text;
 
-    return SizedBox(
-      height: 145,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            right: 92,
-            left: 0,
-            top: 10,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    AppColors.white.withValues(alpha: 0.96),
-                    AppColors.yellow.withValues(alpha: 0.16),
-                    AppColors.pink.withValues(alpha: 0.10),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 330;
+        final mascotSize = isCompact ? 92.0 : 104.0;
+        final bubbleStartSpace = mascotSize + (isCompact ? 12 : 16);
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 2),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                margin: EdgeInsetsDirectional.only(
+                  start: bubbleStartSpace,
+                  top: 10,
+                ),
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                  isCompact ? 13 : 15,
+                  15,
+                  isCompact ? 13 : 15,
+                  15,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: [
+                      AppColors.white.withValues(alpha: 0.98),
+                      AppColors.yellow.withValues(alpha: 0.12),
+                      AppColors.pink.withValues(alpha: 0.08),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: AppColors.yellow.withValues(alpha: 0.34),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.yellow.withValues(alpha: 0.12),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.035),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: AppColors.yellow.withValues(alpha: 0.38),
-                  width: 1.8,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.yellow.withValues(alpha: 0.14),
-                    blurRadius: 20,
-                    offset: const Offset(0, 9),
-                  ),
-                  BoxShadow(
-                    color: AppColors.pink.withValues(alpha: 0.08),
-                    blurRadius: 14,
-                    offset: const Offset(-4, -3),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.78),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.08),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 11,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.075),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.10),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Icons.psychology_alt_rounded,
+                              color: AppColors.primary,
+                              size: 19,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'اختر البطاقة المناسبة',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'DGAgnadeen',
+                                fontSize: 20.5,
+                                height: 1.0,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.psychology_alt_rounded,
-                          color: AppColors.primary,
-                          size: 20,
+                    const SizedBox(height: 10),
+                    Directionality(
+                      textDirection: _smartTextDirection(questionText),
+                      child: Text(
+                        questionText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'ArialRounded',
+                          fontSize: isCompact ? 15.4 : 16.2,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          height: 1.36,
                         ),
-                        SizedBox(width: 6),
-                        Text(
-                          'اختر البطاقة المناسبة',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'DGAgnadeen',
-                            fontSize: 22,
-                            height: 1.0,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    text.trim().isEmpty ? 'ما البطاقة الصحيحة؟' : text,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'ArialRounded',
-                      fontSize: 16.8,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textPrimary,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              PositionedDirectional(
+                start: bubbleStartSpace - 14,
+                top: 60,
+                child: CustomPaint(
+                  size: const Size(22, 16),
+                  painter: _BubbleTailPainter(),
+                ),
+              ),
+              PositionedDirectional(
+                start: -2,
+                bottom: 2,
+                child: Image.asset(
+                  'assets/images/template_mascot.png',
+                  width: mascotSize,
+                  height: mascotSize,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) {
+                    return Container(
+                      width: mascotSize - 14,
+                      height: mascotSize - 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.smart_toy_rounded,
+                        color: AppColors.primary,
+                        size: isCompact ? 44 : 48,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const PositionedDirectional(
+                end: 18,
+                top: 0,
+                child: _SmallSparkle(
+                  color: AppColors.yellow,
+                  size: 15,
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            right: 82,
-            top: 61,
-            child: CustomPaint(
-              size: const Size(24, 18),
-              painter: _BubbleTailPainter(),
-            ),
-          ),
-          Positioned(
-            right: -10,
-            top: 8,
-            child: Image.asset(
-              'assets/images/template_mascot.png',
-              width: 132,
-              height: 132,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) {
-                return Container(
-                  width: 108,
-                  height: 108,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.smart_toy_rounded,
-                    color: AppColors.primary,
-                    size: 56,
-                  ),
-                );
-              },
-            ),
-          ),
-          const Positioned(
-            left: 18,
-            top: -2,
-            child: _SmallSparkle(
-              color: AppColors.yellow,
-              size: 16,
-            ),
-          ),
-          const Positioned(
-            left: 48,
-            bottom: 2,
-            child: _SmallSparkle(
-              color: AppColors.pink,
-              size: 12,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -786,22 +735,8 @@ class _ActionButtonsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(9),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.58),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: AppColors.white.withValues(alpha: 0.78),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 7),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 4),
       child: Row(
         children: [
           Expanded(
@@ -814,7 +749,7 @@ class _ActionButtonsCard extends StatelessWidget {
               onPressed: onReplay,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: _GlowButton(
               label: 'امسح البطاقة',
@@ -856,61 +791,83 @@ class _GlowButton extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       opacity: enabled ? 1 : 0.48,
       child: Container(
-        height: 60,
+        height: 58,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
           boxShadow: enabled
               ? [
-            BoxShadow(
-              color: glowColor.withValues(alpha: 0.34),
-              blurRadius: 18,
-              spreadRadius: 1.2,
-              offset: const Offset(0, 7),
-            ),
-            BoxShadow(
-              color: AppColors.white.withValues(alpha: 0.40),
-              blurRadius: 8,
-              offset: const Offset(-2, -2),
-            ),
-          ]
+                  BoxShadow(
+                    color: glowColor.withValues(alpha: 0.26),
+                    blurRadius: 18,
+                    offset: const Offset(0, 7),
+                  ),
+                ]
               : [],
         ),
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: backgroundColor,
-            foregroundColor: foregroundColor,
-            disabledBackgroundColor: backgroundColor.withValues(alpha: 0.42),
-            disabledForegroundColor: foregroundColor.withValues(alpha: 0.72),
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 9),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 24,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(25),
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(25),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    backgroundColor.withValues(alpha: enabled ? 1.0 : 0.46),
+                    backgroundColor.withValues(alpha: enabled ? 0.82 : 0.34),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: AppColors.white.withValues(
+                    alpha: enabled ? 0.72 : 0.35,
+                  ),
+                  width: 1.2,
+                ),
               ),
-              const SizedBox(width: 7),
-              Flexible(
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'DGAgnadeen',
-                    fontSize: 20.5,
-                    height: 1.0,
-                    fontWeight: FontWeight.w900,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 31,
+                        height: 31,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.22),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 19,
+                          color: foregroundColor,
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      Flexible(
+                        child: Text(
+                          label,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'DGAgnadeen',
+                            fontSize: label.length > 7 ? 18.5 : 20.5,
+                            height: 1.0,
+                            fontWeight: FontWeight.w900,
+                            color: foregroundColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

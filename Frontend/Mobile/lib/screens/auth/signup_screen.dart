@@ -4,7 +4,7 @@ import '../../core/theme/app_text_styles.dart';
 import 'widgets/custom_button.dart';
 import 'widgets/custom_text_field.dart';
 import 'widgets/auth_switch_text.dart';
-import '../../shared/layout/app_background.dart';
+import '../../shared/layout/animated_background.dart';
 import '../../services/auth/auth_service.dart';
 import 'login_screen.dart';
 
@@ -143,7 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
+      body: AnimatedBackground(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(

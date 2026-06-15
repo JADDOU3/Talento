@@ -3,6 +3,13 @@ import 'package:video_player/video_player.dart';
 
 import '../../../core/theme/app_colors.dart';
 
+TextDirection _smartTextDirection(String value) {
+  final arabicCount = RegExp(r'[\u0600-\u06FF]').allMatches(value).length;
+  final englishCount = RegExp(r'[A-Za-z]').allMatches(value).length;
+
+  return englishCount > arabicCount ? TextDirection.ltr : TextDirection.rtl;
+}
+
 class VideoPlayerWidget extends StatefulWidget {
   final String? videoUrl;
   final String placeholderText;
@@ -201,9 +208,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
     return Container(
       decoration: _softCardDecoration(),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(7),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(25),
         child: Container(
           color: AppColors.black,
           child: Stack(
@@ -214,12 +221,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 child: VideoPlayer(controller),
               ),
               Positioned(
-                bottom: 16,
+                bottom: 14,
                 child: GestureDetector(
                   onTap: _togglePlayPause,
                   child: Container(
-                    width: 60,
-                    height: 60,
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
                       color: AppColors.black.withValues(alpha: 0.48),
                       shape: BoxShape.circle,
@@ -233,7 +240,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
                       color: AppColors.white,
-                      size: 38,
+                      size: 35,
                     ),
                   ),
                 ),
@@ -247,7 +254,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   Widget _buildLoading() {
     return Container(
-      height: 245,
+      height: 220,
       width: double.infinity,
       decoration: _softCardDecoration(),
       child: const Center(
@@ -261,10 +268,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   Widget _buildPlaceholder() {
     final storyText = widget.placeholderText.trim().isEmpty
         ? 'الفيديو غير متوفر حاليًا، لكن يمكنك قراءة الموقف هنا.'
-        : widget.placeholderText;
+        : widget.placeholderText.trim();
 
     return Container(
       width: double.infinity,
+      constraints: const BoxConstraints(minHeight: 208),
       decoration: _softCardDecoration(),
       child: Stack(
         children: [
@@ -285,12 +293,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 82,
-                  height: 82,
+                  width: 74,
+                  height: 74,
                   decoration: BoxDecoration(
                     color: AppColors.yellow.withValues(alpha: 0.24),
                     shape: BoxShape.circle,
@@ -300,34 +309,31 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.yellow.withValues(alpha: 0.16),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
+                        color: AppColors.yellow.withValues(alpha: 0.14),
+                        blurRadius: 15,
+                        offset: const Offset(0, 7),
                       ),
                     ],
                   ),
                   child: const Icon(
                     Icons.theater_comedy_rounded,
                     color: AppColors.primary,
-                    size: 43,
+                    size: 38,
                   ),
                 ),
                 const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                Text(
-                  storyText,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'ArialRounded',
-                    fontSize: 18,
-                    height: 1.42,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
+                Directionality(
+                  textDirection: _smartTextDirection(storyText),
+                  child: Text(
+                    storyText,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'ArialRounded',
+                      fontSize: 17,
+                      height: 1.42,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -341,7 +347,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   BoxDecoration _softCardDecoration() {
     return BoxDecoration(
       color: AppColors.white.withValues(alpha: 0.90),
-      borderRadius: BorderRadius.circular(32),
+      borderRadius: BorderRadius.circular(30),
       border: Border.all(
         color: AppColors.white.withValues(alpha: 0.96),
         width: 1.4,
@@ -349,8 +355,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       boxShadow: [
         BoxShadow(
           color: AppColors.primary.withValues(alpha: 0.08),
-          blurRadius: 22,
-          offset: const Offset(0, 10),
+          blurRadius: 20,
+          offset: const Offset(0, 9),
         ),
         BoxShadow(
           color: AppColors.yellow.withValues(alpha: 0.06),
