@@ -46,8 +46,7 @@ public class RoadmapService {
 
         for (int i = 0; i < activities.size(); i++) {
             Activity activity = activities.get(i);
-            List<Level> levels = levelRepo.findByActivityIdOrderByLevelNumber(activity.getId());
-            int totalLevels = levels.size();
+            int totalLevels = levelRepo.countByActivityId(activity.getId());
 
             // Read directly from progress table — no session computation needed
             Optional<ActivityProgress> progressOpt = activityProgressRepo
