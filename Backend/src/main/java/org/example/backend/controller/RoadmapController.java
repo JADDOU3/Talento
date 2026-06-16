@@ -1,6 +1,6 @@
 package org.example.backend.controller;
 
-import org.example.backend.Dto.progress.ActivityProgressDto;
+import org.example.backend.Dto.progress.ActivityProgressResponseDto;
 import org.example.backend.Dto.roadmap.RoadmapResponseDto;
 import org.example.backend.service.activity.ActivityProgressService;
 import org.example.backend.service.roadmap.RoadmapService;
@@ -25,7 +25,8 @@ public class RoadmapController {
     /**
      * GET /api/roadmap/kit/{kitId}/child/{childId}
      * Returns the full roadmap for a child in a kit.
-     * COMPLETED status is preserved even if the child replays the activity.
+     * Reads directly from activity_progress table — fast and session-independent.
+     * COMPLETED status is sticky and never resets on replay.
      */
     @GetMapping("/kit/{kitId}/child/{childId}")
     public ResponseEntity<RoadmapResponseDto> getRoadmap(
@@ -38,26 +39,26 @@ public class RoadmapController {
     }
 
     /**
-     * GET /api/roadmap/progress/{activitySessionId}
-     * Returns the current level and challenge the child is at within an activity session.
+     * GET /api/roadmap/progress/{activityId}
+     * Returns the current progress of the selected child for a given activity.
+     * Child is inferred from the JWT token — no childId needed.
      *
      * Response:
      * {
      *   "activityId": 5,
-     *   "activitySessionId": 12,
      *   "currentLevelNumber": 3,
      *   "currentLevelId": 25,
-     *   "totalLevels": 5,
      *   "completedLevels": 2,
-     *   "lastChallengeIndex": 1,   // 0-based, last challenge reached in current level
-     *   "activityCompleted": false  // true even during replay if ever completed before
+     *   "totalLevels": 5,
+     *   "completed": false,
+     *   "updatedAt": "2026-06-08T12:00:00"
      * }
      */
-    @GetMapping("/progress/{activitySessionId}")
-    public ResponseEntity<ActivityProgressDto> getProgress(
-            @PathVariable int activitySessionId
+    @GetMapping("/progress/{activityId}")
+    public ResponseEntity<ActivityProgressResponseDto> getProgress(
+            @PathVariable int activityId
     ) {
-        ActivityProgressDto progress = activityProgressService.getProgress(activitySessionId);
+        ActivityProgressResponseDto progress = activityProgressService.getProgress(activityId);
         return ResponseEntity.ok(progress);
     }
 }

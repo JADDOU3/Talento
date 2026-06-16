@@ -1,124 +1,138 @@
 package org.example.backend.service.activity;
 
-import org.example.backend.Dto.progress.ActivityProgressDto;
+import jakarta.persistence.EntityNotFoundException;
+import org.example.backend.Dto.progress.ActivityProgressResponseDto;
+import org.example.backend.model.Child;
+import org.example.backend.model.activity.Activity;
+import org.example.backend.model.activity.ActivityProgress;
 import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.level.Level;
-import org.example.backend.model.level.LevelAttempt;
+import org.example.backend.repo.activity.ActivityProgressRepo;
 import org.example.backend.repo.activity.ActivitySessionRepo;
-import org.example.backend.repo.level.LevelAttemptRepo;
 import org.example.backend.repo.level.LevelRepo;
+import org.example.backend.service.ChildService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class ActivityProgressService {
 
+    private final ActivityProgressRepo activityProgressRepo;
     private final ActivitySessionRepo activitySessionRepo;
-    private final LevelAttemptRepo levelAttemptRepo;
     private final LevelRepo levelRepo;
+    private final ChildService childService;
 
     public ActivityProgressService(
+            ActivityProgressRepo activityProgressRepo,
             ActivitySessionRepo activitySessionRepo,
-            LevelAttemptRepo levelAttemptRepo,
-            LevelRepo levelRepo
+            LevelRepo levelRepo,
+            @Lazy ChildService childService
     ) {
+        this.activityProgressRepo = activityProgressRepo;
         this.activitySessionRepo = activitySessionRepo;
-        this.levelAttemptRepo = levelAttemptRepo;
         this.levelRepo = levelRepo;
+        this.childService = childService;
     }
 
-    /**
-     * Returns the current progress for a child in a given activity session.
-     * - currentLevelNumber: the level the child should play next
-     * - lastChallengeIndex: the last challenge index reached in the current level (0-based)
-     * - activityCompleted: true if all levels are completed in ANY activity session for this child
-     *
-     * The activityCompleted flag looks across ALL sessions so replaying doesn't break it.
-     */
-    public ActivityProgressDto getProgress(int activitySessionId) {
-        ActivitySession activitySession = activitySessionRepo.findById(activitySessionId)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
-                        "ActivitySession not found: " + activitySessionId));
+    // ─────────────────────────────────────────────────────────────
+    // Read — child inferred from JWT via ChildService
+    // ─────────────────────────────────────────────────────────────
 
-        int activityId = activitySession.getActivity().getId();
-        int childId = activitySession.getSession().getChild().getId();
+    @Transactional(readOnly = true)
+    public ActivityProgressResponseDto getProgress(int activityId) {
+        Child child = childService.getSelectedChild();
+        if (child == null) throw new EntityNotFoundException("No selected child found");
 
         List<Level> levels = levelRepo.findByActivityIdOrderByLevelNumber(activityId);
+        Level firstLevel = levels.isEmpty() ? null : levels.get(0);
+
+        Optional<ActivityProgress> progressOpt = activityProgressRepo
+                .findByChildIdAndActivityId(child.getId(), activityId);
+
+        if (progressOpt.isEmpty()) {
+            return new ActivityProgressResponseDto(
+                    activityId,
+                    1,
+                    firstLevel != null ? firstLevel.getId() : 0,
+                    0,
+                    levels.size(),
+                    false,
+                    null
+            );
+        }
+
+        return ActivityProgressResponseDto.from(progressOpt.get());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Write — called by LevelAttemptService on completed=true
+    // ─────────────────────────────────────────────────────────────
+
+    @Transactional
+    public void onLevelCompleted(int activitySessionId, int completedLevelId) {
+        ActivitySession activitySession = activitySessionRepo.findById(activitySessionId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "ActivitySession not found: " + activitySessionId));
+
+        Child child = activitySession.getSession().getChild();
+        Activity activity = activitySession.getActivity();
+
+        List<Level> levels = levelRepo.findByActivityIdOrderByLevelNumber(activity.getId());
         int totalLevels = levels.size();
 
-        // ── Check if EVER completed across all sessions ──────────────────
-        List<ActivitySession> allSessions = activitySessionRepo
-                .findAllByChildIdAndActivityId(childId, activityId);
-
-        boolean everCompleted = allSessions.stream().anyMatch(session -> {
-            List<LevelAttempt> attempts = levelAttemptRepo.findByActivitySessionId(session.getId());
-            long completedCount = attempts.stream()
-                    .filter(a -> Boolean.TRUE.equals(a.getCompleted()))
-                    .map(LevelAttempt::getLevel)
-                    .filter(Objects::nonNull)
-                    .map(Level::getId)
-                    .distinct()
-                    .count();
-            return totalLevels > 0 && completedCount >= totalLevels;
-        });
-
-        // ── Current session progress ─────────────────────────────────────
-        List<LevelAttempt> currentAttempts = levelAttemptRepo
-                .findByActivitySessionId(activitySessionId);
-
-        int highestCompletedLevelNumber = currentAttempts.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getCompleted()))
-                .map(LevelAttempt::getLevel)
-                .filter(Objects::nonNull)
-                .map(Level::getLevelNumber)
-                .max(Integer::compareTo)
-                .orElse(0);
-
-        int currentLevelNumber = highestCompletedLevelNumber + 1;
-        if (totalLevels > 0 && currentLevelNumber > totalLevels) {
-            currentLevelNumber = totalLevels;
-        }
-        if (totalLevels == 0) currentLevelNumber = 1;
-
-        // ── Resolve current level id ─────────────────────────────────────
-        final int finalCurrentLevelNumber = currentLevelNumber;
-        Level currentLevel = levels.stream()
-                .filter(l -> l.getLevelNumber() == finalCurrentLevelNumber)
+        Level completedLevel = levels.stream()
+                .filter(l -> l.getId() == completedLevelId)
                 .findFirst()
-                .orElse(levels.isEmpty() ? null : levels.get(0));
+                .orElse(null);
 
-        int currentLevelId = currentLevel != null ? currentLevel.getId() : 0;
+        if (completedLevel == null) return;
 
-        // ── Last challenge index in current level ────────────────────────
-        // Count how many attempts exist for the current level — each attempt = one challenge tried
-        int lastChallengeIndex = 0;
-        if (currentLevel != null) {
-            long attemptsInCurrentLevel = currentAttempts.stream()
-                    .filter(a -> a.getLevel() != null && a.getLevel().getId() == currentLevelId)
-                    .count();
-            lastChallengeIndex = (int) Math.max(0, attemptsInCurrentLevel - 1);
+        // Fetch existing or create new — avoid lambda reassignment issue
+        ActivityProgress progress = activityProgressRepo
+                .findByChildIdAndActivityId(child.getId(), activity.getId())
+                .orElse(null);
+
+        if (progress == null) {
+            progress = new ActivityProgress();
+            progress.setChild(child);
+            progress.setActivity(activity);
+            progress.setTotalLevels(totalLevels);
+            progress.setCurrentLevelNumber(1);
+            progress.setCompletedLevels(0);
+            progress.setCompleted(false);
         }
 
-        long completedLevels = currentAttempts.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getCompleted()))
-                .map(LevelAttempt::getLevel)
-                .filter(Objects::nonNull)
-                .map(Level::getId)
-                .distinct()
-                .count();
-
-        return new ActivityProgressDto(
-                activityId,
-                activitySessionId,
-                currentLevelNumber,
-                currentLevelId,
-                totalLevels,
-                (int) completedLevels,
-                lastChallengeIndex,
-                everCompleted
+        // Only advance if this level is higher than what we've recorded
+        int newCompletedLevels = Math.max(
+                progress.getCompletedLevels(),
+                completedLevel.getLevelNumber()
         );
+        progress.setCompletedLevels(newCompletedLevels);
+        progress.setTotalLevels(totalLevels);
+
+        // Advance current level to next — use final var for lambda
+        int rawNext = completedLevel.getLevelNumber() + 1;
+        final int nextLevelNumber = rawNext > totalLevels ? totalLevels : rawNext;
+
+        Level nextLevel = levels.stream()
+                .filter(l -> l.getLevelNumber() == nextLevelNumber)
+                .findFirst()
+                .orElse(completedLevel);
+
+        if (nextLevelNumber >= progress.getCurrentLevelNumber()) {
+            progress.setCurrentLevelNumber(nextLevelNumber);
+            progress.setCurrentLevel(nextLevel);
+        }
+
+        // Sticky completed — never set back to false
+        if (newCompletedLevels >= totalLevels) progress.setCompleted(true);
+
+        progress.setUpdatedAt(LocalDateTime.now());
+        activityProgressRepo.save(progress);
     }
 }
