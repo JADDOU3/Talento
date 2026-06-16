@@ -16,6 +16,7 @@ class PatternHackerGameScreen extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int initialLevelNumber;
+  final int? startLevelId;
 
   const PatternHackerGameScreen({
     super.key,
@@ -24,6 +25,7 @@ class PatternHackerGameScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.initialLevelNumber = 1,
+    this.startLevelId,
   });
 
   @override
@@ -36,6 +38,7 @@ class PatternHackerGameScreen extends StatelessWidget {
           childId: childId,
           sessionId: sessionId,
           initialLevelNumber: initialLevelNumber,
+          startLevelId: startLevelId,
         ),
       child: _PatternHackerGameView(
         activityId: activityId,
@@ -117,6 +120,7 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
       } else if (state.hintLevel != _lastHintLevel && state.hintLevel >= 1) {
         _tts.speak(mascotHintText(state.hintLevel, false));
       }
+
       _lastHintLevel = state.hintLevel;
       _lastRandomPress = state.randomPress;
       return;
@@ -132,7 +136,9 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
         builder: (context, state) {
           return Scaffold(
             body: AppBackground(
-              child: SafeArea(child: _buildBody(context, state)),
+              child: SafeArea(
+                child: _buildBody(context, state),
+              ),
             ),
           );
         },
@@ -171,7 +177,9 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
 class _LoadedGameView extends StatelessWidget {
   final PatternHackerLoaded state;
 
-  const _LoadedGameView({required this.state});
+  const _LoadedGameView({
+    required this.state,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +191,9 @@ class _LoadedGameView extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - 28),
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 28,
+            ),
             child: IntrinsicHeight(
               child: Column(
                 children: [
@@ -216,8 +226,9 @@ class _LoadedGameView extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: state.canSubmit
-                          ? () =>
-                              context.read<PatternHackerCubit>().submitAnswer()
+                          ? () => context
+                          .read<PatternHackerCubit>()
+                          .submitAnswer()
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -251,7 +262,9 @@ class _LoadedGameView extends StatelessWidget {
 class _TopInfoBar extends StatelessWidget {
   final Duration elapsed;
 
-  const _TopInfoBar({required this.elapsed});
+  const _TopInfoBar({
+    required this.elapsed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +274,9 @@ class _TopInfoBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withOpacity(0.78),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withOpacity(0.10)),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.10),
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withOpacity(0.05),
@@ -277,7 +292,10 @@ class _TopInfoBar extends StatelessWidget {
             icon: Icons.arrow_back_ios_new_rounded,
           ),
           const SizedBox(width: 8),
-          _InfoPill(icon: Icons.timer_rounded, text: _formatDuration(elapsed)),
+          _InfoPill(
+            icon: Icons.timer_rounded,
+            text: _formatDuration(elapsed),
+          ),
           const Spacer(),
           Image.asset(
             'assets/icons/logo1.png',
@@ -305,7 +323,10 @@ class _TopCircleButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
 
-  const _TopCircleButton({required this.onPressed, required this.icon});
+  const _TopCircleButton({
+    required this.onPressed,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +341,11 @@ class _TopCircleButton extends StatelessWidget {
         child: SizedBox(
           width: 38,
           height: 38,
-          child: Icon(icon, color: AppColors.primary, size: 21),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 21,
+          ),
         ),
       ),
     );
@@ -331,7 +356,10 @@ class _InfoPill extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoPill({required this.icon, required this.text});
+  const _InfoPill({
+    required this.icon,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +369,9 @@ class _InfoPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withOpacity(0.96),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.primary.withOpacity(0.10)),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.10),
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withOpacity(0.05),
@@ -352,7 +382,11 @@ class _InfoPill extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 20),
+          Icon(
+            icon,
+            color: AppColors.primary,
+            size: 20,
+          ),
           const SizedBox(width: 6),
           Text(
             text,
@@ -372,7 +406,9 @@ class _InfoPill extends StatelessWidget {
 class _LevelHeader extends StatelessWidget {
   final PatternHackerLoaded state;
 
-  const _LevelHeader({required this.state});
+  const _LevelHeader({
+    required this.state,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -410,7 +446,9 @@ class _LevelHeader extends StatelessWidget {
 class _FeedbackView extends StatelessWidget {
   final bool isCorrect;
 
-  const _FeedbackView({required this.isCorrect});
+  const _FeedbackView({
+    required this.isCorrect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -447,7 +485,9 @@ class _FeedbackView extends StatelessWidget {
 class _LevelCompleteView extends StatelessWidget {
   final String message;
 
-  const _LevelCompleteView({required this.message});
+  const _LevelCompleteView({
+    required this.message,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +525,10 @@ class _ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorView({required this.message, required this.onRetry});
+  const _ErrorView({
+    required this.message,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -529,6 +572,7 @@ class _ErrorView extends StatelessWidget {
 String _formatDuration(Duration duration) {
   final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
   final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+
   return '$minutes:$seconds';
 }
 
@@ -546,8 +590,7 @@ class _MascotHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActiveHint = randomPress || hintLevel >= 1;
-    final bubbleColor =
-        isActiveHint ? AppColors.pink : AppColors.secondary;
+    final bubbleColor = isActiveHint ? AppColors.pink : AppColors.secondary;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -567,7 +610,9 @@ class _MascotHint extends StatelessWidget {
             decoration: BoxDecoration(
               color: bubbleColor.withOpacity(0.14),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: bubbleColor.withOpacity(0.28)),
+              border: Border.all(
+                color: bubbleColor.withOpacity(0.28),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: bubbleColor.withOpacity(0.06),
@@ -601,14 +646,18 @@ String mascotHintText(int hintLevel, bool randomPress) {
   if (randomPress) {
     return 'فكرة مثيرة! 🤔 لكن لننظر إلى النمط مرة أخرى';
   }
+
   if (hintLevel >= 4) {
     return 'انظر إلى الجزء المميّز… النمط يعيد نفسه، فما الذي يأتي بعده؟ ✨';
   }
+
   if (hintLevel >= 3) {
     return 'أعتقد أن هذا الجزء يعيد نفسه… 🔁';
   }
+
   if (hintLevel >= 1) {
     return 'انتبه جيدًا… الأشكال تتكرر بترتيب معيّن 👀';
   }
+
   return 'هل ترى شيئًا يتكرر؟';
 }

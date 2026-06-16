@@ -1,14 +1,19 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../models/color_lab/color_lab_models.dart';
-import '../../services/color_lab/color_lab_service.dart';
+import '../../../models/color_lab/color_lab_models.dart';
+import '../../../services/activities/color_lab_service.dart';
 import 'color_lab_state.dart';
 
 class ColorLabCubit extends Cubit<ColorLabState> {
   final ColorLabService _service;
+
+  static const FlutterSecureStorage _progressStorage =
+  FlutterSecureStorage();
 
   // Context passed in from the resolver — never refetched here.
   final int activityId;
@@ -26,7 +31,7 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
-  }) : _service = service,
+  })  : _service = service,
         super(const ColorLabInitial());
 
   // ---- internal mutable game data ----
@@ -43,10 +48,70 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   ColorLabLevel get _level => _levels[_currentLevelIndex];
 
+  String get _progressStorageKey {
+    return 'color_lab_progress_child_${childId}_activity_$activityId';
+  }
+
+  // ===================== LOCAL PROGRESS BACKUP =====================
+
+  Future<_ColorLabSavedProgress?> _readSavedProgress() async {
+    final raw = await _progressStorage.read(
+      key: _progressStorageKey,
+    );
+
+    if (raw == null || raw.trim().isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+
+      if (decoded is! Map) return null;
+
+      final levelIndex = _readInt(decoded['levelIndex']);
+      final challengeIndex = _readInt(decoded['challengeIndex']);
+
+      if (levelIndex == null || levelIndex < 0) return null;
+
+      return _ColorLabSavedProgress(
+        levelIndex: levelIndex,
+        challengeIndex: challengeIndex ?? 0,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _saveProgress({
+    required int levelIndex,
+    required int challengeIndex,
+  }) async {
+    await _progressStorage.write(
+      key: _progressStorageKey,
+      value: jsonEncode({
+        'levelIndex': levelIndex,
+        'challengeIndex': challengeIndex,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
+  }
+
+  Future<void> _clearSavedProgress() async {
+    await _progressStorage.delete(
+      key: _progressStorageKey,
+    );
+  }
+
   // ===================== LOAD =====================
 
   /// Step A — load levels, create first attempt, log STARTED events.
-  Future<void> loadGame() async {
+  Future<void> loadGame({
+    int? startLevelId,
+    int initialLevelNumber = 1,
+  }) async {
     // Prevent duplicate loads (e.g. widget rebuilds) which cause 409 on attempts.
     if (_isLoading) return;
     _isLoading = true;
@@ -71,13 +136,31 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         return;
       }
 
-      _currentLevelIndex = 0;
-      _currentChallengeIndex = 0;
+      final startPosition = await _resolveStartPosition(
+        levels: _levels,
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      );
+
+      _currentLevelIndex = startPosition.levelIndex;
+      _currentChallengeIndex = startPosition.challengeIndex;
+
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
+
       _attemptNumber = 1;
       _undosUsed = 0;
+      _elapsed = Duration.zero;
       _selected.clear();
+      _activityCompleted = false;
 
-      // Create first level attempt
+      debugPrint(
+        'COLOR LAB: starting from levelIndex = $_currentLevelIndex, challengeIndex = $_currentChallengeIndex, levelId = ${_level.id}',
+      );
+
+      // Create first level attempt using the resolved starting level.
       _currentAttemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
@@ -91,6 +174,7 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         activityId: activityId,
         action: 'STARTED',
       );
+
       await _service.logLevelEvent(
         childId: childId,
         sessionId: sessionId,
@@ -106,16 +190,110 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     }
   }
 
+  Future<_ColorLabStartPosition> _resolveStartPosition({
+    required List<ColorLabLevel> levels,
+    required int? startLevelId,
+    required int initialLevelNumber,
+  }) async {
+    if (levels.isEmpty) {
+      return const _ColorLabStartPosition(
+        levelIndex: 0,
+        challengeIndex: 0,
+      );
+    }
+
+    int backendLevelIndex = 0;
+
+    if (startLevelId != null && startLevelId > 0) {
+      final indexFromProgress = levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      if (indexFromProgress != -1) {
+        backendLevelIndex = indexFromProgress;
+      } else {
+        debugPrint(
+          'COLOR LAB: startLevelId $startLevelId not found, fallback to level number',
+        );
+
+        backendLevelIndex = _levelIndexFromNumber(
+          initialLevelNumber: initialLevelNumber,
+          levelsLength: levels.length,
+        );
+      }
+    } else {
+      backendLevelIndex = _levelIndexFromNumber(
+        initialLevelNumber: initialLevelNumber,
+        levelsLength: levels.length,
+      );
+    }
+
+    final savedProgress = await _readSavedProgress();
+
+    if (savedProgress != null &&
+        savedProgress.levelIndex >= 0 &&
+        savedProgress.levelIndex < levels.length) {
+      final maxChallengeIndex =
+          levels[savedProgress.levelIndex].challenges.length - 1;
+
+      final savedChallengeIndex = _clampInt(
+        savedProgress.challengeIndex,
+        0,
+        maxChallengeIndex,
+      );
+
+      if (savedProgress.levelIndex > backendLevelIndex ||
+          savedProgress.levelIndex == backendLevelIndex) {
+        debugPrint(
+          'COLOR LAB: using saved local progress levelIndex = ${savedProgress.levelIndex}, challengeIndex = $savedChallengeIndex',
+        );
+
+        return _ColorLabStartPosition(
+          levelIndex: savedProgress.levelIndex,
+          challengeIndex: savedChallengeIndex,
+        );
+      }
+    }
+
+    return _ColorLabStartPosition(
+      levelIndex: backendLevelIndex,
+      challengeIndex: 0,
+    );
+  }
+
+  int _levelIndexFromNumber({
+    required int initialLevelNumber,
+    required int levelsLength,
+  }) {
+    if (levelsLength <= 0) return 0;
+
+    if (initialLevelNumber <= 0 || initialLevelNumber > levelsLength) {
+      return 0;
+    }
+
+    return _clampInt(initialLevelNumber - 1, 0, levelsLength - 1);
+  }
+
+  int _clampInt(int value, int min, int max) {
+    if (max < min) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+  }
+
   // ===================== COLOR PICK / UNDO / RESET =====================
 
   void pickColor(ColorLabPaletteColor color) {
     final palette = _level.paletteImage;
     final rawSlots = palette?.slots ?? 0;
-    // ✅ Fallback to 5 when backend doesn't provide a positive slots value
-    // (matches the fallback used by ColorPaletteWidget for rendering).
+
+    // Fallback to 5 when backend doesn't provide a positive slots value
+    // matches the fallback used by ColorPaletteWidget for rendering.
     final maxSlots = rawSlots > 0 ? rawSlots : 5;
 
-    debugPrint('PICK COLOR: ${color.name} (selected: ${_selected.length}/$maxSlots)');
+    debugPrint(
+      'PICK COLOR: ${color.name} (selected: ${_selected.length}/$maxSlots)',
+    );
 
     // Don't allow more picks than slots
     if (_selected.length >= maxSlots) return;
@@ -134,8 +312,9 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   void reset() {
     if (_selected.isEmpty && _undosUsed == 0) return;
+
     _selected.clear();
-    _undosUsed = 0; // clearing everything also resets the undo allowance
+    _undosUsed = 0;
     _emitLoaded();
   }
 
@@ -144,7 +323,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   void onTimerTick() {
     _elapsed += const Duration(seconds: 1);
 
-    // Only update elapsed silently if we are in the loaded state.
     final current = state;
     if (current is ColorLabLoaded) {
       emit(current.copyWith(elapsed: _elapsed));
@@ -163,8 +341,12 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
     debugPrint('──────── SUBMIT ────────');
     debugPrint('CHALLENGE META: ${challenge.meta}');
-    debugPrint('TARGET: name=${target?.name} hex=${target?.hex} rgb=${target?.rgb}');
-    debugPrint('SELECTED: ${_selected.map((c) => "${c.name}${c.rgb}").toList()}');
+    debugPrint(
+      'TARGET: name=${target?.name} hex=${target?.hex} rgb=${target?.rgb}',
+    );
+    debugPrint(
+      'SELECTED: ${_selected.map((c) => "${c.name}${c.rgb}").toList()}',
+    );
 
     // No readable target → wrong (never auto-pass).
     if (target == null) {
@@ -173,8 +355,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       return;
     }
 
-    // Resolve target RGB safely from the target's actual color (handles
-    // cases where rgb[] is empty but hex is present).
     final tc = target.color;
     final targetRgb = [tc.red, tc.green, tc.blue];
 
@@ -185,7 +365,10 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
       final pc = picked.color;
       final sim = _colorSimilarity([pc.red, pc.green, pc.blue], targetRgb);
-      debugPrint('SINGLE PICK | picked=${picked.name} target=${target.name} nameMatch=$nameMatch | similarity=${_pct(sim)}');
+
+      debugPrint(
+        'SINGLE PICK | picked=${picked.name} target=${target.name} nameMatch=$nameMatch | similarity=${_pct(sim)}',
+      );
 
       if (nameMatch || sim >= _successThreshold) {
         await _handleCorrect();
@@ -196,12 +379,13 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     }
 
     // 2) Mix of 2+ colors → mix and compare to target.
-    // Use a stricter threshold for mixes so adding extra/wrong colors (which
-    // pull the result away from the target) is correctly rejected.
     const mixThreshold = 0.80;
     final mixed = _mixSelectedColors();
     final sim = _colorSimilarity(mixed, targetRgb);
-    debugPrint('MIX | mixedRgb=$mixed targetRgb=$targetRgb | similarity=${_pct(sim)} (need ${_pctV(mixThreshold)})');
+
+    debugPrint(
+      'MIX | mixedRgb=$mixed targetRgb=$targetRgb | similarity=${_pct(sim)} (need ${_pctV(mixThreshold)})',
+    );
 
     if (sim >= mixThreshold) {
       await _handleCorrect();
@@ -215,19 +399,35 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   String _pct(double v) => '${(v * 100).toStringAsFixed(1)}%';
 
   /// Normalizes a color name to a canonical key so Arabic and English match
-  /// (e.g. "أصفر" == "yellow").
+  /// e.g. "أصفر" == "yellow".
   String _canonColor(String name) {
     final n = name.trim().toLowerCase();
+
     const map = {
-      'أصفر': 'yellow', 'اصفر': 'yellow', 'yellow': 'yellow',
-      'أحمر': 'red', 'احمر': 'red', 'red': 'red',
-      'أزرق': 'blue', 'ازرق': 'blue', 'blue': 'blue',
-      'أخضر': 'green', 'اخضر': 'green', 'green': 'green',
-      'أبيض': 'white', 'ابيض': 'white', 'white': 'white',
-      'أسود': 'black', 'اسود': 'black', 'black': 'black',
-      'برتقالي': 'orange', 'orange': 'orange',
-      'بنفسجي': 'purple', 'purple': 'purple',
+      'أصفر': 'yellow',
+      'اصفر': 'yellow',
+      'yellow': 'yellow',
+      'أحمر': 'red',
+      'احمر': 'red',
+      'red': 'red',
+      'أزرق': 'blue',
+      'ازرق': 'blue',
+      'blue': 'blue',
+      'أخضر': 'green',
+      'اخضر': 'green',
+      'green': 'green',
+      'أبيض': 'white',
+      'ابيض': 'white',
+      'white': 'white',
+      'أسود': 'black',
+      'اسود': 'black',
+      'black': 'black',
+      'برتقالي': 'orange',
+      'orange': 'orange',
+      'بنفسجي': 'purple',
+      'purple': 'purple',
     };
+
     return map[n] ?? n;
   }
 
@@ -243,6 +443,7 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         attemptId: _currentAttemptId,
         completed: true,
       );
+
       await _service.logLevelEvent(
         childId: childId,
         sessionId: sessionId,
@@ -253,7 +454,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       debugPrint('CORRECT FLOW ERROR: $e');
     }
 
-    // Show feedback
     emit(ColorLabChallengeResult(isCorrect: true, snapshot: _snapshot()));
   }
 
@@ -264,6 +464,7 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         attemptId: _currentAttemptId,
         completed: false,
       );
+
       await _service.logLevelEvent(
         childId: childId,
         sessionId: sessionId,
@@ -272,6 +473,7 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       );
 
       _attemptNumber += 1;
+
       _currentAttemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
@@ -300,9 +502,14 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     final wasWrong = result is ColorLabChallengeResult && !result.isCorrect;
 
     if (wasWrong) {
-      // Reset picks, retry same challenge.
       _selected.clear();
       _undosUsed = 0;
+
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
+
       _emitLoaded();
       return;
     }
@@ -317,7 +524,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     final isLastLevel = _currentLevelIndex >= _levels.length - 1;
 
     if (isLastChallenge && isLastLevel) {
-      // Entire activity complete → Step B completion flow
       await _completeActivity();
       emit(const ColorLabLevelComplete());
       return;
@@ -328,12 +534,18 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       _currentLevelIndex += 1;
       _currentChallengeIndex = 0;
 
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
+
       try {
         _currentAttemptId = await _service.createLevelAttempt(
           attemptNumber: 1,
           activitySessionId: activitySessionId,
           levelId: _level.id,
         );
+
         await _service.logLevelEvent(
           childId: childId,
           sessionId: sessionId,
@@ -350,6 +562,11 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
     // Next challenge in same level
     _currentChallengeIndex += 1;
+
+    await _saveProgress(
+      levelIndex: _currentLevelIndex,
+      challengeIndex: _currentChallengeIndex,
+    );
 
     try {
       _currentAttemptId = await _service.createLevelAttempt(
@@ -375,7 +592,9 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         activityId: activityId,
         action: 'COMPLETED',
       );
+
       await _service.completeActivitySession(activitySessionId);
+      await _clearSavedProgress();
     } catch (e) {
       debugPrint('COMPLETE ACTIVITY ERROR: $e');
     }
@@ -388,6 +607,11 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     if (_activityCompleted) return;
 
     try {
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
+
       await _service.logActivityEvent(
         childId: childId,
         sessionId: sessionId,
@@ -429,26 +653,44 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     );
   }
 
-  /// Mix selected colors by averaging RGB (subtractive-ish average).
+  /// Mix selected colors by averaging RGB.
   List<int> _mixSelectedColors() {
     if (_selected.isEmpty) return [255, 255, 255];
     return ColorMixer.mix(_selected);
   }
 
-  /// Returns similarity 0..1 between two RGB colors (1 = identical).
-  /// Uses true Euclidean distance so the 70% threshold is meaningful:
-  /// e.g. pure red vs pure yellow ≈ 16% (clearly wrong),
-  /// red vs slightly-orange-red ≈ 90%+ (clearly right).
+  /// Returns similarity 0..1 between two RGB colors.
   double _colorSimilarity(List<int> a, List<int> b) {
     final dr = (a[0] - b[0]).toDouble();
     final dg = (a[1] - b[1]).toDouble();
     final db = (a[2] - b[2]).toDouble();
 
     final distance = math.sqrt(dr * dr + dg * dg + db * db);
-    // Max possible Euclidean distance between two RGB colors:
-    final maxDistance = math.sqrt(255.0 * 255.0 * 3); // ≈ 441.67
 
-    final normalized = distance / maxDistance; // 0..1
+    // Max possible Euclidean distance between two RGB colors.
+    final maxDistance = math.sqrt(255.0 * 255.0 * 3);
+
+    final normalized = distance / maxDistance;
     return (1.0 - normalized).clamp(0.0, 1.0);
   }
+}
+
+class _ColorLabSavedProgress {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _ColorLabSavedProgress({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
+}
+
+class _ColorLabStartPosition {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _ColorLabStartPosition({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
 }

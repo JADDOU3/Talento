@@ -24,6 +24,7 @@ class ConflictResolutionVideoScreen extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int initialLevelNumber;
+  final int? startLevelId;
 
   const ConflictResolutionVideoScreen({
     super.key,
@@ -32,6 +33,7 @@ class ConflictResolutionVideoScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.initialLevelNumber = 1,
+    this.startLevelId,
   });
 
   @override
@@ -40,12 +42,13 @@ class ConflictResolutionVideoScreen extends StatelessWidget {
       create: (_) => ConflictResolutionCubit(
         conflictResolutionService: ConflictResolutionService(),
       )..loadGame(
-          activityId: activityId,
-          activitySessionId: activitySessionId,
-          childId: childId,
-          sessionId: sessionId,
-          initialLevelNumber: initialLevelNumber,
-        ),
+        activityId: activityId,
+        activitySessionId: activitySessionId,
+        childId: childId,
+        sessionId: sessionId,
+        initialLevelNumber: initialLevelNumber,
+        startLevelId: startLevelId,
+      ),
       child: _ConflictResolutionVideoView(
         activityId: activityId,
         activitySessionId: activitySessionId,
@@ -138,16 +141,16 @@ class _ConflictResolutionVideoViewState
         onTryAgain: state.isCorrect
             ? null
             : () {
-                context
-                    .read<ConflictResolutionCubit>()
-                    .returnToChallengeAfterWrong(state.previousState);
+          context
+              .read<ConflictResolutionCubit>()
+              .returnToChallengeAfterWrong(state.previousState);
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) {
-                    _openScanner(context);
-                  }
-                });
-              },
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              _openScanner(context);
+            }
+          });
+        },
       );
     }
 
@@ -163,7 +166,7 @@ class _ConflictResolutionVideoViewState
         onDone: () {
           Navigator.popUntil(
             context,
-            (route) => route.isFirst,
+                (route) => route.isFirst,
           );
         },
       );
@@ -796,12 +799,12 @@ class _GlowButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(25),
           boxShadow: enabled
               ? [
-                  BoxShadow(
-                    color: glowColor.withValues(alpha: 0.26),
-                    blurRadius: 18,
-                    offset: const Offset(0, 7),
-                  ),
-                ]
+            BoxShadow(
+              color: glowColor.withValues(alpha: 0.26),
+              blurRadius: 18,
+              offset: const Offset(0, 7),
+            ),
+          ]
               : [],
         ),
         child: Material(

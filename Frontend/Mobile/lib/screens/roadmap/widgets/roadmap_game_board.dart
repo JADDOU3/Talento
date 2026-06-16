@@ -11,12 +11,14 @@ class RoadmapGameBoard extends StatefulWidget {
   final List<RoadmapActivityModel> activities;
   final ValueChanged<RoadmapActivityModel> onActivityTap;
   final String mascotAssetPath;
+  final int? childId;
 
   const RoadmapGameBoard({
     super.key,
     required this.activities,
     required this.onActivityTap,
     this.mascotAssetPath = 'assets/images/template_mascot.png',
+    this.childId,
   });
 
   @override
@@ -41,7 +43,8 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   void didUpdateWidget(covariant RoadmapGameBoard oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.activities != widget.activities) {
+    if (oldWidget.activities != widget.activities ||
+        oldWidget.childId != widget.childId) {
       _didAutoScroll = false;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -93,6 +96,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
 
     _didAutoScroll = true;
   }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -127,6 +131,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
           child: RoadmapActivityTile(
             activity: activity,
             index: originalIndex,
+            childId: widget.childId,
             onTap: () => widget.onActivityTap(activity),
           ),
         ),

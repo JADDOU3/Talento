@@ -31,6 +31,7 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
     required int childId,
     required int sessionId,
     int initialLevelNumber = 1,
+    int? startLevelId,
   }) async {
     emit(const ConflictResolutionLoading());
 
@@ -57,8 +58,11 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
         return;
       }
 
-      final startLevelIndex =
-      (initialLevelNumber - 1).clamp(0, playableLevels.length - 1);
+      final startLevelIndex = _resolveStartLevelIndex(
+        levels: playableLevels,
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      );
 
       final startLevel = playableLevels[startLevelIndex];
 
@@ -104,6 +108,30 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
     } catch (error) {
       emit(ConflictResolutionError(error.toString()));
     }
+  }
+
+  int _resolveStartLevelIndex({
+    required List<ConflictResolutionLevelModel> levels,
+    required int? startLevelId,
+    required int initialLevelNumber,
+  }) {
+    if (levels.isEmpty) return 0;
+
+    if (startLevelId != null && startLevelId > 0) {
+      final indexFromProgress = levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      if (indexFromProgress != -1) {
+        return indexFromProgress;
+      }
+    }
+
+    if (initialLevelNumber <= 0 || initialLevelNumber > levels.length) {
+      return 0;
+    }
+
+    return (initialLevelNumber - 1).clamp(0, levels.length - 1);
   }
 
   void onVideoStarted() {

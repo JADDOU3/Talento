@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -7,6 +10,7 @@ import '../../../models/roadmap/roadmap_activity_model.dart';
 class RoadmapActivityTile extends StatelessWidget {
   final RoadmapActivityModel activity;
   final int index;
+  final int? childId;
   final VoidCallback onTap;
 
   const RoadmapActivityTile({
@@ -14,6 +18,7 @@ class RoadmapActivityTile extends StatelessWidget {
     required this.activity,
     required this.index,
     required this.onTap,
+    this.childId,
   });
 
   @override
@@ -80,7 +85,10 @@ class RoadmapActivityTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                _ActivitySubtitle(activity: activity),
+                _ActivitySubtitle(
+                  activity: activity,
+                  childId: childId,
+                ),
               ],
             ),
           ),
@@ -95,7 +103,6 @@ class RoadmapActivityTile extends StatelessWidget {
       AppColors.yellow.withValues(alpha: 0.8),
       AppColors.secondary.withValues(alpha: 0.8),
       AppColors.primary.withValues(alpha: 0.8),
-
       const Color(0xFF48C5DC).withValues(alpha: 0.8),
     ];
 
@@ -116,7 +123,6 @@ class RoadmapActivityTile extends StatelessWidget {
   Color get _statusColor {
     final colors = <Color>[
       AppColors.pink,
-
       AppColors.yellow,
       AppColors.secondary,
       AppColors.primary,
@@ -142,40 +148,83 @@ class RoadmapActivityTile extends StatelessWidget {
 
 class _ActivitySubtitle extends StatelessWidget {
   final RoadmapActivityModel activity;
+  final int? childId;
 
   const _ActivitySubtitle({
     required this.activity,
+    required this.childId,
   });
+
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   @override
   Widget build(BuildContext context) {
-    final text = _subtitle;
     final color = activity.isCurrent ? AppColors.white : AppColors.textPrimary;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-      decoration: BoxDecoration(
-        color: activity.isCurrent
-            ? AppColors.white.withValues(alpha: 0.20)
-            : AppColors.white.withValues(alpha: 0.64),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: color,
-          fontSize: 11.2,
-          fontWeight: FontWeight.w900,
-          height: 1.05,
-        ),
-      ),
+    return FutureBuilder<String>(
+      future: _subtitle,
+      initialData: _backendSubtitle,
+      builder: (context, snapshot) {
+        final text = snapshot.data ?? _backendSubtitle;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+          decoration: BoxDecoration(
+            color: activity.isCurrent
+                ? AppColors.white.withValues(alpha: 0.20)
+                : AppColors.white.withValues(alpha: 0.64),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: color,
+              fontSize: 11.2,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+            ),
+          ),
+        );
+      },
     );
   }
 
-  String get _subtitle {
+  Future<String> get _subtitle async {
+    if (activity.isCompleted) {
+      return 'مكتمل';
+    }
+
+    if (!activity.isCurrent) {
+      return 'مغلق';
+    }
+
+    if (!_isColorLab || childId == null || childId == 0) {
+      return _backendSubtitle;
+    }
+
+    final localLevelNumber = await _readColorLabLocalLevelNumber();
+
+    if (localLevelNumber == null) {
+      return _backendSubtitle;
+    }
+
+    final backendLevelNumber = activity.currentLevelNumber <= 0
+        ? 1
+        : activity.currentLevelNumber;
+
+    final totalLevels = activity.totalLevels <= 0 ? 1 : activity.totalLevels;
+
+    final displayLevelNumber = localLevelNumber > backendLevelNumber
+        ? localLevelNumber
+        : backendLevelNumber;
+
+    return 'المستوى $displayLevelNumber من $totalLevels';
+  }
+
+  String get _backendSubtitle {
     if (activity.isCompleted) {
       return 'مكتمل';
     }
@@ -185,6 +234,40 @@ class _ActivitySubtitle extends StatelessWidget {
     }
 
     return 'مغلق';
+  }
+
+  bool get _isColorLab {
+    return activity.activityName.trim().toLowerCase() == 'color lab';
+  }
+
+  Future<int?> _readColorLabLocalLevelNumber() async {
+    final key = 'color_lab_progress_child_${childId}_activity_${activity.activityId}';
+
+    final raw = await _storage.read(key: key);
+
+    if (raw == null || raw.trim().isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+
+      if (decoded is! Map) return null;
+
+      final value = decoded['levelIndex'];
+
+      int? levelIndex;
+
+      if (value is int) {
+        levelIndex = value;
+      } else {
+        levelIndex = int.tryParse(value?.toString() ?? '');
+      }
+
+      if (levelIndex == null || levelIndex < 0) return null;
+
+      return levelIndex + 1;
+    } catch (_) {
+      return null;
+    }
   }
 }
 

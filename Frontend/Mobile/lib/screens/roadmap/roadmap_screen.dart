@@ -97,6 +97,7 @@ class _RoadmapView extends StatelessWidget {
 
                         return RoadmapGameBoard(
                           activities: state.activities,
+                          childId: childId,
                           onActivityTap: (activity) {
                             _handleActivityTap(
                               context,
