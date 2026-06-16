@@ -58,16 +58,24 @@ class SymmetryDrawingWidgetState extends State<SymmetryDrawingWidget> {
 
     final userPoints = _userPoints.whereType<Offset>().toList();
 
-    final score = _calculateCoverageScore(
+    final coverageScore = _calculateCoverageScore(
       expectedPoints: expectedPoints,
       userPoints: userPoints,
-      tolerance: 36,
+      tolerance: 24,
     );
+
+    final precisionScore = _calculateUserPrecisionScore(
+      expectedPoints: expectedPoints,
+      userPoints: userPoints,
+      tolerance: 28,
+    );
+
+    final score = (coverageScore * 0.70) + (precisionScore * 0.30);
 
     return SymmetryDrawingResult(
       hasDrawing: true,
       score: score,
-      isCorrect: score >= 0.70,
+      isCorrect: coverageScore >= 0.82 && precisionScore >= 0.58,
     );
   }
 
@@ -842,4 +850,24 @@ double _calculateCoverageScore({
   }
 
   return matched / expectedPoints.length;
+}
+
+double _calculateUserPrecisionScore({
+  required List<Offset> expectedPoints,
+  required List<Offset> userPoints,
+  required double tolerance,
+}) {
+  if (expectedPoints.isEmpty || userPoints.isEmpty) return 0;
+
+  var matched = 0;
+
+  for (final user in userPoints) {
+    final isCloseToShape = expectedPoints.any(
+          (expected) => (user - expected).distance <= tolerance,
+    );
+
+    if (isCloseToShape) matched++;
+  }
+
+  return matched / userPoints.length;
 }
