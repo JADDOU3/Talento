@@ -80,6 +80,9 @@ public class LevelAttemptService {
         LevelAttempt attempt = levelAttemptRepo.findById(id).orElse(null);
         if (attempt == null) return null;
 
+        // Capture the previous completed state BEFORE updating
+        boolean wasCompleted = Boolean.TRUE.equals(attempt.getCompleted());
+
         attempt.setAttemptNumber(dto.getAttemptNumber());
         attempt.setStartedAt(dto.getStartedAt());
         attempt.setEndedAt(dto.getEndedAt());
@@ -87,8 +90,10 @@ public class LevelAttemptService {
 
         LevelAttempt saved = levelAttemptRepo.save(attempt);
 
-        // Update progress when level is marked completed via PUT
-        if (Boolean.TRUE.equals(dto.getCompleted()) && attempt.getActivitySession() != null
+        // Only trigger progress if transitioning false → true (not on repeated completions)
+        boolean isNowCompleted = Boolean.TRUE.equals(dto.getCompleted());
+        if (!wasCompleted && isNowCompleted
+                && attempt.getActivitySession() != null
                 && attempt.getLevel() != null) {
             activityProgressService.onLevelCompleted(
                     attempt.getActivitySession().getId(),
