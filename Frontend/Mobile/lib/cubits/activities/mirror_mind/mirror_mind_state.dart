@@ -49,14 +49,17 @@ class MirrorMindLoaded extends MirrorMindState {
 
   int get currentChallengeNumber => currentChallengeIndex + 1;
 
-  int get currentLevelNumber => currentLevelIndex + 1;
+  int get currentLevelNumber {
+    if (level.levelNumber > 0) return level.levelNumber;
+    return currentLevelIndex + 1;
+  }
 
   bool get isLastChallengeInLevel {
     return currentChallengeIndex >= level.challenges.length - 1;
   }
 
-  bool get isLastPartOneLevel {
-    return currentLevelIndex >= 2;
+  bool get isLastLevel {
+    return currentLevelIndex + 1 >= levels.length;
   }
 
   bool get canSubmit => selectedChoiceIndex != null;

@@ -22,6 +22,7 @@ dependencies:
   sensors_plus: ^7.0.0
   flame: ^1.35.1
   flame_forge2d: ^0.19.2+4
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:
@@ -32,9 +33,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/logo1.png"
+  image_path: "assets/icons/icon.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icons/logo1.png"
+  adaptive_icon_foreground: "assets/icons/icon.png"
   min_sdk_android: 21
 
 flutter:

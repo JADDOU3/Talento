@@ -66,5 +66,9 @@ public class Parent {
     @JsonIgnore
     private String childModePin;
 
+    @JsonIgnore
+    @OneToMany(mappedBy="parent")
+    private List<FavoriteKit> favorites;
+
 
 }
