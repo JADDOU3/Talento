@@ -50,9 +50,13 @@ class RoadmapActivityTile extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: statusColor.withValues(
-                    alpha: activity.isCurrent ? 0.38 : 0.18,
+                    alpha: activity.isCurrent || activity.isCompleted
+                        ? 0.30
+                        : 0.18,
                   ),
-                  blurRadius: activity.isCurrent ? 30 : 18,
+                  blurRadius: activity.isCurrent || activity.isCompleted
+                      ? 26
+                      : 18,
                   offset: const Offset(0, 10),
                 ),
               ],
@@ -60,10 +64,13 @@ class RoadmapActivityTile extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _StatusBadge(
-                  activity: activity,
-                  color: statusColor,
-                ),
+                if (activity.isCompleted)
+                  const SizedBox(height: 27)
+                else
+                  _StatusBadge(
+                    activity: activity,
+                    color: statusColor,
+                  ),
                 const SizedBox(height: 6),
                 _ActivityIcon(
                   activity: activity,
@@ -108,15 +115,11 @@ class RoadmapActivityTile extends StatelessWidget {
 
     final baseColor = colors[index % colors.length];
 
-    if (activity.isCompleted) {
-      return AppColors.primary.withValues(alpha: 0.90);
-    }
-
     if (activity.isLocked) {
       return baseColor.withValues(alpha: 0.46);
     }
 
-    // Current keeps its original card color.
+    // Completed and current keep their original card color.
     return baseColor;
   }
 
@@ -129,11 +132,7 @@ class RoadmapActivityTile extends StatelessWidget {
       const Color(0xFF48C5DC),
     ];
 
-    if (activity.isCompleted) {
-      return AppColors.primary;
-    }
-
-    if (activity.isCurrent) {
+    if (activity.isCurrent || activity.isCompleted) {
       return colors[index % colors.length];
     }
 
@@ -194,7 +193,7 @@ class _ActivitySubtitle extends StatelessWidget {
 
   Future<String> get _subtitle async {
     if (activity.isCompleted) {
-      return 'مكتمل';
+      return 'تم إنجازها';
     }
 
     if (!activity.isCurrent) {
@@ -226,7 +225,7 @@ class _ActivitySubtitle extends StatelessWidget {
 
   String get _backendSubtitle {
     if (activity.isCompleted) {
-      return 'مكتمل';
+      return 'تم إنجازها';
     }
 
     if (activity.isCurrent) {
@@ -241,7 +240,8 @@ class _ActivitySubtitle extends StatelessWidget {
   }
 
   Future<int?> _readColorLabLocalLevelNumber() async {
-    final key = 'color_lab_progress_child_${childId}_activity_${activity.activityId}';
+    final key =
+        'color_lab_progress_child_${childId}_activity_${activity.activityId}';
 
     final raw = await _storage.read(key: key);
 
@@ -396,9 +396,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = activity.isCompleted
-        ? Icons.check_rounded
-        : activity.isCurrent
+    final icon = activity.isCurrent
         ? Icons.auto_awesome_rounded
         : Icons.lock_rounded;
 

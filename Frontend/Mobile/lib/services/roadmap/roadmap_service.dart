@@ -40,6 +40,19 @@ class RoadmapService {
       if (decoded is Map<String, dynamic>) {
         final roadmap = RoadmapModel.fromJson(decoded);
 
+        for (final activity in roadmap.activities) {
+          debugPrint(
+            'ROADMAP ACTIVITY => '
+                'id=${activity.activityId}, '
+                'name=${activity.activityName}, '
+                'status=${activity.status}, '
+                'currentLevel=${activity.currentLevelNumber}, '
+                'completedLevels=${activity.completedLevels}, '
+                'totalLevels=${activity.totalLevels}, '
+                'isCompleted=${activity.isCompleted}',
+          );
+        }
+
         debugPrint('ROADMAP KIT ID: ${roadmap.kitId}');
         debugPrint('ROADMAP KIT NAME: ${roadmap.kitName}');
         debugPrint('ROADMAP ACTIVITIES COUNT: ${roadmap.activities.length}');
