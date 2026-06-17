@@ -11,7 +11,13 @@ import '../auth/auth_api_client.dart';
 class ColorLabService {
   final AuthApiClient _client = AuthApiClient();
 
-  String _nowIso() => DateTime.now().toUtc().toIso8601String();
+  String _nowIso() {
+    return DateTime.now().toUtc().toIso8601String().replaceFirst('Z', '');
+  }
+
+  String _normalizeIso(String value) {
+    return value.trim().replaceFirst(RegExp(r'Z$'), '');
+  }
 
   // ===================== LEVELS =====================
 
@@ -20,81 +26,116 @@ class ColorLabService {
     final url =
         '${ApiConstants.levelsByActivity(activityId)}?page=0&size=100&sort=levelNumber,asc';
 
-    debugPrint('COLOR LAB GET LEVELS: $url');
+    debugPrint('COLOR LAB GET LEVELS URL: $url');
 
     final response = await _client.get(Uri.parse(url));
 
-    debugPrint('LEVELS RESPONSE: ${response.statusCode}');
-    debugPrint('LEVELS BODY: ${response.body}');
+    debugPrint('COLOR LAB GET LEVELS RESPONSE: ${response.statusCode}');
+    debugPrint('COLOR LAB GET LEVELS BODY: ${response.body}');
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'Failed to load Color Lab levels',
+    );
 
-      // Paginated response → content list. Or plain list.
-      final List content = decoded is Map
-          ? (decoded['content'] as List? ?? [])
-          : (decoded as List? ?? []);
+    final decoded = jsonDecode(response.body);
 
-      return content
-          .whereType<Map>()
-          .map((e) => ColorLabLevel.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
-    }
+    final List content = decoded is Map
+        ? (decoded['content'] as List? ?? [])
+        : (decoded as List? ?? []);
 
-    throw Exception('Failed to load levels: ${response.statusCode}');
+    return content
+        .whereType<Map>()
+        .map((e) => ColorLabLevel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   // ===================== LEVEL ATTEMPTS =====================
 
-  /// POST /api/level-attempts → returns the new attempt id.
-  Future<int> createLevelAttempt({
+  /// POST /api/level-attempts → returns the new attempt info.
+  Future<ColorLabAttemptInfo> createLevelAttempt({
     required int attemptNumber,
     required int activitySessionId,
     required int levelId,
   }) async {
+    final url = ApiConstants.levelAttempts;
+    final startedAt = _nowIso();
+
     final body = {
       'attemptNumber': attemptNumber,
-      'startedAt': _nowIso(),
+      'startedAt': startedAt,
       'activitySessionId': activitySessionId,
       'levelId': levelId,
-      'completed': false, // ✅ DB column is NOT NULL — must send a value
+      'completed': false,
     };
 
-    debugPrint('CREATE LEVEL ATTEMPT: $body');
+    debugPrint('COLOR LAB CREATE LEVEL ATTEMPT URL: $url');
+    debugPrint('COLOR LAB CREATE LEVEL ATTEMPT BODY: $body');
 
-    var response = await _client.post(
-      Uri.parse(ApiConstants.levelAttempts),
+    final response = await _client.post(
+      Uri.parse(url),
       body: jsonEncode(body),
     );
 
     debugPrint(
-        'CREATE ATTEMPT RESPONSE: ${response.statusCode} - ${response.body}');
+      'COLOR LAB CREATE LEVEL ATTEMPT RESPONSE: ${response.statusCode} - ${response.body}',
+    );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
-      if (decoded is Map && decoded['id'] != null) {
-        return _toInt(decoded['id']);
-      }
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'Failed to create Color Lab level attempt',
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (decoded is Map && decoded['id'] != null) {
+      return ColorLabAttemptInfo(
+        id: _toInt(decoded['id']),
+        startedAt: (decoded['startedAt'] ?? startedAt).toString(),
+      );
     }
 
-    throw Exception('Failed to create level attempt: ${response.statusCode}');
+    throw Exception('Create level attempt succeeded but no attempt id returned');
   }
 
   /// PUT /api/level-attempts/{attemptId}
   Future<void> updateLevelAttempt({
     required int attemptId,
+    required int attemptNumber,
+    required String startedAt,
+    required int activitySessionId,
+    required int levelId,
     required bool completed,
   }) async {
+    final url = ApiConstants.updateLevelAttempt(attemptId);
+
     final body = {
+      'attemptNumber': attemptNumber,
+      'startedAt': _normalizeIso(startedAt),
       'endedAt': _nowIso(),
       'completed': completed,
+      'activitySessionId': activitySessionId,
+      'levelId': levelId,
     };
 
-    debugPrint('UPDATE LEVEL ATTEMPT $attemptId: $body');
+    debugPrint('COLOR LAB UPDATE LEVEL ATTEMPT URL: $url');
+    debugPrint('COLOR LAB UPDATE LEVEL ATTEMPT $attemptId BODY: $body');
 
-    await _client.put(
-      Uri.parse(ApiConstants.updateLevelAttempt(attemptId)),
+    final response = await _client.put(
+      Uri.parse(url),
       body: jsonEncode(body),
+    );
+
+    debugPrint(
+      'COLOR LAB UPDATE LEVEL ATTEMPT RESPONSE: ${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'Failed to update Color Lab level attempt',
     );
   }
 
@@ -105,9 +146,11 @@ class ColorLabService {
     required int childId,
     required int sessionId,
     required int activityId,
-    required String action, // STARTED | COMPLETED | ENDED
+    required String action,
     String responseLanguage = 'en',
   }) async {
+    final url = ApiConstants.eventsActivity;
+
     final body = {
       'childId': childId,
       'sessionId': sessionId,
@@ -116,21 +159,34 @@ class ColorLabService {
       'responseLanguage': responseLanguage,
     };
 
-    debugPrint('ACTIVITY EVENT: $body');
+    debugPrint('COLOR LAB ACTIVITY EVENT URL: $url');
+    debugPrint('COLOR LAB ACTIVITY EVENT BODY: $body');
 
-    await _client.post(
-      Uri.parse(ApiConstants.eventsActivity),
+    final response = await _client.post(
+      Uri.parse(url),
       body: jsonEncode(body),
+    );
+
+    debugPrint(
+      'COLOR LAB ACTIVITY EVENT RESPONSE: ${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'Failed to log Color Lab activity event $action',
     );
   }
 
-  /// POST /api/events/level — requires activitySessionId (NOT activityId).
+  /// POST /api/events/level — requires activitySessionId.
   Future<void> logLevelEvent({
     required int childId,
     required int sessionId,
     required int activitySessionId,
-    required String action, // STARTED | COMPLETED | FAILED | RETRIED
+    required String action,
   }) async {
+    final url = ApiConstants.eventsLevel;
+
     final body = {
       'childId': childId,
       'sessionId': sessionId,
@@ -138,27 +194,87 @@ class ColorLabService {
       'action': action,
     };
 
-    debugPrint('LEVEL EVENT: $body');
+    debugPrint('COLOR LAB LEVEL EVENT URL: $url');
+    debugPrint('COLOR LAB LEVEL EVENT BODY: $body');
 
-    await _client.post(
-      Uri.parse(ApiConstants.eventsLevel),
+    final response = await _client.post(
+      Uri.parse(url),
       body: jsonEncode(body),
+    );
+
+    debugPrint(
+      'COLOR LAB LEVEL EVENT RESPONSE: ${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'Failed to log Color Lab level event $action',
     );
   }
 
   // ===================== ACTIVITY SESSION =====================
 
-  /// PUT /api/activity-sessions/{activitySessionId} (no body) — marks complete.
+  /// PUT /api/activity-sessions/{activitySessionId}
   Future<void> completeActivitySession(int activitySessionId) async {
-    debugPrint('COMPLETE ACTIVITY SESSION: $activitySessionId');
+    final url = ApiConstants.updateActivitySession(activitySessionId);
 
-    await _client.put(
-      Uri.parse(ApiConstants.updateActivitySession(activitySessionId)),
+    debugPrint('COLOR LAB COMPLETE ACTIVITY SESSION URL: $url');
+    debugPrint('COLOR LAB COMPLETE ACTIVITY SESSION ID: $activitySessionId');
+
+    final response = await _client.put(
+      Uri.parse(url),
     );
+
+    debugPrint(
+      'COLOR LAB COMPLETE ACTIVITY SESSION RESPONSE: ${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'Failed to complete Color Lab activity session',
+    );
+  }
+
+  // ===================== HELPERS =====================
+
+  void _ensureSuccess(
+      int statusCode,
+      String body,
+      String fallbackMessage,
+      ) {
+    if (statusCode >= 200 && statusCode < 300) return;
+
+    final message = _extractErrorMessage(body, fallbackMessage);
+
+    throw Exception('$message | statusCode=$statusCode | body=$body');
+  }
+
+  String _extractErrorMessage(String body, String fallback) {
+    try {
+      final decoded = jsonDecode(body);
+
+      if (decoded is Map) {
+        return (decoded['message'] ?? decoded['error'] ?? fallback).toString();
+      }
+    } catch (_) {}
+
+    return body.trim().isEmpty ? fallback : body.trim();
   }
 
   static int _toInt(dynamic v) {
     if (v is int) return v;
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
+}
+
+class ColorLabAttemptInfo {
+  final int id;
+  final String startedAt;
+
+  const ColorLabAttemptInfo({
+    required this.id,
+    required this.startedAt,
+  });
 }

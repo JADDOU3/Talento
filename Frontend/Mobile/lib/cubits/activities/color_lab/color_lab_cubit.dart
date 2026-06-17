@@ -15,13 +15,11 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   static const FlutterSecureStorage _progressStorage =
   FlutterSecureStorage();
 
-  // Context passed in from the resolver — never refetched here.
   final int activityId;
   final int activitySessionId;
   final int childId;
   final int sessionId;
 
-  // Success threshold — 70% similarity (per design spec).
   static const double _successThreshold = 0.70;
   static const int _maxUndos = 3;
 
@@ -34,12 +32,12 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   })  : _service = service,
         super(const ColorLabInitial());
 
-  // ---- internal mutable game data ----
   List<ColorLabLevel> _levels = [];
   int _currentLevelIndex = 0;
   int _currentChallengeIndex = 0;
   int _currentAttemptId = 0;
   int _attemptNumber = 1;
+  String _currentAttemptStartedAt = '';
   int _undosUsed = 0;
   Duration _elapsed = Duration.zero;
   final List<ColorLabPaletteColor> _selected = [];
@@ -107,12 +105,10 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   // ===================== LOAD =====================
 
-  /// Step A — load levels, create first attempt, log STARTED events.
   Future<void> loadGame({
     int? startLevelId,
     int initialLevelNumber = 1,
   }) async {
-    // Prevent duplicate loads (e.g. widget rebuilds) which cause 409 on attempts.
     if (_isLoading) return;
     _isLoading = true;
 
@@ -127,7 +123,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         return;
       }
 
-      // Keep only levels that actually have TARGET challenges to play.
       _levels = _levels.where((l) => l.challenges.isNotEmpty).toList();
 
       if (_levels.isEmpty) {
@@ -160,14 +155,15 @@ class ColorLabCubit extends Cubit<ColorLabState> {
         'COLOR LAB: starting from levelIndex = $_currentLevelIndex, challengeIndex = $_currentChallengeIndex, levelId = ${_level.id}',
       );
 
-      // Create first level attempt using the resolved starting level.
-      _currentAttemptId = await _service.createLevelAttempt(
+      final firstAttempt = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
         levelId: _level.id,
       );
 
-      // Log STARTED events (fire and forget, but awaited for ordering)
+      _currentAttemptId = firstAttempt.id;
+      _currentAttemptStartedAt = firstAttempt.startedAt;
+
       await _service.logActivityEvent(
         childId: childId,
         sessionId: sessionId,
@@ -212,10 +208,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       if (indexFromProgress != -1) {
         backendLevelIndex = indexFromProgress;
       } else {
-        debugPrint(
-          'COLOR LAB: startLevelId $startLevelId not found, fallback to level number',
-        );
-
         backendLevelIndex = _levelIndexFromNumber(
           initialLevelNumber: initialLevelNumber,
           levelsLength: levels.length,
@@ -244,10 +236,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
       if (savedProgress.levelIndex > backendLevelIndex ||
           savedProgress.levelIndex == backendLevelIndex) {
-        debugPrint(
-          'COLOR LAB: using saved local progress levelIndex = ${savedProgress.levelIndex}, challengeIndex = $savedChallengeIndex',
-        );
-
         return _ColorLabStartPosition(
           levelIndex: savedProgress.levelIndex,
           challengeIndex: savedChallengeIndex,
@@ -286,16 +274,12 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   void pickColor(ColorLabPaletteColor color) {
     final palette = _level.paletteImage;
     final rawSlots = palette?.slots ?? 0;
-
-    // Fallback to 5 when backend doesn't provide a positive slots value
-    // matches the fallback used by ColorPaletteWidget for rendering.
     final maxSlots = rawSlots > 0 ? rawSlots : 5;
 
     debugPrint(
       'PICK COLOR: ${color.name} (selected: ${_selected.length}/$maxSlots)',
     );
 
-    // Don't allow more picks than slots
     if (_selected.length >= maxSlots) return;
 
     _selected.add(color);
@@ -331,8 +315,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   // ===================== SUBMIT =====================
 
-  /// Decides success. Single-color challenges (Level 1) compare the one picked
-  /// color to the target. Mix challenges (Level 2+) average picks and compare.
   Future<void> submitMix() async {
     if (_selected.isEmpty) return;
 
@@ -348,7 +330,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       'SELECTED: ${_selected.map((c) => "${c.name}${c.rgb}").toList()}',
     );
 
-    // No readable target → wrong (never auto-pass).
     if (target == null) {
       debugPrint('⚠️ TARGET NULL → wrong');
       await _handleWrong();
@@ -358,7 +339,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     final tc = target.color;
     final targetRgb = [tc.red, tc.green, tc.blue];
 
-    // 1) Name match on a single pick (most reliable for Level 1).
     if (_selected.length == 1) {
       final picked = _selected.first;
       final nameMatch = _sameColorName(picked.name, target.name);
@@ -378,7 +358,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       return;
     }
 
-    // 2) Mix of 2+ colors → mix and compare to target.
     const mixThreshold = 0.80;
     final mixed = _mixSelectedColors();
     final sim = _colorSimilarity(mixed, targetRgb);
@@ -398,8 +377,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   String _pct(double v) => '${(v * 100).toStringAsFixed(1)}%';
 
-  /// Normalizes a color name to a canonical key so Arabic and English match
-  /// e.g. "أصفر" == "yellow".
   String _canonColor(String name) {
     final n = name.trim().toLowerCase();
 
@@ -437,10 +414,13 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   }
 
   Future<void> _handleCorrect() async {
-    // Step B — mark attempt completed + log COMPLETED level event
     try {
       await _service.updateLevelAttempt(
         attemptId: _currentAttemptId,
+        attemptNumber: _attemptNumber,
+        startedAt: _currentAttemptStartedAt,
+        activitySessionId: activitySessionId,
+        levelId: _level.id,
         completed: true,
       );
 
@@ -458,10 +438,13 @@ class ColorLabCubit extends Cubit<ColorLabState> {
   }
 
   Future<void> _handleWrong() async {
-    // Step C — mark attempt failed, log FAILED, create new attempt, log RETRIED
     try {
       await _service.updateLevelAttempt(
         attemptId: _currentAttemptId,
+        attemptNumber: _attemptNumber,
+        startedAt: _currentAttemptStartedAt,
+        activitySessionId: activitySessionId,
+        levelId: _level.id,
         completed: false,
       );
 
@@ -474,11 +457,14 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
       _attemptNumber += 1;
 
-      _currentAttemptId = await _service.createLevelAttempt(
+      final nextAttempt = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
         levelId: _level.id,
       );
+
+      _currentAttemptId = nextAttempt.id;
+      _currentAttemptStartedAt = nextAttempt.startedAt;
 
       await _service.logLevelEvent(
         childId: childId,
@@ -495,9 +481,7 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   // ===================== NEXT =====================
 
-  /// Called by the screen after showing feedback.
   Future<void> nextChallenge() async {
-    // If the last result was wrong, just let the child retry the same challenge.
     final result = state;
     final wasWrong = result is ColorLabChallengeResult && !result.isCorrect;
 
@@ -514,7 +498,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       return;
     }
 
-    // Correct → advance.
     _selected.clear();
     _undosUsed = 0;
     _attemptNumber = 1;
@@ -530,7 +513,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     }
 
     if (isLastChallenge) {
-      // Move to next level
       _currentLevelIndex += 1;
       _currentChallengeIndex = 0;
 
@@ -540,11 +522,14 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       );
 
       try {
-        _currentAttemptId = await _service.createLevelAttempt(
+        final nextAttempt = await _service.createLevelAttempt(
           attemptNumber: 1,
           activitySessionId: activitySessionId,
           levelId: _level.id,
         );
+
+        _currentAttemptId = nextAttempt.id;
+        _currentAttemptStartedAt = nextAttempt.startedAt;
 
         await _service.logLevelEvent(
           childId: childId,
@@ -560,7 +545,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
       return;
     }
 
-    // Next challenge in same level
     _currentChallengeIndex += 1;
 
     await _saveProgress(
@@ -569,11 +553,14 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     );
 
     try {
-      _currentAttemptId = await _service.createLevelAttempt(
+      final nextAttempt = await _service.createLevelAttempt(
         attemptNumber: 1,
         activitySessionId: activitySessionId,
         levelId: _level.id,
       );
+
+      _currentAttemptId = nextAttempt.id;
+      _currentAttemptStartedAt = nextAttempt.startedAt;
     } catch (e) {
       debugPrint('NEXT CHALLENGE ATTEMPT ERROR: $e');
     }
@@ -602,7 +589,6 @@ class ColorLabCubit extends Cubit<ColorLabState> {
 
   // ===================== EXIT =====================
 
-  /// Step D — called when leaving the game without completing.
   Future<void> logExitIfNotCompleted() async {
     if (_activityCompleted) return;
 
@@ -653,21 +639,17 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     );
   }
 
-  /// Mix selected colors by averaging RGB.
   List<int> _mixSelectedColors() {
     if (_selected.isEmpty) return [255, 255, 255];
     return ColorMixer.mix(_selected);
   }
 
-  /// Returns similarity 0..1 between two RGB colors.
   double _colorSimilarity(List<int> a, List<int> b) {
     final dr = (a[0] - b[0]).toDouble();
     final dg = (a[1] - b[1]).toDouble();
     final db = (a[2] - b[2]).toDouble();
 
     final distance = math.sqrt(dr * dr + dg * dg + db * db);
-
-    // Max possible Euclidean distance between two RGB colors.
     final maxDistance = math.sqrt(255.0 * 255.0 * 3);
 
     final normalized = distance / maxDistance;
