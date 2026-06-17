@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../services/activities/mirror_mind_service.dart';
+import '../../services/activities/conflict_resolution_service.dart';
 import '../../services/roadmap/roadmap_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
-import 'mirror_mind_game_screen.dart';
+import 'conflict_resolution_video_screen.dart';
 
-class MirrorMindIntro extends StatefulWidget {
+class ConflictResolutionIntro extends StatefulWidget {
   final int? childId;
   final int? sessionId;
   final int? kitId;
   final int? activityId;
   final int initialLevelNumber;
 
-  const MirrorMindIntro({
+  const ConflictResolutionIntro({
     super.key,
     this.childId,
     this.sessionId,
@@ -23,11 +23,12 @@ class MirrorMindIntro extends StatefulWidget {
   });
 
   @override
-  State<MirrorMindIntro> createState() => _MirrorMindIntroState();
+  State<ConflictResolutionIntro> createState() =>
+      _ConflictResolutionIntroState();
 }
 
-class _MirrorMindIntroState extends State<MirrorMindIntro> {
-  final MirrorMindService _mirrorMindService = MirrorMindService();
+class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
+  final ConflictResolutionService _service = ConflictResolutionService();
   final RoadmapService _roadmapService = RoadmapService();
 
   bool _isPreparing = false;
@@ -40,33 +41,33 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     });
 
     try {
-      print('MIRROR MIND: start pressed');
-      print('MIRROR MIND: resolving game data...');
+      print('CONFLICT RESOLUTION: start pressed');
+      print('CONFLICT RESOLUTION: resolving game data...');
 
       final resolvedData = await _resolveGameData();
 
-      print('MIRROR MIND: resolved childId = ${resolvedData.childId}');
-      print('MIRROR MIND: resolved sessionId = ${resolvedData.sessionId}');
-      print('MIRROR MIND: resolved kitId = ${resolvedData.kitId}');
-      print('MIRROR MIND: resolved activityId = ${resolvedData.activityId}');
+      print('CONFLICT RESOLUTION: resolved childId = ${resolvedData.childId}');
+      print('CONFLICT RESOLUTION: resolved sessionId = ${resolvedData.sessionId}');
+      print('CONFLICT RESOLUTION: resolved kitId = ${resolvedData.kitId}');
+      print('CONFLICT RESOLUTION: resolved activityId = ${resolvedData.activityId}');
 
       int? startLevelId;
       int startLevelNumber = widget.initialLevelNumber <= 0
           ? 1
           : widget.initialLevelNumber;
 
-      print('MIRROR MIND: loading activity progress...');
+      print('CONFLICT RESOLUTION: loading activity progress...');
 
       final progress = await _roadmapService.getActivityProgress(
         activityId: resolvedData.activityId,
       );
 
       if (progress == null) {
-        print('MIRROR MIND: no progress found, fallback to level 1');
+        print('CONFLICT RESOLUTION: no progress found, fallback to level 1');
         startLevelId = null;
         startLevelNumber = 1;
       } else if (progress.completed) {
-        print('MIRROR MIND: activity completed, replay starts from level 1');
+        print('CONFLICT RESOLUTION: activity completed, replay starts from level 1');
         startLevelId = null;
         startLevelNumber = 1;
       } else if (progress.hasValidCurrentLevel) {
@@ -75,29 +76,29 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
             ? 1
             : progress.currentLevelNumber;
 
-        print('MIRROR MIND: resume from levelId = $startLevelId');
-        print('MIRROR MIND: resume from levelNumber = $startLevelNumber');
+        print('CONFLICT RESOLUTION: resume from levelId = $startLevelId');
+        print('CONFLICT RESOLUTION: resume from levelNumber = $startLevelNumber');
       } else {
-        print('MIRROR MIND: invalid progress level, fallback to level 1');
+        print('CONFLICT RESOLUTION: invalid progress level, fallback to level 1');
         startLevelId = null;
         startLevelNumber = 1;
       }
 
-      print('MIRROR MIND: creating activity session...');
+      print('CONFLICT RESOLUTION: creating activity session...');
 
-      final activitySessionId = await _mirrorMindService.createActivitySession(
+      final activitySessionId = await _service.createActivitySession(
         activityId: resolvedData.activityId,
         sessionId: resolvedData.sessionId,
       );
 
-      print('MIRROR MIND: created activitySessionId = $activitySessionId');
+      print('CONFLICT RESOLUTION: created activitySessionId = $activitySessionId');
 
       if (!mounted) return;
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => MirrorMindGameScreen(
+          builder: (_) => ConflictResolutionVideoScreen(
             activityId: resolvedData.activityId,
             activitySessionId: activitySessionId,
             childId: resolvedData.childId,
@@ -108,7 +109,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
         ),
       );
     } catch (error) {
-      print('MIRROR MIND START ERROR: $error');
+      print('CONFLICT RESOLUTION START ERROR: $error');
 
       if (!mounted) return;
 
@@ -130,9 +131,8 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     }
   }
 
-  Future<_MirrorMindResolvedData> _resolveGameData() async {
-    final childId =
-        widget.childId ?? await _mirrorMindService.getSelectedChildId();
+  Future<_ConflictResolutionResolvedData> _resolveGameData() async {
+    final childId = widget.childId ?? await _service.getSelectedChildId();
 
     final sessionIdFromWidget = widget.sessionId;
     final kitIdFromWidget = widget.kitId;
@@ -147,7 +147,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     }
 
     if (sessionIdFromWidget != null && sessionIdFromWidget != 0) {
-      return _MirrorMindResolvedData(
+      return _ConflictResolutionResolvedData(
         childId: childId,
         sessionId: sessionIdFromWidget,
         kitId: kitIdFromWidget,
@@ -155,32 +155,31 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
       );
     }
 
-    print('MIRROR MIND: getting latest session for childId = $childId');
+    print('CONFLICT RESOLUTION: getting latest session for childId = $childId');
 
-    final latestSession =
-    await _mirrorMindService.getLatestSessionForChild(childId);
+    final latestSession = await _service.getLatestSessionForChild(childId);
 
     int sessionId = 0;
 
     if (latestSession != null) {
-      sessionId = _mirrorMindService.readSessionId(latestSession);
-      print('MIRROR MIND: latest sessionId = $sessionId');
+      sessionId = _service.readSessionId(latestSession);
+      print('CONFLICT RESOLUTION: latest sessionId = $sessionId');
     }
 
     if (sessionId == 0) {
-      print('MIRROR MIND: no latest session, creating new session...');
-      sessionId = await _mirrorMindService.createSession(
+      print('CONFLICT RESOLUTION: no latest session, creating new session...');
+      sessionId = await _service.createSession(
         childId: childId,
         kitId: kitIdFromWidget,
       );
-      print('MIRROR MIND: created sessionId = $sessionId');
+      print('CONFLICT RESOLUTION: created sessionId = $sessionId');
     }
 
     if (sessionId == 0) {
       throw Exception('Session id was not found or created.');
     }
 
-    return _MirrorMindResolvedData(
+    return _ConflictResolutionResolvedData(
       childId: childId,
       sessionId: sessionId,
       kitId: kitIdFromWidget,
@@ -203,7 +202,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
         if (_isPreparing)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.18),
+              color: Colors.black.withValues(alpha: 0.18),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -214,13 +213,13 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
   }
 }
 
-class _MirrorMindResolvedData {
+class _ConflictResolutionResolvedData {
   final int childId;
   final int sessionId;
   final int kitId;
   final int activityId;
 
-  const _MirrorMindResolvedData({
+  const _ConflictResolutionResolvedData({
     required this.childId,
     required this.sessionId,
     required this.kitId,

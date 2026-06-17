@@ -11,7 +11,16 @@ import 'widgets/scanner_action_button.dart';
 import 'widgets/scanner_badge.dart';
 
 class QrScannerScreen extends StatefulWidget {
-  const QrScannerScreen({super.key});
+  const QrScannerScreen({
+    super.key,
+    this.returnFirstScan = false,
+  });
+
+  /// When true, the scanner returns the first scanned QR value
+  /// using Navigator.pop(context, value).
+  ///
+  /// Default is false to keep the old multi-scan behavior unchanged.
+  final bool returnFirstScan;
 
   @override
   State<QrScannerScreen> createState() => _QrScannerScreenState();
@@ -27,6 +36,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
   bool _isScannerStopped = false;
   bool _isDuplicateDialogVisible = false;
+  bool _isReturningScanValue = false;
 
   bool get _hasReachedMaxScans => _scannedValues.length >= _maxScans;
 
@@ -36,8 +46,12 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     super.dispose();
   }
 
-  void _handleDetect(BarcodeCapture capture) async {
-    if (_isScannerStopped || _hasReachedMaxScans) return;
+  Future<void> _handleDetect(BarcodeCapture capture) async {
+    if (_isScannerStopped ||
+        _hasReachedMaxScans ||
+        _isReturningScanValue) {
+      return;
+    }
 
     final Barcode? barcode =
     capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
@@ -56,11 +70,28 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
     _lastScanTimeByValue[value] = now;
 
-    final bool wasAlreadyScanned = _scannedValues.contains(value);
-
     await HapticFeedback.heavyImpact();
 
     if (!mounted) return;
+
+    /// Conflict Resolution / activity mode:
+    /// return the first scanned value immediately.
+    if (widget.returnFirstScan) {
+      _isReturningScanValue = true;
+
+      setState(() {
+        _isScannerStopped = true;
+      });
+
+      await _scannerController.stop();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop(value);
+      return;
+    }
+
+    final bool wasAlreadyScanned = _scannedValues.contains(value);
 
     setState(() {
       _scannedValues.remove(value);
@@ -275,6 +306,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   Future<void> _restartScanner() async {
     setState(() {
       _isScannerStopped = false;
+      _isReturningScanValue = false;
       _scannedValues.clear();
       _lastScanTimeByValue.clear();
     });

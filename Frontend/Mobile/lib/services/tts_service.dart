@@ -13,6 +13,7 @@ class TtsService {
 
   Future<void> init() async {
     if (_ready) return;
+
     try {
       await _tts.setLanguage('ar');
       await _tts.setSpeechRate(0.5);
@@ -45,8 +46,10 @@ class TtsService {
 
   String _stripEmoji(String text) {
     return text.replaceAll(
-      RegExp(r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]',
-          unicode: true),
+      RegExp(
+        r'[\u2600-\u27BF\u2B00-\u2BFF]|[\uD83C-\uDBFF][\uDC00-\uDFFF]',
+        unicode: true,
+      ),
       '',
     );
   }

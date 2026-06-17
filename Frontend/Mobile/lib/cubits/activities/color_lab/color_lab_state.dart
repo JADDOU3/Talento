@@ -1,4 +1,4 @@
-import '../../models/color_lab/color_lab_models.dart';
+import '../../../models/color_lab/color_lab_models.dart';
 
 abstract class ColorLabState {
   const ColorLabState();

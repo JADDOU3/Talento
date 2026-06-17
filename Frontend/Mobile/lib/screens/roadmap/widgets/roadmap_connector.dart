@@ -71,25 +71,6 @@ class _RoadmapConnectorPainter extends CustomPainter {
           ..style = PaintingStyle.fill,
       );
     }
-
-    final sparklePaint = Paint()
-      ..color = AppColors.yellow.withValues(alpha: 0.9)
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
-
-    final sparkleX = curveToRight ? size.width * 0.53 : size.width * 0.47;
-    final sparkleY = size.height * 0.50;
-
-    canvas.drawLine(
-      Offset(sparkleX - 5, sparkleY),
-      Offset(sparkleX + 5, sparkleY),
-      sparklePaint,
-    );
-    canvas.drawLine(
-      Offset(sparkleX, sparkleY - 5),
-      Offset(sparkleX, sparkleY + 5),
-      sparklePaint,
-    );
   }
 
   @override

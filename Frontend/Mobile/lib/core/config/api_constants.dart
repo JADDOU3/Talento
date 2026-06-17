@@ -58,6 +58,9 @@ class ApiConstants {
   static String roadmapByKitAndChild(int kitId, int childId) =>
       '$baseUrl/roadmap/kit/$kitId/child/$childId';
 
+  static String roadmapProgress(int activityId) =>
+      '$baseUrl/roadmap/progress/$activityId';
+
   // Posts
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';

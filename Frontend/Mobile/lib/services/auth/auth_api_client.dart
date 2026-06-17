@@ -110,8 +110,6 @@ class AuthApiClient {
       ) async {
     final accessToken = await TokenStorageService.getAccessToken();
 
-    print('ACCESS TOKEN: $accessToken');
-
     return {
       'Content-Type': 'application/json',
       if (accessToken != null && accessToken.isNotEmpty)

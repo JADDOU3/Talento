@@ -14,9 +14,11 @@ class HomeService {
   final KitService _kitService = KitService();
 
   Future<bool> isNewUser() async {
-    final response = await _client.get(
-      Uri.parse(ApiConstants.isNewUser),
-    );
+    final uri = Uri.parse(ApiConstants.isNewUser);
+
+    print('IS NEW USER URL: $uri');
+
+    final response = await _client.get(uri);
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
@@ -43,7 +45,6 @@ class HomeService {
       _extractErrorMessage(response.body, 'Failed to check user state'),
     );
   }
-
   Future<HomeData> getReturningUserHomeData() async {
     final selectedChild = await getSelectedChild();
 
