@@ -13,6 +13,7 @@ import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/emotion_chain/emotion_chain_intro.dart';
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -186,6 +187,21 @@ class _RoadmapView extends StatelessWidget {
 
       return;
     }
+    if (activityName == 'emotion chain analyzer') {
+      Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmotionChainIntro(
+          childId: childId,
+          kitId: kitId,
+          activityId: activity.activityId,
+        ),
+      ),
+    ).then((_) {
+      _refreshRoadmapIfMounted(context);
+    });
+  return;
+}
 
     _showMessage(
       context,
