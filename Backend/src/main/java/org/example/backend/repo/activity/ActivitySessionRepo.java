@@ -9,11 +9,38 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ActivitySessionRepo extends JpaRepository<ActivitySession, Integer> {
+
     List<ActivitySession> findBySessionId(int sessionId);
+
+    /**
+     * All ActivitySessions for a child+activity across ALL sessions (not just the latest).
+     * Used by RoadmapService to check if the activity was EVER completed.
+     */
+    @Query("""
+        SELECT a FROM ActivitySession a
+        WHERE a.session.child.id = :childId
+          AND a.activity.id = :activityId
+        ORDER BY a.startedAt ASC
+    """)
+    List<ActivitySession> findAllByChildIdAndActivityId(
+            @Param("childId") int childId,
+            @Param("activityId") int activityId
+    );
+
+    /**
+     * All ActivitySessions for a child across ALL sessions.
+     * Used by RoadmapService to build the full roadmap.
+     */
+    @Query("""
+        SELECT a FROM ActivitySession a
+        WHERE a.session.child.id = :childId
+        ORDER BY a.startedAt ASC
+    """)
+    List<ActivitySession> findAllByChildId(@Param("childId") int childId);
+
     /**
      * Finds all ActivitySessions for a child where the session ended after the cutoff.
      * Used to collect everything not included in the last AIReport.
-     * Sessions with null endedAt are included — they started but weren't cleanly closed.
      */
     @Query("""
         SELECT a FROM ActivitySession a
@@ -25,14 +52,4 @@ public interface ActivitySessionRepo extends JpaRepository<ActivitySession, Inte
             @Param("childId") int childId,
             @Param("cutoff") LocalDateTime cutoff
     );
-
-    /**
-     * Finds ALL ActivitySessions for a child — used when there is no previous report.
-     */
-    @Query("""
-        SELECT a FROM ActivitySession a
-        WHERE a.session.child.id = :childId
-        ORDER BY a.startedAt ASC
-    """)
-    List<ActivitySession> findAllByChildId(@Param("childId") int childId);
 }

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../activities/color_lab/color_lab_launcher.dart';
+import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
+import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
 import '../../models/roadmap/roadmap_activity_model.dart';
 import '../../services/roadmap/roadmap_service.dart';
 import '../../shared/layout/app_background.dart';
-import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../activities/emotion_chain/emotion_chain_intro.dart';
+
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -57,62 +60,61 @@ class _RoadmapView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: AppBackground(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-              child: Column(
-                children: [
-                  RoadmapHeader(
-                    onBack: () => Navigator.pop(context),
-                    onRefresh: () {
-                      context.read<RoadmapCubit>().loadRoadmap(
-                        kitId,
-                        childId,
-                      );
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+            child: Column(
+              children: [
+                RoadmapHeader(
+                  onBack: () => Navigator.pop(context),
+                  onRefresh: () {
+                    context.read<RoadmapCubit>().loadRoadmap(
+                      kitId,
+                      childId,
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: BlocBuilder<RoadmapCubit, RoadmapState>(
+                    builder: (context, state) {
+                      if (state is RoadmapLoading) {
+                        return const RoadmapLoadingView();
+                      }
+
+                      if (state is RoadmapError) {
+                        return RoadmapErrorView(
+                          message: state.message,
+                          onRetry: () {
+                            context.read<RoadmapCubit>().loadRoadmap(
+                              kitId,
+                              childId,
+                            );
+                          },
+                        );
+                      }
+
+                      if (state is RoadmapLoaded) {
+                        if (state.activities.isEmpty) {
+                          return const RoadmapEmptyView();
+                        }
+
+                        return RoadmapGameBoard(
+                          activities: state.activities,
+                          childId: childId,
+                          onActivityTap: (activity) {
+                            _handleActivityTap(
+                              context,
+                              activity,
+                            );
+                          },
+                        );
+                      }
+
+                      return const SizedBox.shrink();
                     },
                   ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: BlocBuilder<RoadmapCubit, RoadmapState>(
-                      builder: (context, state) {
-                        if (state is RoadmapLoading) {
-                          return const RoadmapLoadingView();
-                        }
-
-                        if (state is RoadmapError) {
-                          return RoadmapErrorView(
-                            message: state.message,
-                            onRetry: () {
-                              context.read<RoadmapCubit>().loadRoadmap(
-                                kitId,
-                                childId,
-                              );
-                            },
-                          );
-                        }
-
-                        if (state is RoadmapLoaded) {
-                          if (state.activities.isEmpty) {
-                            return const RoadmapEmptyView();
-                          }
-
-                          return RoadmapGameBoard(
-                            activities: state.activities,
-                            onActivityTap: (activity) {
-                              _handleActivityTap(
-                                context,
-                                activity,
-                              );
-                            },
-                          );
-                        }
-
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -125,15 +127,11 @@ class _RoadmapView extends StatelessWidget {
       RoadmapActivityModel activity,
       ) {
     if (activity.isLocked) {
-      _showMessage(
-        context,
-        'أكملي الأنشطة السابقة أولًا',
-      );
+      _showMessage(context, 'أكملي الأنشطة السابقة أولًا');
       return;
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
-    print('DEBUG activityName: "$activityName"'); // أضيفي هاد السطر مؤقتاً
 
     if (activityName == 'mirror mind') {
       Navigator.push(
@@ -148,10 +146,7 @@ class _RoadmapView extends StatelessWidget {
                 : activity.currentLevelNumber,
           ),
         ),
-      ).then((_) {
-        _refreshRoadmapIfMounted(context);
-      });
-
+      ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
 
@@ -159,12 +154,13 @@ class _RoadmapView extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const _ColorLabIntroExample(),
+          builder: (_) => ColorLabLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
         ),
-      ).then((_) {
-        _refreshRoadmapIfMounted(context);
-      });
-
+      ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
 
@@ -181,10 +177,24 @@ class _RoadmapView extends StatelessWidget {
                 : activity.currentLevelNumber,
           ),
         ),
-      ).then((_) {
-        _refreshRoadmapIfMounted(context);
-      });
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
+    if (activityName == 'conflict resolution cards') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ConflictResolutionIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
     if (activityName == 'emotion chain analyzer') {
@@ -211,55 +221,14 @@ class _RoadmapView extends StatelessWidget {
 
   void _refreshRoadmapIfMounted(BuildContext context) {
     if (context.mounted) {
-      context.read<RoadmapCubit>().refreshRoadmap();
+      context.read<RoadmapCubit>().loadRoadmap(kitId, childId);
     }
   }
 
-  void _showMessage(
-      BuildContext context,
-      String message,
-      ) {
+  void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-}
-
-class _ColorLabIntroExample extends StatelessWidget {
-  const _ColorLabIntroExample();
-
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: ActivityIntroTemplate(
-          background: const AppBackground(
-            child: SizedBox.expand(),
-          ),
-          mascotAssetPath: 'assets/images/template_mascot.png',
-          onStartPressed: () {
-            _showComingSoonMessage(context);
-          },
-          onReplayPressed: () {
-            _showComingSoonMessage(context);
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showComingSoonMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('هذا مثال لصفحة الانترو فقط، النشاط غير مربوط بعد'),
         backgroundColor: AppColors.textPrimary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

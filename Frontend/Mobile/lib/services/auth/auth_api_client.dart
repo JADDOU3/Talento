@@ -31,6 +31,7 @@ class AuthApiClient {
     );
   }
 
+
   Future<http.Response> put(
       Uri uri, {
         Map<String, String>? headers,
@@ -49,6 +50,7 @@ class AuthApiClient {
       ),
     );
   }
+
 
   Future<http.Response> patch(
       Uri uri, {
@@ -107,8 +109,6 @@ class AuthApiClient {
       Map<String, String>? extraHeaders,
       ) async {
     final accessToken = await TokenStorageService.getAccessToken();
-
-    print('ACCESS TOKEN: $accessToken');
 
     return {
       'Content-Type': 'application/json',

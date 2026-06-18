@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../services/activities/pattern_hacker_service.dart';
+import '../../services/roadmap/roadmap_service.dart';
 import '../../services/tts_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/button.dart';
@@ -35,6 +36,7 @@ class PatternHackerIntro extends StatefulWidget {
 class _PatternHackerIntroState extends State<PatternHackerIntro>
     with TickerProviderStateMixin {
   final PatternHackerService _service = PatternHackerService();
+  final RoadmapService _roadmapService = RoadmapService();
   final TtsService _tts = TtsService();
 
   late final AnimationController _entrance;
@@ -85,20 +87,66 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
   }
 
   // ---------------------------------------------------------------------------
-  // Game start (context resolution — unchanged behaviour)
+  // Game start
   // ---------------------------------------------------------------------------
 
   Future<void> _prepareAndStartGame() async {
     if (_isPreparing) return;
+
     setState(() => _isPreparing = true);
 
     try {
+      print('PATTERN HACKER: start pressed');
+      print('PATTERN HACKER: resolving game data...');
+
       final data = await _resolveGameData();
+
+      print('PATTERN HACKER: resolved childId = ${data.childId}');
+      print('PATTERN HACKER: resolved sessionId = ${data.sessionId}');
+      print('PATTERN HACKER: resolved kitId = ${data.kitId}');
+      print('PATTERN HACKER: resolved activityId = ${data.activityId}');
+
+      int? startLevelId;
+      int startLevelNumber = widget.initialLevelNumber <= 0
+          ? 1
+          : widget.initialLevelNumber;
+
+      print('PATTERN HACKER: loading activity progress...');
+
+      final progress = await _roadmapService.getActivityProgress(
+        activityId: data.activityId,
+      );
+
+      if (progress == null) {
+        print('PATTERN HACKER: no progress found, fallback to level 1');
+        startLevelId = null;
+        startLevelNumber = 1;
+      } else if (progress.completed) {
+        print('PATTERN HACKER: activity completed, replay starts from level 1');
+        startLevelId = null;
+        startLevelNumber = 1;
+      } else if (progress.hasValidCurrentLevel) {
+        startLevelId = progress.currentLevelId;
+        startLevelNumber = progress.currentLevelNumber <= 0
+            ? 1
+            : progress.currentLevelNumber;
+
+        print('PATTERN HACKER: resume from levelId = $startLevelId');
+        print('PATTERN HACKER: resume from levelNumber = $startLevelNumber');
+      } else {
+        print('PATTERN HACKER: invalid progress level, fallback to level 1');
+        startLevelId = null;
+        startLevelNumber = 1;
+      }
+
+      print('PATTERN HACKER: creating activity session...');
 
       final activitySessionId = await _service.createActivitySession(
         activityId: data.activityId,
         sessionId: data.sessionId,
       );
+
+      print('PATTERN HACKER: created activitySessionId = $activitySessionId');
 
       if (!mounted) return;
 
@@ -110,12 +158,14 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
             activitySessionId: activitySessionId,
             childId: data.childId,
             sessionId: data.sessionId,
-            initialLevelNumber: widget.initialLevelNumber,
+            initialLevelNumber: startLevelNumber,
+            startLevelId: startLevelId,
           ),
         ),
       );
     } catch (error) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -138,6 +188,7 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
     if (kitId == null || kitId == 0) {
       throw Exception('Kit id was not provided.');
     }
+
     if (activityId == null || activityId == 0) {
       throw Exception('Activity id was not provided.');
     }
@@ -152,13 +203,20 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
     }
 
     final latestSession = await _service.getLatestSessionForChild(childId);
+
     int sessionId = 0;
+
     if (latestSession != null) {
       sessionId = _service.readSessionId(latestSession);
     }
+
     if (sessionId == 0) {
-      sessionId = await _service.createSession(childId: childId, kitId: kitId);
+      sessionId = await _service.createSession(
+        childId: childId,
+        kitId: kitId,
+      );
     }
+
     if (sessionId == 0) {
       throw Exception('Session id was not found or created.');
     }
@@ -184,7 +242,11 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
       child: Scaffold(
         body: Stack(
           children: [
-            const Positioned.fill(child: AppBackground(child: SizedBox.expand())),
+            const Positioned.fill(
+              child: AppBackground(
+                child: SizedBox.expand(),
+              ),
+            ),
 
             // Floating pattern examples drifting in the background.
             Positioned.fill(
@@ -239,9 +301,17 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
                         Expanded(
                           child: Center(
                             child: _PortalMascot(
-                              portalScale: _stage(0.0, 0.35, curve: Curves.easeOutBack),
+                              portalScale: _stage(
+                                0.0,
+                                0.35,
+                                curve: Curves.easeOutBack,
+                              ),
                               portalFade: 1 - _stage(0.5, 0.95),
-                              appear: _stage(0.2, 0.7, curve: Curves.easeOutBack),
+                              appear: _stage(
+                                0.2,
+                                0.7,
+                                curve: Curves.easeOutBack,
+                              ),
                               scan: _stage(0.55, 0.92),
                               bob: bob,
                               width: size.width * 0.62,
@@ -301,7 +371,9 @@ class _PatternHackerIntroState extends State<PatternHackerIntro>
               Positioned.fill(
                 child: Container(
                   color: Colors.black.withOpacity(0.18),
-                  child: const Center(child: CircularProgressIndicator()),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 ),
               ),
           ],
@@ -427,7 +499,9 @@ class _PortalMascot extends StatelessWidget {
 class _FloatingPatterns extends StatelessWidget {
   final double t;
 
-  const _FloatingPatterns({required this.t});
+  const _FloatingPatterns({
+    required this.t,
+  });
 
   static const List<String> _examples = [
     '▲  ■  ▲  ■  ؟',
@@ -451,7 +525,7 @@ class _FloatingPatterns extends StatelessWidget {
               opacity: 0.10,
               child: Text(
                 _examples[i],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: AppColors.primary,
