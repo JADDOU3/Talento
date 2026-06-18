@@ -86,7 +86,11 @@ class _StorySpinnerWheelViewState extends State<StorySpinnerWheelView> {
 
   Widget _buildBody(BuildContext context, StorySpinnerState state) {
     if (state is StorySpinnerInitial || state is StorySpinnerLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
+      );
     }
 
     if (state is StorySpinnerError) {
@@ -101,7 +105,11 @@ class _StorySpinnerWheelViewState extends State<StorySpinnerWheelView> {
       );
     }
 
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
+      ),
+    );
   }
 
   Future<void> _goToStoryScreen(StorySpinnerLoaded state) async {
@@ -142,6 +150,7 @@ class _StorySpinnerWheelViewState extends State<StorySpinnerWheelView> {
             characterIcon: currentState.characterIcon!,
             eventIcon: currentState.eventIcon!,
             placeIcon: currentState.placeIcon!,
+            currentAttemptId: currentState.currentAttemptId,
           ),
         ),
       ),
@@ -174,15 +183,15 @@ class _LoadedWheelView extends StatelessWidget {
 
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 22),
+      padding: const EdgeInsets.fromLTRB(18, 8, 18, 22),
       children: [
-        _TopInfoBar(elapsed: state.elapsed),
-        const SizedBox(height: 16),
+        const _TopHeader(),
+        const SizedBox(height: 12),
         _HeaderCard(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         if (characterChallenge != null)
           SpinWheelWidget(
-            label: 'Character',
+            label: 'الشخصية',
             question: _questionOrFallback(
               characterChallenge,
               'Who is in your story?',
@@ -199,10 +208,10 @@ class _LoadedWheelView extends StatelessWidget {
                   .onSpinLanded('character', icon);
             },
           ),
-        if (characterChallenge != null) const SizedBox(height: 14),
+        if (characterChallenge != null) const SizedBox(height: 18),
         if (eventChallenge != null)
           SpinWheelWidget(
-            label: 'Event',
+            label: 'الحدث',
             question: _questionOrFallback(
               eventChallenge,
               'What happens in your story?',
@@ -217,10 +226,10 @@ class _LoadedWheelView extends StatelessWidget {
               context.read<StorySpinnerCubit>().onSpinLanded('event', icon);
             },
           ),
-        if (eventChallenge != null) const SizedBox(height: 14),
+        if (eventChallenge != null) const SizedBox(height: 18),
         if (placeChallenge != null)
           SpinWheelWidget(
-            label: 'Place',
+            label: 'المكان',
             question: _questionOrFallback(
               placeChallenge,
               'Where does your story happen?',
@@ -235,45 +244,11 @@ class _LoadedWheelView extends StatelessWidget {
               context.read<StorySpinnerCubit>().onSpinLanded('place', icon);
             },
           ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 58,
-          child: ElevatedButton.icon(
-            onPressed:
-            state.allWheelsLanded && !state.isSpinning && !isConfirming
-                ? () => onNext(state)
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              disabledBackgroundColor: AppColors.border,
-              foregroundColor: AppColors.white,
-              elevation: state.allWheelsLanded ? 4 : 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-            icon: isConfirming
-                ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.3,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.white,
-                ),
-              ),
-            )
-                : const Icon(Icons.arrow_back_rounded),
-            label: Text(
-              isConfirming ? 'جاري التحضير...' : 'Next',
-              style: AppTextStyles.button.copyWith(
-                fontFamily: 'DGAgnadeen',
-                fontSize: 25,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
+        const SizedBox(height: 22),
+        _NextButton(
+          enabled: state.allWheelsLanded && !state.isSpinning && !isConfirming,
+          isLoading: isConfirming,
+          onTap: () => onNext(state),
         ),
       ],
     );
@@ -291,49 +266,134 @@ class _LoadedWheelView extends StatelessWidget {
   }
 }
 
-class _HeaderCard extends StatelessWidget {
+class _TopHeader extends StatelessWidget {
+  const _TopHeader();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(30),
+        color: AppColors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.12),
+          color: AppColors.white.withOpacity(0.92),
+          width: 1.1,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withOpacity(0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            blurRadius: 13,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
         children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: AppColors.yellow.withOpacity(0.28),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.auto_stories_rounded,
-              color: AppColors.primary,
-              size: 30,
-            ),
+          _TopCircleButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icons.arrow_back_ios_new_rounded,
           ),
-          const SizedBox(width: 14),
+          const Spacer(),
+          Image.asset(
+            'assets/icons/logo1.png',
+            height: 42,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) {
+              return const Text(
+                'Talento',
+                style: TextStyle(
+                  fontFamily: 'BerlinSans',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopCircleButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  const _TopCircleButton({
+    required this.onPressed,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white.withOpacity(0.95),
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: AppColors.black.withOpacity(0.08),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.90),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Image.asset(
+            'assets/images/template_mascot.png',
+            height: 78,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) {
+              return const Icon(
+                Icons.auto_stories_rounded,
+                color: AppColors.primary,
+                size: 34,
+              );
+            },
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'لفّي العجلات الثلاث، وبعدها احكي قصتك بالعناصر اللي طلعت معك.',
+              'اختر عناصر القصة من العجلات، ثم سجّل قصة قصيرة.',
+              textAlign: TextAlign.right,
               style: AppTextStyles.bodyLarge.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
-                height: 1.4,
+                height: 1.35,
               ),
             ),
           ),
@@ -343,78 +403,109 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-class _TopInfoBar extends StatelessWidget {
-  final Duration elapsed;
-
-  const _TopInfoBar({
-    required this.elapsed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final minutes = elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
-
-    return Row(
-      children: [
-        _CircleButton(
-          icon: Icons.arrow_forward_ios_rounded,
-          onTap: () => Navigator.pop(context),
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-          decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.88),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: AppColors.primary.withOpacity(0.12),
-            ),
-          ),
-          child: Text(
-            '$minutes:$seconds',
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.w900,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CircleButton extends StatelessWidget {
-  final IconData icon;
+class _NextButton extends StatelessWidget {
+  final bool enabled;
+  final bool isLoading;
   final VoidCallback onTap;
 
-  const _CircleButton({
-    required this.icon,
+  const _NextButton({
+    required this.enabled,
+    required this.isLoading,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withOpacity(0.92),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 42,
-          height: 42,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 18,
+    final canTap = enabled && !isLoading;
+
+    return Align(
+      alignment: Alignment.center,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: canTap || isLoading ? 1 : 0.80,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          width: 190,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: LinearGradient(
+              colors: canTap || isLoading
+                  ? [
+                AppColors.primary.withOpacity(0.96),
+                AppColors.primary.withOpacity(0.82),
+              ]
+                  : [
+                AppColors.border.withOpacity(0.82),
+                AppColors.border.withOpacity(0.62),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            border: Border.all(
+              color: canTap || isLoading
+                  ? AppColors.white.withOpacity(0.22)
+                  : AppColors.white.withOpacity(0.18),
+              width: 1.2,
+            ),
+            boxShadow: canTap || isLoading
+                ? [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.20),
+                blurRadius: 18,
+                offset: const Offset(0, 7),
+              ),
+              BoxShadow(
+                color: AppColors.white.withOpacity(0.35),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ]
+                : [
+              BoxShadow(
+                color: AppColors.black.withOpacity(0.025),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            child: InkWell(
+              onTap: canTap ? onTap : null,
+              borderRadius: BorderRadius.circular(999),
+              child: Center(
+                child: isLoading
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.white,
+                    ),
+                  ),
+                )
+                    : Text(
+                  'التالي',
+                  style: AppTextStyles.button.copyWith(
+                    fontFamily: 'DGAgnadeen',
+                    fontSize: 25,
+                    fontWeight: FontWeight.w900,
+                    color: canTap
+                        ? AppColors.white
+                        : AppColors.textSecondary.withOpacity(0.58),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 }
-
 class _ErrorView extends StatelessWidget {
   final String message;
 

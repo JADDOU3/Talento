@@ -91,7 +91,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'لازم نسمح باستخدام المايكروفون عشان نسجل القصة',
+                'لازم نسمح باستخدام المايكروفون حتى نقدر نسجل القصة',
                 textDirection: TextDirection.rtl,
               ),
             ),
@@ -231,18 +231,18 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.94),
+        color: AppColors.white.withOpacity(0.93),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: widget.isRecording
-              ? AppColors.red.withOpacity(0.26)
-              : AppColors.primary.withOpacity(0.12),
+              ? AppColors.red.withOpacity(0.22)
+              : AppColors.primary.withOpacity(0.08),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: AppColors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -251,55 +251,50 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
           Row(
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 44,
-                height: 44,
+                duration: const Duration(milliseconds: 220),
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
                   color: widget.isRecording
                       ? AppColors.red.withOpacity(0.12)
-                      : AppColors.primary.withOpacity(0.10),
+                      : AppColors.primary.withOpacity(0.09),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   widget.isRecording
                       ? Icons.mic_rounded
-                      : Icons.mic_none_rounded,
+                      : Icons.keyboard_voice_rounded,
                   color: widget.isRecording ? AppColors.red : AppColors.primary,
-                  size: 25,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              const Spacer(),
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
                 child: Text(
-                  widget.isRecording
-                      ? 'التسجيل شغال... احكي قصتك'
-                      : hasRecording
-                      ? 'تم حفظ التسجيل، فيك تسمعيه أو تعيدي التسجيل'
-                      : 'سجلي قصة قصيرة باستخدام العناصر الثلاثة',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                  _formatDuration(_recordingDuration),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color:
+                    widget.isRecording ? AppColors.red : AppColors.primary,
                   ),
-                ),
-              ),
-              Text(
-                _formatDuration(_recordingDuration),
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: widget.isRecording ? AppColors.red : AppColors.primary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           _RecordingBars(isRecording: widget.isRecording),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Row(
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 48,
+                  height: 50,
                   child: ElevatedButton.icon(
                     onPressed:
                     _isStartingOrStopping ? null : widget.onToggleRecording,
@@ -310,7 +305,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                       foregroundColor: AppColors.white,
                       elevation: _isStartingOrStopping ? 0 : 3,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                     ),
                     icon: Icon(
@@ -319,7 +314,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                           : Icons.fiber_manual_record_rounded,
                     ),
                     label: Text(
-                      widget.isRecording ? 'Stop' : 'Record',
+                      widget.isRecording ? 'إيقاف التسجيل' : 'ابدأ التسجيل',
                       style: AppTextStyles.button.copyWith(
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
@@ -330,7 +325,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
               ),
               const SizedBox(width: 10),
               SizedBox(
-                height: 48,
+                height: 50,
                 child: OutlinedButton.icon(
                   onPressed: hasRecording && !widget.isRecording
                       ? _togglePlayback
@@ -340,11 +335,11 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                     disabledForegroundColor: AppColors.hint,
                     side: BorderSide(
                       color: hasRecording && !widget.isRecording
-                          ? AppColors.primary.withOpacity(0.45)
+                          ? AppColors.primary.withOpacity(0.35)
                           : AppColors.border,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   icon: Icon(
@@ -353,7 +348,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
                         : Icons.play_arrow_rounded,
                   ),
                   label: Text(
-                    _isPreviewPlaying ? 'Stop' : 'Play',
+                    _isPreviewPlaying ? 'إيقاف' : 'تشغيل',
                     style: AppTextStyles.bodyLarge.copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.w900,

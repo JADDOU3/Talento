@@ -12,12 +12,14 @@ class StorySpinnerStoryScreen extends StatefulWidget {
   final String characterIcon;
   final String eventIcon;
   final String placeIcon;
+  final int currentAttemptId;
 
   const StorySpinnerStoryScreen({
     super.key,
     required this.characterIcon,
     required this.eventIcon,
     required this.placeIcon,
+    required this.currentAttemptId,
   });
 
   @override
@@ -39,7 +41,7 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
-                  'أحسنتِ! تم إنهاء النشاط 🎉',
+                  'أحسنتِ! تم إنهاء النشاط بنجاح 🎉',
                   textDirection: TextDirection.rtl,
                 ),
                 duration: Duration(seconds: 2),
@@ -100,7 +102,11 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
       return _ErrorView(message: state.message);
     }
 
-    return const Center(child: CircularProgressIndicator());
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
+      ),
+    );
   }
 
   void _toggleRecording() {
@@ -161,22 +167,22 @@ class _LoadedStoryView extends StatelessWidget {
 
     final prompt = voiceChallenge?.prompt.trim().isNotEmpty == true
         ? voiceChallenge!.prompt.trim()
-        : 'Now tell your story using these three elements.';
+        : 'احكي الآن قصة قصيرة باستخدام العناصر الثلاثة.';
 
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 22),
+      padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
       children: [
-        _TopInfoBar(elapsed: state.elapsed),
-        const SizedBox(height: 16),
+        const _TopHeader(),
+        const SizedBox(height: 14),
         _StoryElementsCard(
           characterIcon: characterIcon,
           eventIcon: eventIcon,
           placeIcon: placeIcon,
         ),
-        const SizedBox(height: 16),
-        _PromptCard(prompt: prompt),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+        _MascotPromptCard(prompt: prompt),
+        const SizedBox(height: 14),
         VoiceRecorderWidget(
           isRecording: isRecording,
           onToggleRecording: onToggleRecording,
@@ -196,7 +202,7 @@ class _LoadedStoryView extends StatelessWidget {
               foregroundColor: AppColors.white,
               elevation: state.hasRecording ? 4 : 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(22),
               ),
             ),
             icon: isCompleting
@@ -212,16 +218,101 @@ class _LoadedStoryView extends StatelessWidget {
             )
                 : const Icon(Icons.check_circle_rounded),
             label: Text(
-              isCompleting ? 'جاري الإنهاء...' : 'Done',
+              isCompleting ? 'جاري الإنهاء...' : 'إنهاء',
               style: AppTextStyles.button.copyWith(
                 fontFamily: 'DGAgnadeen',
-                fontSize: 25,
+                fontSize: 24,
                 fontWeight: FontWeight.w900,
               ),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TopHeader extends StatelessWidget {
+  const _TopHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.white.withOpacity(0.92),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.05),
+            blurRadius: 13,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _TopCircleButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icons.arrow_back_ios_new_rounded,
+          ),
+          const Spacer(),
+          Image.asset(
+            'assets/icons/logo1.png',
+            height: 42,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) {
+              return const Text(
+                'Talento',
+                style: TextStyle(
+                  fontFamily: 'BerlinSans',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopCircleButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  const _TopCircleButton({
+    required this.onPressed,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white.withOpacity(0.95),
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: AppColors.black.withOpacity(0.08),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 20,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -244,25 +335,25 @@ class _StoryElementsCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.12),
+          color: AppColors.primary.withOpacity(0.10),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: AppColors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         children: [
           Text(
-            'Your story elements:',
+            'عناصر قصتك',
             style: AppTextStyles.headlineMedium.copyWith(
               fontFamily: 'DGAgnadeen',
-              fontSize: 25,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
               color: AppColors.primary,
             ),
@@ -273,21 +364,21 @@ class _StoryElementsCard extends StatelessWidget {
               Expanded(
                 child: _StoryElementTile(
                   icon: characterIcon,
-                  label: 'Character',
+                  label: 'الشخصية',
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _StoryElementTile(
                   icon: eventIcon,
-                  label: 'Event',
+                  label: 'الحدث',
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _StoryElementTile(
                   icon: placeIcon,
-                  label: 'Place',
+                  label: 'المكان',
                 ),
               ),
             ],
@@ -310,10 +401,10 @@ class _StoryElementTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 112,
+      height: 120,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.06),
+        color: AppColors.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: AppColors.primary.withOpacity(0.08),
@@ -322,24 +413,31 @@ class _StoryElementTile extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
-            child: Image.asset(
-              'assets/images/cards/$icon.png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) {
-                return Icon(
-                  Icons.image_not_supported_rounded,
-                  color: AppColors.primary.withOpacity(0.8),
-                  size: 34,
-                );
-              },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(0.85),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                'assets/images/cards/$icon.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) {
+                  return Icon(
+                    Icons.image_not_supported_rounded,
+                    color: AppColors.primary.withOpacity(0.8),
+                    size: 34,
+                  );
+                },
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             label,
             textAlign: TextAlign.center,
             style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w900,
               color: AppColors.primary,
             ),
@@ -350,118 +448,75 @@ class _StoryElementTile extends StatelessWidget {
   }
 }
 
-class _PromptCard extends StatelessWidget {
+class _MascotPromptCard extends StatelessWidget {
   final String prompt;
 
-  const _PromptCard({
+  const _MascotPromptCard({
     required this.prompt,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.yellow.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: AppColors.yellow.withOpacity(0.25),
+    return Row(
+      textDirection: TextDirection.rtl,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Image.asset(
+          'assets/images/template_mascot.png',
+          height: 104,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) {
+            return Container(
+              width: 78,
+              height: 78,
+              decoration: BoxDecoration(
+                color: AppColors.yellow.withOpacity(0.25),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.emoji_emotions_rounded,
+                size: 42,
+                color: AppColors.primary,
+              ),
+            );
+          },
         ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.record_voice_over_rounded,
-            color: AppColors.pink,
-            size: 30,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+            decoration: BoxDecoration(
+              color: AppColors.white.withOpacity(0.92),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(26),
+                topLeft: Radius.circular(26),
+                bottomLeft: Radius.circular(26),
+                bottomRight: Radius.circular(8),
+              ),
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.10),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.black.withOpacity(0.04),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
             child: Text(
               prompt,
+              textAlign: TextAlign.center,
               style: AppTextStyles.bodyLarge.copyWith(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
-                height: 1.4,
+                height: 1.45,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopInfoBar extends StatelessWidget {
-  final Duration elapsed;
-
-  const _TopInfoBar({
-    required this.elapsed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final minutes = elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
-
-    return Row(
-      children: [
-        _CircleButton(
-          icon: Icons.arrow_forward_ios_rounded,
-          onTap: () => Navigator.pop(context),
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-          decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.88),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: AppColors.primary.withOpacity(0.12),
-            ),
-          ),
-          child: Text(
-            '$minutes:$seconds',
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.w900,
-              color: AppColors.primary,
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _CircleButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _CircleButton({
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withOpacity(0.92),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 42,
-          height: 42,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 18,
-          ),
-        ),
-      ),
     );
   }
 }
