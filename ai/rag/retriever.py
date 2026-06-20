@@ -5,6 +5,7 @@ from models.schemas import AnalysisRequest
 from rag.chroma_client import (
     get_mindsets_collection,
     get_criteria_collection,
+    get_activity_criteria_collection,
     get_patterns_collection,
     get_rules_collection,
 )
@@ -77,18 +78,76 @@ def _query_collection(collection, query: str, top_k: int) -> list[str]:
     return [doc for doc in documents[0] if doc]
 
 
+def _exact_activity_criteria(request: AnalysisRequest) -> list[str]:
+    """
+    Pulls activity-criteria records by exact metadata match against the
+    activities actually present in this session, rather than relying purely
+    on embedding similarity. This guarantees the criteria/weights for the
+    child's actual activities are included, instead of being potentially
+    crowded out of the top-k by semantically-similar-but-irrelevant records.
+    """
+    collection = get_activity_criteria_collection()
+    try:
+        if collection.count() == 0:
+            return []
+    except Exception:
+        return []
+
+    activity_names = list({s.activity_name for s in request.activity_summaries if s.activity_name})
+    if not activity_names:
+        return []
+
+    where_filter: dict[str, Any] = (
+        {"activity_name": {"$in": activity_names}}
+        if len(activity_names) > 1
+        else {"activity_name": activity_names[0]}
+    )
+
+    try:
+        result = collection.get(where=where_filter)
+    except Exception:
+        return []
+
+    documents = result.get("documents") or []
+    return [doc for doc in documents if doc]
+
+
+def _semantic_activity_criteria(query: str, top_k: int) -> list[str]:
+    return _query_collection(get_activity_criteria_collection(), query, top_k)
+
+
+def _dedupe(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
 def retrieve_context(request: AnalysisRequest, top_k: int | None = None) -> dict[str, Any]:
     query = _format_query(request)
     limit = top_k or settings.rag_top_k
+
     mindsets = _query_collection(get_mindsets_collection(), query, limit)
     criteria = _query_collection(get_criteria_collection(), query, limit)
     patterns = _query_collection(get_patterns_collection(), query, limit)
     rules = _query_collection(get_rules_collection(), query, limit)
 
+    # Exact matches for the session's actual activities take priority,
+    # supplemented with a semantic pass in case the exact match misses
+    # related activity-criteria worth surfacing (e.g. partial name matches
+    # are intentionally not attempted here to avoid false positives).
+    exact_activity_criteria = _exact_activity_criteria(request)
+    semantic_activity_criteria = _semantic_activity_criteria(query, limit)
+    activity_criteria = _dedupe(exact_activity_criteria + semantic_activity_criteria)
+
     return {
         "query": query,
         "mindsets": mindsets,
         "criteria": criteria,
+        "activity_criteria": activity_criteria,
         "behavioral_patterns": patterns,
         "interpretation_rules": rules,
     }

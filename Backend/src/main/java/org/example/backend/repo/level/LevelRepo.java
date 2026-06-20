@@ -10,4 +10,5 @@ import java.util.List;
 public interface LevelRepo extends JpaRepository<Level, Integer> {
 
     List<Level> findByActivityIdOrderByLevelNumber(int activityId);
+    int countByActivityId(int activityId);
 }

@@ -34,6 +34,10 @@ def get_criteria_collection() -> Collection:
     return get_collection(settings.chroma_collection_criteria)
 
 
+def get_activity_criteria_collection() -> Collection:
+    return get_collection(settings.chroma_collection_activity_criteria)
+
+
 def get_patterns_collection() -> Collection:
     return get_collection(settings.chroma_collection_patterns)
 
