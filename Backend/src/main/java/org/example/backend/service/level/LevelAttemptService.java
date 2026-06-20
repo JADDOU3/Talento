@@ -9,6 +9,7 @@ import org.example.backend.repo.activity.ActivitySessionRepo;
 import org.example.backend.repo.level.LevelAttemptRepo;
 import org.example.backend.repo.level.LevelRepo;
 import org.example.backend.service.activity.ActivityProgressService;
+import org.example.backend.service.ai.AiAnalysisService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +22,20 @@ public class LevelAttemptService {
     private final ActivitySessionRepo activitySessionRepo;
     private final LevelRepo levelRepo;
     private final ActivityProgressService activityProgressService;
+    private final AiAnalysisService aiAnalysisService;
 
     public LevelAttemptService(
             LevelAttemptRepo levelAttemptRepo,
             ActivitySessionRepo activitySessionRepo,
             LevelRepo levelRepo,
-            ActivityProgressService activityProgressService
+            ActivityProgressService activityProgressService,
+            AiAnalysisService aiAnalysisService
     ) {
         this.levelAttemptRepo = levelAttemptRepo;
         this.activitySessionRepo = activitySessionRepo;
         this.levelRepo = levelRepo;
         this.activityProgressService = activityProgressService;
+        this.aiAnalysisService = aiAnalysisService;
     }
 
     @Transactional
@@ -51,9 +55,8 @@ public class LevelAttemptService {
 
         LevelAttempt saved = levelAttemptRepo.save(attempt);
 
-        // Update progress if completed on creation
         if (Boolean.TRUE.equals(dto.getCompleted())) {
-            activityProgressService.onLevelCompleted(session.getId(), level.getId());
+            onLevelAttemptCompleted(session, level);
         }
 
         return LevelAttemptResponseDto.from(saved);
@@ -80,25 +83,19 @@ public class LevelAttemptService {
         LevelAttempt attempt = levelAttemptRepo.findById(id).orElse(null);
         if (attempt == null) return null;
 
-        // Capture the previous completed state BEFORE updating
-        boolean wasCompleted = Boolean.TRUE.equals(attempt.getCompleted());
-
         attempt.setAttemptNumber(dto.getAttemptNumber());
         attempt.setStartedAt(dto.getStartedAt());
         attempt.setEndedAt(dto.getEndedAt());
         attempt.setCompleted(dto.getCompleted());
 
+        // Read these BEFORE save while still in an active persistence context
+        ActivitySession session = attempt.getActivitySession();
+        Level level = attempt.getLevel();
+
         LevelAttempt saved = levelAttemptRepo.save(attempt);
 
-        // Only trigger progress if transitioning false → true (not on repeated completions)
-        boolean isNowCompleted = Boolean.TRUE.equals(dto.getCompleted());
-        if (!wasCompleted && isNowCompleted
-                && attempt.getActivitySession() != null
-                && attempt.getLevel() != null) {
-            activityProgressService.onLevelCompleted(
-                    attempt.getActivitySession().getId(),
-                    attempt.getLevel().getId()
-            );
+        if (Boolean.TRUE.equals(dto.getCompleted()) && session != null && level != null) {
+            onLevelAttemptCompleted(session, level);
         }
 
         return LevelAttemptResponseDto.from(saved);
@@ -106,5 +103,14 @@ public class LevelAttemptService {
 
     public void deleteLevelAttempt(int id) {
         levelAttemptRepo.deleteById(id);
+    }
+
+
+    private void onLevelAttemptCompleted(ActivitySession session, Level level) {
+        activityProgressService.onLevelCompleted(session.getId(), level.getId());
+
+        if (level.isMilestone()) {
+            aiAnalysisService.runAnalysisAsync(session.getSession().getChild(), "en");
+        }
     }
 }

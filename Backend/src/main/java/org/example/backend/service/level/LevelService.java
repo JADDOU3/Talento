@@ -39,6 +39,7 @@ public class LevelService {
         level.setDescription(dto.getDescription());
         level.setImages(mapImages(dto.getImages(), level));
         level.setActivity(activity);
+        level.setMilestone(dto.getIsMilestone() != null ? dto.getIsMilestone() : false);
         return toResponseDto(levelRepo.save(level));
     }
 
@@ -62,6 +63,11 @@ public class LevelService {
         level.setLevelNumber(dto.getLevelNumber());
         level.setDifficulty(dto.getDifficulty());
         level.setDescription(dto.getDescription());
+
+        // Only update isMilestone if explicitly provided — otherwise keep existing value
+        if (dto.getIsMilestone() != null) {
+            level.setMilestone(dto.getIsMilestone());
+        }
 
         if (level.getImages() != null) {
             level.getImages().clear();

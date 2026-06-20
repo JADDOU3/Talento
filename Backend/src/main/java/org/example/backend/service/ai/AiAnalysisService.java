@@ -82,6 +82,12 @@ public class AiAnalysisService {
         runAnalysis(event.getChild(), responseLanguage);
     }
 
+
+    @Async
+    public void runAnalysisAsync(Child child, String responseLanguage) {
+        runAnalysis(child, responseLanguage);
+    }
+
     /**
      * Core analysis method — shared by the real async flow and the dev test endpoint.
      * Collects all unanalyzed ActivitySessions for this child, builds one holistic
@@ -193,6 +199,8 @@ public class AiAnalysisService {
 
             int avgDuration = actSessions.size() > 0 ? totalDuration / actSessions.size() : 0;
 
+            // Adaptability: if child attempted multiple sessions for same activity,
+            // they kept trying = higher adaptability. If high fail + only 1 session = low.
             String adaptability;
             if (actSessions.size() >= 3) {
                 adaptability = "high";
@@ -397,6 +405,7 @@ public class AiAnalysisService {
 
     private float avg(float a, float b) { return (a + b) / 2.0f; }
     private float clamp(float v) { return Math.max(0.0f, Math.min(1.0f, v)); }
+
 
     private String nextVersion(AIReport lastReport) {
         if (lastReport == null || lastReport.getAnalysisVersion() == null) return "v1";

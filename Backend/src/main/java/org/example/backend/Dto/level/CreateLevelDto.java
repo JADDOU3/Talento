@@ -13,4 +13,7 @@ public class CreateLevelDto {
     private String description;
     private java.util.List<LevelImageDto> images;
     private Integer activityId;
+
+
+    private Boolean isMilestone;
 }
