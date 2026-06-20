@@ -16,29 +16,33 @@ class SectionHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // 🔥 TITLE
+        // 🔥 PLAYFUL TITLE
+        // Added a little decorative element if needed,
+        // using your primary palette for a pop of color
         Text(
           title,
           textAlign: TextAlign.center,
           style: AppTextStyles.heading.copyWith(
-            fontSize: 36,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            fontSize: 40, // Slightly larger for impact
+            fontWeight: FontWeight.w900, // Extra bold for a fun feel
+            color: AppColors.cartTeal, // Used Teal for a friendly "Kid" pop
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
-        // 🔥 SUBTITLE
-        SizedBox(
-          width: 600, // 🔥 نفس الفigma (مش عريض كتير)
+        // 🔥 SUBTITLE (Softer look)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          width: 600,
           child: Text(
             subtitle,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 18, // Slightly larger for readability
               color: AppColors.textSecondary,
-              height: 1.6,
+              height: 1.5,
+              fontWeight: FontWeight.w500, // Slightly heavier for clarity
             ),
           ),
         ),

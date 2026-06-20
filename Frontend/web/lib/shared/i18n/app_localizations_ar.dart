@@ -310,7 +310,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yourBasket => 'سلة مشترياتك';
 
   @override
-  String cartItemsCount(int count) => '$count عناصر';
+  String cartItemsCount(int count) {
+    return '$count عناصر';
+  }
 
   @override
   String get recommendedForYou => 'موصى به لك';
@@ -375,7 +377,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cartRec2Desc => 'تعمّق في الأوراق والحشرات مع شرائح موجّهة.';
 
   @override
-  String cartAddAmount(String amount) => 'أضف +$amount';
+  String cartAddAmount(String amount) {
+    return 'أضف +$amount';
+  }
 
   @override
   String get cartLine1Title => 'مجموعة عالم النباتات';
@@ -437,7 +441,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'مواد عالية الجودة مصممة لتدوم مع طفلك طوال رحلة الاستكشاف.';
 
   @override
-  String reviews(int count) => '$count مراجعة';
+  String reviews(int count) {
+    return '$count مراجعة';
+  }
 
   @override
   String get kitDetailsCategory => 'الطبيعة والعلوم';

@@ -3,7 +3,8 @@
 import 'dart:async';
 import 'dart:convert';
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+//import 'dart:html' as html;
+import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/models/kit_model.dart';
 import '../../../../shared/services/api_service.dart';  // ← uses ApiService.LocalStorage
@@ -19,7 +20,6 @@ class KitCubit extends Cubit<KitState> {
 
   // ── HTTP GET via dart:html ─────────────────────────────────────────────────
   Future<({int status, dynamic body})?> _get(String url) async {
-    // Use LocalStorage from ApiService (sync, no await needed)
     final token = await LocalStorage.getAccessToken();
     if (token == null || token.isEmpty) {
       emit(const KitError('Unauthorized'));
@@ -27,27 +27,23 @@ class KitCubit extends Cubit<KitState> {
     }
 
     try {
-      final request = await html.HttpRequest.request(
-        url,
-        method: 'GET',
-        requestHeaders: {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       ).timeout(const Duration(seconds: 15));
 
-      final text = request.responseText;
-      final body = (text != null && text.isNotEmpty) ? json.decode(text) : null;
-      return (status: request.status ?? 0, body: body);
-    } on html.ProgressEvent catch (_) {
-      return (status: 0, body: null);
+      final body = (response.body.isNotEmpty) ? json.decode(response.body) : null;
+      return (status: response.statusCode, body: body);
     } on TimeoutException {
       return (status: 0, body: null);
-    } catch (_) {
+    } catch (e) {
+      // Catch any other connection errors
       return (status: 0, body: null);
     }
   }
-
   // ── Parse response ─────────────────────────────────────────────────────────
   ({List<KitModel> kits, bool hasMore}) _parse(dynamic body, int page) {
     if (body == null) return (kits: [], hasMore: false);

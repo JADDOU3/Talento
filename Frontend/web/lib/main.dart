@@ -1,5 +1,3 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -55,13 +53,56 @@ class TalentoApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         theme: ThemeData(
+          useMaterial3: true,
+          // Using your background constant
           scaffoldBackgroundColor: AppColors.background,
-          textTheme: isArabic
+
+          // Mapping your palette to the Material 3 system
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppColors.cartTeal,
+            primary: AppColors.cartTeal,
+            secondary: AppColors.secondary,
+            tertiary: AppColors.yellow, // Using your custom yellow
+          ),
+
+          // Apply your Fredoka font
+          textTheme: (isArabic
               ? GoogleFonts.cairoTextTheme()
-              : GoogleFonts.nunitoTextTheme(),
-          fontFamily: isArabic
-              ? GoogleFonts.cairo().fontFamily
-              : GoogleFonts.nunito().fontFamily,
+              : GoogleFonts.fredokaTextTheme())
+              .apply(
+            bodyColor: AppColors.textPrimary,
+            displayColor: AppColors.textPrimary,
+          ),
+
+          // Rounded Cards with your palette
+          cardTheme: const CardThemeData(
+            color: AppColors.cardBackground,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(24)),
+            ),
+          ),
+
+          // Rounded Input Fields
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+          ),
+
+          // Playful Button Styling
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ),
         ),
         initialRoute: '/',
         routes: {

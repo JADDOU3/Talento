@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       endDrawer: Drawer(
         child: SafeArea(
           child: Padding(
@@ -89,19 +90,30 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            Navbar(scrollController: _scrollController, showCartIcon: false),
-            const SizedBox(height: 40),
-            const HeroSection(),
-            JourneySection(),
-            BeyondSection(),
-            ExplorationsSection(),
-            Footer(scrollController: _scrollController),
-          ],
-        ),
+      // Use a Stack to allow the Navbar to float over the content
+      body: Stack(
+        children: [
+          // Main scrollable area
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                const HeroSection(),
+                JourneySection(),
+                BeyondSection(),
+                ExplorationsSection(),
+                Footer(scrollController: _scrollController),
+              ],
+            ),
+          ),
+          // Floating Navbar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Navbar(scrollController: _scrollController, showCartIcon: false),
+          ),
+        ],
       ),
     );
   }

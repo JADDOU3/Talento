@@ -61,39 +61,16 @@ class _KitCardState extends State<KitCard> {
         child: Column(
           children: [
             Expanded(
-              flex: 1,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                    child: Image.asset(
-                      widget.imagePath,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  if (widget.isNew)
-                    Positioned(
-                      top: 12,
-                      right: isAr ? null : 12,
-                      left: isAr ? 12 : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF4D6D),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          t('new_arrival', widget.lang),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.cartTeal, // Changed from Teal
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                onPressed: () { /* ... */ },
+                icon: const Icon(Icons.shopping_cart_outlined, size: 16),
+                label: Text(t('add_to_cart', widget.lang), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ),
             Expanded(
@@ -152,13 +129,13 @@ class _KitCardState extends State<KitCard> {
                               ),
                             ),
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${t('add_to_cart', widget.lang)}: ${t(widget.titleKey, widget.lang)}'),
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
+                              setState(() => _justAdded = true);
+                              Future.delayed(const Duration(milliseconds: 900), () {
+                                if (mounted) setState(() => _justAdded = false);
+                              });
                             },
+                            icon: Icon(_justAdded ? Icons.celebration : Icons.shopping_cart_outlined, size: 16),
+                            label: Text(_justAdded ? 'Yay! 🎉' : t('add_to_cart', widget.lang)),
                             icon: const Icon(Icons.shopping_cart_outlined, size: 16),
                             label: Text(
                               t('add_to_cart', widget.lang),

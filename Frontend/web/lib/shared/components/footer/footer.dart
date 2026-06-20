@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../util/theme/app_colors.dart';
 import '../../../shared/i18n/app_localizations.dart';
 
 class Footer extends StatelessWidget {
@@ -17,7 +18,10 @@ class Footer extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 40),
-      decoration: const BoxDecoration(color: Color(0xFF1E2A3A), borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      decoration: const BoxDecoration(
+        color: AppColors.cartTeal,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+      ),
       padding: EdgeInsets.symmetric(horizontal: width >= 768 ? 60 : 24, vertical: 48),
       child: width >= 768 ? _buildDesktop(l10n) : _buildMobile(l10n),
     );
@@ -25,30 +29,31 @@ class Footer extends StatelessWidget {
 
   Widget _buildDesktop(AppLocalizations l10n) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.footerCopyright, style: const TextStyle(color: Color(0xFF8A9BB0), fontSize: 12, letterSpacing: 0.5)),
+              const Text("Talento", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Text(l10n.footerCopyright, style: const TextStyle(color: Colors.white70, fontSize: 12)),
               const SizedBox(height: 20),
               Row(children: [
                 _IconBtn(icon: Icons.share_outlined, onTap: _scrollToTop),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 _IconBtn(icon: Icons.favorite_border, onTap: _scrollToTop),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 _IconBtn(icon: Icons.mail_outline, onTap: _scrollToTop),
               ]),
             ],
           ),
         ),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _linkColumn([l10n.footerSustainability, l10n.footerShipping, l10n.footerReturns]),
             const SizedBox(width: 60),
-            _linkColumn([l10n.footerPrivacy, l10n.footerContact, l10n.footerAccessibility], underlineLast: true),
+            _linkColumn([l10n.footerPrivacy, l10n.footerContact, l10n.footerAccessibility]),
           ],
         ),
       ],
@@ -57,40 +62,40 @@ class Footer extends StatelessWidget {
 
   Widget _buildMobile(AppLocalizations l10n) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _linkColumn([l10n.footerSustainability, l10n.footerShipping, l10n.footerReturns]),
-            const SizedBox(width: 40),
-            _linkColumn([l10n.footerPrivacy, l10n.footerContact, l10n.footerAccessibility], underlineLast: true),
+            Expanded(child: _linkColumn([l10n.footerSustainability, l10n.footerShipping, l10n.footerReturns])),
+            Expanded(child: _linkColumn([l10n.footerPrivacy, l10n.footerContact, l10n.footerAccessibility])),
           ],
         ),
         const SizedBox(height: 32),
-        Text(l10n.footerCopyright, style: const TextStyle(color: Color(0xFF8A9BB0), fontSize: 11, letterSpacing: 0.5)),
+        const Divider(color: Colors.white24),
         const SizedBox(height: 16),
-        Row(children: [
-          _IconBtn(icon: Icons.share_outlined, onTap: _scrollToTop),
-          const SizedBox(width: 10),
-          _IconBtn(icon: Icons.favorite_border, onTap: _scrollToTop),
-          const SizedBox(width: 10),
-          _IconBtn(icon: Icons.mail_outline, onTap: _scrollToTop),
-        ]),
+        Text(l10n.footerCopyright, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _IconBtn(icon: Icons.share_outlined, onTap: _scrollToTop),
+            const SizedBox(width: 16),
+            _IconBtn(icon: Icons.favorite_border, onTap: _scrollToTop),
+            const SizedBox(width: 16),
+            _IconBtn(icon: Icons.mail_outline, onTap: _scrollToTop),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _linkColumn(List<String> links, {bool underlineLast = false}) {
+  Widget _linkColumn(List<String> links) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: links.asMap().entries.map((entry) {
-        final isLast = entry.key == links.length - 1;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _FooterLink(title: entry.value, underline: underlineLast && isLast, onTap: _scrollToTop),
-        );
-      }).toList(),
+      children: links.map((link) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: _FooterLink(title: link, onTap: _scrollToTop),
+      )).toList(),
     );
   }
 }
@@ -112,17 +117,16 @@ class _IconBtnState extends State<_IconBtn> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 36, height: 36,
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _hovered ? const Color(0xFF18A97A) : const Color(0xFF2A3A4E),
-            borderRadius: BorderRadius.circular(50),
+            color: _hovered ? Colors.white : Colors.white.withOpacity(0.15),
+            shape: BoxShape.circle,
           ),
-          child: Icon(widget.icon, color: _hovered ? Colors.white : const Color(0xFF8A9BB0), size: 16),
+          child: Icon(widget.icon, color: _hovered ? AppColors.cartTeal : Colors.white, size: 20),
         ),
       ),
     );
@@ -131,10 +135,8 @@ class _IconBtnState extends State<_IconBtn> {
 
 class _FooterLink extends StatefulWidget {
   final String title;
-  final bool underline;
   final VoidCallback onTap;
-  const _FooterLink({required this.title, required this.onTap, this.underline = false});
-
+  const _FooterLink({required this.title, required this.onTap});
   @override
   State<_FooterLink> createState() => _FooterLinkState();
 }
@@ -147,18 +149,15 @@ class _FooterLinkState extends State<_FooterLink> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 180),
+        child: Text(
+          widget.title,
           style: TextStyle(
-            color: _hovered ? Colors.white : const Color(0xFF8A9BB0),
-            fontSize: 12, letterSpacing: 0.8,
-            decoration: widget.underline ? TextDecoration.underline : TextDecoration.none,
-            decorationColor: _hovered ? Colors.white : const Color(0xFF8A9BB0),
+            color: _hovered ? Colors.white : Colors.white70,
+            fontSize: 14,
+            fontWeight: _hovered ? FontWeight.bold : FontWeight.normal,
           ),
-          child: Text(widget.title),
         ),
       ),
     );
