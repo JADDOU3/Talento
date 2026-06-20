@@ -21,6 +21,7 @@ class MirrorMindGameScreen extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int initialLevelNumber;
+  final int? startLevelId;
 
   const MirrorMindGameScreen({
     super.key,
@@ -29,6 +30,7 @@ class MirrorMindGameScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.initialLevelNumber = 1,
+    this.startLevelId,
   });
 
   @override
@@ -41,6 +43,7 @@ class MirrorMindGameScreen extends StatelessWidget {
           childId: childId,
           sessionId: sessionId,
           initialLevelNumber: initialLevelNumber,
+          startLevelId: startLevelId,
         ),
       child: MirrorMindGameView(
         activityId: activityId,
@@ -48,6 +51,7 @@ class MirrorMindGameScreen extends StatelessWidget {
         childId: childId,
         sessionId: sessionId,
         initialLevelNumber: initialLevelNumber,
+        startLevelId: startLevelId,
       ),
     );
   }
@@ -59,6 +63,7 @@ class MirrorMindGameView extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int initialLevelNumber;
+  final int? startLevelId;
 
   const MirrorMindGameView({
     super.key,
@@ -67,6 +72,7 @@ class MirrorMindGameView extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     required this.initialLevelNumber,
+    this.startLevelId,
   });
 
   @override

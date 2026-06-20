@@ -12,4 +12,6 @@ public class UpdateLevelDto {
     private Integer difficulty;
     private String description;
     private java.util.List<LevelImageDto> images;
+
+    private Boolean isMilestone;
 }

@@ -5,9 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../cubits/color_lab/color_lab_cubit.dart';
-import '../../cubits/color_lab/color_lab_state.dart';
-import '../../services/color_lab/color_lab_service.dart';
+import '../../cubits/activities/color_lab/color_lab_cubit.dart';
+import '../../cubits/activities/color_lab/color_lab_state.dart';
+import '../../services/activities/color_lab_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'color_lab_result_screen.dart';
 import 'widgets/color_palette_widget.dart';
@@ -20,6 +20,8 @@ class ColorLabGameScreen extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int initialLevelNumber;
 
   const ColorLabGameScreen({
     super.key,
@@ -27,6 +29,8 @@ class ColorLabGameScreen extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.initialLevelNumber = 1,
   });
 
   @override
@@ -38,14 +42,26 @@ class ColorLabGameScreen extends StatelessWidget {
         activitySessionId: activitySessionId,
         childId: childId,
         sessionId: sessionId,
-      )..loadGame(),
-      child: const _ColorLabGameView(),
+      )..loadGame(
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      ),
+      child: _ColorLabGameView(
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      ),
     );
   }
 }
 
 class _ColorLabGameView extends StatefulWidget {
-  const _ColorLabGameView();
+  final int? startLevelId;
+  final int initialLevelNumber;
+
+  const _ColorLabGameView({
+    required this.startLevelId,
+    required this.initialLevelNumber,
+  });
 
   @override
   State<_ColorLabGameView> createState() => _ColorLabGameViewState();
@@ -108,12 +124,14 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
 
         if (state is ColorLabLevelComplete) {
           _timer?.cancel();
+
           // Show a final celebration then pop back to roadmap
           await showDialog(
             context: context,
             barrierDismissible: false,
             builder: (_) => const _LevelCompleteDialog(),
           );
+
           if (context.mounted) {
             Navigator.of(context).pop();
           }
@@ -244,18 +262,30 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 52, color: AppColors.hint),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 52,
+              color: AppColors.hint,
+            ),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 14),
             ElevatedButton(
-              onPressed: () => context.read<ColorLabCubit>().loadGame(),
+              onPressed: () {
+                _timer?.cancel();
+                _timerStarted = false;
+
+                context.read<ColorLabCubit>().loadGame(
+                  startLevelId: widget.startLevelId,
+                  initialLevelNumber: widget.initialLevelNumber,
+                );
+              },
               child: const Text('إعادة المحاولة'),
             ),
           ],
@@ -267,7 +297,10 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
 
 class _TimerChip extends StatelessWidget {
   final String text;
-  const _TimerChip({required this.text});
+
+  const _TimerChip({
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -288,8 +321,11 @@ class _TimerChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.timer_outlined,
-              color: AppColors.primary, size: 18),
+          const Icon(
+            Icons.timer_outlined,
+            color: AppColors.primary,
+            size: 18,
+          ),
           const SizedBox(width: 6),
           Text(
             text,
@@ -309,7 +345,10 @@ class _CircleButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _CircleButton({required this.icon, required this.onTap});
+  const _CircleButton({
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +373,11 @@ class _CircleButton extends StatelessWidget {
               ),
             ],
           ),
-          child: Icon(icon, color: AppColors.primary, size: 18),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 18,
+          ),
         ),
       ),
     );
@@ -345,7 +388,10 @@ class _SubmitButton extends StatelessWidget {
   final bool enabled;
   final VoidCallback onTap;
 
-  const _SubmitButton({required this.enabled, required this.onTap});
+  const _SubmitButton({
+    required this.enabled,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

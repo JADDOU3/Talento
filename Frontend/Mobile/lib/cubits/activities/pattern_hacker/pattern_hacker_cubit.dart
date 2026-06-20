@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../models/activities/pattern_hacker/pattern_hacker_level_model.dart';
 import '../../../services/activities/pattern_hacker_service.dart';
@@ -13,6 +15,9 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
         super(const PatternHackerInitial());
 
   final PatternHackerService _service;
+
+  static const FlutterSecureStorage _progressStorage =
+  FlutterSecureStorage();
 
   Timer? _timer;
 
@@ -30,6 +35,65 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
   /// Timestamps of recent choice taps — used to detect random pressing.
   final List<DateTime> _recentTaps = <DateTime>[];
 
+  String get _progressStorageKey {
+    return 'pattern_hacker_progress_child_${_childId}_activity_$_activityId';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Local progress backup
+  // ---------------------------------------------------------------------------
+
+  Future<_PatternHackerSavedProgress?> _readSavedProgress() async {
+    final raw = await _progressStorage.read(
+      key: _progressStorageKey,
+    );
+
+    if (raw == null || raw.trim().isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+
+      if (decoded is! Map) return null;
+
+      final levelIndex = _readInt(decoded['levelIndex']);
+      final challengeIndex = _readInt(decoded['challengeIndex']);
+
+      if (levelIndex == null || levelIndex < 0) return null;
+
+      return _PatternHackerSavedProgress(
+        levelIndex: levelIndex,
+        challengeIndex: challengeIndex ?? 0,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _saveProgress({
+    required int levelIndex,
+    required int challengeIndex,
+  }) async {
+    await _progressStorage.write(
+      key: _progressStorageKey,
+      value: jsonEncode({
+        'levelIndex': levelIndex,
+        'challengeIndex': challengeIndex,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
+  }
+
+  Future<void> _clearSavedProgress() async {
+    await _progressStorage.delete(
+      key: _progressStorageKey,
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Loading
   // ---------------------------------------------------------------------------
@@ -40,6 +104,7 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     required int childId,
     required int sessionId,
     int initialLevelNumber = 1,
+    int? startLevelId,
   }) async {
     emit(const PatternHackerLoading());
 
@@ -57,21 +122,29 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
       // Keep only levels that actually have at least one playable challenge.
       final playableLevels =
-          levels.where((level) => level.challenges.isNotEmpty).toList();
+      levels.where((level) => level.challenges.isNotEmpty).toList();
 
       if (playableLevels.isEmpty) {
         emit(const PatternHackerError('No Pattern Hacker levels were found.'));
         return;
       }
 
-      final startLevelIndex =
-          (initialLevelNumber - 1).clamp(0, playableLevels.length - 1);
+      final startPosition = await _resolveStartPosition(
+        levels: playableLevels,
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      );
 
-      final startLevel = playableLevels[startLevelIndex];
+      final startLevel = playableLevels[startPosition.levelIndex];
 
       final firstAttempt = await _createAttemptForLevel(
         level: startLevel,
         attemptNumber: 1,
+      );
+
+      await _saveProgress(
+        levelIndex: startPosition.levelIndex,
+        challengeIndex: startPosition.challengeIndex,
       );
 
       await _service.postActivityEvent(
@@ -93,8 +166,8 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
       emit(
         PatternHackerLoaded(
           levels: playableLevels,
-          currentLevelIndex: startLevelIndex,
-          currentChallengeIndex: 0,
+          currentLevelIndex: startPosition.levelIndex,
+          currentChallengeIndex: startPosition.challengeIndex,
           selectedIcon: null,
           currentAttemptId: firstAttempt.id,
           attemptNumber: 1,
@@ -107,6 +180,89 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     } catch (error) {
       emit(PatternHackerError(error.toString()));
     }
+  }
+
+  Future<_PatternHackerStartPosition> _resolveStartPosition({
+    required List<PatternHackerLevelModel> levels,
+    required int? startLevelId,
+    required int initialLevelNumber,
+  }) async {
+    if (levels.isEmpty) {
+      return const _PatternHackerStartPosition(
+        levelIndex: 0,
+        challengeIndex: 0,
+      );
+    }
+
+    int backendLevelIndex = 0;
+
+    if (startLevelId != null && startLevelId > 0) {
+      final indexFromProgress = levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      if (indexFromProgress != -1) {
+        backendLevelIndex = indexFromProgress;
+      } else {
+        backendLevelIndex = _levelIndexFromNumber(
+          initialLevelNumber: initialLevelNumber,
+          levelsLength: levels.length,
+        );
+      }
+    } else {
+      backendLevelIndex = _levelIndexFromNumber(
+        initialLevelNumber: initialLevelNumber,
+        levelsLength: levels.length,
+      );
+    }
+
+    final savedProgress = await _readSavedProgress();
+
+    if (savedProgress != null &&
+        savedProgress.levelIndex >= 0 &&
+        savedProgress.levelIndex < levels.length) {
+      final maxChallengeIndex =
+          levels[savedProgress.levelIndex].challenges.length - 1;
+
+      final savedChallengeIndex = _clampInt(
+        savedProgress.challengeIndex,
+        0,
+        maxChallengeIndex,
+      );
+
+      if (savedProgress.levelIndex > backendLevelIndex ||
+          savedProgress.levelIndex == backendLevelIndex) {
+        return _PatternHackerStartPosition(
+          levelIndex: savedProgress.levelIndex,
+          challengeIndex: savedChallengeIndex,
+        );
+      }
+    }
+
+    return _PatternHackerStartPosition(
+      levelIndex: backendLevelIndex,
+      challengeIndex: 0,
+    );
+  }
+
+  int _levelIndexFromNumber({
+    required int initialLevelNumber,
+    required int levelsLength,
+  }) {
+    if (levelsLength <= 0) return 0;
+
+    if (initialLevelNumber <= 0 || initialLevelNumber > levelsLength) {
+      return 0;
+    }
+
+    return _clampInt(initialLevelNumber - 1, 0, levelsLength - 1);
+  }
+
+  int _clampInt(int value, int min, int max) {
+    if (max < min) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
   }
 
   // ---------------------------------------------------------------------------
@@ -122,17 +278,21 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
     // Tapping the already-selected choice clears it.
     if (currentState.selectedIcon == iconName) {
-      emit(currentState.copyWith(
-        clearSelectedIcon: true,
-        hintLevel: 0,
-        randomPress: isRandom,
-      ));
+      emit(
+        currentState.copyWith(
+          clearSelectedIcon: true,
+          hintLevel: 0,
+          randomPress: isRandom,
+        ),
+      );
     } else {
-      emit(currentState.copyWith(
-        selectedIcon: iconName,
-        hintLevel: 0,
-        randomPress: isRandom,
-      ));
+      emit(
+        currentState.copyWith(
+          selectedIcon: iconName,
+          hintLevel: 0,
+          randomPress: isRandom,
+        ),
+      );
     }
 
     if (isRandom) _scheduleRandomPressClear();
@@ -141,17 +301,22 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
   /// Returns true if 5+ taps happened within the last 3 seconds.
   bool _detectRandomPress() {
     final now = DateTime.now();
+
     _recentTaps.add(now);
+
     _recentTaps.removeWhere(
-      (t) => now.difference(t) > const Duration(seconds: 3),
+          (t) => now.difference(t) > const Duration(seconds: 3),
     );
+
     return _recentTaps.length >= 5;
   }
 
   void _scheduleRandomPressClear() {
     _recentTaps.clear();
+
     Future.delayed(const Duration(seconds: 3), () {
       final s = state;
+
       if (s is PatternHackerLoaded && s.randomPress) {
         emit(s.copyWith(randomPress: false));
       }
@@ -163,7 +328,13 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     if (currentState is! PatternHackerLoaded) return;
 
     _lastInteractionSeconds = currentState.elapsed.inSeconds;
-    emit(currentState.copyWith(clearSelectedIcon: true, hintLevel: 0));
+
+    emit(
+      currentState.copyWith(
+        clearSelectedIcon: true,
+        hintLevel: 0,
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -208,10 +379,18 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     // Not the last challenge in the level -> just move to the next challenge.
     // The level attempt is only "completed" when the whole level is done.
     if (!loadedState.isLastChallengeInLevel) {
+      final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
+
       _lastInteractionSeconds = loadedState.elapsed.inSeconds;
+
+      await _saveProgress(
+        levelIndex: loadedState.currentLevelIndex,
+        challengeIndex: nextChallengeIndex,
+      );
+
       emit(
         loadedState.copyWith(
-          currentChallengeIndex: loadedState.currentChallengeIndex + 1,
+          currentChallengeIndex: nextChallengeIndex,
           clearSelectedIcon: true,
           hintLevel: 0,
         ),
@@ -220,7 +399,10 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     }
 
     // Last challenge in the level -> mark the attempt completed.
-    await _updateCurrentAttempt(currentState: loadedState, completed: true);
+    await _updateCurrentAttempt(
+      currentState: loadedState,
+      completed: true,
+    );
 
     await _service.postLevelEvent(
       childId: _childId,
@@ -250,7 +432,10 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
   Future<void> _handleWrongAnswer(PatternHackerLoaded currentState) async {
     // Close the current attempt as not completed.
-    await _updateCurrentAttempt(currentState: currentState, completed: false);
+    await _updateCurrentAttempt(
+      currentState: currentState,
+      completed: false,
+    );
 
     await _service.postLevelEvent(
       childId: _childId,
@@ -274,6 +459,11 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
       action: 'RETRIED',
     );
 
+    await _saveProgress(
+      levelIndex: currentState.currentLevelIndex,
+      challengeIndex: currentState.currentChallengeIndex,
+    );
+
     emit(
       PatternHackerChallengeResult(
         isCorrect: false,
@@ -288,6 +478,7 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
     // Same challenge again, cleared selection, new attempt.
     _lastInteractionSeconds = currentState.elapsed.inSeconds;
+
     emit(
       currentState.copyWith(
         currentAttemptId: nextAttempt.id,
@@ -306,9 +497,18 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     if (currentState is! PatternHackerLoaded) return;
     if (currentState.isLastChallengeInLevel) return;
 
+    final nextChallengeIndex = currentState.currentChallengeIndex + 1;
+
+    unawaited(
+      _saveProgress(
+        levelIndex: currentState.currentLevelIndex,
+        challengeIndex: nextChallengeIndex,
+      ),
+    );
+
     emit(
       currentState.copyWith(
-        currentChallengeIndex: currentState.currentChallengeIndex + 1,
+        currentChallengeIndex: nextChallengeIndex,
         clearSelectedIcon: true,
       ),
     );
@@ -331,6 +531,12 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     );
 
     _lastInteractionSeconds = previousState.elapsed.inSeconds;
+
+    await _saveProgress(
+      levelIndex: nextLevelIndex,
+      challengeIndex: 0,
+    );
+
     emit(
       previousState.copyWith(
         currentLevelIndex: nextLevelIndex,
@@ -356,6 +562,7 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     );
 
     await _service.completeActivitySession(_activitySessionId);
+    await _clearSavedProgress();
 
     emit(PatternHackerGameComplete(elapsed: elapsed));
   }
@@ -377,7 +584,10 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
       levelId: level.id,
     );
 
-    return _AttemptInfo(id: attemptId, startedAt: startedAt);
+    return _AttemptInfo(
+      id: attemptId,
+      startedAt: startedAt,
+    );
   }
 
   Future<void> _updateCurrentAttempt({
@@ -418,9 +628,10 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
   void _startTimer() {
     _timer?.cancel();
+
     _timer = Timer.periodic(
       const Duration(seconds: 1),
-      (_) => onTimerTick(),
+          (_) => onTimerTick(),
     );
   }
 
@@ -431,6 +642,15 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
   Future<void> endActivityIfNotCompleted() async {
     if (_activityCompleted) return;
     if (!_gameLoaded) return;
+
+    final currentState = state;
+
+    if (currentState is PatternHackerLoaded) {
+      await _saveProgress(
+        levelIndex: currentState.currentLevelIndex,
+        challengeIndex: currentState.currentChallengeIndex,
+      );
+    }
 
     try {
       await _service.postActivityEvent(
@@ -459,5 +679,25 @@ class _AttemptInfo {
   const _AttemptInfo({
     required this.id,
     required this.startedAt,
+  });
+}
+
+class _PatternHackerSavedProgress {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _PatternHackerSavedProgress({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
+}
+
+class _PatternHackerStartPosition {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _PatternHackerStartPosition({
+    required this.levelIndex,
+    required this.challengeIndex,
   });
 }

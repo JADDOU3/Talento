@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../services/auth/token_storage_service.dart';
-import '../../shared/layout/app_background.dart';
+import '../../shared/layout/animated_background.dart';
 import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 
@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
+      body: AnimatedBackground(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),

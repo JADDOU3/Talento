@@ -42,13 +42,20 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
 
     final shapePoints = _pointsForShape(widget.shape, size);
     final userPoints = _userPoints.whereType<Offset>().toList();
+    const shouldRequireClosedPath = true;
 
     final expectedPoints = _sampleExpectedPath(
       points: shapePoints,
-      closed: widget.closed,
+      closed: shouldRequireClosedPath,
     );
 
     final coverageScore = _calculateCoverageScore(
+      expectedPoints: expectedPoints,
+      userPoints: userPoints,
+      tolerance: 18,
+    );
+
+    final precisionScore = _calculateUserPrecisionScore(
       expectedPoints: expectedPoints,
       userPoints: userPoints,
       tolerance: 22,
@@ -57,20 +64,32 @@ class ConnectDotsDrawingWidgetState extends State<ConnectDotsDrawingWidget> {
     final orderedDotScore = _calculateOrderedDotScore(
       dots: shapePoints,
       userPoints: userPoints,
-      tolerance: 28,
+      tolerance: 24,
+      requireReturnToStart: shouldRequireClosedPath,
     );
 
     final dotHitScore = _calculateDotHitScore(
       dots: shapePoints,
       userPoints: userPoints,
+      tolerance: 24,
+    );
+
+    final pathClosed = _isClosedPath(
+      dots: shapePoints,
+      userPoints: userPoints,
       tolerance: 28,
     );
 
-    final score = (coverageScore * 0.55) +
-        (orderedDotScore * 0.10) +
-        (dotHitScore * 0.35);
+    final score = (coverageScore * 0.46) +
+        (precisionScore * 0.22) +
+        (orderedDotScore * 0.17) +
+        (dotHitScore * 0.15);
 
-    final isCorrect = score >= 0.80;
+    final isCorrect = pathClosed &&
+        dotHitScore >= 1.0 &&
+        orderedDotScore >= 1.0 &&
+        coverageScore >= 0.88 &&
+        precisionScore >= 0.64;
 
     return SymmetryDrawingResult(
       hasDrawing: true,
@@ -485,22 +504,71 @@ double _calculateDotHitScore({
   return hit / dots.length;
 }
 
-double _calculateOrderedDotScore({
+double _calculateUserPrecisionScore({
+  required List<Offset> expectedPoints,
+  required List<Offset> userPoints,
+  required double tolerance,
+}) {
+  if (expectedPoints.isEmpty || userPoints.isEmpty) return 0;
+
+  var matched = 0;
+
+  for (final user in userPoints) {
+    if (expectedPoints.any((expected) => (user - expected).distance <= tolerance)) {
+      matched++;
+    }
+  }
+
+  return matched / userPoints.length;
+}
+
+bool _isClosedPath({
   required List<Offset> dots,
   required List<Offset> userPoints,
   required double tolerance,
 }) {
+  if (dots.length < 3 || userPoints.length < 3) return false;
+
+  final startsNearFirstDot = (userPoints.first - dots.first).distance <= tolerance;
+  final endsNearFirstDot = (userPoints.last - dots.first).distance <= tolerance;
+
+  if (!startsNearFirstDot || !endsNearFirstDot) return false;
+
+  final touchesLastDot = userPoints.any(
+        (user) => (user - dots.last).distance <= tolerance,
+  );
+
+  return touchesLastDot;
+}
+
+double _calculateOrderedDotScore({
+  required List<Offset> dots,
+  required List<Offset> userPoints,
+  required double tolerance,
+  required bool requireReturnToStart,
+}) {
   if (dots.isEmpty || userPoints.isEmpty) return 0;
 
   var nextDotIndex = 0;
+  var returnedToStart = !requireReturnToStart;
 
   for (final userPoint in userPoints) {
-    if (nextDotIndex >= dots.length) break;
-
-    if ((userPoint - dots[nextDotIndex]).distance <= tolerance) {
+    if (nextDotIndex < dots.length &&
+        (userPoint - dots[nextDotIndex]).distance <= tolerance) {
       nextDotIndex++;
+      continue;
+    }
+
+    if (requireReturnToStart &&
+        nextDotIndex >= dots.length &&
+        (userPoint - dots.first).distance <= tolerance) {
+      returnedToStart = true;
+      break;
     }
   }
 
-  return nextDotIndex / dots.length;
+  final requiredHits = dots.length + (requireReturnToStart ? 1 : 0);
+  final actualHits = nextDotIndex + (returnedToStart && requireReturnToStart ? 1 : 0);
+
+  return math.min(actualHits / requiredHits, 1.0);
 }

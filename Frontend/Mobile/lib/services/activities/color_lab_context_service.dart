@@ -8,7 +8,7 @@ import '../roadmap/roadmap_service.dart';
 
 /// Resolves everything the Color Lab game needs BEFORE it opens:
 /// selected child → last used kit → current activity (via roadmap) →
-/// session → activity session.
+/// progress → session → activity session.
 ///
 /// The game itself never refetches any of this — it only receives the
 /// final ids.
@@ -17,12 +17,16 @@ class ColorLabContext {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const ColorLabContext({
     required this.activityId,
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 }
 
@@ -50,18 +54,25 @@ class ColorLabContextService {
       throw Exception('لا يوجد نشاط حالي في خارطة الرحلة.');
     }
 
+    // Progress — decide whether to resume or replay from Level 1.
+    final startProgress = await _resolveStartProgress(activityId);
+
     // Session — create a fresh session for this play
     final sessionId = await _createSession(kitId: kitId, childId: childId);
 
     // D) Activity session — created before game opens
-    final activitySessionId =
-        await _createActivitySession(activityId: activityId, sessionId: sessionId);
+    final activitySessionId = await _createActivitySession(
+      activityId: activityId,
+      sessionId: sessionId,
+    );
 
     return ColorLabContext(
       activityId: activityId,
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
+      startLevelId: startProgress.startLevelId,
+      startLevelNumber: startProgress.startLevelNumber,
     );
   }
 
@@ -73,6 +84,8 @@ class ColorLabContextService {
     required int kitId,
     required int childId,
   }) async {
+    final startProgress = await _resolveStartProgress(activityId);
+
     final sessionId = await _createSession(kitId: kitId, childId: childId);
 
     final activitySessionId = await _createActivitySession(
@@ -85,13 +98,61 @@ class ColorLabContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
+      startLevelId: startProgress.startLevelId,
+      startLevelNumber: startProgress.startLevelNumber,
+    );
+  }
+
+  Future<_ColorLabStartProgress> _resolveStartProgress(int activityId) async {
+    debugPrint('COLOR LAB: loading activity progress for activityId = $activityId');
+
+    final progress = await _roadmapService.getActivityProgress(
+      activityId: activityId,
+    );
+
+    if (progress == null) {
+      debugPrint('COLOR LAB: no progress found, fallback to level 1');
+
+      return const _ColorLabStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
+    }
+
+    if (progress.completed) {
+      debugPrint('COLOR LAB: activity completed, replay starts from level 1');
+
+      return const _ColorLabStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
+    }
+
+    if (!progress.hasValidCurrentLevel) {
+      debugPrint('COLOR LAB: invalid progress level, fallback to level 1');
+
+      return const _ColorLabStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
+    }
+
+    final startLevelNumber = progress.currentLevelNumber <= 0
+        ? 1
+        : progress.currentLevelNumber;
+
+    debugPrint('COLOR LAB: resume from levelId = ${progress.currentLevelId}');
+    debugPrint('COLOR LAB: resume from levelNumber = $startLevelNumber');
+
+    return _ColorLabStartProgress(
+      startLevelId: progress.currentLevelId,
+      startLevelNumber: startLevelNumber,
     );
   }
 
   // A) GET /api/children/selected → childId
   Future<int?> _getSelectedChildId() async {
-    final response =
-        await _client.get(Uri.parse(ApiConstants.selectedChild));
+    final response = await _client.get(Uri.parse(ApiConstants.selectedChild));
 
     debugPrint('SELECTED CHILD: ${response.statusCode} - ${response.body}');
 
@@ -190,7 +251,8 @@ class ColorLabContextService {
     );
 
     debugPrint(
-        'CREATE ACTIVITY SESSION: ${response.statusCode} - ${response.body}');
+      'CREATE ACTIVITY SESSION: ${response.statusCode} - ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
@@ -205,4 +267,14 @@ class ColorLabContextService {
     if (v is int) return v;
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
+}
+
+class _ColorLabStartProgress {
+  final int? startLevelId;
+  final int startLevelNumber;
+
+  const _ColorLabStartProgress({
+    required this.startLevelId,
+    required this.startLevelNumber,
+  });
 }

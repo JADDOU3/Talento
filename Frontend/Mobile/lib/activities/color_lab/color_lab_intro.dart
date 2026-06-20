@@ -7,13 +7,16 @@ import 'color_lab_game_screen.dart';
 /// Entry point for the Color Lab activity.
 /// Follows the exact same pattern as activity_intro_example.dart.
 ///
-/// Receives the resolved game context (already fetched before this screen):
-/// activityId, activitySessionId, childId, sessionId.
+/// Receives the resolved game context already fetched before this screen:
+/// activityId, activitySessionId, childId, sessionId,
+/// startLevelId, and startLevelNumber.
 class ColorLabIntro extends StatelessWidget {
   final int activityId;
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const ColorLabIntro({
     super.key,
@@ -21,6 +24,8 @@ class ColorLabIntro extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   void _openGame(BuildContext context) {
@@ -32,6 +37,8 @@ class ColorLabIntro extends StatelessWidget {
           activitySessionId: activitySessionId,
           childId: childId,
           sessionId: sessionId,
+          startLevelId: startLevelId,
+          initialLevelNumber: startLevelNumber,
         ),
       ),
     );
@@ -46,8 +53,7 @@ class ColorLabIntro extends StatelessWidget {
       replayButtonText: 'اسمع الشرح مرة أخرى',
       onStartPressed: () => _openGame(context),
       onReplayPressed: () {
-        // Replay the spoken explanation (voice line handled elsewhere).
-        // For now, re-opening the game acts as replay entry.
+        // Replay entry uses the same resolved start behavior.
         _openGame(context);
       },
     );
