@@ -10,14 +10,14 @@ import org.example.backend.model.Child;
 import org.example.backend.model.Performance;
 import org.example.backend.model.activity.Activity;
 import org.example.backend.model.activity.ActivitySession;
-import org.example.backend.model.challengeCard.ChallengeAttempt;
+import org.example.backend.model.level.LevelAttempt;
 import org.example.backend.model.event.Event;
 import org.example.backend.model.mindset.ChildMindsetScore;
 import org.example.backend.model.mindset.Mindset;
 import org.example.backend.repo.AIReportRepo;
 import org.example.backend.repo.PerformanceRepo;
 import org.example.backend.repo.activity.ActivitySessionRepo;
-import org.example.backend.repo.challenge.ChallengeAttemptRepo;
+import org.example.backend.repo.level.LevelAttemptRepo;
 import org.example.backend.repo.event.HelpEventRepo;
 import org.example.backend.repo.mindset.ChildMindsetScoreRepo;
 import org.example.backend.repo.mindset.MindsetRepo;
@@ -35,7 +35,7 @@ public class AiAnalysisService {
 
     private final AiClientService aiClientService;
     private final ActivitySessionRepo activitySessionRepo;
-    private final ChallengeAttemptRepo challengeAttemptRepo;
+    private final LevelAttemptRepo levelAttemptRepo;
     private final HelpEventRepo helpEventRepo;
     private final AIReportRepo aiReportRepo;
     private final PerformanceRepo performanceRepo;
@@ -46,7 +46,7 @@ public class AiAnalysisService {
     public AiAnalysisService(
             AiClientService aiClientService,
             ActivitySessionRepo activitySessionRepo,
-            ChallengeAttemptRepo challengeAttemptRepo,
+            LevelAttemptRepo levelAttemptRepo,
             HelpEventRepo helpEventRepo,
             AIReportRepo aiReportRepo,
             PerformanceRepo performanceRepo,
@@ -55,7 +55,7 @@ public class AiAnalysisService {
     ) {
         this.aiClientService = aiClientService;
         this.activitySessionRepo = activitySessionRepo;
-        this.challengeAttemptRepo = challengeAttemptRepo;
+        this.levelAttemptRepo = levelAttemptRepo;
         this.helpEventRepo = helpEventRepo;
         this.aiReportRepo = aiReportRepo;
         this.performanceRepo = performanceRepo;
@@ -67,6 +67,12 @@ public class AiAnalysisService {
     // Entry point — called by EventService on COMPLETED event
     // ─────────────────────────────────────────────────────────────
 
+    /**
+     * NOTE: No longer called automatically on every COMPLETED event.
+     * AI analysis is now triggered only when a milestone-flagged Level
+     * is completed — see LevelAttemptService.onLevelAttemptCompleted().
+     * Kept here for reference / potential reuse, but not wired into EventService anymore.
+     */
     @Async
     public void triggerAnalysisIfCompleted(Event event, String responseLanguage) {
         if (event == null || event.getChild() == null) return;
@@ -82,7 +88,12 @@ public class AiAnalysisService {
         runAnalysis(event.getChild(), responseLanguage);
     }
 
-
+    /**
+     * Async entry point for milestone-triggered analysis.
+     * Called from LevelAttemptService when a milestone Level is completed.
+     * Runs in the background so the level-attempt API response isn't blocked
+     * waiting for the AI call to finish.
+     */
     @Async
     public void runAnalysisAsync(Child child, String responseLanguage) {
         runAnalysis(child, responseLanguage);
@@ -155,8 +166,16 @@ public class AiAnalysisService {
 
     /**
      * Groups ActivitySessions by activity, then merges each group into one
-     * compact ActivitySummaryDto. Hints are counted from HelpEvent records
-     * (one HelpEvent per help request the child made during the session).
+     * compact ActivitySummaryDto.
+     *
+     * Uses LevelAttempt as the source of truth for attempts/completion —
+     * this is what the actual gameplay flow writes to (Mirror Mind, Color Lab,
+     * Conflict Resolution Cards, etc. all use Level/LevelAttempt).
+     * ChallengeAttempt is a separate, currently-unused completion model and
+     * is intentionally NOT used here.
+     *
+     * Hints are counted from HelpEvent records scoped to the parent Session
+     * (best available granularity — HelpEvent has no activitySession FK).
      */
     private List<ActivitySummaryDto> buildActivitySummaries(List<ActivitySession> sessions) {
         Map<Integer, List<ActivitySession>> byActivity = sessions.stream()
@@ -178,19 +197,25 @@ public class AiAnalysisService {
             for (ActivitySession as : actSessions) {
                 totalDuration += computeDuration(as);
 
-                List<ChallengeAttempt> attempts = challengeAttemptRepo.findByActivitySessionId(as.getId());
-                totalAttempts += attempts.stream().mapToInt(ChallengeAttempt::getAttemptsCount).sum();
-                totalFails += attempts.stream().filter(a -> Boolean.FALSE.equals(a.getCompleted())).count();
+                List<LevelAttempt> attempts = levelAttemptRepo.findByActivitySessionId(as.getId());
 
-                // Count help events for this session (more accurate than HelpLog @OneToOne)
+                // Every LevelAttempt row is one attempt at a level
+                totalAttempts += attempts.size();
+
+                // A failed attempt is one marked completed=false (the child retried)
+                totalFails += (int) attempts.stream()
+                        .filter(a -> Boolean.FALSE.equals(a.getCompleted()))
+                        .count();
+
+                // Count help events for this session (best available granularity)
                 if (as.getSession() != null) {
                     totalHints += helpEventRepo.findBySessionId(as.getSession().getId()).size();
                 }
 
-                // Completed if all challenge attempts are accepted/completed and at least one exists
-                long incomplete = attempts.stream().filter(a -> Boolean.FALSE.equals(a.getCompleted())).count();
-                long complete = attempts.stream().filter(a -> Boolean.TRUE.equals(a.getCompleted())).count();
-                if (complete > 0 && incomplete == 0) anyCompleted = true;
+                // Completed if at least one LevelAttempt for this ActivitySession succeeded
+                boolean sessionHasCompletedAttempt = attempts.stream()
+                        .anyMatch(a -> Boolean.TRUE.equals(a.getCompleted()));
+                if (sessionHasCompletedAttempt) anyCompleted = true;
             }
 
             String completionStatus = anyCompleted ? "completed"
