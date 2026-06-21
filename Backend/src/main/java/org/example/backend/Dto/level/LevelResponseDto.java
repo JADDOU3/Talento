@@ -12,6 +12,7 @@ public class LevelResponseDto {
     private int levelNumber;
     private int difficulty;
     private String description;
+    private boolean isMilestone;
     private List<LevelImageResponseDto> images;
     private ActivitySummaryDto activity;
 
@@ -24,6 +25,7 @@ public class LevelResponseDto {
         this.levelNumber = level.getLevelNumber();
         this.difficulty = level.getDifficulty();
         this.description = level.getDescription();
+        this.isMilestone = level.isMilestone();
         this.images = images;
         this.activity = ActivitySummaryDto.from(level.getActivity(), activityCoverImageUrl);
     }

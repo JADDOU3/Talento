@@ -23,8 +23,11 @@ dependencies:
   flame: ^1.35.1
   flame_forge2d: ^0.19.2+4
   flutter_tts: ^4.2.5
-  video_player: ^2.8.6
+
   equatable: ^2.0.5
+
+  video_player: ^2.11.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
