@@ -31,6 +31,8 @@ class ApiConstants {
   static const String levelAttempts = '$baseUrl/level-attempts';
   static const String activityEvents = '$baseUrl/events/activity';
   static const String levelEvents = '$baseUrl/events/level';
+  static const String voiceTranscribeWithKeywords =
+      '$baseUrl/voice/transcribe-with-keywords';
 
   static String endSession(int sessionId) =>
       '$baseUrl/sessions/$sessionId/end';

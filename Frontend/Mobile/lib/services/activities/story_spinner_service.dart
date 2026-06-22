@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 import '../../core/config/api_constants.dart';
 import '../../models/activities/story_spinner/story_spinner_level_model.dart';
+import '../../models/activities/story_spinner/story_spinner_voice_check_result.dart';
 import '../auth/auth_api_client.dart';
 
 class StorySpinnerService {
@@ -274,6 +278,63 @@ class StorySpinnerService {
     return attemptId;
   }
 
+  Future<StorySpinnerVoiceCheckResult> transcribeWithKeywords({
+    required String filePath,
+    required int activityId,
+    required List<String> keywords,
+  }) async {
+    final audioFile = File(filePath);
+
+    if (!await audioFile.exists()) {
+      throw Exception('Recorded audio file was not found.');
+    }
+
+    final cleanedKeywords = keywords
+        .map((keyword) => keyword.trim())
+        .where((keyword) => keyword.isNotEmpty)
+        .toList();
+
+    if (cleanedKeywords.length != 3) {
+      throw Exception('Story Spinner needs exactly 3 Arabic keywords.');
+    }
+
+    final response = await _apiClient.multipartPost(
+      Uri.parse(ApiConstants.voiceTranscribeWithKeywords),
+      buildRequest: (request) async {
+        request.fields['activityId'] = activityId.toString();
+
+        for (final keyword in cleanedKeywords) {
+          request.files.add(
+            http.MultipartFile.fromString('keywords', keyword),
+          );
+        }
+
+        request.files.add(
+          await http.MultipartFile.fromPath('file', audioFile.path),
+        );
+      },
+    );
+
+    print(
+      'STORY SPINNER: voice check response = '
+          '${response.statusCode} - ${_shortBody(response.body)}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'transcribe story with keywords',
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (data is! Map<String, dynamic>) {
+      throw Exception('Invalid voice check response.');
+    }
+
+    return StorySpinnerVoiceCheckResult.fromJson(data);
+  }
+
   Future<void> updateLevelAttempt({
     required int attemptId,
     required int attemptNumber,
@@ -312,13 +373,14 @@ class StorySpinnerService {
     required int sessionId,
     required int activityId,
     required String action,
+    String responseLanguage = 'en',
   }) async {
     final body = jsonEncode({
       'childId': childId,
       'sessionId': sessionId,
       'activityId': activityId,
       'action': action,
-      'responseLanguage': 'en',
+      'responseLanguage': responseLanguage,
     });
 
     print('STORY SPINNER: post activity event body = $body');

@@ -1,0 +1,17 @@
+const Map<String, String> iconArabicLabels = {
+  'cat': 'قطة',
+  'robot': 'روبوت',
+  'frog': 'ضفدع',
+  'penguin': 'بطريق',
+  'unicorn': 'يونيكورن',
+  'travels': 'سافر',
+  'search': 'بحث',
+  'running_from_rain': 'يهرب من المطر',
+  'fly': 'طار',
+  'sing': 'غنى',
+  'forest': 'غابة',
+  'castle': 'قلعة',
+  'moon': 'قمر',
+  'sea': 'بحر',
+  'volcano': 'بركان',
+};

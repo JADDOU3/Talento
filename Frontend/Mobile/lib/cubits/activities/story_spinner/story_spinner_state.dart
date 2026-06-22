@@ -34,6 +34,9 @@ class StorySpinnerLoaded extends StorySpinnerState {
   final String? recordedFilePath;
   final bool isCompleting;
 
+  final List<String> missingKeywords;
+  final String? transcribedText;
+
   const StorySpinnerLoaded({
     required this.level,
     required this.currentAttemptId,
@@ -46,6 +49,8 @@ class StorySpinnerLoaded extends StorySpinnerState {
     this.spinningStep,
     this.recordedFilePath,
     this.isCompleting = false,
+    this.missingKeywords = const <String>[],
+    this.transcribedText,
   });
 
   bool get allWheelsLanded {
@@ -54,6 +59,10 @@ class StorySpinnerLoaded extends StorySpinnerState {
 
   bool get hasRecording {
     return recordedFilePath != null && recordedFilePath!.trim().isNotEmpty;
+  }
+
+  bool get voiceCheckFailed {
+    return missingKeywords.isNotEmpty;
   }
 
   StorySpinnerLoaded copyWith({
@@ -69,6 +78,9 @@ class StorySpinnerLoaded extends StorySpinnerState {
     bool clearSpinningStep = false,
     String? recordedFilePath,
     bool? isCompleting,
+    List<String>? missingKeywords,
+    String? transcribedText,
+    bool clearVoiceCheckResult = false,
   }) {
     return StorySpinnerLoaded(
       level: level ?? this.level,
@@ -84,6 +96,12 @@ class StorySpinnerLoaded extends StorySpinnerState {
           : spinningStep ?? this.spinningStep,
       recordedFilePath: recordedFilePath ?? this.recordedFilePath,
       isCompleting: isCompleting ?? this.isCompleting,
+      missingKeywords: clearVoiceCheckResult
+          ? const <String>[]
+          : missingKeywords ?? this.missingKeywords,
+      transcribedText: clearVoiceCheckResult
+          ? null
+          : transcribedText ?? this.transcribedText,
     );
   }
 }

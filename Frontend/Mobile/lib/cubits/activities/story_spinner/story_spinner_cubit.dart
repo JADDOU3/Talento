@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../models/activities/story_spinner/icon_arabic_labels.dart';
 import '../../../models/activities/story_spinner/story_spinner_level_model.dart';
 import '../../../services/activities/story_spinner_service.dart';
 import 'story_spinner_state.dart';
@@ -27,6 +28,7 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
   bool _activityCompleted = false;
   bool _gameLoaded = false;
   bool _wheelsLogged = false;
+  bool _voiceCheckFailedOnce = false;
 
   Future<void> loadGame({
     required int activityId,
@@ -43,6 +45,7 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
     _activityCompleted = false;
     _gameLoaded = false;
     _wheelsLogged = false;
+    _voiceCheckFailedOnce = false;
     _currentAttemptStartedAt = '';
     _currentLevelId = 0;
 
@@ -201,6 +204,8 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
     emit(
       currentState.copyWith(
         recordedFilePath: filePath,
+        isCompleting: false,
+        clearVoiceCheckResult: true,
       ),
     );
   }
@@ -212,12 +217,56 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
     if (!currentState.hasRecording) return;
     if (currentState.isCompleting) return;
 
-    emit(currentState.copyWith(isCompleting: true));
-
     try {
-      // Part 1 note:
-      // The audio file is already saved locally by the recorder widget.
-      // TODO Part 2: upload audio and wait for transcription/validation result.
+      final keywords = _arabicKeywordsForSelectedIcons(currentState);
+      final recordedFilePath = currentState.recordedFilePath!;
+
+      emit(
+        currentState.copyWith(
+          isCompleting: true,
+          clearVoiceCheckResult: true,
+        ),
+      );
+
+      if (_voiceCheckFailedOnce) {
+        await _service.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'RETRIED',
+        );
+      }
+
+      final voiceCheckResult = await _service.transcribeWithKeywords(
+        filePath: recordedFilePath,
+        activityId: _activityId,
+        keywords: keywords,
+      );
+
+      if (!voiceCheckResult.success) {
+        await _service.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'FAILED',
+        );
+
+        _voiceCheckFailedOnce = true;
+
+        final latestState = state;
+        final loadedState = latestState is StorySpinnerLoaded
+            ? latestState
+            : currentState;
+
+        emit(
+          loadedState.copyWith(
+            isCompleting: false,
+            missingKeywords: voiceCheckResult.missingKeywords,
+            transcribedText: voiceCheckResult.text,
+          ),
+        );
+        return;
+      }
 
       await _service.postLevelEvent(
         childId: _childId,
@@ -240,6 +289,7 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
         sessionId: _sessionId,
         activityId: _activityId,
         action: 'COMPLETED',
+        responseLanguage: 'ar',
       );
 
       await _service.completeActivitySession(_activitySessionId);
@@ -262,6 +312,36 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
     await _logEndedIfNeeded();
     _stopTimer();
     return super.close();
+  }
+
+  List<String> _arabicKeywordsForSelectedIcons(
+      StorySpinnerLoaded currentState,
+      ) {
+    final selectedIcons = <String?>[
+      currentState.characterIcon,
+      currentState.eventIcon,
+      currentState.placeIcon,
+    ];
+
+    final keywords = <String>[];
+
+    for (final icon in selectedIcons) {
+      final normalizedIcon = icon?.trim();
+
+      if (normalizedIcon == null || normalizedIcon.isEmpty) {
+        throw Exception('Please spin all story elements first.');
+      }
+
+      final keyword = iconArabicLabels[normalizedIcon];
+
+      if (keyword == null || keyword.trim().isEmpty) {
+        throw Exception('Missing Arabic label for icon: $normalizedIcon');
+      }
+
+      keywords.add(keyword);
+    }
+
+    return keywords;
   }
 
   List<String> _iconsForStep(

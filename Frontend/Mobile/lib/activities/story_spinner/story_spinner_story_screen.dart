@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/story_spinner/story_spinner_cubit.dart';
 import '../../cubits/activities/story_spinner/story_spinner_state.dart';
+import '../../models/activities/story_spinner/icon_arabic_labels.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/voice_recorder_widget.dart';
 
@@ -169,6 +170,9 @@ class _LoadedStoryView extends StatelessWidget {
         ? voiceChallenge!.prompt.trim()
         : 'احكي الآن قصة قصيرة باستخدام العناصر الثلاثة.';
 
+    final checkingStory = isCompleting || state.isCompleting;
+    final missingKeywords = state.missingKeywords;
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
@@ -179,9 +183,14 @@ class _LoadedStoryView extends StatelessWidget {
           characterIcon: characterIcon,
           eventIcon: eventIcon,
           placeIcon: placeIcon,
+          missingKeywords: missingKeywords,
         ),
         const SizedBox(height: 14),
         _MascotPromptCard(prompt: prompt),
+        if (missingKeywords.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _VoiceCheckFeedbackCard(missingKeywords: missingKeywords),
+        ],
         const SizedBox(height: 14),
         VoiceRecorderWidget(
           isRecording: isRecording,
@@ -193,7 +202,7 @@ class _LoadedStoryView extends StatelessWidget {
           width: double.infinity,
           height: 58,
           child: ElevatedButton.icon(
-            onPressed: state.hasRecording && !isRecording && !isCompleting
+            onPressed: state.hasRecording && !isRecording && !checkingStory
                 ? onDone
                 : null,
             style: ElevatedButton.styleFrom(
@@ -205,7 +214,7 @@ class _LoadedStoryView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(22),
               ),
             ),
-            icon: isCompleting
+            icon: checkingStory
                 ? const SizedBox(
               width: 20,
               height: 20,
@@ -218,7 +227,7 @@ class _LoadedStoryView extends StatelessWidget {
             )
                 : const Icon(Icons.check_circle_rounded),
             label: Text(
-              isCompleting ? 'جاري الإنهاء...' : 'إنهاء',
+              checkingStory ? 'جاري فحص القصة...' : 'إنهاء',
               style: AppTextStyles.button.copyWith(
                 fontFamily: 'DGAgnadeen',
                 fontSize: 24,
@@ -321,15 +330,21 @@ class _StoryElementsCard extends StatelessWidget {
   final String characterIcon;
   final String eventIcon;
   final String placeIcon;
+  final List<String> missingKeywords;
 
   const _StoryElementsCard({
     required this.characterIcon,
     required this.eventIcon,
     required this.placeIcon,
+    required this.missingKeywords,
   });
 
   @override
   Widget build(BuildContext context) {
+    final characterKeyword = iconArabicLabels[characterIcon];
+    final eventKeyword = iconArabicLabels[eventIcon];
+    final placeKeyword = iconArabicLabels[placeIcon];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -365,6 +380,8 @@ class _StoryElementsCard extends StatelessWidget {
                 child: _StoryElementTile(
                   icon: characterIcon,
                   label: 'الشخصية',
+                  isMissing: characterKeyword != null &&
+                      missingKeywords.contains(characterKeyword),
                 ),
               ),
               const SizedBox(width: 10),
@@ -372,6 +389,8 @@ class _StoryElementsCard extends StatelessWidget {
                 child: _StoryElementTile(
                   icon: eventIcon,
                   label: 'الحدث',
+                  isMissing: eventKeyword != null &&
+                      missingKeywords.contains(eventKeyword),
                 ),
               ),
               const SizedBox(width: 10),
@@ -379,6 +398,8 @@ class _StoryElementsCard extends StatelessWidget {
                 child: _StoryElementTile(
                   icon: placeIcon,
                   label: 'المكان',
+                  isMissing: placeKeyword != null &&
+                      missingKeywords.contains(placeKeyword),
                 ),
               ),
             ],
@@ -392,54 +413,139 @@ class _StoryElementsCard extends StatelessWidget {
 class _StoryElementTile extends StatelessWidget {
   final String icon;
   final String label;
+  final bool isMissing;
 
   const _StoryElementTile({
     required this.icon,
     required this.label,
+    required this.isMissing,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
       height: 120,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: isMissing
+            ? AppColors.red.withOpacity(0.06)
+            : AppColors.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.08),
+          color: isMissing
+              ? AppColors.red.withOpacity(0.45)
+              : AppColors.primary.withOpacity(0.08),
+          width: isMissing ? 1.6 : 1,
         ),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.85),
-                shape: BoxShape.circle,
+          Column(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset(
+                    'assets/images/cards/$icon.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) {
+                      return Icon(
+                        Icons.image_not_supported_rounded,
+                        color: AppColors.primary.withOpacity(0.8),
+                        size: 34,
+                      );
+                    },
+                  ),
+                ),
               ),
-              child: Image.asset(
-                'assets/images/cards/$icon.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) {
-                  return Icon(
-                    Icons.image_not_supported_rounded,
-                    color: AppColors.primary.withOpacity(0.8),
-                    size: 34,
-                  );
-                },
+              const SizedBox(height: 10),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: isMissing ? AppColors.red : AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          if (isMissing)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: AppColors.red.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.priority_high_rounded,
+                  size: 17,
+                  color: AppColors.red,
+                ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VoiceCheckFeedbackCard extends StatelessWidget {
+  final List<String> missingKeywords;
+
+  const _VoiceCheckFeedbackCard({
+    required this.missingKeywords,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final missingText = missingKeywords.join('، ');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: AppColors.red.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.red.withOpacity(0.22),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.white.withOpacity(0.88),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.mic_rounded,
+              color: AppColors.red,
+              size: 22,
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: AppColors.primary,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'قصة حلوة! خلّينا نذكر كمان: $missingText، وبعدها سجّل مرة ثانية.',
+              textAlign: TextAlign.right,
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontSize: 14,
+                height: 1.45,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ],
