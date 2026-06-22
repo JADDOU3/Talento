@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../models/color_lab/color_lab_models.dart';
+import '../../../models/activities/color_lab/color_lab_models.dart';
 
 /// Shows the object the child must match (TARGET image).
 /// Big image, very thin yellow border hugging the image (minimal padding).

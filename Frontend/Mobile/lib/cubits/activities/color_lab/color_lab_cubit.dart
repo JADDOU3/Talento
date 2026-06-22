@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../../models/color_lab/color_lab_models.dart';
+import '../../../models/activities/color_lab/color_lab_models.dart';
 import '../../../services/activities/color_lab_service.dart';
 import 'color_lab_state.dart';
 

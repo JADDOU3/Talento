@@ -5,6 +5,7 @@ import '../../activities/color_lab/color_lab_launcher.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/story_spinner/story_spinner_intro.dart';
 import '../../activities/tower_builder/tower_builder_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
@@ -227,6 +228,21 @@ class _RoadmapView extends StatelessWidget {
     });
   return;
 }
+
+    if (activityName == 'story spinner' ||
+        activityName == 'story spinner cards') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StorySpinnerIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
     _showMessage(
       context,
