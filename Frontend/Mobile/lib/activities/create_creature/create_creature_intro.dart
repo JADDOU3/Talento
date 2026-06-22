@@ -1,34 +1,32 @@
+// lib/activities/create_creature/create_creature_intro.dart
+
 import 'package:flutter/material.dart';
 
-import '../../services/activities/mirror_mind_service.dart';
-import '../../services/roadmap/roadmap_service.dart';
+import '../../services/activities/create_creature_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
-import 'mirror_mind_game_screen.dart';
+import 'create_creature_face_screen.dart';
 
-class MirrorMindIntro extends StatefulWidget {
+class CreateCreatureIntro extends StatefulWidget {
   final int? childId;
   final int? sessionId;
   final int? kitId;
   final int? activityId;
-  final int initialLevelNumber;
 
-  const MirrorMindIntro({
+  const CreateCreatureIntro({
     super.key,
     this.childId,
     this.sessionId,
     this.kitId,
     this.activityId,
-    this.initialLevelNumber = 1,
   });
 
   @override
-  State<MirrorMindIntro> createState() => _MirrorMindIntroState();
+  State<CreateCreatureIntro> createState() => _CreateCreatureIntroState();
 }
 
-class _MirrorMindIntroState extends State<MirrorMindIntro> {
-  final MirrorMindService _mirrorMindService = MirrorMindService();
-  final RoadmapService _roadmapService = RoadmapService();
+class _CreateCreatureIntroState extends State<CreateCreatureIntro> {
+  final CreateCreatureService _createCreatureService = CreateCreatureService();
 
   bool _isPreparing = false;
 
@@ -40,75 +38,40 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     });
 
     try {
-      print('MIRROR MIND: start pressed');
-      print('MIRROR MIND: resolving game data...');
+      print('CREATE CREATURE: start pressed');
+      print('CREATE CREATURE: resolving game data...');
 
       final resolvedData = await _resolveGameData();
 
-      print('MIRROR MIND: resolved childId = ${resolvedData.childId}');
-      print('MIRROR MIND: resolved sessionId = ${resolvedData.sessionId}');
-      print('MIRROR MIND: resolved kitId = ${resolvedData.kitId}');
-      print('MIRROR MIND: resolved activityId = ${resolvedData.activityId}');
+      print('CREATE CREATURE: resolved childId = ${resolvedData.childId}');
+      print('CREATE CREATURE: resolved sessionId = ${resolvedData.sessionId}');
+      print('CREATE CREATURE: resolved kitId = ${resolvedData.kitId}');
+      print('CREATE CREATURE: resolved activityId = ${resolvedData.activityId}');
 
-      int? startLevelId;
-      int startLevelNumber = widget.initialLevelNumber <= 0
-          ? 1
-          : widget.initialLevelNumber;
+      print('CREATE CREATURE: creating activity session...');
 
-      print('MIRROR MIND: loading activity progress...');
-
-      final progress = await _roadmapService.getActivityProgress(
-        activityId: resolvedData.activityId,
-      );
-
-      if (progress == null) {
-        print('MIRROR MIND: no progress found, fallback to level 1');
-        startLevelId = null;
-        startLevelNumber = 1;
-      } else if (progress.completed) {
-        print('MIRROR MIND: activity completed, replay starts from level 1');
-        startLevelId = null;
-        startLevelNumber = 1;
-      } else if (progress.hasValidCurrentLevel) {
-        startLevelId = progress.currentLevelId;
-        startLevelNumber = progress.currentLevelNumber <= 0
-            ? 1
-            : progress.currentLevelNumber;
-
-        print('MIRROR MIND: resume from levelId = $startLevelId');
-        print('MIRROR MIND: resume from levelNumber = $startLevelNumber');
-      } else {
-        print('MIRROR MIND: invalid progress level, fallback to level 1');
-        startLevelId = null;
-        startLevelNumber = 1;
-      }
-
-      print('MIRROR MIND: creating activity session...');
-
-      final activitySessionId = await _mirrorMindService.createActivitySession(
+      final activitySessionId = await _createCreatureService.createActivitySession(
         activityId: resolvedData.activityId,
         sessionId: resolvedData.sessionId,
       );
 
-      print('MIRROR MIND: created activitySessionId = $activitySessionId');
+      print('CREATE CREATURE: created activitySessionId = $activitySessionId');
 
       if (!mounted) return;
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => MirrorMindGameScreen(
+          builder: (_) => CreateCreatureFaceScreen(
             activityId: resolvedData.activityId,
             activitySessionId: activitySessionId,
             childId: resolvedData.childId,
             sessionId: resolvedData.sessionId,
-            initialLevelNumber: startLevelNumber,
-            startLevelId: startLevelId,
           ),
         ),
       );
     } catch (error) {
-      print('MIRROR MIND START ERROR: $error');
+      print('CREATE CREATURE START ERROR: $error');
 
       if (!mounted) return;
 
@@ -130,9 +93,9 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     }
   }
 
-  Future<_MirrorMindResolvedData> _resolveGameData() async {
+  Future<_CreateCreatureResolvedData> _resolveGameData() async {
     final childId =
-        widget.childId ?? await _mirrorMindService.getSelectedChildId();
+        widget.childId ?? await _createCreatureService.getSelectedChildId();
 
     final sessionIdFromWidget = widget.sessionId;
     final kitIdFromWidget = widget.kitId;
@@ -147,7 +110,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     }
 
     if (sessionIdFromWidget != null && sessionIdFromWidget != 0) {
-      return _MirrorMindResolvedData(
+      return _CreateCreatureResolvedData(
         childId: childId,
         sessionId: sessionIdFromWidget,
         kitId: kitIdFromWidget,
@@ -155,32 +118,32 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
       );
     }
 
-    print('MIRROR MIND: getting latest session for childId = $childId');
+    print('CREATE CREATURE: getting latest session for childId = $childId');
 
     final latestSession =
-    await _mirrorMindService.getLatestSessionForChild(childId);
+    await _createCreatureService.getLatestSessionForChild(childId);
 
     int sessionId = 0;
 
     if (latestSession != null) {
-      sessionId = _mirrorMindService.readSessionId(latestSession);
-      print('MIRROR MIND: latest sessionId = $sessionId');
+      sessionId = _createCreatureService.readSessionId(latestSession);
+      print('CREATE CREATURE: latest sessionId = $sessionId');
     }
 
     if (sessionId == 0) {
-      print('MIRROR MIND: no latest session, creating new session...');
-      sessionId = await _mirrorMindService.createSession(
+      print('CREATE CREATURE: no latest session, creating new session...');
+      sessionId = await _createCreatureService.createSession(
         childId: childId,
         kitId: kitIdFromWidget,
       );
-      print('MIRROR MIND: created sessionId = $sessionId');
+      print('CREATE CREATURE: created sessionId = $sessionId');
     }
 
     if (sessionId == 0) {
       throw Exception('Session id was not found or created.');
     }
 
-    return _MirrorMindResolvedData(
+    return _CreateCreatureResolvedData(
       childId: childId,
       sessionId: sessionId,
       kitId: kitIdFromWidget,
@@ -214,13 +177,13 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
   }
 }
 
-class _MirrorMindResolvedData {
+class _CreateCreatureResolvedData {
   final int childId;
   final int sessionId;
   final int kitId;
   final int activityId;
 
-  const _MirrorMindResolvedData({
+  const _CreateCreatureResolvedData({
     required this.childId,
     required this.sessionId,
     required this.kitId,

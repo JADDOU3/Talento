@@ -43,12 +43,12 @@ class LearningCard extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: accentColor.withOpacity(isChallenge ? 0.26 : 0.10),
+          color: accentColor.withValues(alpha: isChallenge ? 0.26 : 0.10),
           width: isChallenge ? 1.2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withOpacity(0.06),
+            color: accentColor.withValues(alpha: 0.06),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -165,7 +165,7 @@ class LearningCard extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: accentColor.withOpacity(0.13),
+        color: accentColor.withValues(alpha: 0.13),
         shape: BoxShape.circle,
       ),
       child: Icon(

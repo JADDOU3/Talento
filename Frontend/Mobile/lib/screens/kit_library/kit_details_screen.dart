@@ -196,7 +196,7 @@ class _KitDetailsView extends StatelessWidget {
               width: double.infinity,
               height: 240,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _imagePlaceholder(),
+              errorBuilder: (_, _, _) => _imagePlaceholder(),
             ),
           ),
           Positioned(

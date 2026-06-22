@@ -237,7 +237,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<int?>(
-                      value: selectedKitId,
+                      initialValue: selectedKitId,
                       decoration: _inputDecoration('اختر الحقيبة (اختياري)'),
                       items: [
                         const DropdownMenuItem<int?>(

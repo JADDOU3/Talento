@@ -11,7 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-
+  record: ^6.0.0
+  audioplayers: ^6.1.0
   http: ^1.6.0
   flutter_bloc: ^8.1.6
 
@@ -22,11 +23,7 @@ dependencies:
   sensors_plus: ^7.0.0
   flame: ^1.35.1
   flame_forge2d: ^0.19.2+4
-  flutter_tts: ^4.2.5
-
-  equatable: ^2.0.5
-
-  video_player: ^2.11.1
+  permission_handler: ^12.0.3
 
 dev_dependencies:
   flutter_test:
@@ -37,9 +34,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/icon.png"
+  image_path: "assets/icons/logo1.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icons/icon.png"
+  adaptive_icon_foreground: "assets/icons/logo1.png"
   min_sdk_android: 21
 
 flutter:
@@ -49,6 +46,8 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/icons/
+    - assets/images/cards/
+    - assets/images/face/
 
   fonts:
     - family: ArialRounded

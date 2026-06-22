@@ -99,7 +99,7 @@ class AppDrawer extends StatelessWidget {
                         ? null
                         : (_) =>
                         _handleChildMode(context, isChildMode, hasPin),
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                   ),
                   onTap: isLoading
                       ? null

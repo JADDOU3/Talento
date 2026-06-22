@@ -92,12 +92,10 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       final selectedChild = await _service.getSelectedChild();
 
-      final ChildModel? finalSelected =
+      final ChildModel finalSelected =
           selectedChild ?? current.selectedChild ?? newChild;
 
-      final kits = finalSelected != null
-          ? await _service.getKitsByChild(finalSelected.id)
-          : <KitModel>[];
+      final kits = await _service.getKitsByChild(finalSelected.id);
 
       emit(ProfileLoaded(
         user: current.user,

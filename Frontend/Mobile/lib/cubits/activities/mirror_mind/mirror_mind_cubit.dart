@@ -420,7 +420,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
   }
 
   String get _progressStorageKey {
-    return 'mirror_mind_progress_child_${_childId}_activity_${_activityId}';
+    return 'mirror_mind_progress_child_${_childId}_activity_$_activityId';
   }
 
   Future<_SavedProgress?> _readSavedProgress() async {

@@ -189,7 +189,7 @@ class _NewUser extends State<NewUser> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: kits.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, i) {
                   final kit = kits[i];
 
@@ -216,12 +216,12 @@ class _NewUser extends State<NewUser> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: 3,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, __) {
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (_, _) {
           return Container(
             width: 160,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.75),
+              color: Colors.white.withValues(alpha: 0.75),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFE3E8EE)),
             ),

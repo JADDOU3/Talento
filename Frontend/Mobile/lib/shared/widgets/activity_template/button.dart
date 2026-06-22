@@ -65,7 +65,7 @@ class _ActivityTemplateButtonState extends State<ActivityTemplateButton> {
       height: 1.05,
       shadows: [
         Shadow(
-          color: Colors.black.withOpacity(0.22),
+          color: Colors.black.withValues(alpha: 0.22),
           offset: const Offset(0, 2),
           blurRadius: 3,
         ),
@@ -84,14 +84,14 @@ class _ActivityTemplateButtonState extends State<ActivityTemplateButton> {
           borderRadius: BorderRadius.circular(widget.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: glowColor.withOpacity(_isPressed ? 0.28 : 0.48),
+              color: glowColor.withValues(alpha: _isPressed ? 0.28 : 0.48),
               blurRadius: _isPressed ? 12 : 24,
               spreadRadius: _isPressed ? 2 : 4,
               offset: Offset.zero,
             ),
 
             BoxShadow(
-              color: shadowColor.withOpacity(_isPressed ? 0.18 : 0.30),
+              color: shadowColor.withValues(alpha: _isPressed ? 0.18 : 0.30),
               blurRadius: _isPressed ? 10 : 18,
               offset: Offset(0, _isPressed ? 5 : 10),
             ),
@@ -119,7 +119,7 @@ class _ActivityTemplateButtonState extends State<ActivityTemplateButton> {
                   ],
                 ),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.35),
+                  color: Colors.white.withValues(alpha: 0.35),
                   width: 1.6,
                 ),
               ),

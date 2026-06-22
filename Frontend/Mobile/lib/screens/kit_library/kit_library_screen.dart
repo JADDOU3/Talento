@@ -220,7 +220,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 
     return ListView.separated(
       itemCount: _childKits.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final kit = _childKits[index];
 
@@ -272,7 +272,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
 
           return ListView.separated(
             itemCount: state.kits.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 16),
+            separatorBuilder: (_, _) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final kit = state.kits[index];
 
@@ -343,7 +343,7 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _mindsetFilters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final option = _mindsetFilters[index];
 

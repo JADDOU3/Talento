@@ -68,7 +68,7 @@ class JourneyStepItem extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: nodeColor.withOpacity(isCurrent ? 0.28 : 0.10),
+                  color: nodeColor.withValues(alpha: isCurrent ? 0.28 : 0.10),
                   blurRadius: isCurrent ? 16 : 8,
                   offset: Offset(0, isCurrent ? 7 : 3),
                 ),

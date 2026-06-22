@@ -129,7 +129,7 @@ class _PostCardState extends State<PostCard> {
                   child: Image.network(
                     imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: AppColors.inputFill,
                       child:
                       const Icon(Icons.image_not_supported_outlined),

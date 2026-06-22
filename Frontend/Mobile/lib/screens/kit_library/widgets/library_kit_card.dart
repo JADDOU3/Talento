@@ -84,7 +84,7 @@ class LibraryKitCard extends StatelessWidget {
                     width: double.infinity,
                     height: 175,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                    errorBuilder: (_, _, _) => _imagePlaceholder(),
                   ),
                 ),
                 Positioned(

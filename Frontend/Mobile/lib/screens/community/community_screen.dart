@@ -61,8 +61,9 @@ class _CommunityViewState extends State<_CommunityView> {
   void _onCategoryTap(int index) {
     setState(() => selectedChip = index);
     final postCubit = context.read<PostCubit>();
-    if (index == 0) postCubit.getAllPosts();
-    else if (index == 1) postCubit.getMyPosts();
+    if (index == 0) {
+      postCubit.getAllPosts();
+    } else if (index == 1) postCubit.getMyPosts();
     else if (index == 2) postCubit.getPostsByMindset(1);
     else if (index == 3) postCubit.getPostsByKit(1);
   }
@@ -119,7 +120,7 @@ class _CommunityViewState extends State<_CommunityView> {
                                   scrollDirection: Axis.horizontal,
                                   physics: const BouncingScrollPhysics(),
                                   itemCount: categories.length,
-                                  separatorBuilder: (_, __) =>
+                                  separatorBuilder: (_, _) =>
                                   const SizedBox(width: 8),
                                   itemBuilder: (context, index) {
                                     return CategoryChip(

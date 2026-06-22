@@ -130,7 +130,7 @@ class _PrototypeButton extends StatelessWidget {
                 width: 54,
                 height: 54,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10A896).withOpacity(0.12),
+                  color: const Color(0xFF10A896).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Icon(

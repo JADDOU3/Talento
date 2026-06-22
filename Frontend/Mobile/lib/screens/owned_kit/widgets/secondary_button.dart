@@ -38,7 +38,7 @@ class SecondaryButton extends StatelessWidget {
 
           // ✨ border خفيف يعطي شكل مرتب
           side: BorderSide(
-            color: AppColors.border.withOpacity(0.6),
+            color: AppColors.border.withValues(alpha: 0.6),
             width: 1,
           ),
         ),

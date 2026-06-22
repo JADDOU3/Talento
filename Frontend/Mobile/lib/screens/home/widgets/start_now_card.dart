@@ -38,7 +38,7 @@ class StartNowCard extends StatelessWidget {
               border: Border.all(color: const Color(0xFFE3E8EE)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -51,7 +51,7 @@ class StartNowCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10A896).withOpacity(0.1),
+                    color: const Color(0xFF10A896).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(

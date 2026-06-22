@@ -264,7 +264,7 @@ class _RoadStartGuide extends StatelessWidget {
               width: 170,
               height: 170,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) {
+              errorBuilder: (_, _, _) {
                 return Container(
                   width: 118,
                   height: 118,

@@ -117,9 +117,9 @@ class CustomBottomNav extends StatelessWidget {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => screens[index],
+        pageBuilder: (_, _, _) => screens[index],
         transitionDuration: const Duration(milliseconds: 160),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(opacity: animation, child: child);
         },
       ),

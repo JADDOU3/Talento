@@ -12,7 +12,7 @@ class RoadmapLoadingView extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 30),
       itemCount: 4,
-      separatorBuilder: (_, __) => const SizedBox(height: 34),
+      separatorBuilder: (_, _) => const SizedBox(height: 34),
       itemBuilder: (context, index) {
         final isRight = index.isEven;
 

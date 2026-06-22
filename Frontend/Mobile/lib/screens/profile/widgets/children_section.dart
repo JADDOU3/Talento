@@ -59,7 +59,7 @@ class _ChildrenSectionState extends State<ChildrenSection> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: widget.children.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) {
               if (i == widget.children.length) {
                 return _buildAddButton(context);
@@ -99,7 +99,7 @@ class _ChildrenSectionState extends State<ChildrenSection> {
               boxShadow: isSelected
                   ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -113,7 +113,7 @@ class _ChildrenSectionState extends State<ChildrenSection> {
                 width: 56,
                 height: 56,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   color: AppColors.inputFill,
                   child: const Icon(
                     Icons.person_rounded,
@@ -195,7 +195,7 @@ class _ChildrenSectionState extends State<ChildrenSection> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 hint: const Text('الجنس'),
-                value: selectedGender,
+                initialValue: selectedGender,
                 items: const [
                   DropdownMenuItem(
                     value: 'MALE',

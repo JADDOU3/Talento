@@ -186,7 +186,7 @@ class _PostDetailsCard extends StatelessWidget {
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   height: 180,
                   color: AppColors.inputFill,
                   child: const Icon(Icons.image_not_supported_outlined),

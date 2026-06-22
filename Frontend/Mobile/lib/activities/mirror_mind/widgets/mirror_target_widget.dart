@@ -42,15 +42,15 @@ class MirrorTargetWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.94),
+        color: AppColors.white.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: AppColors.secondary.withOpacity(0.22),
+          color: AppColors.secondary.withValues(alpha: 0.22),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.10),
+            color: AppColors.primary.withValues(alpha: 0.10),
             blurRadius: 22,
             offset: const Offset(0, 12),
           ),
@@ -360,13 +360,13 @@ class _MirrorSideCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isBlank
-            ? AppColors.inputFill.withOpacity(0.78)
+            ? AppColors.inputFill.withValues(alpha: 0.78)
             : AppColors.background,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isBlank
               ? AppColors.border
-              : AppColors.primary.withOpacity(0.16),
+              : AppColors.primary.withValues(alpha: 0.16),
           width: 1.3,
         ),
       ),
@@ -404,15 +404,15 @@ class _MirrorDivider extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.secondary.withOpacity(0.15),
+            AppColors.secondary.withValues(alpha: 0.15),
             AppColors.secondary,
             AppColors.primary,
-            AppColors.secondary.withOpacity(0.15),
+            AppColors.secondary.withValues(alpha: 0.15),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondary.withOpacity(0.55),
+            color: AppColors.secondary.withValues(alpha: 0.55),
             blurRadius: 16,
             spreadRadius: 1,
           ),
@@ -465,7 +465,7 @@ class _BlankSlot extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.25),
+          color: AppColors.primary.withValues(alpha: 0.25),
           width: 2,
         ),
       ),

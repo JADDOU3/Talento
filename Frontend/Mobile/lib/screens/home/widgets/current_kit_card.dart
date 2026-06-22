@@ -108,7 +108,7 @@ class CurrentKitCard extends StatelessWidget {
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _imageFallback(),
+        errorBuilder: (_, _, _) => _imageFallback(),
       );
     }
 
@@ -116,7 +116,7 @@ class CurrentKitCard extends StatelessWidget {
       return Image.asset(
         imagePath,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _imageFallback(),
+        errorBuilder: (_, _, _) => _imageFallback(),
       );
     }
 

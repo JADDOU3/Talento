@@ -15,7 +15,7 @@ class PromotionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF0F3),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEC6886).withOpacity(0.2)),
+        border: Border.all(color: const Color(0xFFEC6886).withValues(alpha: 0.2)),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -26,7 +26,7 @@ class PromotionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEC6886).withOpacity(0.1),
+                  color: const Color(0xFFEC6886).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(

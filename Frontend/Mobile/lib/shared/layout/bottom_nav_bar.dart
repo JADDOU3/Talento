@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../screens/home/home_screen.dart';
-import '../../screens/profile/profile_screen.dart';
 import '../../screens/kit_library/kit_library_screen.dart';
 import '../../screens/journal/journal_screen.dart';
 import '../../screens/community/community_screen.dart';
@@ -149,9 +148,9 @@ class BottomNavBar extends StatelessWidget {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => screens[index],
+        pageBuilder: (_, _, _) => screens[index],
         transitionDuration: const Duration(milliseconds: 160),
-        transitionsBuilder: (_, animation, __, child) =>
+        transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
     );

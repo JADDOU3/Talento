@@ -404,6 +404,7 @@ class _PhysicsWall extends BodyComponent {
     paint: Paint()..color = color,
   );
 
+  @override
   final Vector2 position;
   final Vector2 size;
 

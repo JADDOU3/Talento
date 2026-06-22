@@ -33,7 +33,7 @@ class FeatureCard extends StatelessWidget {
               width: 110,
               height: 110,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),
@@ -46,7 +46,7 @@ class FeatureCard extends StatelessWidget {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),
@@ -114,7 +114,7 @@ class FeatureCard extends StatelessWidget {
                     Text(
                       'انطلق في رحلة عبر النجوم، استخدم مهاراتك لاكتشاف أسرار الفلك والمجرات السماوية. ستحصل على 150 نقطة!',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12.5,
                         height: 1.5,
                       ),
@@ -132,7 +132,7 @@ class FeatureCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFEC6886).withOpacity(0.35),
+                        color: const Color(0xFFEC6886).withValues(alpha: 0.35),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),

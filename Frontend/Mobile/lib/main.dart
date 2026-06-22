@@ -5,7 +5,7 @@ import 'cubits/child_mode/child_mode_cubit.dart';
 import 'screens/splash/splash_screen.dart';
 import 'core/lifecycle/app_lifecycle_handler.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
 }
 

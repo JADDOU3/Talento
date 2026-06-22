@@ -480,14 +480,14 @@ class _TopInfoBar extends StatelessWidget {
       height: 54,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.78),
+        color: AppColors.white.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.10),
+          color: AppColors.primary.withValues(alpha: 0.10),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -509,7 +509,7 @@ class _TopInfoBar extends StatelessWidget {
             'assets/icons/logo1.png',
             height: 50,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
+            errorBuilder: (_, _, _) {
               return const Text(
                 'Talento',
                 style: TextStyle(
@@ -539,10 +539,10 @@ class _TopCircleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.white.withOpacity(0.95),
+      color: AppColors.white.withValues(alpha: 0.95),
       shape: const CircleBorder(),
       elevation: 2,
-      shadowColor: AppColors.black.withOpacity(0.08),
+      shadowColor: AppColors.black.withValues(alpha: 0.08),
       child: InkWell(
         onTap: onPressed,
         customBorder: const CircleBorder(),
@@ -568,8 +568,7 @@ class _InfoPill extends StatelessWidget {
   const _InfoPill({
     required this.icon,
     required this.text,
-    this.color = AppColors.primary,
-  });
+  }) : color = AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
@@ -577,14 +576,14 @@ class _InfoPill extends StatelessWidget {
       height: 38,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.96),
+        color: AppColors.white.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: color.withOpacity(0.10),
+          color: color.withValues(alpha: 0.10),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -692,14 +691,14 @@ class _TonkyHint extends StatelessWidget {
             transform: Matrix4.translationValues(6, 0, 0),
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
             decoration: BoxDecoration(
-              color: AppColors.pink.withOpacity(0.14),
+              color: AppColors.pink.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.pink.withOpacity(0.22),
+                color: AppColors.pink.withValues(alpha: 0.22),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.pink.withOpacity(0.06),
+                  color: AppColors.pink.withValues(alpha: 0.06),
                   blurRadius: 12,
                   offset: const Offset(0, 5),
                 ),
@@ -737,11 +736,11 @@ class _FeedbackView extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.94),
+          color: AppColors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.08),
+              color: AppColors.black.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -776,11 +775,11 @@ class _LevelCompleteView extends StatelessWidget {
         margin: const EdgeInsets.all(24),
         padding: const EdgeInsets.all(26),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.94),
+          color: AppColors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withValues(alpha: 0.12),
               blurRadius: 24,
               offset: const Offset(0, 12),
             ),
@@ -815,7 +814,7 @@ class _ErrorView extends StatelessWidget {
         margin: const EdgeInsets.all(24),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.94),
+          color: AppColors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Text(

@@ -86,7 +86,7 @@ class ProfileHeader extends StatelessWidget {
                 radius: 40,
                 backgroundImage: NetworkImage(avatarUrl),
                 backgroundColor: AppColors.inputFill,
-                onBackgroundImageError: (_, __) {},
+                onBackgroundImageError: (_, _) {},
                 child: const Icon(
                   Icons.person_rounded,
                   size: 40,
