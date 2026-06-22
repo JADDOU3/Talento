@@ -15,4 +15,12 @@ public class VoiceKeywordCheckResponseDto {
     private boolean success;
     private List<String> missingKeywords;
     private String message;
+
+    /**
+     * The ID of the persisted story submission.
+     * Null when:
+     *  - success is false (we never save failures)
+     *  - activitySessionId or levelId were not sent in the request
+     */
+    private Integer savedSubmissionId;
 }
