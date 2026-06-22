@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     chroma_host: str = "chromadb"
     chroma_port: int = 8000
     chroma_collection_mindsets: str = "mindset_definitions"
-    chroma_collection_criteria: str = "activity_criteria"
+    chroma_collection_criteria: str = "criteria_definitions"
+    chroma_collection_activity_criteria: str = "activity_criteria_links"
     chroma_collection_patterns: str = "behavioral_patterns"
     chroma_collection_rules: str = "interpretation_rules"
     chroma_seed_batch_size: int = 64

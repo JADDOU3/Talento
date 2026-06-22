@@ -27,6 +27,8 @@ public class Level {
 
     private String description;
 
+    private boolean isMilestone = false;
+
     @OneToMany(mappedBy = "level", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LevelImage> images = new ArrayList<>();
 

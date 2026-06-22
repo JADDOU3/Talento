@@ -6,6 +6,7 @@ import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../activities/story_spinner/story_spinner_intro.dart';
+import '../../activities/tower_builder/tower_builder_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
 import '../../cubits/roadmap/roadmap_state.dart';
@@ -15,6 +16,9 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
+import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/emotion_chain/emotion_chain_intro.dart';
+
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -162,6 +166,20 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
+    if (activityName == 'tower builder') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TowerBuilderLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
     if (activityName == 'pattern hacker') {
       Navigator.push(
         context,
@@ -195,6 +213,21 @@ class _RoadmapView extends StatelessWidget {
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+    if (activityName == 'emotion chain analyzer') {
+      Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmotionChainIntro(
+          childId: childId,
+          kitId: kitId,
+          activityId: activity.activityId,
+        ),
+      ),
+    ).then((_) {
+      _refreshRoadmapIfMounted(context);
+    });
+  return;
+}
 
     if (activityName == 'story spinner' ||
         activityName == 'story spinner cards') {
