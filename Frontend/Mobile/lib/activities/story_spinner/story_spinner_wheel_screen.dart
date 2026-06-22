@@ -8,7 +8,7 @@ import '../../cubits/activities/story_spinner/story_spinner_state.dart';
 import '../../models/activities/story_spinner/story_spinner_level_model.dart';
 import '../../shared/layout/app_background.dart';
 import 'story_spinner_story_screen.dart';
-import 'widgets/spin_wheel_widget.dart';
+import 'widgets/story_slot_machine_widget.dart';
 
 class StorySpinnerWheelScreen extends StatelessWidget {
   final int activityId;
@@ -164,7 +164,7 @@ class _StorySpinnerWheelViewState extends State<StorySpinnerWheelView> {
   }
 }
 
-class _LoadedWheelView extends StatelessWidget {
+class _LoadedWheelView extends StatefulWidget {
   final StorySpinnerLoaded state;
   final bool isConfirming;
   final void Function(StorySpinnerLoaded state) onNext;
@@ -176,79 +176,78 @@ class _LoadedWheelView extends StatelessWidget {
   });
 
   @override
+  State<_LoadedWheelView> createState() => _LoadedWheelViewState();
+}
+
+class _LoadedWheelViewState extends State<_LoadedWheelView> {
+  bool _isSlotSpinning = false;
+
+  @override
   Widget build(BuildContext context) {
-    final characterChallenge = state.level.spinChallengeForStep('character');
-    final eventChallenge = state.level.spinChallengeForStep('event');
-    final placeChallenge = state.level.spinChallengeForStep('place');
+    final characterChallenge =
+    widget.state.level.spinChallengeForStep('character');
+    final eventChallenge = widget.state.level.spinChallengeForStep('event');
+    final placeChallenge = widget.state.level.spinChallengeForStep('place');
+
+    final hasAllChallenges = characterChallenge != null &&
+        eventChallenge != null &&
+        placeChallenge != null;
+
+    final canGoNext = widget.state.allWheelsLanded &&
+        !widget.state.isSpinning &&
+        !_isSlotSpinning &&
+        !widget.isConfirming;
 
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 8, 18, 22),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
         const _TopHeader(),
-        const SizedBox(height: 12),
-        _HeaderCard(),
-        const SizedBox(height: 18),
-        if (characterChallenge != null)
-          SpinWheelWidget(
-            label: 'الشخصية',
-            question: _questionOrFallback(
+        const SizedBox(height: 14),
+        const _HeaderCard(),
+        const SizedBox(height: 16),
+        if (!hasAllChallenges)
+          const _MissingChallengesCard()
+        else
+          StorySlotMachineWidget(
+            characterQuestion: _questionOrFallback(
               characterChallenge,
-              'Who is in your story?',
+              'من الشخصية؟',
             ),
-            icons: characterChallenge.icons,
-            landedIcon: state.characterIcon,
-            isSpinning: state.isSpinning && state.spinningStep == 'character',
-            onSpin: () {
-              context.read<StorySpinnerCubit>().onSpinStarted('character');
-            },
-            onLanded: (icon) {
-              context
-                  .read<StorySpinnerCubit>()
-                  .onSpinLanded('character', icon);
-            },
-          ),
-        if (characterChallenge != null) const SizedBox(height: 18),
-        if (eventChallenge != null)
-          SpinWheelWidget(
-            label: 'الحدث',
-            question: _questionOrFallback(
+            eventQuestion: _questionOrFallback(
               eventChallenge,
-              'What happens in your story?',
+              'ما الحدث؟',
             ),
-            icons: eventChallenge.icons,
-            landedIcon: state.eventIcon,
-            isSpinning: state.isSpinning && state.spinningStep == 'event',
-            onSpin: () {
-              context.read<StorySpinnerCubit>().onSpinStarted('event');
-            },
-            onLanded: (icon) {
-              context.read<StorySpinnerCubit>().onSpinLanded('event', icon);
-            },
-          ),
-        if (eventChallenge != null) const SizedBox(height: 18),
-        if (placeChallenge != null)
-          SpinWheelWidget(
-            label: 'المكان',
-            question: _questionOrFallback(
+            placeQuestion: _questionOrFallback(
               placeChallenge,
-              'Where does your story happen?',
+              'أين المكان؟',
             ),
-            icons: placeChallenge.icons,
-            landedIcon: state.placeIcon,
-            isSpinning: state.isSpinning && state.spinningStep == 'place',
-            onSpin: () {
-              context.read<StorySpinnerCubit>().onSpinStarted('place');
+            characterIcons: characterChallenge.icons,
+            eventIcons: eventChallenge.icons,
+            placeIcons: placeChallenge.icons,
+            characterLandedIcon: widget.state.characterIcon,
+            eventLandedIcon: widget.state.eventIcon,
+            placeLandedIcon: widget.state.placeIcon,
+            disabled: widget.isConfirming,
+            onSpinningChanged: (isSpinning) {
+              if (!mounted) return;
+
+              setState(() {
+                _isSlotSpinning = isSpinning;
+              });
             },
-            onLanded: (icon) {
-              context.read<StorySpinnerCubit>().onSpinLanded('place', icon);
+            onStepSpinStarted: (step) {
+              context.read<StorySpinnerCubit>().onSpinStarted(step);
+            },
+            onStepLanded: (step, icon) {
+              context.read<StorySpinnerCubit>().onSpinLanded(step, icon);
             },
           ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 24),
         _NextButton(
-          enabled: state.allWheelsLanded && !state.isSpinning && !isConfirming,
-          isLoading: isConfirming,
-          onTap: () => onNext(state),
+          enabled: canGoNext,
+          isLoading: widget.isConfirming,
+          onTap: () => widget.onNext(widget.state),
         ),
       ],
     );
@@ -263,6 +262,33 @@ class _LoadedWheelView extends StatelessWidget {
     if (question.isNotEmpty) return question;
 
     return fallback;
+  }
+}
+
+class _MissingChallengesCard extends StatelessWidget {
+  const _MissingChallengesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.error.withOpacity(0.12),
+        ),
+      ),
+      child: Text(
+        'في عناصر ناقصة من إعدادات اللعبة. تأكد أن تحديات الشخصية والحدث والمكان موجودة.',
+        textAlign: TextAlign.center,
+        style: AppTextStyles.bodyLarge.copyWith(
+          color: AppColors.error,
+          fontWeight: FontWeight.w800,
+          height: 1.35,
+        ),
+      ),
+    );
   }
 }
 
@@ -352,12 +378,14 @@ class _TopCircleButton extends StatelessWidget {
 }
 
 class _HeaderCard extends StatelessWidget {
+  const _HeaderCard();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 14, 12),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.90),
+        color: AppColors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: AppColors.primary.withOpacity(0.08),
@@ -374,7 +402,7 @@ class _HeaderCard extends StatelessWidget {
         children: [
           Image.asset(
             'assets/images/template_mascot.png',
-            height: 78,
+            height: 76,
             fit: BoxFit.contain,
             errorBuilder: (_, __, ___) {
               return const Icon(
@@ -387,7 +415,7 @@ class _HeaderCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'اختر عناصر القصة من العجلات، ثم سجّل قصة قصيرة.',
+              'اسحب الذراع لتظهر عناصر القصة، ثم استخدمها في تسجيل قصتك.',
               textAlign: TextAlign.right,
               style: AppTextStyles.bodyLarge.copyWith(
                 fontSize: 15,
@@ -425,8 +453,8 @@ class _NextButton extends StatelessWidget {
         opacity: canTap || isLoading ? 1 : 0.80,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          width: 190,
-          height: 50,
+          width: 200,
+          height: 54,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: LinearGradient(
@@ -506,6 +534,7 @@ class _NextButton extends StatelessWidget {
     );
   }
 }
+
 class _ErrorView extends StatelessWidget {
   final String message;
 

@@ -9,6 +9,26 @@ import '../../models/activities/story_spinner/icon_arabic_labels.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/voice_recorder_widget.dart';
 
+String _cleanStoryIconName(String icon) {
+  var clean = icon.trim();
+
+  if (clean.endsWith('.png')) {
+    clean = clean.substring(0, clean.length - 4);
+  }
+
+  if (clean.contains('/')) {
+    clean = clean.split('/').last;
+  }
+
+  return clean.trim();
+}
+
+String _storyIconArabicLabel(String icon) {
+  final cleanIcon = _cleanStoryIconName(icon);
+
+  return iconArabicLabels[cleanIcon] ?? cleanIcon.replaceAll('_', ' ');
+}
+
 class StorySpinnerStoryScreen extends StatefulWidget {
   final String characterIcon;
   final String eventIcon;
@@ -341,9 +361,9 @@ class _StoryElementsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final characterKeyword = iconArabicLabels[characterIcon];
-    final eventKeyword = iconArabicLabels[eventIcon];
-    final placeKeyword = iconArabicLabels[placeIcon];
+    final characterKeyword = _storyIconArabicLabel(characterIcon);
+    final eventKeyword = _storyIconArabicLabel(eventIcon);
+    final placeKeyword = _storyIconArabicLabel(placeIcon);
 
     return Container(
       width: double.infinity,
@@ -379,27 +399,24 @@ class _StoryElementsCard extends StatelessWidget {
               Expanded(
                 child: _StoryElementTile(
                   icon: characterIcon,
-                  label: 'الشخصية',
-                  isMissing: characterKeyword != null &&
-                      missingKeywords.contains(characterKeyword),
+                  label: characterKeyword,
+                  isMissing: missingKeywords.contains(characterKeyword),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _StoryElementTile(
                   icon: eventIcon,
-                  label: 'الحدث',
-                  isMissing: eventKeyword != null &&
-                      missingKeywords.contains(eventKeyword),
+                  label: eventKeyword,
+                  isMissing: missingKeywords.contains(eventKeyword),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _StoryElementTile(
                   icon: placeIcon,
-                  label: 'المكان',
-                  isMissing: placeKeyword != null &&
-                      missingKeywords.contains(placeKeyword),
+                  label: placeKeyword,
+                  isMissing: missingKeywords.contains(placeKeyword),
                 ),
               ),
             ],
@@ -423,6 +440,8 @@ class _StoryElementTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cleanIcon = _cleanStoryIconName(icon);
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       height: 120,
@@ -451,7 +470,7 @@ class _StoryElementTile extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Image.asset(
-                    'assets/images/cards/$icon.png',
+                    'assets/images/cards/$cleanIcon.png',
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) {
                       return Icon(
@@ -467,6 +486,8 @@ class _StoryElementTile extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodyMedium.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w900,

@@ -56,7 +56,6 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   Future<void> _scrollToRoadStart() async {
     if (_didAutoScroll) return;
 
-    // نعطي اللست وقت بعد الريفريش عشان تبني العناصر
     await Future.delayed(const Duration(milliseconds: 650));
 
     if (!mounted || !_scrollController.hasClients) return;
@@ -171,7 +170,8 @@ class _RoadmapStep extends StatelessWidget {
     final alignment = isRight ? Alignment.centerRight : Alignment.centerLeft;
 
     return SizedBox(
-      height: 194,
+      height: 220,
+      width: double.infinity,
       child: Align(
         alignment: alignment,
         child: Padding(
@@ -208,20 +208,20 @@ class _RoadStartGuide extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.fromLTRB(18, 15, 96, 15),
               decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.96),
+                color: AppColors.white.withOpacity(0.96),
                 borderRadius: BorderRadius.circular(34),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.16),
+                  color: AppColors.primary.withOpacity(0.16),
                   width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.10),
+                    color: AppColors.primary.withOpacity(0.10),
                     blurRadius: 24,
                     offset: const Offset(0, 12),
                   ),
                   BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.04),
+                    color: AppColors.black.withOpacity(0.04),
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   ),
@@ -269,7 +269,7 @@ class _RoadStartGuide extends StatelessWidget {
                   width: 118,
                   height: 118,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
+                    color: AppColors.primary.withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
