@@ -1,5 +1,4 @@
 import json
-import re
 
 from models.schemas import AnalysisRequest, Language
 
@@ -19,7 +18,7 @@ def _language_instruction(language: Language) -> str:
     if language == Language.ARABIC:
         return (
             "Write behavioral_summary, recommended_future_observation, and context_summary in Arabic. "
-            "Keep all other fields (trend names, pattern names, mindset names) in English."
+            "Keep all other fields (trend names, pattern names) in English."
         )
     return "Write behavioral_summary, recommended_future_observation, and context_summary in English."
 
@@ -91,14 +90,17 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
         mindset_names = ["Cognitive", "Social-Emotional", "Sensory-Kinesthetic", "Creative-Visual"]
 
     mindset_scores_schema = [
-        {"mindset_name": name, "score": "<float 0.0-1.0>"}
+        {"mindset_name": name, "score": -1}
         for name in mindset_names
     ]
 
     mindset_instruction = (
         f"You MUST score ALL of these mindsets: {mindset_names}. "
         "Score each from 0.0 (not observed) to 1.0 (strongly observed) based on the child's actual behavior. "
-        "Do NOT return 0.0 for all — derive real scores from the data."
+        "Do NOT return 0.0 for all — derive real scores from the data. "
+        "CRITICAL: The mindset_name values in your response must be EXACTLY: "
+        + str(mindset_names) +
+        ". Do not change, translate, or nullify them."
     )
 
     output_instructions = f"""Respond ONLY with a JSON object with this exact structure. All values must be derived from the input data — do NOT use placeholder zeroes or empty strings:
@@ -125,7 +127,7 @@ def build_user_prompt(request: AnalysisRequest, rag: dict) -> str:
   "analysis_version": "{request.analysis_version}"
 }}
 
-For mindset_scores: keep the mindset_name values exactly as given, only set the score for each based on observed behavior."""
+For mindset_scores: the mindset_name values are already set — do NOT change them. Replace the -1 score values with your actual assessment (0.0 to 1.0)."""
 
     prompt_sections = [
         f"LANGUAGE GUIDANCE:\n{_language_instruction(request.response_language)}",

@@ -18,6 +18,7 @@ from llm.embeddings_client import embed_texts
 from rag.chroma_client import (
     get_mindsets_collection,
     get_criteria_collection,
+    get_activity_criteria_collection,
     get_patterns_collection,
     get_rules_collection,
 )
@@ -42,6 +43,19 @@ def _get_text(value: Any) -> str:
     return str(value).strip() if value is not None else ""
 
 
+def _clean_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    """Chroma metadata values must be str, int, float, or bool (no None)."""
+    cleaned: dict[str, Any] = {}
+    for key, value in metadata.items():
+        if value is None:
+            continue
+        if isinstance(value, (str, int, float, bool)):
+            cleaned[key] = value
+        else:
+            cleaned[key] = str(value)
+    return cleaned
+
+
 def _build_mindset_records(mindsets: list[dict[str, Any]]) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for item in mindsets:
@@ -57,11 +71,11 @@ def _build_mindset_records(mindsets: list[dict[str, Any]]) -> list[dict[str, Any
         records.append({
             "id": _doc_id("mindset", item.get("id"), name),
             "document": document,
-            "metadata": {
+            "metadata": _clean_metadata({
                 "type": "mindset",
                 "mindset_id": item.get("id"),
                 "name": name,
-            },
+            }),
         })
     return records
 
@@ -79,18 +93,25 @@ def _build_criteria_records(criteria: list[dict[str, Any]]) -> list[dict[str, An
         records.append({
             "id": _doc_id("criteria", item.get("id"), name),
             "document": document,
-            "metadata": {
+            "metadata": _clean_metadata({
                 "type": "criteria",
                 "criteria_id": item.get("id"),
                 "name": name,
                 "mindset_name": mindset_name,
                 "weight": weight,
-            },
+            }),
         })
     return records
 
 
 def _build_activity_criteria_records(activity_criteria: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Each record links one activity to one criteria with a weight.
+    These are kept in their own collection (not merged with plain criteria)
+    so retrieval can target them directly by activity_id/activity_name via
+    a metadata `where` filter, instead of relying purely on semantic search
+    where they could get crowded out by unrelated criteria documents.
+    """
     records: list[dict[str, Any]] = []
     for item in activity_criteria:
         activity = item.get("activity") or {}
@@ -107,14 +128,14 @@ def _build_activity_criteria_records(activity_criteria: list[dict[str, Any]]) ->
         records.append({
             "id": _doc_id("activity_criteria", item.get("id"), f"{activity_id}-{criteria_id}"),
             "document": document,
-            "metadata": {
+            "metadata": _clean_metadata({
                 "type": "activity_criteria",
                 "activity_id": activity_id,
                 "activity_name": activity_name,
                 "criteria_id": criteria_id,
                 "criteria_name": criteria_name,
                 "weight": weight,
-            },
+            }),
         })
     return records
 
@@ -141,11 +162,11 @@ def _build_static_records(items: list[dict[str, Any]], record_type: str) -> list
         records.append({
             "id": _doc_id(record_type, item.get("id"), title),
             "document": document,
-            "metadata": {
+            "metadata": _clean_metadata({
                 "type": record_type,
                 "title": title,
-                "tags": tags,
-            },
+                "tags": ", ".join([_get_text(tag) for tag in tags if _get_text(tag)]),
+            }),
         })
     return records
 
@@ -189,8 +210,11 @@ async def seed_from_backend(token: Optional[str], auth_header: str) -> None:
         activity_criteria = await _fetch_backend_list(client, BACKEND_ACTIVITY_CRITERIA_PATH)
 
     await _upsert_records(get_mindsets_collection(), _build_mindset_records(mindsets))
-    criteria_records = _build_criteria_records(criteria) + _build_activity_criteria_records(activity_criteria)
-    await _upsert_records(get_criteria_collection(), criteria_records)
+    await _upsert_records(get_criteria_collection(), _build_criteria_records(criteria))
+    await _upsert_records(
+        get_activity_criteria_collection(),
+        _build_activity_criteria_records(activity_criteria),
+    )
 
 
 async def seed_from_files() -> None:

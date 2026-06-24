@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../services/color_lab/color_lab_context_service.dart';
+import '../../services/activities/color_lab_context_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'color_lab_intro.dart';
 
 /// Prepares the Color Lab game session, then shows ColorLabIntro.
 ///
 /// The roadmap already knows childId, kitId and the tapped activityId, so we
-/// pass them in directly. The launcher only creates the session +
-/// activitySession (it does NOT re-fetch child/kit/activity).
+/// pass them in directly. The launcher only creates the session,
+/// activitySession, and resolves the progress start level.
 ///
 /// Open THIS screen from the roadmap — not the intro or the example.
 class ColorLabLauncher extends StatefulWidget {
@@ -64,11 +64,14 @@ class _ColorLabLauncherState extends State<ColorLabLauncher> {
             activitySessionId: ctx.activitySessionId,
             childId: ctx.childId,
             sessionId: ctx.sessionId,
+            startLevelId: ctx.startLevelId,
+            startLevelNumber: ctx.startLevelNumber,
           ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
         _loading = false;
         _error = e.toString().replaceFirst('Exception: ', '');
@@ -99,8 +102,11 @@ class _ColorLabLauncherState extends State<ColorLabLauncher> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 52, color: AppColors.hint),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 52,
+            color: AppColors.hint,
+          ),
           const SizedBox(height: 14),
           Text(
             _error ?? 'حدث خطأ',
