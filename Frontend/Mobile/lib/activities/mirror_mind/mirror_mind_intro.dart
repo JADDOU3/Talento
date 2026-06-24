@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/activities/mirror_mind_service.dart';
+import '../../services/roadmap/roadmap_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'mirror_mind_game_screen.dart';
@@ -27,6 +28,7 @@ class MirrorMindIntro extends StatefulWidget {
 
 class _MirrorMindIntroState extends State<MirrorMindIntro> {
   final MirrorMindService _mirrorMindService = MirrorMindService();
+  final RoadmapService _roadmapService = RoadmapService();
 
   bool _isPreparing = false;
 
@@ -47,7 +49,39 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
       print('MIRROR MIND: resolved sessionId = ${resolvedData.sessionId}');
       print('MIRROR MIND: resolved kitId = ${resolvedData.kitId}');
       print('MIRROR MIND: resolved activityId = ${resolvedData.activityId}');
-      print('MIRROR MIND: initialLevelNumber = ${widget.initialLevelNumber}');
+
+      int? startLevelId;
+      int startLevelNumber = widget.initialLevelNumber <= 0
+          ? 1
+          : widget.initialLevelNumber;
+
+      print('MIRROR MIND: loading activity progress...');
+
+      final progress = await _roadmapService.getActivityProgress(
+        activityId: resolvedData.activityId,
+      );
+
+      if (progress == null) {
+        print('MIRROR MIND: no progress found, fallback to level 1');
+        startLevelId = null;
+        startLevelNumber = 1;
+      } else if (progress.completed) {
+        print('MIRROR MIND: activity completed, replay starts from level 1');
+        startLevelId = null;
+        startLevelNumber = 1;
+      } else if (progress.hasValidCurrentLevel) {
+        startLevelId = progress.currentLevelId;
+        startLevelNumber = progress.currentLevelNumber <= 0
+            ? 1
+            : progress.currentLevelNumber;
+
+        print('MIRROR MIND: resume from levelId = $startLevelId');
+        print('MIRROR MIND: resume from levelNumber = $startLevelNumber');
+      } else {
+        print('MIRROR MIND: invalid progress level, fallback to level 1');
+        startLevelId = null;
+        startLevelNumber = 1;
+      }
 
       print('MIRROR MIND: creating activity session...');
 
@@ -68,7 +102,8 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
             activitySessionId: activitySessionId,
             childId: resolvedData.childId,
             sessionId: resolvedData.sessionId,
-            initialLevelNumber: widget.initialLevelNumber,
+            initialLevelNumber: startLevelNumber,
+            startLevelId: startLevelId,
           ),
         ),
       );

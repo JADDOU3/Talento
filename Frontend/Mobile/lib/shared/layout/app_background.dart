@@ -53,46 +53,45 @@ class _AppBackgroundState extends State<AppBackground>
           _buildShape(
             top: -80,
             left: -60,
-            size: 220,
-            color: AppColors.secondary.withValues(alpha: 0.18),
+            size: 200,
+            color: AppColors.secondary.withValues(alpha: 0.20),
           ),
           _buildShape(
             top: 100,
             right: -60,
-            size: 180,
-            color: AppColors.pink.withValues(alpha: 0.18),
+            size: 170,
+            color: AppColors.pink.withValues(alpha: 0.20),
           ),
           _buildShape(
             bottom: -70,
             left: -40,
-            size: 220,
-            color: AppColors.yellow.withValues(alpha: 0.18),
+            size: 200,
+            color: AppColors.yellow.withValues(alpha: 0.20),
           ),
           _buildShape(
             bottom: 80,
             right: -80,
-            size: 200,
-            color: AppColors.primary.withValues(alpha: 0.18),
+            size: 180,
+            color: AppColors.primary.withValues(alpha: 0.20),
           ),
           _buildShape(
             top: 250,
             left: -60,
-            size: 170,
-            color: AppColors.red.withValues(alpha: 0.18),
+            size: 150,
+            color: AppColors.red.withValues(alpha: 0.20),
           ),
 
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              final move = (_controller.value - 0.5) * 20;
-
-              return Stack(
-                children: _buildSmallBubbles(move),
-              );
-            },
+          Stack(
+            children: _buildSmallBubbles(0),
           ),
 
-          ..._buildFixedStars(),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
 
           SafeArea(child: widget.child),
         ],
@@ -103,9 +102,9 @@ class _AppBackgroundState extends State<AppBackground>
   List<Widget> _buildSmallBubbles(double move) {
     return [
       _bubble(
-        top: 18 + move,
-        left: 28,
-        size: 12,
+        top: 12 + move,
+        left: 12,
+        size: 6,
         color: AppColors.primary,
       ),
       _bubble(
@@ -113,28 +112,28 @@ class _AppBackgroundState extends State<AppBackground>
         left: 70 + move,
         size: 4,
         color: AppColors.yellow,
-        opacity: 0.8,
+        opacity: 0.38,
       ),
       _bubble(
         top: 30 + move,
         right: 42,
         size: 10,
         color: AppColors.pink,
-        opacity: 0.95,
+        opacity: 0.38,
       ),
       _bubble(
         top: 75,
         right: 18 + move,
         size: 6,
         color: AppColors.secondary,
-        opacity: 0.85,
+        opacity: 0.38,
       ),
       _bubble(
         top: 95 - move,
         left: 18,
         size: 5,
         color: AppColors.red,
-        opacity: 0.8,
+        opacity: 0.38,
       ),
 
       _bubble(
@@ -148,7 +147,7 @@ class _AppBackgroundState extends State<AppBackground>
         left: 24,
         size: 5,
         color: AppColors.primary,
-        opacity: 0.75,
+        opacity: 0.38,
       ),
       _bubble(
         top: 340,
@@ -161,7 +160,7 @@ class _AppBackgroundState extends State<AppBackground>
         left: 22,
         size: 4,
         color: AppColors.yellow,
-        opacity: 0.8,
+        opacity: 0.38,
       ),
       _bubble(
         bottom: 95,
@@ -187,7 +186,7 @@ class _AppBackgroundState extends State<AppBackground>
         right: 10,
         size: 4,
         color: AppColors.primary,
-        opacity: 0.75,
+        opacity: 0.38,
       ),
       _bubble(
         bottom: 185,
@@ -219,7 +218,7 @@ class _AppBackgroundState extends State<AppBackground>
         right: 80 + move,
         size: 4,
         color: AppColors.yellow,
-        opacity: 0.8,
+        opacity: 0.38,
       ),
       _bubble(
         bottom: 55 - move,
@@ -239,117 +238,35 @@ class _AppBackgroundState extends State<AppBackground>
         left: 90,
         size: 6,
         color: AppColors.primary,
-        opacity: 0.7,
+        opacity: 0.38,
       ),
       _bubble(
         top: 260,
         right: 110 + move,
         size: 5,
         color: AppColors.yellow,
-        opacity: 0.75,
+        opacity: 0.38,
       ),
       _bubble(
         top: 300 - move,
         left: 120,
         size: 8,
         color: AppColors.pink,
-        opacity: 0.8,
+        opacity: 0.38,
       ),
       _bubble(
         top: 280,
         right: 70 + move,
         size: 4,
         color: AppColors.secondary,
-        opacity: 0.7,
+        opacity: 0.38,
       ),
       _bubble(
         top: 240 + move,
         left: 160,
         size: 7,
         color: AppColors.red,
-        opacity: 0.75,
-      ),
-    ];
-  }
-
-  List<Widget> _buildFixedStars() {
-    return [
-      _star(
-        top: 34,
-        left: 44,
-        size: 21,
-        color: AppColors.yellow,
-        opacity: 0.9,
-      ),
-      _star(
-        top: 86,
-        right: 72,
-        size: 18,
-        color: AppColors.primary,
-        opacity: 0.68,
-      ),
-      _star(
-        top: 148,
-        left: 138,
-        size: 16,
-        color: AppColors.pink,
-        opacity: 0.68,
-      ),
-      _star(
-        top: 220,
-        right: 38,
-        size: 22,
-        color: AppColors.yellow,
-        opacity: 0.86,
-      ),
-      _star(
-        top: 318,
-        left: 54,
-        size: 17,
-        color: AppColors.secondary,
-        opacity: 0.72,
-      ),
-      _star(
-        top: 404,
-        right: 96,
-        size: 22,
-        color: AppColors.primary,
-        opacity: 0.64,
-      ),
-      _star(
-        bottom: 284,
-        left: 92,
-        size: 20,
-        color: AppColors.yellow,
-        opacity: 0.86,
-      ),
-      _star(
-        bottom: 218,
-        right: 52,
-        size: 17,
-        color: AppColors.pink,
-        opacity: 0.72,
-      ),
-      _star(
-        bottom: 134,
-        left: 30,
-        size: 21,
-        color: AppColors.secondary,
-        opacity: 0.70,
-      ),
-      _star(
-        bottom: 76,
-        right: 118,
-        size: 16,
-        color: AppColors.yellow,
-        opacity: 0.9,
-      ),
-      _star(
-        bottom: 34,
-        left: 166,
-        size: 18,
-        color: AppColors.red,
-        opacity: 0.58,
+        opacity: 0.38,
       ),
     ];
   }
@@ -361,7 +278,7 @@ class _AppBackgroundState extends State<AppBackground>
     double? right,
     required double size,
     required Color color,
-    double opacity = 0.9,
+    double opacity = 0.55,
   }) {
     return Positioned(
       top: top,
@@ -375,28 +292,6 @@ class _AppBackgroundState extends State<AppBackground>
           color: color.withValues(alpha: opacity),
           shape: BoxShape.circle,
         ),
-      ),
-    );
-  }
-
-  Widget _star({
-    double? top,
-    double? bottom,
-    double? left,
-    double? right,
-    required double size,
-    required Color color,
-    double opacity = 0.7,
-  }) {
-    return Positioned(
-      top: top,
-      bottom: bottom,
-      left: left,
-      right: right,
-      child: Icon(
-        Icons.auto_awesome_rounded,
-        size: size,
-        color: color.withValues(alpha: opacity),
       ),
     );
   }

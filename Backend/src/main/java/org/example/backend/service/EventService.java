@@ -7,7 +7,6 @@ import org.example.backend.Dto.event.CreateLevelEventDto;
 import org.example.backend.model.event.*;
 import org.example.backend.repo.event.*;
 import org.example.backend.service.activity.ActivityService;
-import org.example.backend.service.ai.AiAnalysisService;
 import org.example.backend.util.enums.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ public class EventService {
     @Autowired private ChildService childService;
     @Autowired private SessionService sessionService;
     @Autowired private ActivityService activityService;
-    @Autowired private AiAnalysisService aiAnalysisService;
 
     public List<Event> getEventsByChild(int childId) {
         return eventRepo.findByChildId(childId);
@@ -68,12 +66,7 @@ public class EventService {
         if (createChallengeEventDto.getActivityId() != null) {
             event.setActivity(activityService.getRawActivityById(createChallengeEventDto.getActivityId()));
         }
-        ChallengeEvent saved = challengeEventRepo.save(event);
-        aiAnalysisService.triggerAnalysisIfCompleted(
-            saved,
-            createChallengeEventDto.getResponseLanguage()
-        );
-        return saved;
+        return challengeEventRepo.save(event);
     }
 
     public List<ChallengeEvent> getChallengeEventsBySession(int sessionId) {
@@ -98,10 +91,6 @@ public class EventService {
         return helpEventRepo.findBySessionId(sessionId);
     }
 
-    public List<HelpEvent> getHelpEventsByChildAndLevel(int childId, HelpLevel helpLevel) {
-        return helpEventRepo.findByChildIdAndHelpLevel(childId, helpLevel);
-    }
-
     // --- ActivityEvent ---
     public ActivityEvent createActivityEvent(CreateActivityEventDto createActivityEventDto) {
         ActivityEvent event = new ActivityEvent();
@@ -110,12 +99,7 @@ public class EventService {
         event.setSession(sessionService.getSessionById(createActivityEventDto.getSessionId()));
         event.setActivity(activityService.getRawActivityById(createActivityEventDto.getActivityId()));
         event.setAction(createActivityEventDto.getAction());
-        ActivityEvent saved = activityEventRepo.save(event);
-        aiAnalysisService.triggerAnalysisIfCompleted(
-            saved,
-            createActivityEventDto.getResponseLanguage()
-        );
-        return saved;
+        return activityEventRepo.save(event);
     }
 
     public List<ActivityEvent> getActivityEventsBySession(int sessionId) {

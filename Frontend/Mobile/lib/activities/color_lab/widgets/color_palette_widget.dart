@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../models/color_lab/color_lab_models.dart';
+import '../../../models/activities/color_lab/color_lab_models.dart';
 
 /// Shows the CHOICE palette image LARGE, with invisible tap zones overlaid on
 /// each paint-tube so tapping a tube picks its color.

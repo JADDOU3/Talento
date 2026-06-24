@@ -81,6 +81,27 @@ class AuthApiClient {
     );
   }
 
+  Future<http.Response> multipartPost(
+      Uri uri, {
+        required Future<void> Function(http.MultipartRequest request) buildRequest,
+      }) async {
+    Future<http.Response> sendRequest() async {
+      final request = http.MultipartRequest('POST', uri);
+      final headers = await authHeaders(null);
+
+      // MultipartRequest must generate its own Content-Type with boundary.
+      headers.remove('Content-Type');
+      request.headers.addAll(headers);
+
+      await buildRequest(request);
+
+      final streamedResponse = await request.send();
+      return http.Response.fromStream(streamedResponse);
+    }
+
+    return _sendWithRefresh(sendRequest, sendRequest);
+  }
+
   Future<http.Response> _sendWithRefresh(
       Future<http.Response> Function() request,
       Future<http.Response> Function() retryRequest,
@@ -109,8 +130,6 @@ class AuthApiClient {
       Map<String, String>? extraHeaders,
       ) async {
     final accessToken = await TokenStorageService.getAccessToken();
-
-    print('ACCESS TOKEN: $accessToken');
 
     return {
       'Content-Type': 'application/json',

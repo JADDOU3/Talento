@@ -35,6 +35,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     required int childId,
     required int sessionId,
     required int initialLevelNumber,
+    int? startLevelId,
   }) async {
     emit(const MirrorMindLoading());
 
@@ -60,6 +61,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       final startPosition = await _resolveStartPosition(
         levels: playableLevels,
         initialLevelNumber: initialLevelNumber,
+        startLevelId: startLevelId,
       );
 
       final startLevel = playableLevels[startPosition.levelIndex];
@@ -474,55 +476,80 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
   Future<_SavedProgress> _resolveStartPosition({
     required List<MirrorMindLevelModel> levels,
     required int initialLevelNumber,
+    int? startLevelId,
   }) async {
-    if (initialLevelNumber > levels.length) {
-      await _clearProgress();
+    int startLevelIndex = 0;
 
-      return const _SavedProgress(
-        levelIndex: 0,
-        challengeIndex: 0,
+    if (startLevelId != null && startLevelId > 0) {
+      final indexFromProgress = levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      if (indexFromProgress != -1) {
+        startLevelIndex = indexFromProgress;
+      } else {
+        startLevelIndex = _levelIndexFromNumber(
+          initialLevelNumber: initialLevelNumber,
+          levelsLength: levels.length,
+        );
+      }
+    } else {
+      startLevelIndex = _levelIndexFromNumber(
+        initialLevelNumber: initialLevelNumber,
+        levelsLength: levels.length,
       );
     }
-
-    final roadmapLevelIndex = (initialLevelNumber - 1).clamp(
-      0,
-      levels.length - 1,
-    );
 
     final savedProgress = await _readSavedProgress();
 
     if (savedProgress == null) {
       return _SavedProgress(
-        levelIndex: roadmapLevelIndex,
+        levelIndex: startLevelIndex,
         challengeIndex: 0,
       );
     }
 
-    if (savedProgress.levelIndex < roadmapLevelIndex) {
+    if (savedProgress.levelIndex != startLevelIndex) {
       return _SavedProgress(
-        levelIndex: roadmapLevelIndex,
+        levelIndex: startLevelIndex,
         challengeIndex: 0,
       );
     }
 
-    if (savedProgress.levelIndex >= levels.length) {
-      return _SavedProgress(
-        levelIndex: roadmapLevelIndex,
-        challengeIndex: 0,
-      );
-    }
-
-    final savedLevel = levels[savedProgress.levelIndex];
+    final startLevel = levels[startLevelIndex];
 
     if (savedProgress.challengeIndex < 0 ||
-        savedProgress.challengeIndex >= savedLevel.challenges.length) {
+        savedProgress.challengeIndex >= startLevel.challenges.length) {
       return _SavedProgress(
-        levelIndex: savedProgress.levelIndex,
+        levelIndex: startLevelIndex,
         challengeIndex: 0,
       );
     }
 
-    return savedProgress;
+    return _SavedProgress(
+      levelIndex: startLevelIndex,
+      challengeIndex: savedProgress.challengeIndex,
+    );
+  }
+
+  int _levelIndexFromNumber({
+    required int initialLevelNumber,
+    required int levelsLength,
+  }) {
+    if (levelsLength <= 0) return 0;
+
+    if (initialLevelNumber <= 0) {
+      return 0;
+    }
+
+    if (initialLevelNumber > levelsLength) {
+      return 0;
+    }
+
+    return (initialLevelNumber - 1).clamp(
+      0,
+      levelsLength - 1,
+    );
   }
 
   Future<void> endActivityIfNotCompleted() async {
