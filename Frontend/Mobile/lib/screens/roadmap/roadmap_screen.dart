@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
 import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
+import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
@@ -187,7 +188,13 @@ class _RoadmapView extends StatelessWidget {
     // all to tap on — roadmap tiles are 100% backend-driven, there's no
     // client-only tile mechanism. Coordinate with the team before this
     // branch can actually be reached.
-
+    if (activityName == 'gyro maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MazeEngineTestScreen()),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
     if (activityName == 'tower builder') {
       Navigator.push(
