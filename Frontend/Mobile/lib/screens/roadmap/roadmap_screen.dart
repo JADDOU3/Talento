@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
+import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
@@ -159,6 +160,28 @@ class _RoadmapView extends StatelessWidget {
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
+
+    if (activityName == 'empathy mirror') {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) => EmpathyMirrorLauncher(
+          activityId: activity.activityId,
+          kitId: kitId,
+          childId: childId,
+        ),
+      ));
+    }
+
+    // Maze tilt engine — pure test screen (no levels, no session/event
+    // logging), reached directly like the old internal test menu used to,
+    // just triggered from a roadmap tap now instead.
+    //
+    // ⚠️ REQUIRES a real backend Activity entry named "Maze Engine Test"
+    // (or whatever name the backend confirms) so a roadmap tile exists at
+    // all to tap on — roadmap tiles are 100% backend-driven, there's no
+    // client-only tile mechanism. Coordinate with the team before this
+    // branch can actually be reached.
+
 
     _showMessage(context, 'هذا النشاط غير متاح حاليًا');
   }
