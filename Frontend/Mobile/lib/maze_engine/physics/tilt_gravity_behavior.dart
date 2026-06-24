@@ -31,7 +31,9 @@ class TiltGravityBehavior extends Component with HasGameReference<Forge2DGame> {
   /// values), and is expected to be tuned by feel once a real maze exists,
   /// the same way `_movementSensitivity` was tuned from 7.5 to 12.0 in the
   /// sensors prototype.
-  static const double _defaultGravityScale = 90.0;
+  /// Tuned down from 90.0 → 45.0 so the ball is slower and easier for a
+  /// child to control (the maze manager reported it moved too fast).
+  static const double _defaultGravityScale = 45.0;
 
   /// Safety clamp so an extreme/noisy sensor reading can't make the world
   /// gravity unstable.

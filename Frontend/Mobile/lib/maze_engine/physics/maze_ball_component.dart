@@ -32,8 +32,10 @@ class MazeBallComponent extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: startPosition,
-      linearDamping: 0.08,
-      angularDamping: 0.08,
+      // Raised from 0.08 → 0.8 so the ball decelerates smoothly instead of
+      // shooting across the box (the maze manager reported it moved too fast).
+      linearDamping: 0.8,
+      angularDamping: 0.8,
     );
 
     return world.createBody(bodyDef)..createFixture(fixtureDef);
