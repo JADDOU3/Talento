@@ -91,4 +91,12 @@ public class ParentController {
     public ResponseEntity<Boolean> hasPin() {
         return ResponseEntity.ok(userService.hasPinSet());
     }
+
+    @PostMapping("/childMode/verifyPin")
+    public ResponseEntity<String> verifyChildModePin(@RequestBody ChildModePinDto dto) {
+        if (!userService.verifyChildModePin(dto.getPin())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect PIN");
+        }
+        return ResponseEntity.ok("PIN correct");
+    }
 }
