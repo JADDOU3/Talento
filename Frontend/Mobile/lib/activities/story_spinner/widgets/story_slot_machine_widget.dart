@@ -5,24 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-
-const Map<String, String> _storySpinnerArabicIconNames = {
-  'cat': 'قطة',
-  'robot': 'روبوت',
-  'frog': 'ضفدع',
-  'penguin': 'بطريق',
-  'unicorn': 'يونيكورن',
-  'travels': 'سافر',
-  'search': 'بحث',
-  'running_from_rain': 'يهرب من المطر',
-  'fly': 'طار',
-  'sing': 'غنى',
-  'forest': 'غابة',
-  'castle': 'قلعة',
-  'moon': 'قمر',
-  'sea': 'بحر',
-  'volcano': 'بركان',
-};
+import '../../../models/activities/story_spinner/icon_arabic_labels.dart';
 
 TextDirection _directionForText(String text) {
   final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(text);
@@ -54,8 +37,7 @@ List<String> _cleanIconList(List<String> icons) {
 String _displayNameForIcon(String icon) {
   final cleanIcon = _cleanIconName(icon);
 
-  return _storySpinnerArabicIconNames[cleanIcon] ??
-      cleanIcon.replaceAll('_', ' ');
+  return iconArabicLabels[cleanIcon] ?? cleanIcon.replaceAll('_', ' ');
 }
 
 String? _iconAtOffset({
@@ -883,7 +865,7 @@ class _IconBubble extends StatelessWidget {
     final cleanIcon = _cleanIconName(icon);
     final displayName = _displayNameForIcon(cleanIcon);
     final fallbackText =
-    displayName.trim().isEmpty ? '?' : displayName.trim().substring(0, 1);
+    displayName.trim().isEmpty ? '?' : displayName.trim().characters.first;
 
     return Container(
       width: size,

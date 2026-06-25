@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_constants.dart';
 import '../../models/activities/story_spinner/story_spinner_level_model.dart';
@@ -281,6 +282,8 @@ class StorySpinnerService {
   Future<StorySpinnerVoiceCheckResult> transcribeWithKeywords({
     required String filePath,
     required int activityId,
+    required int activitySessionId,
+    required int levelId,
     required List<String> keywords,
   }) async {
     final audioFile = File(filePath);
@@ -298,19 +301,32 @@ class StorySpinnerService {
       throw Exception('Story Spinner needs exactly 3 Arabic keywords.');
     }
 
+    final requestBody = jsonEncode({
+      'activityId': activityId,
+      'activitySessionId': activitySessionId,
+      'levelId': levelId,
+      'keywords': cleanedKeywords,
+    });
+
+    print('STORY SPINNER: voice check request = $requestBody');
+    print('STORY SPINNER: voice check file = ${audioFile.path}');
+
     final response = await _apiClient.multipartPost(
       Uri.parse(ApiConstants.voiceTranscribeWithKeywords),
       buildRequest: (request) async {
-        request.fields['activityId'] = activityId.toString();
-
-        for (final keyword in cleanedKeywords) {
-          request.files.add(
-            http.MultipartFile.fromString('keywords', keyword),
-          );
-        }
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'file',
+            audioFile.path,
+          ),
+        );
 
         request.files.add(
-          await http.MultipartFile.fromPath('file', audioFile.path),
+          http.MultipartFile.fromString(
+            'request',
+            requestBody,
+            contentType: MediaType('application', 'json'),
+          ),
         );
       },
     );
