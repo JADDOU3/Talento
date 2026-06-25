@@ -367,30 +367,55 @@ class _StoryElementsCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.white.withOpacity(0.97),
+            const Color(0xFFFFFCF5).withOpacity(0.95),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.10),
+          color: AppColors.primary.withOpacity(0.075),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withOpacity(0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.035),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         children: [
-          Text(
-            'عناصر قصتك',
-            style: AppTextStyles.headlineMedium.copyWith(
-              fontFamily: 'DGAgnadeen',
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.primary,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.075),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: AppColors.white.withOpacity(0.85),
+                width: 1.2,
+              ),
+            ),
+            child: Text(
+              'عناصر قصتك',
+              style: AppTextStyles.headlineMedium.copyWith(
+                fontFamily: 'DGAgnadeen',
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: AppColors.primary,
+                height: 1.0,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -403,7 +428,7 @@ class _StoryElementsCard extends StatelessWidget {
                   isMissing: missingKeywords.contains(characterKeyword),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 9),
               Expanded(
                 child: _StoryElementTile(
                   icon: eventIcon,
@@ -411,7 +436,7 @@ class _StoryElementsCard extends StatelessWidget {
                   isMissing: missingKeywords.contains(eventKeyword),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 9),
               Expanded(
                 child: _StoryElementTile(
                   icon: placeIcon,
@@ -444,68 +469,128 @@ class _StoryElementTile extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
-      height: 120,
-      padding: const EdgeInsets.all(10),
+      height: 116,
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 9),
       decoration: BoxDecoration(
-        color: isMissing
-            ? AppColors.red.withOpacity(0.06)
-            : AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          colors: isMissing
+              ? [
+            AppColors.red.withOpacity(0.075),
+            AppColors.white.withOpacity(0.92),
+          ]
+              : [
+            AppColors.primary.withOpacity(0.055),
+            AppColors.white.withOpacity(0.92),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.circular(23),
         border: Border.all(
           color: isMissing
-              ? AppColors.red.withOpacity(0.45)
+              ? AppColors.red.withOpacity(0.42)
               : AppColors.primary.withOpacity(0.08),
-          width: isMissing ? 1.6 : 1,
+          width: isMissing ? 1.6 : 1.1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.025),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity(0.85),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset(
-                    'assets/images/cards/$cleanIcon.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) {
-                      return Icon(
-                        Icons.image_not_supported_rounded,
-                        color: AppColors.primary.withOpacity(0.8),
-                        size: 34,
-                      );
-                    },
+                child: Center(
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.white.withOpacity(0.88),
+                      border: Border.all(
+                        color: AppColors.white.withOpacity(0.96),
+                        width: 1.4,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.black.withOpacity(0.035),
+                          blurRadius: 9,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/images/cards/$cleanIcon.png',
+                        width: 62,
+                        height: 62,
+                        alignment: Alignment.center,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.medium,
+                        errorBuilder: (_, __, ___) {
+                          return Icon(
+                            Icons.image_not_supported_rounded,
+                            color: AppColors.primary.withOpacity(0.8),
+                            size: 32,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: isMissing ? AppColors.red : AppColors.primary,
+              const SizedBox(height: 8),
+              Container(
+                height: 23,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.72),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: isMissing
+                        ? AppColors.red.withOpacity(0.10)
+                        : AppColors.primary.withOpacity(0.055),
+                  ),
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 12.2,
+                    height: 1.0,
+                    fontWeight: FontWeight.w900,
+                    color: isMissing ? AppColors.red : AppColors.primary,
+                  ),
                 ),
               ),
             ],
           ),
           if (isMissing)
             Positioned(
-              top: 0,
-              right: 0,
+              top: -2,
+              right: -2,
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: AppColors.red.withOpacity(0.12),
+                  color: AppColors.red.withOpacity(0.13),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.white.withOpacity(0.88),
+                    width: 1.1,
+                  ),
                 ),
                 child: const Icon(
                   Icons.priority_high_rounded,

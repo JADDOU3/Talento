@@ -322,24 +322,31 @@ class _StorySlotMachineWidgetState extends State<StorySlotMachineWidget> {
         placeIcons.isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+      padding: const EdgeInsets.fromLTRB(10, 11, 10, 12),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(34),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.white.withOpacity(0.97),
+            const Color(0xFFFFFCF4).withOpacity(0.96),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         border: Border.all(
-          color: AppColors.white.withOpacity(0.95),
-          width: 1.3,
+          color: const Color(0xFFFFC640).withOpacity(0.34),
+          width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withOpacity(0.045),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: AppColors.primary.withOpacity(0.055),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -411,68 +418,102 @@ class _ReelsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(9, 10, 9, 10),
+      padding: const EdgeInsets.fromLTRB(8, 9, 8, 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBF0).withOpacity(0.96),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFF8E5).withOpacity(0.98),
+            AppColors.white.withOpacity(0.96),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         border: Border.all(
-          color: const Color(0xFFFFC640).withOpacity(0.58),
-          width: 1.7,
+          color: const Color(0xFFFFC640).withOpacity(0.74),
+          width: 1.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFC640).withOpacity(0.11),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: const Color(0xFFFFC640).withOpacity(0.13),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.045),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Stack(
         children: [
-          _LeverButton(
-            enabled: leverEnabled,
-            spinning: leverSpinning,
-            onTap: onLeverTap,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Row(
-              textDirection: TextDirection.rtl,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _SlotReel(
-                    label: 'الشخصية',
-                    icons: characterIcons,
-                    icon: characterIcon,
-                    running: characterRunning,
-                    landed: characterLanded,
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.white.withOpacity(0.42),
+                      Colors.transparent,
+                      AppColors.primary.withOpacity(0.025),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: _SlotReel(
-                    label: 'الحدث',
-                    icons: eventIcons,
-                    icon: eventIcon,
-                    running: eventRunning,
-                    landed: eventLanded,
-                  ),
-                ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: _SlotReel(
-                    label: 'المكان',
-                    icons: placeIcons,
-                    icon: placeIcon,
-                    running: placeRunning,
-                    landed: placeLanded,
-                  ),
-                ),
-              ],
+              ),
             ),
+          ),
+          Row(
+            textDirection: TextDirection.rtl,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _LeverButton(
+                enabled: leverEnabled,
+                spinning: leverSpinning,
+                onTap: onLeverTap,
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Row(
+                  textDirection: TextDirection.rtl,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _SlotReel(
+                        label: 'الشخصية',
+                        icons: characterIcons,
+                        icon: characterIcon,
+                        running: characterRunning,
+                        landed: characterLanded,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _SlotReel(
+                        label: 'الحدث',
+                        icons: eventIcons,
+                        icon: eventIcon,
+                        running: eventRunning,
+                        landed: eventLanded,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _SlotReel(
+                        label: 'المكان',
+                        icons: placeIcons,
+                        icon: placeIcon,
+                        running: placeRunning,
+                        landed: placeLanded,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -502,70 +543,119 @@ class _LeverButton extends StatelessWidget {
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(999),
         child: SizedBox(
-          width: 42,
-          height: 238,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutBack,
-                  transform: Matrix4.translationValues(0, spinning ? 20 : 0, 0),
-                  width: 38,
-                  height: 38,
+          width: 38,
+          height: 232,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                top: 28,
+                bottom: 28,
+                child: Container(
+                  width: 16,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(999),
                     gradient: LinearGradient(
                       colors: active
-                          ? const [
-                        Color(0xFFFFF2A3),
-                        Color(0xFFFFC640),
+                          ? [
+                        AppColors.primary.withOpacity(0.22),
+                        AppColors.primary.withOpacity(0.62),
+                        AppColors.primary.withOpacity(0.22),
                       ]
                           : [
-                        AppColors.border.withOpacity(0.9),
-                        AppColors.border.withOpacity(0.65),
+                        AppColors.border.withOpacity(0.38),
+                        AppColors.border.withOpacity(0.56),
+                        AppColors.border.withOpacity(0.34),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
                     border: Border.all(
-                      color: AppColors.white.withOpacity(0.95),
-                      width: 3,
+                      color: AppColors.white.withOpacity(0.85),
+                      width: 1.4,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: active
-                            ? const Color(0xFFFFC640).withOpacity(0.24)
-                            : AppColors.black.withOpacity(0.03),
-                        blurRadius: 10,
+                            ? AppColors.primary.withOpacity(0.10)
+                            : AppColors.black.withOpacity(0.025),
+                        blurRadius: 9,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 5),
-                Container(
-                  width: 9,
-                  height: 116,
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutBack,
+                top: spinning ? 116 : 34,
+                child: Container(
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
+                    shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withOpacity(active ? 0.70 : 0.24),
-                        AppColors.primary.withOpacity(active ? 0.42 : 0.16),
+                      colors: active
+                          ? const [
+                        Color(0xFFFFF1A8),
+                        Color(0xFFFFC640),
+                        Color(0xFFFFB23E),
+                      ]
+                          : [
+                        AppColors.white.withOpacity(0.92),
+                        AppColors.border.withOpacity(0.72),
                       ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                     border: Border.all(
-                      color: AppColors.white.withOpacity(0.72),
-                      width: 1,
+                      color: AppColors.white.withOpacity(0.96),
+                      width: 2.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: active
+                            ? const Color(0xFFFFC640).withOpacity(0.30)
+                            : AppColors.black.withOpacity(0.04),
+                        blurRadius: active ? 12 : 7,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.touch_app_rounded,
+                      color: active
+                          ? AppColors.primary.withOpacity(0.82)
+                          : AppColors.textSecondary.withOpacity(0.36),
+                      size: 17,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                bottom: 3,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: active ? 1 : 0.58,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withOpacity(0.82),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.08),
+                      ),
+                    ),
+
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -605,43 +695,21 @@ class _SlotReel extends StatelessWidget {
     );
 
     return SizedBox(
-      height: 258,
+      height: 244,
       child: Column(
         children: [
-          SizedBox(
-            height: 30,
-            child: Container(
-              width: double.infinity,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.08),
-                ),
-              ),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
+          _ReelLabel(label: label),
+          const SizedBox(height: 7),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 210),
-            height: 186,
+            duration: const Duration(milliseconds: 220),
+            height: 174,
             width: double.infinity,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(26),
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFFFF8E5).withOpacity(0.98),
                   AppColors.white.withOpacity(0.98),
+                  const Color(0xFFFFFAEC).withOpacity(0.98),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -649,21 +717,21 @@ class _SlotReel extends StatelessWidget {
               border: Border.all(
                 color: landed
                     ? const Color(0xFFFFC640).withOpacity(0.95)
-                    : AppColors.white.withOpacity(0.92),
-                width: landed ? 2.4 : 1.4,
+                    : AppColors.primary.withOpacity(0.055),
+                width: landed ? 2.2 : 1.2,
               ),
               boxShadow: [
                 BoxShadow(
                   color: landed
-                      ? const Color(0xFFFFC640).withOpacity(0.14)
-                      : AppColors.black.withOpacity(0.04),
-                  blurRadius: landed ? 14 : 9,
+                      ? const Color(0xFFFFC640).withOpacity(0.16)
+                      : AppColors.black.withOpacity(0.038),
+                  blurRadius: landed ? 14 : 10,
                   offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(24),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -672,12 +740,12 @@ class _SlotReel extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.black.withOpacity(0.035),
+                            AppColors.primary.withOpacity(0.035),
                             Colors.transparent,
                             Colors.transparent,
-                            AppColors.black.withOpacity(0.03),
+                            AppColors.primary.withOpacity(0.03),
                           ],
-                          stops: const [0.0, 0.21, 0.79, 1.0],
+                          stops: const [0.0, 0.22, 0.78, 1.0],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                         ),
@@ -685,26 +753,26 @@ class _SlotReel extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: -2,
+                    top: -6,
                     left: 0,
                     right: 0,
                     child: Opacity(
-                      opacity: running ? 0.48 : 0.34,
+                      opacity: running ? 0.42 : 0.26,
                       child: _MiniReelItem(
                         icon: topIcon,
-                        size: 54,
+                        size: 50,
                       ),
                     ),
                   ),
                   Positioned(
-                    bottom: -2,
+                    bottom: -6,
                     left: 0,
                     right: 0,
                     child: Opacity(
-                      opacity: running ? 0.48 : 0.34,
+                      opacity: running ? 0.42 : 0.26,
                       child: _MiniReelItem(
                         icon: bottomIcon,
-                        size: 54,
+                        size: 50,
                       ),
                     ),
                   ),
@@ -712,19 +780,19 @@ class _SlotReel extends StatelessWidget {
                     child: IgnorePointer(
                       child: Column(
                         children: [
-                          const SizedBox(height: 54),
+                          const SizedBox(height: 50),
                           Container(
-                            height: 1.4,
-                            margin: const EdgeInsets.symmetric(horizontal: 7),
-                            color: AppColors.primary.withOpacity(0.08),
+                            height: 1.2,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            color: AppColors.primary.withOpacity(0.07),
                           ),
                           const Spacer(),
                           Container(
-                            height: 1.4,
-                            margin: const EdgeInsets.symmetric(horizontal: 7),
-                            color: AppColors.primary.withOpacity(0.08),
+                            height: 1.2,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            color: AppColors.primary.withOpacity(0.07),
                           ),
-                          const SizedBox(height: 54),
+                          const SizedBox(height: 50),
                         ],
                       ),
                     ),
@@ -735,12 +803,12 @@ class _SlotReel extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.white.withOpacity(0.62),
+                              AppColors.white.withOpacity(0.70),
                               Colors.transparent,
                               Colors.transparent,
-                              AppColors.white.withOpacity(0.62),
+                              AppColors.white.withOpacity(0.70),
                             ],
-                            stops: const [0.0, 0.22, 0.78, 1.0],
+                            stops: const [0.0, 0.24, 0.76, 1.0],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           ),
@@ -748,13 +816,27 @@ class _SlotReel extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (landed)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: const Color(0xFFFFE29A).withOpacity(0.70),
+                              width: 4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   AnimatedSwitcher(
                     duration: Duration(milliseconds: running ? 95 : 250),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
                     transitionBuilder: (child, animation) {
                       final slide = Tween<Offset>(
-                        begin: const Offset(0, -0.28),
+                        begin: const Offset(0, -0.26),
                         end: Offset.zero,
                       ).animate(
                         CurvedAnimation(
@@ -785,7 +867,7 @@ class _SlotReel extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           SizedBox(
             height: 26,
             child: displayIcon == null
@@ -795,6 +877,54 @@ class _SlotReel extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReelLabel extends StatelessWidget {
+  final String label;
+
+  const _ReelLabel({
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 30,
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.105),
+            AppColors.primary.withOpacity(0.045),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border.all(
+          color: AppColors.white.withOpacity(0.82),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.035),
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: AppTextStyles.bodyMedium.copyWith(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w900,
+          color: AppColors.primary,
+        ),
       ),
     );
   }
@@ -819,7 +949,8 @@ class _MiniReelItem extends StatelessWidget {
       child: _IconBubble(
         icon: icon!,
         size: size,
-        padding: 7,
+        padding: 6,
+        mini: true,
       ),
     );
   }
@@ -839,11 +970,11 @@ class _MainReelItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedScale(
       duration: const Duration(milliseconds: 160),
-      scale: running ? 0.95 : 1.0,
+      scale: running ? 0.94 : 1.0,
       child: _IconBubble(
         icon: icon,
-        size: 76,
-        padding: 9,
+        size: 82,
+        padding: 8,
       ),
     );
   }
@@ -853,11 +984,13 @@ class _IconBubble extends StatelessWidget {
   final String icon;
   final double size;
   final double padding;
+  final bool mini;
 
   const _IconBubble({
     required this.icon,
     required this.size,
     required this.padding,
+    this.mini = false,
   });
 
   @override
@@ -873,15 +1006,27 @@ class _IconBubble extends StatelessWidget {
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.white.withOpacity(0.96),
+        gradient: LinearGradient(
+          colors: mini
+              ? [
+            AppColors.white.withOpacity(0.72),
+            AppColors.white.withOpacity(0.56),
+          ]
+              : [
+            AppColors.white.withOpacity(0.98),
+            const Color(0xFFFFFBF2).withOpacity(0.94),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         border: Border.all(
-          color: AppColors.white,
-          width: 1.6,
+          color: AppColors.white.withOpacity(mini ? 0.80 : 0.98),
+          width: mini ? 1.1 : 1.7,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.055),
-            blurRadius: 8,
+            color: AppColors.black.withOpacity(mini ? 0.025 : 0.06),
+            blurRadius: mini ? 6 : 10,
             offset: const Offset(0, 4),
           ),
         ],
@@ -916,8 +1061,8 @@ class _EmptySlotIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 76,
-      height: 76,
+      width: 82,
+      height: 82,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.white.withOpacity(0.72),
@@ -952,11 +1097,18 @@ class _ReelNameChip extends StatelessWidget {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.88),
+        color: AppColors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.08),
+          color: AppColors.primary.withOpacity(0.07),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.025),
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Text(
         displayName,
@@ -998,7 +1150,7 @@ class _SlotMachineStatus extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: isSpinning
-              ? const Color(0xFFFFF2A3).withOpacity(0.72)
+              ? const Color(0xFFFFF2A3).withOpacity(0.76)
               : AppColors.primary.withOpacity(0.07),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
@@ -1006,6 +1158,13 @@ class _SlotMachineStatus extends StatelessWidget {
                 ? const Color(0xFFFFD24D).withOpacity(0.55)
                 : AppColors.primary.withOpacity(0.08),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.025),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Text(
           text,
