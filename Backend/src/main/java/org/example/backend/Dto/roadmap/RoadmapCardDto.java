@@ -7,13 +7,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoadmapActivityDto {
+public class RoadmapCardDto {
+    private int cardId;
     private int activityId;
     private String activityName;
     private String coverImageKey;
+    private String coverImageUrl;
     private String status;
     private int currentLevelNumber;
     private int totalLevels;
     private int completedLevels;
+    private Integer levelFrom;
+    private Integer levelTo;
 }
-

@@ -23,7 +23,13 @@ dependencies:
   flame: ^1.35.1
   flame_forge2d: ^0.19.2+4
   flutter_tts: ^4.2.5
+
+  equatable: ^2.0.5
+
   video_player: ^2.11.1
+
+  record: ^6.2.1
+  audioplayers: ^6.7.1
 
 dev_dependencies:
   flutter_test:
@@ -44,6 +50,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/cards/
     - assets/fonts/
     - assets/icons/
 

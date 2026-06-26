@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../../core/config/api_constants.dart';
-import '../../models/color_lab/color_lab_models.dart';
+import '../../models/activities/color_lab/color_lab_models.dart';
 import '../auth/auth_api_client.dart';
 
 /// Handles all Color Lab gameplay API calls: levels, attempts, events,

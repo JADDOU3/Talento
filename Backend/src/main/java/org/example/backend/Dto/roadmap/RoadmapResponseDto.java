@@ -13,6 +13,5 @@ public class RoadmapResponseDto {
     private int kitId;
     private String kitName;
     private String kitImageURL;
-    private List<RoadmapActivityDto> activities;
+    private List<RoadmapCardDto> activities;
 }
-
