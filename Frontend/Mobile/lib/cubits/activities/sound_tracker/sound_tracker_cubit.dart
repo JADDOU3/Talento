@@ -12,6 +12,11 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
 
   final SoundTrackerService _soundTrackerService;
 
+  // TEMPORARY FOR TESTING:
+  // true  => أي QR رح يعتبر صح عشان نجرب كل الليفلز
+  // false => يرجع يفحص حسب expectedSequence الحقيقي
+  static const bool _debugAlwaysPassQr = true;
+
   late int _activityId;
   late int _activitySessionId;
   late int _childId;
@@ -112,10 +117,11 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
     if (currentState is! SoundTrackerLoaded) return;
     if (currentState.isMultiSection) return;
 
-    final isCorrect = currentState.level.isCorrectForSection(
-      sectionIndex: 0,
-      scannedValue: result,
-    );
+    final isCorrect = _debugAlwaysPassQr ||
+        currentState.level.isCorrectForSection(
+          sectionIndex: 0,
+          scannedValue: result,
+        );
 
     try {
       if (isCorrect) {
@@ -138,10 +144,11 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
     if (!currentState.isMultiSection) return;
     if (!currentState.canScanSection(sectionIndex)) return;
 
-    final isCorrect = currentState.level.isCorrectForSection(
-      sectionIndex: sectionIndex,
-      scannedValue: result,
-    );
+    final isCorrect = _debugAlwaysPassQr ||
+        currentState.level.isCorrectForSection(
+          sectionIndex: sectionIndex,
+          scannedValue: result,
+        );
 
     final updatedAnswered = List<bool>.from(currentState.sectionAnswered);
     final updatedCorrect = List<bool>.from(currentState.sectionCorrect);
