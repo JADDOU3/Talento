@@ -4,14 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoadmapResponseDto {
+public class CreateRoadmapCardDto {
     private int kitId;
-    private String kitName;
-    private String kitImageURL;
-    private List<RoadmapCardDto> activities;
+    private int activityId;
+    private int sortOrder;
+    private Integer levelFrom; // null = all levels
+    private Integer levelTo;   // null = all levels
 }

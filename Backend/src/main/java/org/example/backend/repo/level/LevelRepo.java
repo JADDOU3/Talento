@@ -11,4 +11,7 @@ public interface LevelRepo extends JpaRepository<Level, Integer> {
 
     List<Level> findByActivityIdOrderByLevelNumber(int activityId);
     int countByActivityId(int activityId);
+    List<Level> findByActivityIdAndLevelNumberBetweenOrderByLevelNumber(
+            int activityId, int from, int to
+    );
 }
