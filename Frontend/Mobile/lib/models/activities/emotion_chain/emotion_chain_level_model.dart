@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'emotion_chain_challenge_model.dart';
 
 class EmotionChainLevelModel {
@@ -70,6 +72,12 @@ class EmotionChainLevelModel {
   static int _challengeId(Map<String, dynamic> img) {
     final meta = img['meta'];
     if (meta is Map) return _parseInt(meta['challengeId']);
+    if (meta is String && meta.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(meta);
+        if (decoded is Map) return _parseInt(decoded['challengeId']);
+      } catch (_) {}
+    }
     return 0;
   }
 

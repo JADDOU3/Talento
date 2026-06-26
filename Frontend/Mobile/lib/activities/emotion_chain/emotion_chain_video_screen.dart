@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../cubits/activities/emotion_chain/emotion_chain_cubit.dart';
 import '../../cubits/activities/emotion_chain/emotion_chain_state.dart';
 import '../../shared/layout/app_background.dart';
+import 'emotion_chain_ar.dart';
 import 'emotion_chain_result_screen.dart';
 import 'emotion_chain_step_screen.dart';
 import 'widgets/emotion_chain_video_player.dart';
@@ -121,13 +122,13 @@ class _VideoView extends StatelessWidget {
                 children: [
                   EmotionChainVideoPlayer(
                     url: challenge.url,
-                    prompt: challenge.prompt,
+                    prompt: EmotionChainAr.prompt(original: challenge.prompt),
                     onFinished: () =>
                         context.read<EmotionChainCubit>().onVideoFinished(),
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    challenge.prompt,
+                    EmotionChainAr.prompt(original: challenge.prompt),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: 'ArialRounded',

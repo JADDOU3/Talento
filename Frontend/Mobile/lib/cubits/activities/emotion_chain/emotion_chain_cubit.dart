@@ -145,20 +145,23 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
     }
   }
 
-  /// QR validation. NOTE (TODO): the exact value a card encodes still needs to
-  /// be agreed with the team. We use meta's expected value if present, otherwise
-  /// fall back to matching the chainStep or the challengeId (so testing works).
+  /// QR validation.
+  /// When the backend provides an expected value (meta.expectedAnswer / answer /
+  /// correctCard) we compare against it. The backend does NOT send that yet, so
+  /// for now ANY non-empty scanned QR is accepted as correct.
+  /// TODO: once the backend returns the expected card value, comparison kicks in
+  /// automatically — no code change needed here.
   bool _isCorrectScan(String scanned, EmotionChainChallengeModel challenge) {
-    final value = scanned.trim().toLowerCase();
-    final expected = challenge.expectedAnswer?.trim().toLowerCase();
+    final value = scanned.trim();
+    if (value.isEmpty) return false;
 
+    final expected = challenge.expectedAnswer?.trim();
     if (expected != null && expected.isNotEmpty) {
-      return value == expected;
+      return value.toLowerCase() == expected.toLowerCase();
     }
 
-    // Fallback for testing until the QR contract is finalised.
-    return value == challenge.chainStep.toLowerCase() ||
-        value == challenge.challengeId.toString();
+    // No expected value from backend yet -> accept any scanned card.
+    return true;
   }
 
   Future<void> _handleCorrect() async {
