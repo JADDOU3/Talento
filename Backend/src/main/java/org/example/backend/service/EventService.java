@@ -91,6 +91,10 @@ public class EventService {
         return helpEventRepo.findBySessionId(sessionId);
     }
 
+    public List<HelpEvent> getHelpEventsByChildAndLevel(int childId, HelpLevel helpLevel) {
+        return helpEventRepo.findByChildIdAndHelpLevel(childId, helpLevel);
+    }
+
     // --- ActivityEvent ---
     public ActivityEvent createActivityEvent(CreateActivityEventDto createActivityEventDto) {
         ActivityEvent event = new ActivityEvent();

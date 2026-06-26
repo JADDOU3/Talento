@@ -1,4 +1,4 @@
-package org.example.backend.controller;
+package org.example.backend.controller.roadmap;
 
 import org.example.backend.Dto.progress.ActivityProgressResponseDto;
 import org.example.backend.Dto.roadmap.RoadmapResponseDto;
