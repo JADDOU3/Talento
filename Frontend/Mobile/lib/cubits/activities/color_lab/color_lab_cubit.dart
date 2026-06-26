@@ -373,6 +373,61 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     }
   }
 
+  // ===================== LEVEL 4: FREE COLORING =====================
+
+  /// Level 4 submit. Reuses the same color comparison (`_colorSimilarity`) and
+  /// the same attempt/event flow (`_handleCorrect` / `_handleWrong`) as the
+  /// palette-mix mode — only the pass condition differs.
+  ///
+  /// Pass = the coloring's dominant color is close enough to the target AND a
+  /// high-enough share of the coloring fell inside the derived outline.
+  ///
+  /// TODO(threshold): `insideThreshold` and `colorThreshold` are NOT finalised
+  /// by product yet — adjust these two values once specified.
+  Future<void> submitColoring({
+    required bool hasColoring,
+    required double insideRatio,
+    required List<int> dominantRgb,
+    required bool maskReliable,
+  }) async {
+    if (!hasColoring) return;
+
+    final challenge = _level.challenges[_currentChallengeIndex];
+    final target = challenge.primaryTarget;
+    if (target == null) {
+      await _handleWrong();
+      return;
+    }
+
+    final tc = target.color;
+    final colorSim = _colorSimilarity(dominantRgb, [tc.red, tc.green, tc.blue]);
+
+    // TODO(threshold): pass mark not finalised by product yet — adjust `passMark`
+    // (and the color/inside weights) once specified.
+    const passMark = 0.62;
+
+    // Colour match is the primary signal; staying inside the outline is a soft
+    // bonus, not a hard gate — children naturally colour a little past the line,
+    // and the derived outline can be imperfect on low-res art. If the outline
+    // couldn't be read (e.g. CORS on web), judge on colour alone.
+    final double score = maskReliable
+        ? (colorSim * 0.65) + (insideRatio * 0.35)
+        : colorSim;
+
+    debugPrint(
+      'COLORING SUBMIT | inside=${_pct(insideRatio)} '
+      '(reliable=$maskReliable) | colorSim=${_pct(colorSim)} | '
+      'score=${_pct(score)} (need ${_pctV(passMark)}) | '
+      'dom=$dominantRgb target=[${tc.red}, ${tc.green}, ${tc.blue}]',
+    );
+
+    if (score >= passMark) {
+      await _handleCorrect();
+    } else {
+      await _handleWrong();
+    }
+  }
+
   String _pctV(double v) => '${(v * 100).toStringAsFixed(0)}%';
 
   String _pct(double v) => '${(v * 100).toStringAsFixed(1)}%';
