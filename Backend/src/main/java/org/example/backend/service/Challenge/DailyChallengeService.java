@@ -4,7 +4,7 @@ import org.example.backend.Dto.challenge.dailyChallenge.DailyChallengeAnswerDto;
 import org.example.backend.Dto.challenge.dailyChallenge.DailyChallengeResponseDto;
 import org.example.backend.Dto.challenge.dailyChallenge.DailyChallengeResultDto;
 import org.example.backend.model.DailyChallenge;
-import org.example.backend.repo.DailyChallengeRepo;
+import org.example.backend.repo.challenge.DailyChallengeRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,7 +20,7 @@ public class DailyChallengeService {
     }
 
     public DailyChallengeResponseDto getDailyChallenge() {
-        List<DailyChallenge> all = dailyChallengeRepo.findAll();
+        List<DailyChallenge> all = dailyChallengeRepo.findAllByOrderByIdAsc();
         if (all.isEmpty()) return null;
 
         // Deterministic daily pick — same question for everyone on the same day
@@ -36,7 +36,7 @@ public class DailyChallengeService {
 
         boolean correct = challenge.getCorrectAnswer()
                 .trim()
-                .equalsIgnoreCase(dto.getAnswer().trim());
+                .equals(dto.getAnswer().trim());
 
         return new DailyChallengeResultDto(correct, challenge.getCorrectAnswer());
     }
