@@ -17,6 +17,7 @@ import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../activities/emotion_chain/emotion_chain_intro.dart';
+import '../../activities/shape_creator/shape_creator_launcher.dart';
 
 
 class RoadmapScreen extends StatelessWidget {
@@ -130,6 +131,7 @@ class _RoadmapView extends StatelessWidget {
     if (activity.isLocked) {
       _showMessage(context, 'أكملي الأنشطة السابقة أولًا');
       return;
+      
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
@@ -225,6 +227,21 @@ class _RoadmapView extends StatelessWidget {
     ).then((_) {
       _refreshRoadmapIfMounted(context);
     });
+  return;
+}
+   if (activityName == 'shape builder'||
+    activityName == 'shape creator') {
+    Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ShapeCreatorLauncher(
+        activityId: activity.activityId,
+        kitId: kitId,
+        childId: childId,
+      ),
+    ),
+  ).then((_) => _refreshRoadmapIfMounted(context));
+
   return;
 }
 
