@@ -179,6 +179,12 @@ class OutlineMask {
   }
 
   /// Compares painted strokes against this mask.
+  /// Compares painted strokes against this mask.
+  ///
+  /// `insideRatio` here means **coverage**: of all the cells that make up the
+  /// shape's interior, how many got painted over. This is robust to an
+  /// imperfect outline — filling the visible shape scores high even if the
+  /// derived mask is a bit off.
   ColoringEvaluation evaluate(List<ColoringStroke> strokes, Size canvasSize) {
     if (strokes.isEmpty || canvasSize.width <= 0 || canvasSize.height <= 0) {
       return ColoringEvaluation(
@@ -189,17 +195,33 @@ class OutlineMask {
       );
     }
 
-    int inside = 0;
-    int total = 0;
+    final int w = width;
+    final int h = height;
+    final painted = List<bool>.filled(w * h, false); // inside cells that got color
     final colorWeight = <int, int>{};
+    int totalSamples = 0;
 
     void sample(Offset p, Color color) {
       final nx = (p.dx / canvasSize.width).clamp(0.0, 1.0);
       final ny = (p.dy / canvasSize.height).clamp(0.0, 1.0);
-      if (isInsideNorm(nx, ny)) inside++;
-      total++;
-      final key = (color.red << 16) | (color.green << 8) | color.blue;
+      totalSamples++;
+      final key = color.toARGB32();
       colorWeight[key] = (colorWeight[key] ?? 0) + 1;
+
+      if (!reliable) return;
+      // Mark a small brush area (not just one cell) as painted.
+      final cx = (nx * w).floor();
+      final cy = (ny * h).floor();
+      const r = 2; // brush radius in mask cells
+      for (int dy = -r; dy <= r; dy++) {
+        for (int dx = -r; dx <= r; dx++) {
+          final x = cx + dx;
+          final y = cy + dy;
+          if (x < 0 || y < 0 || x >= w || y >= h) continue;
+          final idx = y * w + x;
+          if (_inside[idx]) painted[idx] = true;
+        }
+      }
     }
 
     for (final stroke in strokes) {
@@ -221,7 +243,19 @@ class OutlineMask {
       }
     }
 
-    final insideRatio = total > 0 ? inside / total : 0.0;
+    // Coverage = painted inside cells / total inside cells.
+    double coverage = 0.0;
+    if (reliable) {
+      int totalInside = 0;
+      int coveredInside = 0;
+      for (int i = 0; i < _inside.length; i++) {
+        if (_inside[i]) {
+          totalInside++;
+          if (painted[i]) coveredInside++;
+        }
+      }
+      coverage = totalInside > 0 ? coveredInside / totalInside : 0.0;
+    }
 
     final int dominantKey = colorWeight.isEmpty
         ? 0
@@ -231,8 +265,8 @@ class OutlineMask {
             .key;
 
     return ColoringEvaluation(
-      hasColoring: total > 0,
-      insideRatio: insideRatio,
+      hasColoring: totalSamples > 0,
+      insideRatio: coverage,
       dominantRgb: [
         (dominantKey >> 16) & 0xFF,
         (dominantKey >> 8) & 0xFF,
@@ -241,4 +275,4 @@ class OutlineMask {
       maskReliable: reliable,
     );
   }
-}
+  }
