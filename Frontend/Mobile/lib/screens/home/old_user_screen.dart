@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/home/home_cubit.dart';
 import '../../cubits/home/home_data.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/app_drawer.dart';
@@ -11,8 +13,8 @@ import '../kit_library/kit_library_screen.dart';
 import '../owned_kit/owned_kit_screen.dart';
 import '../profile/profile_screen.dart';
 import 'widgets/current_kit_card.dart';
+import 'widgets/daily_challenge_card.dart';
 import 'widgets/progression_card.dart';
-import 'widgets/quick_actions.dart';
 
 class OldUserScreen extends StatelessWidget {
   final HomeData data;
@@ -82,16 +84,38 @@ class OldUserScreen extends StatelessWidget {
                       if (!data.hasSelectedChild) ...[
                         _buildNoSelectedChildCard(context),
                       ] else ...[
-                        if (data.hasLastUsedKit) ...[
+                        if (data.hasLastReachedActivity) ...[
                           ProgressionCard(
-                            level: 'المستوى ${data.currentLevel}',
-                            kitName: kit?.name ?? 'الحزمة الحالية',
+                            level:
+                            data.lastReachedActivity?.activityName ?? '',
+                            kitName:
+                            'المستوى ${data.lastReachedActivity?.currentLevelNumber ?? data.currentLevel}',
                             progress: data.progress,
+                            progressLabel: data.progressLabel,
+                            showProgressBar: data.totalActivitiesCount > 0,
                           ),
                           const SizedBox(height: 22),
                         ],
-                        const QuickActions(),
-                        const SizedBox(height: 22),
+                        if (data.hasDailyChallenge) ...[
+                          DailyChallengeCard(
+                            challenge: data.dailyChallenge!,
+                            challengeAnswered: data.challengeAnswered,
+                            challengeCorrect: data.challengeCorrect,
+                            correctAnswer: data.correctAnswer,
+                            isSubmitting:
+                            data.isSubmittingChallengeAnswer,
+                            submittingAnswer: data.submittingAnswer,
+                            onAnswerSelected: (answer) {
+                              context
+                                  .read<HomeCubit>()
+                                  .submitChallengeAnswer(
+                                data.dailyChallenge!.id,
+                                answer,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 22),
+                        ],
                         _buildCurrentKitSection(context),
                         const SizedBox(height: 24),
                       ],
@@ -131,39 +155,23 @@ class OldUserScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'حقيبتك الحالية',
-                textAlign: TextAlign.right,
-                style: AppTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  fontSize: 17,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => _goToKitsList(context),
-              child: Text(
-                'عرض الكل',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
+        Text(
+          'صندوقك الحالي',
+          textAlign: TextAlign.right,
+          style: AppTextStyles.bodyLarge.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+            fontSize: 17,
+          ),
         ),
         const SizedBox(height: 8),
         if (data.hasLastUsedKit)
           CurrentKitCard(
-            kitTitle: kit?.name ?? 'الحزمة الحالية',
-            progressText:
-            'تم إنجاز ${data.activitiesDoneCount} من أصل ${data.totalActivitiesCount} أنشطة',
+            kitTitle: kit?.name ?? 'الصندوق الحالي',
+            progressText: data.progressLabel,
             imagePath: kit?.imageUrl ?? '',
             progress: data.progress,
+            showProgressBar: data.totalActivitiesCount > 0,
             onContinue: () => _goToOwnedKit(context),
           )
         else
@@ -274,7 +282,7 @@ class OldUserScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            'ابدأ أول حزمة تعليمية',
+            'ابدأ أول صندوق تعليمي',
             style: AppTextStyles.bodyLarge.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
@@ -283,7 +291,7 @@ class OldUserScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'لا توجد جلسات بعد لـ $childName. اختاري أول حزمة حتى يظهر التقدم هنا.',
+            'لا توجد جلسات بعد لـ $childName. اختاري أول صندوق حتى يظهر التقدم هنا.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
@@ -304,7 +312,7 @@ class OldUserScreen extends StatelessWidget {
               ),
             ),
             child: const Text(
-              'استكشاف الحزم',
+              'استكشاف الصناديق',
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ),

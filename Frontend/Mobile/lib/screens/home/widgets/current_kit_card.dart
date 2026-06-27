@@ -9,6 +9,7 @@ class CurrentKitCard extends StatelessWidget {
   final String progressText;
   final String imagePath;
   final double progress;
+  final bool showProgressBar;
   final VoidCallback? onContinue;
 
   const CurrentKitCard({
@@ -17,88 +18,102 @@ class CurrentKitCard extends StatelessWidget {
     required this.progressText,
     required this.imagePath,
     required this.progress,
+    this.showProgressBar = true,
     this.onContinue,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: SizedBox(
-              width: double.infinity,
-              height: 160,
-              child: _buildImage(),
+    final safeProgress = progress.clamp(0.0, 1.0);
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  kitTitle,
-                  style: AppTextStyles.headlineMedium.copyWith(
-                    fontSize: 18,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.task_alt_rounded,
-                      size: 14,
-                      color: AppColors.primary,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(20)),
+              child: SizedBox(
+                width: double.infinity,
+                height: 160,
+                child: _buildImage(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    kitTitle,
+                    textAlign: TextAlign.right,
+                    style: AppTextStyles.headlineMedium.copyWith(
+                      fontSize: 18,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        progressText,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.task_alt_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          progressText,
+                          textAlign: TextAlign.right,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w700,
+                            height: 1.4,
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                  if (showProgressBar) ...[
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: safeProgress,
+                        backgroundColor: AppColors.border,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
+                        minHeight: 6,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: progress.clamp(0.0, 1.0),
-                    backgroundColor: AppColors.border,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.primary,
-                    ),
-                    minHeight: 6,
+                  const SizedBox(height: 14),
+                  CustomButton(
+                    text: 'أكمل',
+                    onPressed: onContinue ?? () {},
                   ),
-                ),
-                const SizedBox(height: 14),
-                CustomButton(
-                  text: 'أكمل',
-                  onPressed: onContinue ?? () {},
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

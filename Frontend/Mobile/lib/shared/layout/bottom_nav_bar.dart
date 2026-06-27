@@ -3,15 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../screens/home/home_screen.dart';
-import '../../screens/profile/profile_screen.dart';
-import '../../screens/kit_library/kit_library_screen.dart';
-import '../../screens/journal/journal_screen.dart';
-import '../../screens/community/community_screen.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../cubits/child_mode/child_mode_state.dart';
+import '../../screens/community/community_screen.dart';
+import '../../screens/home/home_screen.dart';
 import '../../screens/home/new_user.dart';
-
+import '../../screens/journal/journal_screen.dart';
+import '../../screens/kit_library/kit_library_screen.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -25,9 +23,14 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabs = [
       _NavItem(Icons.home_outlined, Icons.home_rounded, 'الرئيسية'),
-      _NavItem(Icons.widgets_outlined, Icons.widgets_rounded, 'الحزم'),
+      _NavItem(Icons.widgets_outlined, Icons.widgets_rounded, 'الصناديق'),
       _NavItem(Icons.groups_outlined, Icons.groups_rounded, 'المجتمع'),
-      _NavItem(Icons.auto_stories_outlined, Icons.auto_stories_rounded, 'اليوميات'),
+      _NavItem(Icons.school_outlined, Icons.school_rounded, 'دروس'),
+      _NavItem(
+        Icons.auto_stories_outlined,
+        Icons.auto_stories_rounded,
+        'اليوميات',
+      ),
     ];
 
     return Directionality(
@@ -53,34 +56,33 @@ class BottomNavBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+            padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
             child: Row(
               children: List.generate(tabs.length, (index) {
                 final item = tabs[index];
-                // selectedIndex: -1 means no item is selected (e.g. child profile)
                 final isSelected = index == selectedIndex;
 
                 return Expanded(
                   child: InkWell(
                     onTap: () => _handleNavigation(context, index),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeOut,
-                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.yellow.withValues(alpha: 0.16)
                             : Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 220),
-                            width: 30,
-                            height: 30,
+                            width: 28,
+                            height: 28,
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppColors.yellow.withValues(alpha: 0.22)
@@ -89,7 +91,7 @@ class BottomNavBar extends StatelessWidget {
                             ),
                             child: Icon(
                               isSelected ? item.activeIcon : item.icon,
-                              size: 22,
+                              size: 21,
                               color: isSelected
                                   ? const Color(0xFFE0A300)
                                   : AppColors.hint,
@@ -101,7 +103,7 @@ class BottomNavBar extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bodyMedium.copyWith(
-                              fontSize: 10.5,
+                              fontSize: 9.7,
                               fontWeight: isSelected
                                   ? FontWeight.w800
                                   : FontWeight.w500,
@@ -130,8 +132,19 @@ class BottomNavBar extends StatelessWidget {
     final isChildMode =
         childModeState is ChildModeStatus && childModeState.isChildMode;
 
-    // Block Journal in child mode — redirect to Home silently
-    if (isChildMode && index == 3) {
+    // دروس - حاليًا بدون شاشة جاهزة
+    if (index == 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('قسم الدروس قريبًا'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // اليوميات في وضع الطفل
+    if (isChildMode && index == 4) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const NewUser()),
@@ -139,17 +152,29 @@ class BottomNavBar extends StatelessWidget {
       return;
     }
 
-    final screens = [
-      const HomeScreen(),
-      const KitLibraryScreen(),
-      const CommunityScreen(),
-      const JournalScreen(),
-    ];
+    Widget screen;
+
+    switch (index) {
+      case 0:
+        screen = const HomeScreen();
+        break;
+      case 1:
+        screen = const KitLibraryScreen();
+        break;
+      case 2:
+        screen = const CommunityScreen();
+        break;
+      case 4:
+        screen = const JournalScreen();
+        break;
+      default:
+        return;
+    }
 
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => screens[index],
+        pageBuilder: (_, __, ___) => screen,
         transitionDuration: const Duration(milliseconds: 160),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),

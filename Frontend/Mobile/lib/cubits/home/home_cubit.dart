@@ -19,19 +19,82 @@ class HomeCubit extends Cubit<HomeState> {
         return;
       }
 
-      await refreshHome();
+      final data = await _homeService.getReturningUserHomeData();
+      emit(HomeReturningUser(data));
     } catch (e) {
       emit(HomeError(_cleanError(e)));
     }
   }
 
-  Future<void> refreshHome() async {
+  Future<void> loadHome() async {
     emit(const HomeLoading());
 
     try {
       final data = await _homeService.getReturningUserHomeData();
       emit(HomeReturningUser(data));
     } catch (e) {
+      emit(HomeError(_cleanError(e)));
+    }
+  }
+
+  Future<void> refreshHome() async {
+    await loadHome();
+  }
+
+  Future<void> submitChallengeAnswer(
+      int challengeId,
+      String answer,
+      ) async {
+    final currentState = state;
+
+    if (currentState is! HomeLoaded) {
+      return;
+    }
+
+    final currentData = currentState.data;
+
+    if (currentData.challengeAnswered ||
+        currentData.isSubmittingChallengeAnswer) {
+      return;
+    }
+
+    emit(
+      HomeReturningUser(
+        currentData.copyWith(
+          isSubmittingChallengeAnswer: true,
+          submittingAnswer: answer,
+          clearCorrectAnswer: true,
+        ),
+      ),
+    );
+
+    try {
+      final result = await _homeService.submitDailyChallengeAnswer(
+        challengeId,
+        answer,
+      );
+
+      emit(
+        HomeReturningUser(
+          currentData.copyWith(
+            challengeAnswered: true,
+            challengeCorrect: result.correct,
+            correctAnswer: result.correctAnswer,
+            isSubmittingChallengeAnswer: false,
+            clearSubmittingAnswer: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      emit(
+        HomeReturningUser(
+          currentData.copyWith(
+            isSubmittingChallengeAnswer: false,
+            clearSubmittingAnswer: true,
+          ),
+        ),
+      );
+
       emit(HomeError(_cleanError(e)));
     }
   }

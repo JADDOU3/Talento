@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../../core/config/api_constants.dart';
 import '../../cubits/home/home_data.dart';
 import '../../models/childmode/child_model.dart';
+import '../../models/home/daily_challenge_model.dart';
+import '../../models/home/last_reached_activity_model.dart';
 import '../../models/kit/kit_model.dart';
 import '../auth/auth_api_client.dart';
 import '../kit/kit_service.dart';
@@ -15,8 +17,6 @@ class HomeService {
 
   Future<bool> isNewUser() async {
     final uri = Uri.parse(ApiConstants.isNewUser);
-
-    print('IS NEW USER URL: $uri');
 
     final response = await _client.get(uri);
 
@@ -45,6 +45,7 @@ class HomeService {
       _extractErrorMessage(response.body, 'Failed to check user state'),
     );
   }
+
   Future<HomeData> getReturningUserHomeData() async {
     final selectedChild = await getSelectedChild();
 
@@ -55,8 +56,26 @@ class HomeService {
     final sessions = await getSessionsByChild(selectedChild.id);
 
     if (sessions.isEmpty) {
+      final partialResults = await Future.wait<dynamic>([
+        getLastReachedActivity(),
+        getCompletedActivitiesCount(),
+        getDailyChallenge(),
+      ]);
+
+      final lastReachedActivity =
+      partialResults[0] as LastReachedActivityModel?;
+      final completedActivities = partialResults[1] as int;
+      final dailyChallenge = partialResults[2] as DailyChallengeModel?;
+
       return HomeData(
         selectedChild: selectedChild,
+        activitiesDoneCount: completedActivities,
+        currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
+        lastReachedActivity: lastReachedActivity,
+        dailyChallenge: dailyChallenge,
+        challengeAnswered: false,
+        challengeCorrect: false,
+        correctAnswer: null,
       );
     }
 
@@ -64,45 +83,62 @@ class HomeService {
     final kitId = _extractKitId(latestSession);
 
     if (kitId == null || kitId == 0) {
+      final partialResults = await Future.wait<dynamic>([
+        getLastReachedActivity(),
+        getCompletedActivitiesCount(),
+        getDailyChallenge(),
+      ]);
+
+      final lastReachedActivity =
+      partialResults[0] as LastReachedActivityModel?;
+      final completedActivities = partialResults[1] as int;
+      final dailyChallenge = partialResults[2] as DailyChallengeModel?;
+
       return HomeData(
         selectedChild: selectedChild,
+        activitiesDoneCount: completedActivities,
+        currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
+        lastReachedActivity: lastReachedActivity,
+        dailyChallenge: dailyChallenge,
+        challengeAnswered: false,
+        challengeCorrect: false,
+        correctAnswer: null,
       );
     }
 
-    final sessionsForKit = sessions.where((session) {
-      return _extractKitId(session) == kitId;
-    }).toList();
+    final results = await Future.wait<dynamic>([
+      getLastReachedActivity(),
+      getCompletedActivitiesCount(),
+      getRoadmapActivitiesByKitAndChild(kitId, selectedChild.id),
+      getDailyChallenge(),
+      _safeGetKitById(kitId),
+    ]);
 
-    final activitiesDoneCount = sessionsForKit.where(_isCompletedSession).length;
+    final lastReachedActivity = results[0] as LastReachedActivityModel?;
+    final completedActivities = results[1] as int;
+    final roadmapActivities = results[2] as List<Map<String, dynamic>>;
+    final dailyChallenge = results[3] as DailyChallengeModel?;
+    final lastUsedKit = results[4] as KitModel?;
 
-    final activities = await getActivitiesByKit(kitId);
-    final totalActivitiesCount = activities.length;
+    final latestSessionForKit = _findLatestSession(
+      sessions.where((session) => _extractKitId(session) == kitId).toList(),
+    );
 
-    KitModel? lastUsedKit;
-
-    try {
-      lastUsedKit = await _kitService.getKitById(kitId);
-    } catch (_) {
-      lastUsedKit = null;
-    }
-
-    final latestSessionForKit = _findLatestSession(sessionsForKit);
-    final latestActivitySessionId = _extractActivitySessionId(latestSessionForKit);
-
-    int currentLevel = 1;
-
-    if (latestActivitySessionId != null && latestActivitySessionId != 0) {
-      final attempts = await getLevelAttemptsByActivitySession(latestActivitySessionId);
-      currentLevel = _getHighestLevelNumber(attempts);
-    }
+    final latestActivitySessionId =
+    _extractActivitySessionId(latestSessionForKit);
 
     return HomeData(
       selectedChild: selectedChild,
       lastUsedKit: lastUsedKit,
-      activitiesDoneCount: activitiesDoneCount,
-      totalActivitiesCount: totalActivitiesCount,
-      currentLevel: currentLevel,
+      activitiesDoneCount: completedActivities,
+      totalActivitiesCount: roadmapActivities.length,
+      currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
       latestActivitySessionId: latestActivitySessionId,
+      lastReachedActivity: lastReachedActivity,
+      dailyChallenge: dailyChallenge,
+      challengeAnswered: false,
+      challengeCorrect: false,
+      correctAnswer: null,
     );
   }
 
@@ -181,6 +217,182 @@ class HomeService {
     );
   }
 
+  Future<LastReachedActivityModel?> getLastReachedActivity() async {
+    final response = await _client.get(
+      Uri.parse(ApiConstants.roadmapLastReached),
+    );
+
+    if (response.statusCode == 404 || response.body.trim().isEmpty) {
+      return null;
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+
+      final data = _unwrapObject(
+        decoded,
+        keys: [
+          'data',
+          'lastReached',
+          'lastReachedActivity',
+          'activity',
+          'result',
+        ],
+      );
+
+      if (data == null) return null;
+
+      final model = LastReachedActivityModel.fromJson(data);
+
+      return model.isValid ? model : null;
+    }
+
+    throw Exception(
+      _extractErrorMessage(response.body, 'Failed to load last activity'),
+    );
+  }
+
+  Future<int> getCompletedActivitiesCount() async {
+    final response = await _client.get(
+      Uri.parse(ApiConstants.roadmapCompletedCount),
+    );
+
+    if (response.statusCode == 404 || response.body.trim().isEmpty) {
+      return 0;
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded == null) return 0;
+
+      if (decoded is int) return decoded;
+      if (decoded is num) return decoded.toInt();
+
+      if (decoded is Map<String, dynamic>) {
+        return _parseInt(
+          decoded['completedActivities'] ??
+              decoded['completed_activities'] ??
+              decoded['completedCount'] ??
+              decoded['count'] ??
+              decoded['data'] ??
+              decoded['result'],
+        ) ??
+            0;
+      }
+
+      return int.tryParse(decoded.toString()) ?? 0;
+    }
+
+    throw Exception(
+      _extractErrorMessage(response.body, 'Failed to load completed count'),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getRoadmapActivitiesByKitAndChild(
+      int kitId,
+      int childId,
+      ) async {
+    final response = await _client.get(
+      Uri.parse(ApiConstants.roadmapByKitAndChild(kitId, childId)),
+    );
+
+    if (response.statusCode == 404 || response.body.trim().isEmpty) {
+      return [];
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+      return _extractActivitiesFromRoadmap(decoded);
+    }
+
+    throw Exception(
+      _extractErrorMessage(response.body, 'Failed to load roadmap activities'),
+    );
+  }
+
+  Future<DailyChallengeModel?> getDailyChallenge() async {
+    final response = await _client.get(
+      Uri.parse(ApiConstants.dailyChallenge),
+    );
+
+    if (response.statusCode == 404 || response.body.trim().isEmpty) {
+      return null;
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+
+      final data = _unwrapObject(
+        decoded,
+        keys: [
+          'data',
+          'dailyChallenge',
+          'challenge',
+          'result',
+        ],
+      );
+
+      if (data == null) return null;
+
+      final model = DailyChallengeModel.fromJson(data);
+
+      return model.isValid ? model : null;
+    }
+
+    throw Exception(
+      _extractErrorMessage(response.body, 'Failed to load daily challenge'),
+    );
+  }
+
+  Future<DailyChallengeAnswerModel> submitDailyChallengeAnswer(
+      int challengeId,
+      String answer,
+      ) async {
+    final response = await _client.post(
+      Uri.parse(ApiConstants.dailyChallengeAnswer),
+      body: jsonEncode({
+        'challengeId': challengeId,
+        'answer': answer,
+      }),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        return const DailyChallengeAnswerModel(
+          correct: false,
+          correctAnswer: null,
+        );
+      }
+
+      final decoded = jsonDecode(response.body);
+
+      final data = _unwrapObject(
+        decoded,
+        keys: [
+          'data',
+          'result',
+          'answer',
+        ],
+      ) ??
+          <String, dynamic>{};
+
+      return DailyChallengeAnswerModel.fromJson(data);
+    }
+
+    throw Exception(
+      _extractErrorMessage(response.body, 'Failed to submit challenge answer'),
+    );
+  }
+
+  Future<KitModel?> _safeGetKitById(int kitId) async {
+    try {
+      return await _kitService.getKitById(kitId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   List<Map<String, dynamic>> _parseListResponse(
       http.Response response, {
         required String fallbackError,
@@ -197,10 +409,7 @@ class HomeService {
       final decoded = jsonDecode(response.body);
 
       if (decoded is List) {
-        return decoded
-            .whereType<Map>()
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList();
+        return _mapList(decoded);
       }
 
       if (decoded is Map<String, dynamic>) {
@@ -214,10 +423,7 @@ class HomeService {
             decoded['items'];
 
         if (data is List) {
-          return data
-              .whereType<Map>()
-              .map((item) => Map<String, dynamic>.from(item))
-              .toList();
+          return _mapList(data);
         }
 
         if (data is Map) {
@@ -229,6 +435,79 @@ class HomeService {
     }
 
     throw Exception(_extractErrorMessage(response.body, fallbackError));
+  }
+
+  List<Map<String, dynamic>> _extractActivitiesFromRoadmap(dynamic decoded) {
+    if (decoded is List) {
+      return _mapList(decoded);
+    }
+
+    if (decoded is Map<String, dynamic>) {
+      final directActivities = decoded['activities'] ??
+          decoded['roadmapActivities'] ??
+          decoded['activityList'] ??
+          decoded['items'];
+
+      if (directActivities is List) {
+        return _mapList(directActivities);
+      }
+
+      final data = decoded['data'] ??
+          decoded['roadmap'] ??
+          decoded['result'] ??
+          decoded['content'];
+
+      if (data is List) {
+        return _mapList(data);
+      }
+
+      if (data is Map<String, dynamic>) {
+        final nestedActivities = data['activities'] ??
+            data['roadmapActivities'] ??
+            data['activityList'] ??
+            data['items'];
+
+        if (nestedActivities is List) {
+          return _mapList(nestedActivities);
+        }
+      }
+    }
+
+    return [];
+  }
+
+  List<Map<String, dynamic>> _mapList(List<dynamic> list) {
+    return list
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  Map<String, dynamic>? _unwrapObject(
+      dynamic decoded, {
+        required List<String> keys,
+      }) {
+    if (decoded == null) return null;
+
+    if (decoded is Map<String, dynamic>) {
+      for (final key in keys) {
+        if (decoded.containsKey(key)) {
+          final value = decoded[key];
+
+          if (value == null) {
+            return null;
+          }
+
+          if (value is Map) {
+            return Map<String, dynamic>.from(value);
+          }
+        }
+      }
+
+      return decoded;
+    }
+
+    return null;
   }
 
   Map<String, dynamic> _findLatestSession(List<Map<String, dynamic>> sessions) {
@@ -310,48 +589,11 @@ class HomeService {
     );
   }
 
-  bool _isCompletedSession(Map<String, dynamic> session) {
-    final endedAt = session['endedAt'] ??
-        session['ended_at'] ??
-        session['completedAt'] ??
-        session['completed_at'] ??
-        session['endTime'];
-
-    if (endedAt == null) {
-      final status = session['status']?.toString().toLowerCase();
-      return status == 'completed' || status == 'done' || status == 'finished';
-    }
-
-    return endedAt.toString().trim().isNotEmpty;
-  }
-
-  int _getHighestLevelNumber(List<Map<String, dynamic>> attempts) {
-    if (attempts.isEmpty) {
-      return 1;
-    }
-
-    int highest = 1;
-
-    for (final attempt in attempts) {
-      final level = _parseInt(
-        attempt['levelNumber'] ??
-            attempt['level_number'] ??
-            attempt['level'] ??
-            attempt['levelNo'],
-      ) ??
-          1;
-
-      if (level > highest) {
-        highest = level;
-      }
-    }
-
-    return highest;
-  }
 
   int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
+    if (value is num) return value.toInt();
     return int.tryParse(value.toString());
   }
 
