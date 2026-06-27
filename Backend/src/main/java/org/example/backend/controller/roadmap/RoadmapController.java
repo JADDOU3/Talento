@@ -1,6 +1,8 @@
 package org.example.backend.controller.roadmap;
 
 import org.example.backend.Dto.progress.ActivityProgressResponseDto;
+import org.example.backend.Dto.progress.CompletedActivitiesCountDto;
+import org.example.backend.Dto.progress.LastActivityReachedDto;
 import org.example.backend.Dto.roadmap.RoadmapResponseDto;
 import org.example.backend.service.activity.ActivityProgressService;
 import org.example.backend.service.roadmap.RoadmapService;
@@ -60,5 +62,24 @@ public class RoadmapController {
     ) {
         ActivityProgressResponseDto progress = activityProgressService.getProgress(activityId);
         return ResponseEntity.ok(progress);
+    }
+
+
+
+
+    @GetMapping("/progress/completed-count")
+    public ResponseEntity<CompletedActivitiesCountDto> getCompletedActivitiesCount() {
+        return ResponseEntity.ok(
+                activityProgressService.getCompletedActivitiesCount()
+        );
+    }
+
+
+    @GetMapping("/progress/last-reached")
+    public ResponseEntity<LastActivityReachedDto> getLastActivityReached() {
+        LastActivityReachedDto result = activityProgressService.getLastActivityReached();
+        return result != null
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.notFound().build();
     }
 }

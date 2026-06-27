@@ -1,15 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_constants.dart';
-import '../../models/activities/story_spinner/story_spinner_level_model.dart';
-import '../../models/activities/story_spinner/story_spinner_voice_check_result.dart';
+import '../../models/activities/sound_tracker/sound_tracker_level_model.dart';
 import '../auth/auth_api_client.dart';
 
-class StorySpinnerService {
+class SoundTrackerService {
   final AuthApiClient _apiClient = AuthApiClient();
 
   Map<String, String> get _jsonHeaders => {
@@ -21,7 +16,11 @@ class StorySpinnerService {
       Uri.parse(ApiConstants.selectedChild),
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'get selected child');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'get selected child',
+    );
 
     final data = jsonDecode(response.body);
 
@@ -46,11 +45,15 @@ class StorySpinnerService {
     final response = await _apiClient.get(uri);
 
     print(
-      'STORY SPINNER: latest session response = '
+      'SOUND TRACKER: latest session response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'get latest session');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'get latest session',
+    );
 
     final data = jsonDecode(response.body);
 
@@ -78,7 +81,7 @@ class StorySpinnerService {
       'kitId': kitId,
     });
 
-    print('STORY SPINNER: create session body = $body');
+    print('SOUND TRACKER: create session body = $body');
 
     final response = await _apiClient.post(
       Uri.parse(ApiConstants.sessions),
@@ -87,11 +90,15 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: create session response = '
+      'SOUND TRACKER: create session response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'create session');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'create session',
+    );
 
     final data = jsonDecode(response.body);
 
@@ -104,63 +111,6 @@ class StorySpinnerService {
     return sessionId;
   }
 
-  Future<List<Map<String, dynamic>>> getRoadmapActivities({
-    required int kitId,
-    required int childId,
-  }) async {
-    final response = await _apiClient.get(
-      Uri.parse(ApiConstants.roadmapByKitAndChild(kitId, childId)),
-    );
-
-    print(
-      'STORY SPINNER: roadmap response = '
-          '${response.statusCode} - ${_shortBody(response.body)}',
-    );
-
-    _ensureSuccess(response.statusCode, response.body, 'get roadmap');
-
-    final data = jsonDecode(response.body);
-
-    if (data is List) {
-      return data
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
-    }
-
-    if (data is Map && data['activities'] is List) {
-      return (data['activities'] as List)
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
-    }
-
-    if (data is Map && data['content'] is List) {
-      return (data['content'] as List)
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
-    }
-
-    return <Map<String, dynamic>>[];
-  }
-
-  Map<String, dynamic>? findCurrentActivity(
-      List<Map<String, dynamic>> activities,
-      ) {
-    if (activities.isEmpty) return null;
-
-    for (final activity in activities) {
-      final status = (activity['status'] ?? '').toString().toUpperCase();
-
-      if (status == 'CURRENT') {
-        return activity;
-      }
-    }
-
-    return activities.first;
-  }
-
   Future<int> createActivitySession({
     required int activityId,
     required int sessionId,
@@ -171,7 +121,7 @@ class StorySpinnerService {
       'sessionId': sessionId,
     });
 
-    print('STORY SPINNER: create activity session body = $body');
+    print('SOUND TRACKER: create activity session body = $body');
 
     final response = await _apiClient.post(
       Uri.parse(ApiConstants.activitySessions),
@@ -180,7 +130,7 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: create activity session response = '
+      'SOUND TRACKER: create activity session response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
@@ -192,7 +142,10 @@ class StorySpinnerService {
 
     final data = jsonDecode(response.body);
 
-    final activitySessionId = _readInt(data, ['id', 'activitySessionId']);
+    final activitySessionId = _readInt(data, [
+      'id',
+      'activitySessionId',
+    ]);
 
     if (activitySessionId == 0) {
       throw Exception('Activity session id was not found.');
@@ -201,7 +154,7 @@ class StorySpinnerService {
     return activitySessionId;
   }
 
-  Future<List<StorySpinnerLevelModel>> getLevelsByActivity(
+  Future<List<SoundTrackerLevelModel>> getLevelsByActivity(
       int activityId,
       ) async {
     final uri = Uri.parse(ApiConstants.levelsByActivity(activityId)).replace(
@@ -212,28 +165,30 @@ class StorySpinnerService {
       },
     );
 
-    print('STORY SPINNER: get levels url = $uri');
+    print('SOUND TRACKER: get levels url = $uri');
 
     final response = await _apiClient.get(uri);
 
     print(
-      'STORY SPINNER: get levels response = '
+      'SOUND TRACKER: get levels response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'get levels');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'get levels',
+    );
 
     final data = jsonDecode(response.body);
 
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Invalid levels response.');
-    }
-
-    final levels = StorySpinnerLevelModel.listFromPageResponse(data);
+    final levels = SoundTrackerLevelModel.listFromPageResponse(data);
 
     if (levels.isEmpty) {
-      throw Exception('No Story Spinner levels were found.');
+      throw Exception('No Sound Tracker levels were found.');
     }
+
+    levels.sort((a, b) => a.levelNumber.compareTo(b.levelNumber));
 
     return levels;
   }
@@ -253,7 +208,7 @@ class StorySpinnerService {
       'levelId': levelId,
     });
 
-    print('STORY SPINNER: create level attempt body = $body');
+    print('SOUND TRACKER: create level attempt body = $body');
 
     final response = await _apiClient.post(
       Uri.parse(ApiConstants.levelAttempts),
@@ -262,93 +217,28 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: create level attempt response = '
-          '${response.statusCode} - ${_shortBody(response.body)}',
-    );
-
-    _ensureSuccess(response.statusCode, response.body, 'create level attempt');
-
-    final data = jsonDecode(response.body);
-
-    final attemptId = _readInt(data, ['id', 'attemptId']);
-
-    if (attemptId == 0) {
-      throw Exception('Level attempt id was not found.');
-    }
-
-    return attemptId;
-  }
-
-  Future<StorySpinnerVoiceCheckResult> transcribeWithKeywords({
-    required String filePath,
-    required int activityId,
-    required int activitySessionId,
-    required int levelId,
-    required List<String> keywords,
-  }) async {
-    final audioFile = File(filePath);
-
-    if (!await audioFile.exists()) {
-      throw Exception('Recorded audio file was not found.');
-    }
-
-    final cleanedKeywords = keywords
-        .map((keyword) => keyword.trim())
-        .where((keyword) => keyword.isNotEmpty)
-        .toList();
-
-    if (cleanedKeywords.length != 3) {
-      throw Exception('Story Spinner needs exactly 3 Arabic keywords.');
-    }
-
-    final requestBody = jsonEncode({
-      'activityId': activityId,
-      'activitySessionId': activitySessionId,
-      'levelId': levelId,
-      'keywords': cleanedKeywords,
-    });
-
-    print('STORY SPINNER: voice check request = $requestBody');
-    print('STORY SPINNER: voice check file = ${audioFile.path}');
-
-    final response = await _apiClient.multipartPost(
-      Uri.parse(ApiConstants.voiceTranscribeWithKeywords),
-      buildRequest: (request) async {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'file',
-            audioFile.path,
-          ),
-        );
-
-        request.files.add(
-          http.MultipartFile.fromString(
-            'request',
-            requestBody,
-            contentType: MediaType('application', 'json'),
-          ),
-        );
-      },
-    );
-
-    print(
-      'STORY SPINNER: voice check response = '
+      'SOUND TRACKER: create level attempt response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(
       response.statusCode,
       response.body,
-      'transcribe story with keywords',
+      'create level attempt',
     );
 
     final data = jsonDecode(response.body);
 
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Invalid voice check response.');
+    final attemptId = _readInt(data, [
+      'id',
+      'attemptId',
+    ]);
+
+    if (attemptId == 0) {
+      throw Exception('Level attempt id was not found.');
     }
 
-    return StorySpinnerVoiceCheckResult.fromJson(data);
+    return attemptId;
   }
 
   Future<void> updateLevelAttempt({
@@ -368,7 +258,7 @@ class StorySpinnerService {
       'levelId': levelId,
     });
 
-    print('STORY SPINNER: update level attempt body = $body');
+    print('SOUND TRACKER: update level attempt body = $body');
 
     final response = await _apiClient.put(
       Uri.parse(ApiConstants.levelAttemptById(attemptId)),
@@ -377,11 +267,15 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: update level attempt response = '
+      'SOUND TRACKER: update level attempt response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'update level attempt');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'update level attempt',
+    );
   }
 
   Future<void> postActivityEvent({
@@ -389,17 +283,16 @@ class StorySpinnerService {
     required int sessionId,
     required int activityId,
     required String action,
-    String responseLanguage = 'en',
   }) async {
     final body = jsonEncode({
       'childId': childId,
       'sessionId': sessionId,
       'activityId': activityId,
       'action': action,
-      'responseLanguage': responseLanguage,
+      'responseLanguage': 'en',
     });
 
-    print('STORY SPINNER: post activity event body = $body');
+    print('SOUND TRACKER: post activity event body = $body');
 
     final response = await _apiClient.post(
       Uri.parse(ApiConstants.activityEvents),
@@ -408,11 +301,15 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: post activity event response = '
+      'SOUND TRACKER: post activity event response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'post activity event');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'post activity event',
+    );
   }
 
   Future<void> postLevelEvent({
@@ -428,7 +325,7 @@ class StorySpinnerService {
       'action': action,
     });
 
-    print('STORY SPINNER: post level event body = $body');
+    print('SOUND TRACKER: post level event body = $body');
 
     final response = await _apiClient.post(
       Uri.parse(ApiConstants.levelEvents),
@@ -437,11 +334,15 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: post level event response = '
+      'SOUND TRACKER: post level event response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'post level event');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'post level event',
+    );
   }
 
   Future<void> completeActivitySession(int activitySessionId) async {
@@ -451,7 +352,7 @@ class StorySpinnerService {
     );
 
     print(
-      'STORY SPINNER: complete activity session response = '
+      'SOUND TRACKER: complete activity session response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
@@ -459,6 +360,24 @@ class StorySpinnerService {
       response.statusCode,
       response.body,
       'complete activity session',
+    );
+  }
+
+  Future<void> endSession(int sessionId) async {
+    final response = await _apiClient.patch(
+      Uri.parse(ApiConstants.endSession(sessionId)),
+      headers: _jsonHeaders,
+    );
+
+    print(
+      'SOUND TRACKER: end session response = '
+          '${response.statusCode} - ${_shortBody(response.body)}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'end session',
     );
   }
 
@@ -475,20 +394,6 @@ class StorySpinnerService {
 
     if (kit is Map) {
       return _readInt(kit, ['id', 'kitId']);
-    }
-
-    return 0;
-  }
-
-  int readActivityId(Map<String, dynamic> activity) {
-    final directActivityId = _readInt(activity, ['id', 'activityId']);
-
-    if (directActivityId != 0) return directActivityId;
-
-    final nestedActivity = activity['activity'];
-
-    if (nestedActivity is Map) {
-      return _readInt(nestedActivity, ['id', 'activityId']);
     }
 
     return 0;
@@ -515,7 +420,11 @@ class StorySpinnerService {
     return '${body.substring(0, 800)}...';
   }
 
-  void _ensureSuccess(int statusCode, String body, String actionName) {
+  void _ensureSuccess(
+      int statusCode,
+      String body,
+      String actionName,
+      ) {
     if (statusCode >= 200 && statusCode < 300) return;
 
     throw Exception(

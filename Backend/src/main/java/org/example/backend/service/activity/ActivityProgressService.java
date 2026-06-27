@@ -2,6 +2,8 @@ package org.example.backend.service.activity;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.example.backend.Dto.progress.ActivityProgressResponseDto;
+import org.example.backend.Dto.progress.CompletedActivitiesCountDto;
+import org.example.backend.Dto.progress.LastActivityReachedDto;
 import org.example.backend.model.Child;
 import org.example.backend.model.activity.Activity;
 import org.example.backend.model.activity.ActivityProgress;
@@ -134,5 +136,30 @@ public class ActivityProgressService {
 
         progress.setUpdatedAt(LocalDateTime.now());
         activityProgressRepo.save(progress);
+    }
+
+    public CompletedActivitiesCountDto getCompletedActivitiesCount() {
+        Child child = childService.getSelectedChild();
+        if (child == null) throw new EntityNotFoundException("No selected child found");
+
+        int count = activityProgressRepo.countByChildIdAndCompletedTrue(child.getId());
+        return new CompletedActivitiesCountDto(child.getId(), count);
+    }
+
+    public LastActivityReachedDto getLastActivityReached() {
+        Child child = childService.getSelectedChild();
+        if (child == null) throw new EntityNotFoundException("No selected child found");
+        return activityProgressRepo
+                .findTopByChildIdAndUpdatedAtIsNotNullOrderByUpdatedAtDesc(child.getId())
+                .map(progress -> new LastActivityReachedDto(
+                        progress.getActivity().getId(),
+                        progress.getActivity().getName(),
+                        progress.getCurrentLevelNumber(),
+                        progress.getCurrentLevel() != null ? progress.getCurrentLevel().getId() : 0,
+                        progress.getTotalLevels(),
+                        progress.isCompleted(),
+                        progress.getUpdatedAt()
+                ))
+                .orElse(null);
     }
 }

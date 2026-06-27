@@ -5,8 +5,10 @@ import '../../activities/color_lab/color_lab_launcher.dart';
 import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
 import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
+import '../../activities/emotion_chain/emotion_chain_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/sound_tracker/sound_tracker_intro.dart';
 import '../../activities/story_spinner/story_spinner_intro.dart';
 import '../../activities/tower_builder/tower_builder_launcher.dart';
 import '../../core/theme/app_colors.dart';
@@ -18,9 +20,6 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
-import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
-import '../../activities/emotion_chain/emotion_chain_intro.dart';
-
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -243,21 +242,20 @@ class _RoadmapView extends StatelessWidget {
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
     if (activityName == 'emotion chain analyzer') {
       Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EmotionChainIntro(
-          childId: childId,
-          kitId: kitId,
-          activityId: activity.activityId,
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmotionChainIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+          ),
         ),
-      ),
-    ).then((_) {
-      _refreshRoadmapIfMounted(context);
-    });
-  return;
-}
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
     if (activityName == 'story spinner' ||
         activityName == 'story spinner cards') {
@@ -274,6 +272,23 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
+    if (activityName == 'sound trackers'){
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SoundTrackerIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
     _showMessage(
       context,
       'النشاط "${activity.activityName}" غير جاهز بعد',
@@ -282,7 +297,10 @@ class _RoadmapView extends StatelessWidget {
 
   void _refreshRoadmapIfMounted(BuildContext context) {
     if (context.mounted) {
-      context.read<RoadmapCubit>().loadRoadmap(kitId, childId);
+      context.read<RoadmapCubit>().loadRoadmap(
+        kitId,
+        childId,
+      );
     }
   }
 

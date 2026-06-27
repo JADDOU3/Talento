@@ -45,6 +45,12 @@ class ColorLabLevel {
     return targets;
   }
 
+  /// Level-type detection, kept in one place.
+  ///
+  /// Palette-mix mode (Part 1): the level has a CHOICE image (the palette).
+  /// Free-coloring mode (Level 4): no CHOICE image — every image is TARGET.
+  bool get isFreeColoring => paletteImage == null && challenges.isNotEmpty;
+
   static List<ColorLabImage> _parseImages(dynamic value) {
     if (value is List) {
       return value
