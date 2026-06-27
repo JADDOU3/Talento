@@ -25,7 +25,7 @@ public class Kit {
     private String description;
     private double price;
     private LocalDateTime createdAt;
-    private String imageURL;
+    private String imageKey;
 
     private int rating;
     private int age;

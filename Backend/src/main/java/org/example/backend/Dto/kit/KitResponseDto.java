@@ -3,6 +3,7 @@ package org.example.backend.Dto.kit;
 import lombok.Data;
 import org.example.backend.Dto.common.MindsetSummaryDto;
 import org.example.backend.model.Kit;
+import org.example.backend.service.community.S3Service;
 import org.example.backend.util.enums.Type;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class KitResponseDto {
     private String description;
     private double price;
     private LocalDateTime createdAt;
+    private String imageKey;
     private String imageURL;
     private int rating;
     private int age;
@@ -22,7 +24,7 @@ public class KitResponseDto {
     private Type type;
     private MindsetSummaryDto mindset;
 
-    public static KitResponseDto from(Kit kit) {
+    public static KitResponseDto from(Kit kit, S3Service s3Service) {
         if (kit == null) return null;
         KitResponseDto dto = new KitResponseDto();
         dto.setId(kit.getId());
@@ -30,7 +32,12 @@ public class KitResponseDto {
         dto.setDescription(kit.getDescription());
         dto.setPrice(kit.getPrice());
         dto.setCreatedAt(kit.getCreatedAt());
-        dto.setImageURL(kit.getImageURL());
+        dto.setImageKey(kit.getImageKey());
+        dto.setImageURL(
+                kit.getImageKey() != null && !kit.getImageKey().isEmpty()
+                        ? s3Service.generatePresignedUrl(kit.getImageKey())
+                        : null
+        );
         dto.setRating(kit.getRating());
         dto.setAge(kit.getAge());
         dto.setKitItems(kit.getKitItems());
