@@ -240,6 +240,8 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
       final voiceCheckResult = await _service.transcribeWithKeywords(
         filePath: recordedFilePath,
         activityId: _activityId,
+        activitySessionId: _activitySessionId,
+        levelId: _currentLevelId,
         keywords: keywords,
       );
 

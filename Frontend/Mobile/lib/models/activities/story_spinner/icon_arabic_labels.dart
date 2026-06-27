@@ -1,17 +1,19 @@
 const Map<String, String> iconArabicLabels = {
   'cat': 'قطة',
-  'robot': 'روبوت',
-  'frog': 'ضفدع',
+  'bird': 'عصفور',
+  'rabbit': 'أرنب',
   'penguin': 'بطريق',
-  'unicorn': 'يونيكورن',
-  'travels': 'سافر',
-  'search': 'بحث',
-  'running_from_rain': 'يهرب من المطر',
+  'lion': 'أسد',
+
+  'jump': 'يقفز',
+  'search': 'يبحث',
+  'running': 'يهرب',
   'fly': 'طار',
-  'sing': 'غنى',
+  'sing': 'يغني',
+
   'forest': 'غابة',
   'castle': 'قلعة',
   'moon': 'قمر',
   'sea': 'بحر',
-  'volcano': 'بركان',
+  'mountain': 'جبل',
 };
