@@ -402,26 +402,21 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     final tc = target.color;
     final colorSim = _colorSimilarity(dominantRgb, [tc.red, tc.green, tc.blue]);
 
-    // TODO(threshold): pass mark not finalised by product yet — adjust `passMark`
-    // (and the color/inside weights) once specified.
-    const passMark = 0.62;
+   // اللون لازم أصفر (شرط) + التغطية 70%.
+    const colorThreshold = 0.70; // رح نظبّطه حسب الرقم الحقيقي
+    const coverageThreshold = 0.40;
 
-    // Colour match is the primary signal; staying inside the outline is a soft
-    // bonus, not a hard gate — children naturally colour a little past the line,
-    // and the derived outline can be imperfect on low-res art. If the outline
-    // couldn't be read (e.g. CORS on web), judge on colour alone.
-    final double score = maskReliable
-        ? (colorSim * 0.65) + (insideRatio * 0.35)
-        : colorSim;
+    final bool colorOk = colorSim >= colorThreshold;
+    final bool coverageOk = !maskReliable || insideRatio >= coverageThreshold;
 
     debugPrint(
-      'COLORING SUBMIT | inside=${_pct(insideRatio)} '
-      '(reliable=$maskReliable) | colorSim=${_pct(colorSim)} | '
-      'score=${_pct(score)} (need ${_pctV(passMark)}) | '
+      'COLORING SUBMIT | colorSim=${_pct(colorSim)} (need ${_pctV(colorThreshold)}) | '
+      'inside=${_pct(insideRatio)} (need ${_pctV(coverageThreshold)}, reliable=$maskReliable) | '
+      'colorOk=$colorOk coverageOk=$coverageOk | '
       'dom=$dominantRgb target=[${tc.red}, ${tc.green}, ${tc.blue}]',
     );
 
-    if (score >= passMark) {
+    if (colorOk && coverageOk) {
       await _handleCorrect();
     } else {
       await _handleWrong();
