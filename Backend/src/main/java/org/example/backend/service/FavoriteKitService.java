@@ -6,6 +6,7 @@ import org.example.backend.model.Kit;
 import org.example.backend.model.Parent;
 import org.example.backend.repo.FavoriteKitRepo;
 import org.example.backend.repo.KitRepo;
+import org.example.backend.service.community.S3Service;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,8 @@ public class FavoriteKitService {
     private FavoriteKitRepo favoriteKitRepo;
     @Autowired
     private KitRepo kitRepo;
-
+    @Autowired
+    private S3Service s3Service;
     public FavoriteKitDto addFavorite(int kitId) {
         Parent parent=SecurityUtils.getCurrentUser();
 
@@ -65,14 +67,20 @@ public class FavoriteKitService {
     }
 
     private FavoriteKitDto toDto(FavoriteKit favorite) {
-        FavoriteKitDto dto=new FavoriteKitDto();
+        FavoriteKitDto dto = new FavoriteKitDto();
         dto.setId(favorite.getId());
         dto.setKitId(favorite.getKit().getId());
         dto.setKitName(favorite.getKit().getName());
-        dto.setKitImageURL(favorite.getKit().getImageURL());
         dto.setKitPrice(favorite.getKit().getPrice());
         dto.setKitRating(favorite.getKit().getRating());
         dto.setCreatedAt(favorite.getCreatedAt());
+
+        String imageKey = favorite.getKit().getImageKey();
+        dto.setKitImageURL(
+                imageKey != null && !imageKey.isEmpty()
+                        ? s3Service.generatePresignedUrl(imageKey)
+                        : null
+        );
         return dto;
     }
 }
