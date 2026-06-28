@@ -186,28 +186,31 @@ public class AiAnalysisService {
 
                 totalDuration += computeDuration(as, attempts);
 
-                // Count distinct levels attempted — not raw attempt rows
-                totalAttempts += (int) attempts.stream()
-                        .filter(a -> a.getLevel() != null)
-                        .map(a -> a.getLevel().getId())
-                        .distinct()
-                        .count();
-
-                // Count only levels where the final attempt was a failure
-                Map<Integer, List<LevelAttempt>> byLevel = attempts.stream()
-                        .filter(a -> a.getLevel() != null)
-                        .collect(Collectors.groupingBy(a -> a.getLevel().getId()));
-
-                for (List<LevelAttempt> levelAttempts : byLevel.values()) {
-                    levelAttempts.sort(Comparator.comparingInt(LevelAttempt::getAttemptNumber));
-                    LevelAttempt last = levelAttempts.get(levelAttempts.size() - 1);
-                    if (Boolean.FALSE.equals(last.getCompleted())) {
-                        totalFails++;
-                    }
-                }
-
                 if (as.getSession() != null) {
                     totalHints += helpEventRepo.findBySessionId(as.getSession().getId()).size();
+                }
+            }
+
+            // Count distinct levels attempted across all sessions
+            totalAttempts = (int) allAttempts.stream()
+                    .filter(a -> a.getLevel() != null)
+                    .map(a -> a.getLevel().getId())
+                    .distinct()
+                    .count();
+
+            // Count fails across ALL sessions combined — one entry per level
+            // using the truly last attempt (by startedAt) across all sessions
+            Map<Integer, List<LevelAttempt>> byLevelAllSessions = allAttempts.stream()
+                    .filter(a -> a.getLevel() != null)
+                    .collect(Collectors.groupingBy(a -> a.getLevel().getId()));
+
+            for (List<LevelAttempt> levelAttempts : byLevelAllSessions.values()) {
+                levelAttempts.sort(Comparator.comparing(
+                        a -> a.getStartedAt() != null ? a.getStartedAt() : LocalDateTime.MIN
+                ));
+                LevelAttempt last = levelAttempts.get(levelAttempts.size() - 1);
+                if (Boolean.FALSE.equals(last.getCompleted())) {
+                    totalFails++;
                 }
             }
 
