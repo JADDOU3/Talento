@@ -21,31 +21,29 @@ public class AIReportController {
     @PostMapping
     public ResponseEntity<AIReportResponseDto> createReport(@RequestBody CreateAIReportDto dto) {
         var report = aiReportService.createReport(dto);
-        return report != null ? ResponseEntity.ok(AIReportResponseDto.from(report)) : ResponseEntity.badRequest().build();
+        return report != null ? ResponseEntity.ok(report) : ResponseEntity.badRequest().build();
     }
 
     @GetMapping
     public ResponseEntity<Page<AIReportResponseDto>> getAll(Pageable pageable) {
-        var dtos = aiReportService.getAll().stream().map(AIReportResponseDto::from).toList();
-        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
+        return ResponseEntity.ok(PaginationUtil.paginate(aiReportService.getAll(), pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AIReportResponseDto> getById(@PathVariable int id) {
         var report = aiReportService.getById(id);
-        return report != null ? ResponseEntity.ok(AIReportResponseDto.from(report)) : ResponseEntity.notFound().build();
+        return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/child/{childId}")
     public ResponseEntity<Page<AIReportResponseDto>> getReportsByChild(@PathVariable int childId, Pageable pageable) {
-        var dtos = aiReportService.getReportsByChild(childId).stream().map(AIReportResponseDto::from).toList();
-        return ResponseEntity.ok(PaginationUtil.paginate(dtos, pageable));
+        return ResponseEntity.ok(PaginationUtil.paginate(aiReportService.getReportsByChild(childId), pageable));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<AIReportResponseDto> updateReport(@PathVariable int id, @RequestBody UpdateAIReportDto dto) {
         var report = aiReportService.updateReport(id, dto);
-        return report != null ? ResponseEntity.ok(AIReportResponseDto.from(report)) : ResponseEntity.notFound().build();
+        return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
