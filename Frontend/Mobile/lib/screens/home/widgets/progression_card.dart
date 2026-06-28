@@ -68,14 +68,6 @@ class ProgressionCard extends StatelessWidget {
                 right: 46,
                 child: _DottedJourneyPath(),
               ),
-              const Positioned(
-                bottom: 26,
-                right: 34,
-                child: _MiniStar(
-                  color: Color(0xFF8BDDD7),
-                  size: 13,
-                ),
-              ),
               Positioned(
                 bottom: -28,
                 left: -26,
@@ -274,17 +266,6 @@ class _MascotRacer extends StatelessWidget {
               bottom: 2,
               child: Container(
                 height: 16,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      blurRadius: 14,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
               ),
             ),
             Positioned.fill(
@@ -576,25 +557,6 @@ class _DottedJourneyPath extends StatelessWidget {
           painter: _DottedPathPainter(),
         ),
       ),
-    );
-  }
-}
-
-class _MiniStar extends StatelessWidget {
-  final Color color;
-  final double size;
-
-  const _MiniStar({
-    required this.color,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(
-      Icons.star_rounded,
-      color: color,
-      size: size,
     );
   }
 }
