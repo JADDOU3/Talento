@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 @Service
 public class AiAnalysisService {
@@ -184,10 +185,26 @@ public class AiAnalysisService {
                 allAttempts.addAll(attempts);
 
                 totalDuration += computeDuration(as, attempts);
-                totalAttempts += attempts.size();
-                totalFails += (int) attempts.stream()
-                        .filter(a -> Boolean.FALSE.equals(a.getCompleted()))
+
+                // Count distinct levels attempted — not raw attempt rows
+                totalAttempts += (int) attempts.stream()
+                        .filter(a -> a.getLevel() != null)
+                        .map(a -> a.getLevel().getId())
+                        .distinct()
                         .count();
+
+                // Count only levels where the final attempt was a failure
+                Map<Integer, List<LevelAttempt>> byLevel = attempts.stream()
+                        .filter(a -> a.getLevel() != null)
+                        .collect(Collectors.groupingBy(a -> a.getLevel().getId()));
+
+                for (List<LevelAttempt> levelAttempts : byLevel.values()) {
+                    levelAttempts.sort(Comparator.comparingInt(LevelAttempt::getAttemptNumber));
+                    LevelAttempt last = levelAttempts.get(levelAttempts.size() - 1);
+                    if (Boolean.FALSE.equals(last.getCompleted())) {
+                        totalFails++;
+                    }
+                }
 
                 if (as.getSession() != null) {
                     totalHints += helpEventRepo.findBySessionId(as.getSession().getId()).size();
@@ -466,8 +483,10 @@ public class AiAnalysisService {
     private String confidenceFrom(int failCount, int attemptCount) {
         if (attemptCount == 0) return "medium";
         if (failCount == 0) return "high";
-        if (failCount >= 2) return "low";
-        return "medium";
+        double failRate = (double) failCount / attemptCount;
+        if (failRate >= 0.5) return "low";
+        if (failRate >= 0.25) return "medium";
+        return "high";
     }
 
     private String normalizeLanguage(String lang) {
