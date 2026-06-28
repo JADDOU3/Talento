@@ -131,82 +131,100 @@ class _NewUser extends State<NewUser> {
   }
 
   Widget _buildKitSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'اكتشف المجموعات',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1B1F24),
-              ),
-            ),
-            TextButton(
-              onPressed: _goToKitsList,
-              child: const Text(
-                'عرض الكل',
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'اكتشف الصناديق',
                 style: TextStyle(
-                  color: Color(0xFF10A896),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1B1F24),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'مغامرات مصممة لتنمية طفلك',
-          style: TextStyle(
-            fontSize: 13,
-            color: Color(0xFF6B728F),
-          ),
-        ),
-        const SizedBox(height: 14),
-        FutureBuilder<List<KitModel>>(
-          future: _kitsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _buildKitsLoading();
-            }
-
-            if (snapshot.hasError) {
-              return _buildKitsError();
-            }
-
-            final kits = snapshot.data ?? [];
-
-            if (kits.isEmpty) {
-              return _buildEmptyKits();
-            }
-
-            return SizedBox(
-              height: 220,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: kits.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, i) {
-                  final kit = kits[i];
-
-                  return KitCard(
-                    title: kit.name,
-                    description: kit.description,
-                    duration: 'حزمة تعليمية',
-                    age: kit.age == 0 ? '4-7' : '${kit.age}+',
-                    image: kit.imageUrl,
-                    onTap: () => _goToKitDetails(kit.id),
-                  );
-                },
+              InkWell(
+                onTap: _goToKitsList,
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFFFFD),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: const Color(0xFFBDEDEA),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'عرض الكل',
+                        style: TextStyle(
+                          color: Color(0xFF10A896),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Color(0xFF10A896),
+                        size: 12,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            );
-          },
-        ),
-      ],
+            ],
+          ),
+          const SizedBox(height: 14),
+          FutureBuilder<List<KitModel>>(
+            future: _kitsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return _buildKitsLoading();
+              }
+
+              if (snapshot.hasError) {
+                return _buildKitsError();
+              }
+
+              final kits = snapshot.data ?? [];
+
+              if (kits.isEmpty) {
+                return _buildEmptyKits();
+              }
+
+              return SizedBox(
+                height: 210,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: kits.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) {
+                    final kit = kits[i];
+
+                    return KitCard(
+                      title: kit.name,
+                      description: kit.description,
+                      image: kit.imageUrl,
+                      onTap: () => _goToKitDetails(kit.id),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

@@ -10,70 +10,120 @@ class PromotionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF0F3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEC6886).withOpacity(0.2)),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEC6886).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.star_rounded,
-                  color: Color(0xFFEC6886),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                'أطلق العنان للإمكانات',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF10A896),
-                ),
-              ),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFFFFFCFD),
+              Color(0xFFFFF1F4),
+              Color(0xFFFFFAF1),
             ],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'من خلال تقييم فصولهم الطبيعية، أنت تضمن تقديم أفضل دعم لهم اليوم',
-            style: TextStyle(
-              fontSize: 13,
-              color: Color(0xFF6B728F),
-              height: 1.5,
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(
+            color: const Color(0xFFEC6886).withOpacity(0.18),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEC6886).withOpacity(0.07),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
-          ),
-          const SizedBox(height: 14),
-          ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEC6886),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              textStyle: const TextStyle(
-                fontSize: 14,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEC6886).withOpacity(0.11),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.insights_rounded,
+                    color: Color(0xFFEC6886),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'افهم رحلة طفلك',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF086D66),
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const SizedBox(
+                  width: 44,
+                  height: 44,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'اطّلع على تحليل الأداء، ونمط التفكير الأقرب لطفلك، ونقاط القوة وفرص التطوّر.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.4,
+                color: Color(0xFF4F5870),
+                height: 1.6,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            child: const Text('ابدأ اليوميات'),
-          ),
-        ],
+            const SizedBox(height: 15),
+            InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: double.infinity,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFEF7893),
+                      Color(0xFFEC6886),
+                    ],
+                    begin: Alignment.centerRight,
+                    end: Alignment.centerLeft,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEC6886).withOpacity(0.20),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'عرض اليوميات والتحليل',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -190,34 +190,44 @@ class _RaceTrackWithMascot extends StatelessWidget {
                   child: const SizedBox(height: 20),
                 ),
               ),
+
               const Positioned(
                 right: 0,
                 top: 31,
                 child: _StartMarker(),
               ),
+
               const Positioned(
                 left: 0,
                 top: 20,
                 child: _GoalStarMarker(),
               ),
+
               const Positioned(
-                right: 3,
-                top: 3,
-                child: _TrackBubble(
-                  text: 'البداية',
-                  color: Color(0xFFD9FCF7),
-                  textColor: AppColors.primary,
+                right: -6,
+                top: 4,
+                child: SizedBox(
+                  width: 50,
+                  child: Center(
+                    child: _TrackBubble(
+                      text: 'البداية',
+                      color: Color(0xFFD9FCF7),
+                      textColor: AppColors.primary,
+                    ),
+                  ),
                 ),
               ),
+
               const Positioned(
-                left: 3,
-                top: 3,
+                left: 7,
+                top: -1,
                 child: _TrackBubble(
                   text: 'الهدف',
                   color: Color(0xFFFFF1BD),
                   textColor: Color(0xFF8C6500),
                 ),
               ),
+
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 560),
                 curve: Curves.easeOutBack,
@@ -378,8 +388,8 @@ class _StartMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 43,
-      height: 43,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         color: const Color(0xFFE1FBF7),
         shape: BoxShape.circle,
@@ -422,8 +432,8 @@ class _GoalStarMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 61,
-      height: 61,
+      width: 60,
+      height: 60,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
@@ -434,8 +444,8 @@ class _GoalStarMarker extends StatelessWidget {
             ),
           ),
           Container(
-            width: 55,
-            height: 55,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               color: AppColors.white,
               shape: BoxShape.circle,
@@ -452,9 +462,9 @@ class _GoalStarMarker extends StatelessWidget {
               ],
             ),
             child: const Icon(
-              Icons.star_rounded,
+              Icons.emoji_events_rounded,
               color: Color(0xFFFFC928),
-              size: 37,
+              size: 32,
             ),
           ),
         ],
@@ -477,16 +487,16 @@ class _TrackBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: AppColors.black.withValues(alpha: 0.035),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -496,7 +506,7 @@ class _TrackBubble extends StatelessWidget {
         style: AppTextStyles.bodyMedium.copyWith(
           color: textColor,
           fontWeight: FontWeight.w900,
-          fontSize: 12,
+          fontSize: 11.5,
           height: 1,
         ),
       ),
@@ -541,7 +551,6 @@ class _ProgressLabel extends StatelessWidget {
     );
   }
 }
-
 
 class _DottedJourneyPath extends StatelessWidget {
   const _DottedJourneyPath();
