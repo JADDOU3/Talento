@@ -23,6 +23,8 @@ public class KitResponseDto {
     private List<String> kitItems;
     private Type type;
     private MindsetSummaryDto mindset;
+    private List<String> imageKeys;
+    private List<String> imageURLs;
 
     public static KitResponseDto from(Kit kit, S3Service s3Service) {
         if (kit == null) return null;
@@ -43,6 +45,15 @@ public class KitResponseDto {
         dto.setKitItems(kit.getKitItems());
         dto.setType(kit.getType());
         dto.setMindset(MindsetSummaryDto.from(kit.getMindset()));
+        dto.setImageKeys(kit.getImageKeys());
+        dto.setImageURLs(
+                kit.getImageKeys() != null
+                        ? kit.getImageKeys().stream()
+                          .filter(k -> k != null && !k.isEmpty())
+                          .map(s3Service::generatePresignedUrl)
+                          .toList()
+                        : null
+        );
         return dto;
     }
 }

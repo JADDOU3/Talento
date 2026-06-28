@@ -35,6 +35,11 @@ public class Kit {
     @Column(name = "item")
     private List<String> kitItems;
 
+    @ElementCollection
+    @CollectionTable(name = "kit_images", joinColumns = @JoinColumn(name = "kit_id"))
+    @Column(name = "image_key")
+    private List<String> imageKeys;
+
     @Enumerated(EnumType.STRING)
     private Type type;
 

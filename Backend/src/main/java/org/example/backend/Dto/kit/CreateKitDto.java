@@ -23,4 +23,5 @@ public class CreateKitDto {
     private List<String> kitItems;
     private Integer rating;
     private Integer age;
+    private List<String> imageKeys;
 }
