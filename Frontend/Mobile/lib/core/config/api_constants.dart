@@ -25,6 +25,19 @@ class ApiConstants {
   static String levelAttemptsByActivitySession(int activitySessionId) =>
       '$baseUrl/level-attempts/activity-session/$activitySessionId';
 
+  // Home real-data endpoints
+  static const String roadmapLastReached =
+      '$baseUrl/roadmap/progress/last-reached';
+
+  static const String roadmapCompletedCount =
+      '$baseUrl/roadmap/progress/completed-count';
+
+  static const String dailyChallenge =
+      '$baseUrl/daily-challenge';
+
+  static const String dailyChallengeAnswer =
+      '$baseUrl/daily-challenge/answer';
+
   // Mirror Mind / Activity Runtime / Color Lab — shared endpoints
   static const String sessions = '$baseUrl/sessions/';
   static const String activitySessions = '$baseUrl/activity-sessions/';

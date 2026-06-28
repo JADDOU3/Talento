@@ -8,7 +8,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/empathy_mirror/empathy_mirror_cubit.dart';
 import '../../cubits/empathy_mirror/empathy_mirror_state.dart';
 import '../../screens/qr_scanner/widgets/camera_viewfinder.dart';
-import '../../services/empathy_mirror/empathy_mirror_service.dart';
+import '../../services/activities/empathy_mirror_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'empathy_mirror_result_screen.dart';
 import 'widgets/card_choices_widget.dart';

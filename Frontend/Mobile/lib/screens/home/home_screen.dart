@@ -36,7 +36,7 @@ class _HomeScreenBody extends StatelessWidget {
           return const NewUser();
         }
 
-        if (state is HomeReturningUser) {
+        if (state is HomeLoaded) {
           return OldUserScreen(data: state.data);
         }
 
@@ -80,7 +80,7 @@ class _HomeErrorView extends StatelessWidget {
       body: AppBackground(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -102,7 +102,7 @@ class _HomeErrorView extends StatelessWidget {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<HomeCubit>().initHome();
+                    context.read<HomeCubit>().loadHome();
                   },
                   child: const Text('إعادة المحاولة'),
                 ),
