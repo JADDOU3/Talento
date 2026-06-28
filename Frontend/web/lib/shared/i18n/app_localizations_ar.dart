@@ -39,6 +39,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get female => 'انثى';
 
   @override
+  String get frameworkTitle => 'إطار تالينتو للذكاءات';
+
+  @override
+  String get frameworkSubtitle =>
+      'التطور الشمولي عبر أربعة أبعاد أساسية لنمو الطفل.';
+
+  @override
+  String get cognitiveTitle => 'الذكاء المعرفي';
+
+  @override
+  String get cognitiveDesc =>
+      'يشمل التفكير المنطقي، التعرف على الأنماط، وحل المشكلات.';
+
+  @override
+  String get physicalTitle => 'الذكاء الجسدي';
+
+  @override
+  String get physicalDesc => 'يشمل التوازن، التحكم الحركي، والتمييز الحسي.';
+
+  @override
+  String get emotionalTitle => 'الذكاء العاطفي';
+
+  @override
+  String get emotionalDesc => 'يشمل التعاطف، التعاون، واتخاذ القرار الاجتماعي.';
+
+  @override
+  String get creativeTitle => 'الذكاء الإبداعي';
+
+  @override
+  String get creativeDesc => 'يشمل الابتكار، السرد القصصي، والتعبير الفني.';
+
+  @override
   String get forgotPassword => 'نسيت؟';
 
   @override
@@ -130,13 +162,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get apple => 'ابل';
 
   @override
-  String get somethingWentWrong => 'حدث خطا ما';
+  String get somethingWentWrong => 'حدث خطأ ما';
 
   @override
   String get loginSuccess => 'تم تسجيل الدخول بنجاح!';
 
   @override
-  String get accountCreated => 'تم انشاء الحساب بنجاح!';
+  String get accountCreated => 'تم إنشاء الحساب بنجاح!';
 
   @override
   String get pleaseSelectGender => 'يرجى اختيار الجنس';
@@ -182,11 +214,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get heroLearn => 'تعرف علينا';
 
   @override
-  String get journeyTitle => 'كيف تبدأ رحلتك';
+  String get journeyTitle => 'مسار تالينتو';
 
   @override
-  String get journeySubtitle =>
-      'نبسّط علم التعلم في ثلاث خطوات طبيعية للعائلات.';
+  String get journeySubtitle => 'رحلة مدعومة علمياً للأطفال من عمر 4-7 سنوات';
 
   @override
   String get journeyCard1Title => 'اختر موضوعك';
@@ -683,6 +714,107 @@ class AppLocalizationsAr extends AppLocalizations {
   String profileRecommendedForLeo(String childName) {
     return 'موصى به لـ $childName';
   }
+
+  @override
+  String get journeyStep1Title => 'اكتشاف العقلية';
+
+  @override
+  String get journeyStep1Desc =>
+      'تحليل مدعوم بالذكاء الاصطناعي للفضول الطبيعي والأنماط المعرفية من خلال اللعب التفاعلي.';
+
+  @override
+  String get journeyStep1DescShort =>
+      'تحليل مدعوم بالذكاء الاصطناعي للفضول الطبيعي.';
+
+  @override
+  String get journeyStep2Title => 'استكشاف الهوايات';
+
+  @override
+  String get journeyStep2Desc =>
+      'صناديق استكشاف مخصصة تُرسل شهرياً، مصممة خصيصاً بناءً على العقلية المكتشفة.';
+
+  @override
+  String get journeyStep2DescShort => 'صناديق استكشاف مخصصة تُرسل شهرياً.';
+
+  @override
+  String get journeyStep3Title => 'تنمية المواهب';
+
+  @override
+  String get journeyStep3Desc =>
+      'تحديات وإرشادات منظمة تركز على تحويل القدرات الكامنة إلى تمكن مستمر مدى الحياة.';
+
+  @override
+  String get journeyStep3DescShort => 'تحديات منظمة وتمكن مدى الحياة.';
+
+  @override
+  String get kitsEyebrow => 'صناديق تالينتو';
+
+  @override
+  String get kitsTitle => 'اختر المسار الصحيح';
+
+  @override
+  String get kitsSubtitle =>
+      'اختر مرحلة الاستكشاف التي تناسب عمر طفلك وتركيزه التطوري.';
+
+  @override
+  String get kitsAgeLabel => 'الفئة العمرية';
+
+  @override
+  String get kitsCtaLabel => 'اكتشف الصندوق';
+
+  @override
+  String get kit1Name => 'صندوق الاستكشاف';
+
+  @override
+  String get kit1Age => '4–5 سنوات';
+
+  @override
+  String get kit1Tagline => 'الخطوة الأولى لاكتشاف ميول الطفل الطبيعية';
+
+  @override
+  String get kit1Feature1 => 'أنشطة تعرف على الأنماط';
+
+  @override
+  String get kit1Feature2 => 'بطاقات حسية وحركية';
+
+  @override
+  String get kit1Feature3 => 'تقرير أولي عن نقاط القوة';
+
+  @override
+  String get kit2Name => 'صندوق التركيز';
+
+  @override
+  String get kit2Age => '5–6 سنوات';
+
+  @override
+  String get kit2Tagline => 'بناء المهارات المعرفية والعاطفية معاً';
+
+  @override
+  String get kit2Feature1 => 'تحديات حل المشكلات';
+
+  @override
+  String get kit2Feature2 => 'أنشطة الذكاء العاطفي';
+
+  @override
+  String get kit2Feature3 => 'تتبع التقدم عبر التطبيق';
+
+  @override
+  String get kit3Name => 'صندوق الإتقان';
+
+  @override
+  String get kit3Age => '6–7 سنوات';
+
+  @override
+  String get kit3Tagline => 'تحويل الإمكانات إلى موهبة قابلة للتطوير';
+
+  @override
+  String get kit3Feature1 => 'مستويات صعوبة متقدمة';
+
+  @override
+  String get kit3Feature2 => 'مسارات إبداعية وابتكارية';
+
+  @override
+  String get kit3Feature3 => 'ملف شخصي شامل للموهبة';
 
   @override
   String get profileRec1Badge => 'فيزياء • الأعمار 8-12';

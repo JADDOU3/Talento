@@ -10,6 +10,10 @@ import '../../../shared/components/footer/footer.dart';
 import '../../../shared/components/sections/catalog_sidebar.dart';
 import '../../../shared/i18n/catalog_translations.dart';
 import '../../../util/theme/app_colors.dart';
+import '../../../shared/components/navbar/navbar.dart';
+import '../../../util/theme/app_colors.dart';
+
+
 
 // ─── Catalog Page ─────────────────────────────────────────────────────────────
 class CatalogPage extends StatefulWidget {
@@ -156,16 +160,9 @@ class _CatalogPageState extends State<CatalogPage> {
           controller: _scrollController,
           child: Column(
             children: [
-              _CatalogNavbar(
+              Navbar(
                 scrollController: _scrollController,
-                lang: _lang,
-                isDesktop: isDesktop,
-                onToggleLang: () =>
-                    setState(() => _lang = isAr ? 'en' : 'ar'),
-                onNavigate: _navigateTo,
-                onNavigateHome: _navigateToHome,
-                onSearchChanged: _onSearchChanged,
-                onClearSearch: _clearSearch,
+                isLoggedIn: false, // replace with your auth state
               ),
               Padding(
                 padding: EdgeInsets.symmetric(

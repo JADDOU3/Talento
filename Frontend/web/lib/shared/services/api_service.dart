@@ -15,7 +15,7 @@ class ApiService {
   /// Override for local backend: `--dart-define=API_BASE_URL=http://localhost:8080/api`
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://15.224.101.253/api',
+    defaultValue: 'https://talentokids.com/api',
   );
 
   static const String _basicAuthUsername = 'test';
@@ -212,19 +212,30 @@ class ApiService {
   }
 
   // ✅ POST مع Basic Auth — للـ login و register (public)
+// ✅ POST مع Basic Auth — للـ login و register (public)
   static Future<Map<String, dynamic>?> postPublic(
       String endpoint, Map<String, dynamic> body) async {
     try {
       final request = await _sendPublicPost('$baseUrl$endpoint', body);
 
       final status = request.status ?? 0;
+
+      // If we get a 500, the backend is crashing.
+      // Handle it as a controlled failure.
+      if (status == 500) {
+        if (kDebugMode) debugPrint('[ApiService] Backend crashed with 500 on $endpoint');
+        return {
+          'message': 'Login failed. Please check your credentials.',
+          _kHttpStatus: 500,
+          _kHttpSuccess: false,
+        };
+      }
+
       final parsed = decodeResponseBody(request.responseText);
       final ok = status >= 200 && status < 300;
 
       if (kDebugMode) {
-        debugPrint(
-          '[ApiService] POST $endpoint -> HTTP $status body=$parsed',
-        );
+        debugPrint('[ApiService] POST $endpoint -> HTTP $status body=$parsed');
       }
 
       return {
@@ -233,17 +244,13 @@ class ApiService {
         _kHttpSuccess: ok,
       };
     } on html.ProgressEvent catch (e, st) {
-      debugPrint(
-        '[ApiService] POST $endpoint blocked (CORS/network): '
-        '${requestFailureHint(e)}\n$st',
-      );
+      debugPrint('[ApiService] POST $endpoint blocked (CORS/network): ${requestFailureHint(e)}\n$st');
       return null;
     } catch (e, st) {
       debugPrint('[ApiService] POST $endpoint failed: $e\n$st');
       return null;
     }
   }
-
   static Future<html.HttpRequest> _sendPublicPost(
     String url,
     Map<String, dynamic> body,

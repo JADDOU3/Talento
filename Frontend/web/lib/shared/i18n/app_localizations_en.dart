@@ -39,6 +39,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get female => 'Female';
 
   @override
+  String get frameworkTitle => 'The Talento Intelligence Framework';
+
+  @override
+  String get frameworkSubtitle =>
+      'Holistic development across four core dimensions of childhood growth.';
+
+  @override
+  String get cognitiveTitle => 'Cognitive';
+
+  @override
+  String get cognitiveDesc =>
+      'Focuses on logic, pattern recognition, and problem-solving.';
+
+  @override
+  String get physicalTitle => 'Physical';
+
+  @override
+  String get physicalDesc =>
+      'Focuses on balance, motor control, and sensory interaction.';
+
+  @override
+  String get emotionalTitle => 'Emotional';
+
+  @override
+  String get emotionalDesc =>
+      'Focuses on empathy, cooperation, and social decision-making.';
+
+  @override
+  String get creativeTitle => 'Creative';
+
+  @override
+  String get creativeDesc =>
+      'Focuses on innovation, storytelling, and artistic expression.';
+
+  @override
   String get forgotPassword => 'Forgot?';
 
   @override
@@ -183,11 +218,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get heroLearn => 'Learn Our Story';
 
   @override
-  String get journeyTitle => 'How Your Journey Begins';
+  String get journeyTitle => 'The Talento Path';
 
   @override
-  String get journeySubtitle =>
-      'We simplify the science of learning into three organic steps for families.';
+  String get journeySubtitle => 'A science-backed journey for ages 4-7';
 
   @override
   String get journeyCard1Title => 'Select Your Theme';
@@ -687,6 +721,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileRecommendedForLeo(String childName) {
     return 'Recommended for $childName';
   }
+
+  @override
+  String get journeyStep1Title => 'Discover Mindset';
+
+  @override
+  String get journeyStep1Desc =>
+      'AI-powered analysis of natural curiosities and cognitive patterns through interactive play.';
+
+  @override
+  String get journeyStep1DescShort =>
+      'AI-powered analysis of natural curiosities.';
+
+  @override
+  String get journeyStep2Title => 'Explore Hobbies';
+
+  @override
+  String get journeyStep2Desc =>
+      'Customized exploration kits delivered monthly, tailored specifically to their detected mindset.';
+
+  @override
+  String get journeyStep2DescShort =>
+      'Customized exploration kits delivered monthly.';
+
+  @override
+  String get journeyStep3Title => 'Develop Talent';
+
+  @override
+  String get journeyStep3Desc =>
+      'Structured challenges and guidance focused on turning potential into lifelong mastery.';
+
+  @override
+  String get journeyStep3DescShort =>
+      'Structured challenges and lifelong mastery.';
+
+  @override
+  String get kitsEyebrow => 'Talento Kits';
+
+  @override
+  String get kitsTitle => 'Choose the Right Path';
+
+  @override
+  String get kitsSubtitle =>
+      'Select the discovery stage that best matches your child\'s age and developmental focus.';
+
+  @override
+  String get kitsAgeLabel => 'Age range';
+
+  @override
+  String get kitsCtaLabel => 'Discover the Kit';
+
+  @override
+  String get kit1Name => 'Discovery Kit';
+
+  @override
+  String get kit1Age => '4–5 years';
+
+  @override
+  String get kit1Tagline =>
+      'The first step to uncovering a child\'s natural tendencies';
+
+  @override
+  String get kit1Feature1 => 'Pattern-recognition activities';
+
+  @override
+  String get kit1Feature2 => 'Sensory & motor cards';
+
+  @override
+  String get kit1Feature3 => 'Initial strengths report';
+
+  @override
+  String get kit2Name => 'Focus Kit';
+
+  @override
+  String get kit2Age => '5–6 years';
+
+  @override
+  String get kit2Tagline => 'Building cognitive and emotional skills together';
+
+  @override
+  String get kit2Feature1 => 'Problem-solving challenges';
+
+  @override
+  String get kit2Feature2 => 'Emotional-intelligence activities';
+
+  @override
+  String get kit2Feature3 => 'In-app progress tracking';
+
+  @override
+  String get kit3Name => 'Mastery Kit';
+
+  @override
+  String get kit3Age => '6–7 years';
+
+  @override
+  String get kit3Tagline => 'Turning potential into a developable talent';
+
+  @override
+  String get kit3Feature1 => 'Advanced difficulty levels';
+
+  @override
+  String get kit3Feature2 => 'Creative & innovative tracks';
+
+  @override
+  String get kit3Feature3 => 'Full talent profile';
 
   @override
   String get profileRec1Badge => 'PHYSICS • AGES 8-12';

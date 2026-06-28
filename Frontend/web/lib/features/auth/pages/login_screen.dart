@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-
+// Inside _login() in LoginScreen.dart
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -29,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
+    print("SENDING EMAIL: ${_emailController.text.trim()}");
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
@@ -79,48 +80,54 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
           // RIGHT SIDE
+
           Expanded(
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 40),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: TextButton(
-                        onPressed: () => langProvider.toggleLanguage(),
-                        child: Text(l10n.language, style: const TextStyle(color: AppColors.cartTeal, fontWeight: FontWeight.bold)),
-                      ),
+              // Use Center + SingleChildScrollView to handle overflow and centering
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: TextButton(
+                            onPressed: () => langProvider.toggleLanguage(),
+                            child: Text(l10n.language, style: const TextStyle(color: AppColors.cartTeal, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        Text(l10n.welcomeBack, style: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 32),
+                        CustomTextField(label: l10n.emailAddress, hint: 'name@example.com', controller: _emailController, validator: (v) => v!.isEmpty ? l10n.emailRequired : null),
+                        const SizedBox(height: 20),
+                        CustomTextField(label: l10n.password, hint: '••••••••', controller: _passwordController, isPassword: true, validator: (v) => v!.isEmpty ? l10n.passwordRequired : null),
+                        const SizedBox(height: 32),
+                        _isLoading
+                            ? const Center(child: CircularProgressIndicator(color: AppColors.cartTeal))
+                            : SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.cartTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                            onPressed: _login,
+                            child: Text(l10n.loginButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen())),
+                            child: Text(l10n.dontHaveAccount, style: GoogleFonts.nunito(color: Colors.black54)),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(l10n.welcomeBack, style: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 32),
-                    CustomTextField(label: l10n.emailAddress, hint: 'name@example.com', controller: _emailController, validator: (v) => v!.isEmpty ? l10n.emailRequired : null),
-                    const SizedBox(height: 20),
-                    CustomTextField(label: l10n.password, hint: '••••••••', controller: _passwordController, isPassword: true, validator: (v) => v!.isEmpty ? l10n.passwordRequired : null),
-                    const SizedBox(height: 32),
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator(color: AppColors.cartTeal))
-                        : SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.cartTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                        onPressed: _login,
-                        child: Text(l10n.loginButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen())),
-                        child: Text(l10n.dontHaveAccount, style: GoogleFonts.nunito(color: Colors.black54)),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

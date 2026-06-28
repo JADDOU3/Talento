@@ -13,7 +13,7 @@ import 'kit_state.dart';
 class KitCubit extends Cubit<KitState> {
   KitCubit() : super(const KitInitial());
 
-  static const String _baseUrl  = 'http://15.224.101.253/api';
+  static const String _baseUrl  = 'https://talentokids.com/api';
   static const int    _pageSize = 10;
 
   Timer? _searchDebounce;

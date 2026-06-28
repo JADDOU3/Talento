@@ -158,6 +158,66 @@ abstract class AppLocalizations {
   /// **'Female'**
   String get female;
 
+  /// No description provided for @frameworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Talento Intelligence Framework'**
+  String get frameworkTitle;
+
+  /// No description provided for @frameworkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Holistic development across four core dimensions of childhood growth.'**
+  String get frameworkSubtitle;
+
+  /// No description provided for @cognitiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cognitive'**
+  String get cognitiveTitle;
+
+  /// No description provided for @cognitiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Focuses on logic, pattern recognition, and problem-solving.'**
+  String get cognitiveDesc;
+
+  /// No description provided for @physicalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical'**
+  String get physicalTitle;
+
+  /// No description provided for @physicalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Focuses on balance, motor control, and sensory interaction.'**
+  String get physicalDesc;
+
+  /// No description provided for @emotionalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotional'**
+  String get emotionalTitle;
+
+  /// No description provided for @emotionalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Focuses on empathy, cooperation, and social decision-making.'**
+  String get emotionalDesc;
+
+  /// No description provided for @creativeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creative'**
+  String get creativeTitle;
+
+  /// No description provided for @creativeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Focuses on innovation, storytelling, and artistic expression.'**
+  String get creativeDesc;
+
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
@@ -443,13 +503,13 @@ abstract class AppLocalizations {
   /// No description provided for @journeyTitle.
   ///
   /// In en, this message translates to:
-  /// **'How Your Journey Begins'**
+  /// **'The Talento Path'**
   String get journeyTitle;
 
   /// No description provided for @journeySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We simplify the science of learning into three organic steps for families.'**
+  /// **'A science-backed journey for ages 4-7'**
   String get journeySubtitle;
 
   /// No description provided for @journeyCard1Title.
@@ -1339,6 +1399,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recommended for {childName}'**
   String profileRecommendedForLeo(String childName);
+
+  /// No description provided for @journeyStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover Mindset'**
+  String get journeyStep1Title;
+
+  /// No description provided for @journeyStep1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-powered analysis of natural curiosities and cognitive patterns through interactive play.'**
+  String get journeyStep1Desc;
+
+  /// No description provided for @journeyStep1DescShort.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-powered analysis of natural curiosities.'**
+  String get journeyStep1DescShort;
+
+  /// No description provided for @journeyStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Hobbies'**
+  String get journeyStep2Title;
+
+  /// No description provided for @journeyStep2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Customized exploration kits delivered monthly, tailored specifically to their detected mindset.'**
+  String get journeyStep2Desc;
+
+  /// No description provided for @journeyStep2DescShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Customized exploration kits delivered monthly.'**
+  String get journeyStep2DescShort;
+
+  /// No description provided for @journeyStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Develop Talent'**
+  String get journeyStep3Title;
+
+  /// No description provided for @journeyStep3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Structured challenges and guidance focused on turning potential into lifelong mastery.'**
+  String get journeyStep3Desc;
+
+  /// No description provided for @journeyStep3DescShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Structured challenges and lifelong mastery.'**
+  String get journeyStep3DescShort;
+
+  /// No description provided for @kitsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Talento Kits'**
+  String get kitsEyebrow;
+
+  /// No description provided for @kitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the Right Path'**
+  String get kitsTitle;
+
+  /// No description provided for @kitsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the discovery stage that best matches your child\'s age and developmental focus.'**
+  String get kitsSubtitle;
+
+  /// No description provided for @kitsAgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Age range'**
+  String get kitsAgeLabel;
+
+  /// No description provided for @kitsCtaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover the Kit'**
+  String get kitsCtaLabel;
+
+  /// No description provided for @kit1Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery Kit'**
+  String get kit1Name;
+
+  /// No description provided for @kit1Age.
+  ///
+  /// In en, this message translates to:
+  /// **'4–5 years'**
+  String get kit1Age;
+
+  /// No description provided for @kit1Tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'The first step to uncovering a child\'s natural tendencies'**
+  String get kit1Tagline;
+
+  /// No description provided for @kit1Feature1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pattern-recognition activities'**
+  String get kit1Feature1;
+
+  /// No description provided for @kit1Feature2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensory & motor cards'**
+  String get kit1Feature2;
+
+  /// No description provided for @kit1Feature3.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial strengths report'**
+  String get kit1Feature3;
+
+  /// No description provided for @kit2Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus Kit'**
+  String get kit2Name;
+
+  /// No description provided for @kit2Age.
+  ///
+  /// In en, this message translates to:
+  /// **'5–6 years'**
+  String get kit2Age;
+
+  /// No description provided for @kit2Tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Building cognitive and emotional skills together'**
+  String get kit2Tagline;
+
+  /// No description provided for @kit2Feature1.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem-solving challenges'**
+  String get kit2Feature1;
+
+  /// No description provided for @kit2Feature2.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotional-intelligence activities'**
+  String get kit2Feature2;
+
+  /// No description provided for @kit2Feature3.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app progress tracking'**
+  String get kit2Feature3;
+
+  /// No description provided for @kit3Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastery Kit'**
+  String get kit3Name;
+
+  /// No description provided for @kit3Age.
+  ///
+  /// In en, this message translates to:
+  /// **'6–7 years'**
+  String get kit3Age;
+
+  /// No description provided for @kit3Tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Turning potential into a developable talent'**
+  String get kit3Tagline;
+
+  /// No description provided for @kit3Feature1.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced difficulty levels'**
+  String get kit3Feature1;
+
+  /// No description provided for @kit3Feature2.
+  ///
+  /// In en, this message translates to:
+  /// **'Creative & innovative tracks'**
+  String get kit3Feature2;
+
+  /// No description provided for @kit3Feature3.
+  ///
+  /// In en, this message translates to:
+  /// **'Full talent profile'**
+  String get kit3Feature3;
 
   /// No description provided for @profileRec1Badge.
   ///

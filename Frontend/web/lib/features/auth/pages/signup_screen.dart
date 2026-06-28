@@ -25,10 +25,48 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
 
   Future<void> _signup() async {
+    // 1. Validate the form
     if (!_formKey.currentState!.validate()) return;
+
+    // 2. Validate password match
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    // ... [Add your registration logic here] ...
-    setState(() => _isLoading = false);
+
+    try {
+      // 3. Call your AuthService
+      // Assuming you have a register method in AuthService
+      final result = await AuthService.register(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        gender: _selectedGender.toUpperCase(), // Match your database enum
+      );
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created! Please login.'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context); // Return to Login
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Signup failed'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override

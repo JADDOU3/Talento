@@ -76,32 +76,18 @@ class ExplorationsSection extends StatelessWidget {
   }
 
   Widget _buildDesktop(BuildContext context, AppLocalizations l10n) {
-    return Column(
-      children: [
-        SizedBox(
-          height: kRowHeight,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(flex: 2, child: _bigCard(context, l10n)),
-              const SizedBox(width: 20),
-              Expanded(child: _avianCard(context, l10n)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          height: kRowHeight,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: _prismCard(context, l10n)),
-              const SizedBox(width: 20),
-              Expanded(flex: 2, child: _featured(context, l10n)),
-            ],
-          ),
-        ),
-      ],
+    return SizedBox(
+      height: kRowHeight,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 2, child: _bigCard(context, l10n)),
+          const SizedBox(width: 20),
+          Expanded(child: _avianCard(context, l10n)),
+          const SizedBox(width: 20),
+          Expanded(child: _prismCard(context, l10n)),
+        ],
+      ),
     );
   }
 
@@ -148,8 +134,6 @@ class ExplorationsSection extends StatelessWidget {
             description: l10n.card3Desc,
           ),
         ),
-        const SizedBox(height: 16),
-        _featuredMobile(context, l10n),
       ],
     );
   }
@@ -192,46 +176,6 @@ class ExplorationsSection extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _featuredMobile(BuildContext context, AppLocalizations l10n) {
-    return _BouncyTapCard(
-      onTap: () => _openKitDetails(context, _botanistKitId),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          children: [
-            Image.asset("assets/images/img8.png", width: double.infinity, height: 380, fit: BoxFit.cover),
-            Container(width: double.infinity, height: 380, color: Colors.black.withOpacity(0.45)),
-            Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 20),
-                  _GlowBadge(label: l10n.featuredBadge),
-                  const SizedBox(height: 16),
-                  Text(l10n.featuredTitle, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, height: 1.2)),
-                  const SizedBox(height: 12),
-                  Text(l10n.featuredDesc, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _OutlineBounceButton(
-                      text: l10n.featuredButton,
-                      color: const Color(0xFF2DC5A2),
-                      filled: true,
-                      onTap: () => _openKitDetails(context, _botanistKitId),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -329,38 +273,6 @@ class ExplorationsSection extends StatelessWidget {
       ),
     );
   }
-
-  Widget _featured(BuildContext context, AppLocalizations l10n) {
-    return _BouncyTapCard(
-      onTap: () => _openKitDetails(context, _botanistKitId),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset("assets/images/img8.png", fit: BoxFit.cover),
-            Container(color: Colors.black.withOpacity(0.4)),
-            Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _GlowBadge(label: l10n.featuredBadge),
-                  const SizedBox(height: 20),
-                  Text(l10n.featuredTitle, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1.2)),
-                  const SizedBox(height: 14),
-                  SizedBox(width: 300, child: Text(l10n.featuredDesc, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5))),
-                  const SizedBox(height: 30),
-                  _OutlineBounceButton(text: l10n.featuredButton, color: const Color(0xFF2DC5A2), filled: true, onTap: () => _openKitDetails(context, _botanistKitId)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// 🎈 Card that lifts and bounces when tapped or hovered — feels alive.
@@ -439,29 +351,6 @@ class _WiggleTagState extends State<_WiggleTag> {
           child: Text(widget.label, style: TextStyle(color: widget.color, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
         ),
       ),
-    );
-  }
-}
-
-/// ✨ Glowing badge for "Featured" banners
-class _GlowBadge extends StatelessWidget {
-  final String label;
-  const _GlowBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.25),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 12)],
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Text("⭐", style: TextStyle(fontSize: 11)),
-        const SizedBox(width: 5),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
-      ]),
     );
   }
 }
