@@ -91,26 +91,35 @@ public class AiAnalysisService {
     }
 
     public AiAnalysisResponseDto runAnalysis(Child child, String responseLanguage) {
-        // 1. Find last report cutoff
+        // ── 1. Find last report to get the cutoff timestamp ──────────────
         AIReport lastReport = aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(child.getId());
         LocalDateTime cutoff = lastReport != null ? lastReport.getGeneratedAt() : null;
 
-        // 2. Collect unanalyzed sessions
+        // ── 2. Collect unanalyzed ActivitySessions ───────────────────────
         List<ActivitySession> unanalyzed = cutoff == null
                 ? activitySessionRepo.findAllByChildId(child.getId())
                 : activitySessionRepo.findByChildIdAfterCutoff(child.getId(), cutoff);
 
         if (unanalyzed.isEmpty()) return null;
 
-        // 3. Build request
+        // ── 3. Build aggregated request ──────────────────────────────────
         AiAnalysisRequestDto request = buildRequest(child, unanalyzed, lastReport, responseLanguage);
         if (request == null) return null;
 
-        // 4. Call AI
+        // ── 4. Log request for debugging ─────────────────────────────────
+        try {
+            System.out.println("=== AI REQUEST ===");
+            System.out.println(objectMapper.writeValueAsString(request));
+            System.out.println("=== END AI REQUEST ===");
+        } catch (Exception e) {
+            System.out.println("Could not serialize request: " + e.getMessage());
+        }
+
+        // ── 5. Call AI ───────────────────────────────────────────────────
         AiAnalysisResponseDto response = aiClientService.analyze(request);
         if (response == null || response.getInstantAnalysis() == null) return null;
 
-        // 5. Persist
+        // ── 6. Persist ───────────────────────────────────────────────────
         saveAiReport(child, response);
         savePerformances(child, unanalyzed, response);
         saveMindsetScores(child, response.getMindsetScores());
