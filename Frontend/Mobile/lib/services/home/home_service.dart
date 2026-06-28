@@ -21,7 +21,7 @@ class HomeService {
     final response = await _client.get(uri);
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       if (decoded is bool) {
         return decoded;
@@ -73,9 +73,9 @@ class HomeService {
         currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
         lastReachedActivity: lastReachedActivity,
         dailyChallenge: dailyChallenge,
-        challengeAnswered: false,
-        challengeCorrect: false,
-        correctAnswer: null,
+        challengeAnswered: _challengeAnsweredFrom(dailyChallenge),
+        challengeCorrect: _challengeCorrectFrom(dailyChallenge),
+        correctAnswer: _challengeCorrectAnswerFrom(dailyChallenge),
       );
     }
 
@@ -100,9 +100,9 @@ class HomeService {
         currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
         lastReachedActivity: lastReachedActivity,
         dailyChallenge: dailyChallenge,
-        challengeAnswered: false,
-        challengeCorrect: false,
-        correctAnswer: null,
+        challengeAnswered: _challengeAnsweredFrom(dailyChallenge),
+        challengeCorrect: _challengeCorrectFrom(dailyChallenge),
+        correctAnswer: _challengeCorrectAnswerFrom(dailyChallenge),
       );
     }
 
@@ -136,12 +136,11 @@ class HomeService {
       latestActivitySessionId: latestActivitySessionId,
       lastReachedActivity: lastReachedActivity,
       dailyChallenge: dailyChallenge,
-      challengeAnswered: false,
-      challengeCorrect: false,
-      correctAnswer: null,
+      challengeAnswered: _challengeAnsweredFrom(dailyChallenge),
+      challengeCorrect: _challengeCorrectFrom(dailyChallenge),
+      correctAnswer: _challengeCorrectAnswerFrom(dailyChallenge),
     );
   }
-
   Future<ChildModel?> getSelectedChild() async {
     final response = await _client.get(
       Uri.parse(ApiConstants.selectedChild),
@@ -156,7 +155,7 @@ class HomeService {
         return null;
       }
 
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       if (decoded == null) {
         return null;
@@ -227,7 +226,7 @@ class HomeService {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       final data = _unwrapObject(
         decoded,
@@ -262,7 +261,7 @@ class HomeService {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       if (decoded == null) return 0;
 
@@ -302,7 +301,7 @@ class HomeService {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
       return _extractActivitiesFromRoadmap(decoded);
     }
 
@@ -321,7 +320,7 @@ class HomeService {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       final data = _unwrapObject(
         decoded,
@@ -365,7 +364,7 @@ class HomeService {
         );
       }
 
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       final data = _unwrapObject(
         decoded,
@@ -406,7 +405,7 @@ class HomeService {
         return [];
       }
 
-      final decoded = jsonDecode(response.body);
+      final decoded = _decodeJson(response);
 
       if (decoded is List) {
         return _mapList(decoded);
@@ -589,12 +588,16 @@ class HomeService {
     );
   }
 
-
   int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value.toString());
+  }
+
+  dynamic _decodeJson(http.Response response) {
+    final decodedBody = utf8.decode(response.bodyBytes);
+    return jsonDecode(decodedBody);
   }
 
   String _extractErrorMessage(String body, String fallback) {
@@ -607,5 +610,17 @@ class HomeService {
     } catch (_) {}
 
     return body.trim().isEmpty ? fallback : body.trim();
+  }
+
+  bool _challengeAnsweredFrom(DailyChallengeModel? dailyChallenge) {
+    return dailyChallenge?.alreadyAnswered ?? false;
+  }
+
+  bool _challengeCorrectFrom(DailyChallengeModel? dailyChallenge) {
+    return dailyChallenge?.correct ?? false;
+  }
+
+  String? _challengeCorrectAnswerFrom(DailyChallengeModel? dailyChallenge) {
+    return dailyChallenge?.correctAnswer;
   }
 }

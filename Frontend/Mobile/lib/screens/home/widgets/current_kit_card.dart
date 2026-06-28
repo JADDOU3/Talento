@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../auth/widgets/custom_button.dart';
 
 class CurrentKitCard extends StatelessWidget {
   final String kitTitle;
@@ -32,13 +31,20 @@ class CurrentKitCard extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.border.withValues(alpha: 0.9),
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: AppColors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.04),
+              blurRadius: 18,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -46,16 +52,17 @@ class CurrentKitCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               child: SizedBox(
                 width: double.infinity,
-                height: 160,
+                height: 255,
                 child: _buildImage(),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -65,15 +72,15 @@ class CurrentKitCard extends StatelessWidget {
                     style: AppTextStyles.headlineMedium.copyWith(
                       fontSize: 18,
                       color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 7),
                   Row(
                     children: [
                       const Icon(
                         Icons.task_alt_rounded,
-                        size: 16,
+                        size: 17,
                         color: AppColors.primary,
                       ),
                       const SizedBox(width: 6),
@@ -91,22 +98,22 @@ class CurrentKitCard extends StatelessWidget {
                     ],
                   ),
                   if (showProgressBar) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(999),
                       child: LinearProgressIndicator(
                         value: safeProgress,
-                        backgroundColor: AppColors.border,
+                        backgroundColor:
+                        AppColors.border.withValues(alpha: 0.8),
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           AppColors.primary,
                         ),
-                        minHeight: 6,
+                        minHeight: 6.5,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 14),
-                  CustomButton(
-                    text: 'أكمل',
+                  const SizedBox(height: 18),
+                  _GlowyContinueButton(
                     onPressed: onContinue ?? () {},
                   ),
                 ],
@@ -123,6 +130,7 @@ class CurrentKitCard extends StatelessWidget {
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
+        alignment: Alignment.center,
         errorBuilder: (_, __, ___) => _imageFallback(),
       );
     }
@@ -130,7 +138,7 @@ class CurrentKitCard extends StatelessWidget {
     if (imagePath.isNotEmpty) {
       return Image.asset(
         imagePath,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => _imageFallback(),
       );
     }
@@ -140,8 +148,9 @@ class CurrentKitCard extends StatelessWidget {
 
   Widget _imageFallback() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.secondary],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
@@ -151,7 +160,69 @@ class CurrentKitCard extends StatelessWidget {
         child: Icon(
           Icons.science_rounded,
           color: AppColors.white,
-          size: 60,
+          size: 66,
+        ),
+      ),
+    );
+  }
+}
+
+class _GlowyContinueButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _GlowyContinueButton({
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.secondary,
+          ],
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(18),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.play_arrow_rounded,
+                  color: AppColors.white,
+                  size: 23,
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'أكمل',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

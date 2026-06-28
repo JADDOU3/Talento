@@ -1,12 +1,21 @@
+import 'dart:convert';
+
 class DailyChallengeModel {
   final int id;
   final String question;
   final List<String> choices;
 
+  final bool alreadyAnswered;
+  final bool correct;
+  final String? correctAnswer;
+
   const DailyChallengeModel({
     required this.id,
     required this.question,
     required this.choices,
+    this.alreadyAnswered = false,
+    this.correct = false,
+    this.correctAnswer,
   });
 
   factory DailyChallengeModel.fromJson(Map<String, dynamic> json) {
@@ -16,22 +25,41 @@ class DailyChallengeModel {
             json['challengeId'] ??
             json['challenge_id'],
       ),
-      question: (
-          json['question'] ??
-              json['title'] ??
-              json['text'] ??
-              ''
-      ).toString(),
+      question: _fixText(
+        json['question'] ??
+            json['title'] ??
+            json['text'] ??
+            '',
+      ),
       choices: _parseChoices(
         json['choices'] ??
             json['options'] ??
             json['answers'],
       ),
+      alreadyAnswered: _parseBool(
+        json['alreadyAnswered'] ??
+            json['already_answered'] ??
+            json['answered'] ??
+            json['isAnswered'] ??
+            json['is_answered'],
+      ),
+      correct: _parseBool(
+        json['correct'] ??
+            json['isCorrect'] ??
+            json['is_correct'],
+      ),
+      correctAnswer: _fixNullableText(
+        json['correctAnswer'] ??
+            json['correct_answer'] ??
+            json['answer'],
+      ),
     );
   }
 
   bool get isValid {
-    return id != 0 && question.trim().isNotEmpty && choices.isNotEmpty;
+    return id != 0 &&
+        question.trim().isNotEmpty &&
+        (choices.isNotEmpty || alreadyAnswered);
   }
 
   static List<String> _parseChoices(dynamic value) {
@@ -48,12 +76,36 @@ class DailyChallengeModel {
 
         return item;
       })
-          .map((item) => item.toString().trim())
-          .where((item) => item.isNotEmpty)
+          .map(_fixText)
+          .where((item) => item.trim().isNotEmpty)
           .toList();
     }
 
     return <String>[];
+  }
+
+  static String _fixText(dynamic value) {
+    final text = value?.toString().trim() ?? '';
+
+    if (text.isEmpty) return text;
+
+    final looksBroken = text.contains('Ø') ||
+        text.contains('Ù') ||
+        text.contains('Ã') ||
+        text.contains('Â');
+
+    if (!looksBroken) return text;
+
+    try {
+      return utf8.decode(latin1.encode(text)).trim();
+    } catch (_) {
+      return text;
+    }
+  }
+
+  static String? _fixNullableText(dynamic value) {
+    final fixed = _fixText(value);
+    return fixed.trim().isEmpty ? null : fixed;
   }
 
   static int _parseInt(dynamic value) {
@@ -61,31 +113,6 @@ class DailyChallengeModel {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value.toString()) ?? 0;
-  }
-}
-
-class DailyChallengeAnswerModel {
-  final bool correct;
-  final String? correctAnswer;
-
-  const DailyChallengeAnswerModel({
-    required this.correct,
-    required this.correctAnswer,
-  });
-
-  factory DailyChallengeAnswerModel.fromJson(Map<String, dynamic> json) {
-    return DailyChallengeAnswerModel(
-      correct: _parseBool(
-        json['correct'] ??
-            json['isCorrect'] ??
-            json['is_correct'],
-      ),
-      correctAnswer: (
-          json['correctAnswer'] ??
-              json['correct_answer'] ??
-              json['answer']
-      )?.toString(),
-    );
   }
 
   static bool _parseBool(dynamic value) {
@@ -99,5 +126,39 @@ class DailyChallengeAnswerModel {
         text == '1' ||
         text == 'yes' ||
         text == 'correct';
+  }
+}
+
+class DailyChallengeAnswerModel {
+  final bool correct;
+  final String? correctAnswer;
+  final bool alreadyAnswered;
+
+  const DailyChallengeAnswerModel({
+    required this.correct,
+    required this.correctAnswer,
+    this.alreadyAnswered = false,
+  });
+
+  factory DailyChallengeAnswerModel.fromJson(Map<String, dynamic> json) {
+    return DailyChallengeAnswerModel(
+      correct: DailyChallengeModel._parseBool(
+        json['correct'] ??
+            json['isCorrect'] ??
+            json['is_correct'],
+      ),
+      correctAnswer: DailyChallengeModel._fixNullableText(
+        json['correctAnswer'] ??
+            json['correct_answer'] ??
+            json['answer'],
+      ),
+      alreadyAnswered: DailyChallengeModel._parseBool(
+        json['alreadyAnswered'] ??
+            json['already_answered'] ??
+            json['answered'] ??
+            json['isAnswered'] ??
+            json['is_answered'],
+      ),
+    );
   }
 }

@@ -132,18 +132,47 @@ class OldUserScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(String childName) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Text(
-        childName.isEmpty
-            ? 'هل أنت مستعد للاكتشاف اليوم؟'
-            : 'هل $childName مستعد للاكتشاف اليوم؟',
-        textAlign: TextAlign.right,
-        style: AppTextStyles.headlineMedium.copyWith(
-          color: AppColors.textPrimary,
-          height: 1.35,
-          fontSize: 21,
-          fontWeight: FontWeight.w800,
+    final displayName = childName.trim().isEmpty ? 'بطلنا' : childName.trim();
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  'استكشف عالمك اليوم يا $displayName ✨',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    height: 1.25,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  'كل نشاط يقرّبك خطوة جديدة',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary.withValues(alpha: 0.72),
+                    height: 1.35,
+                    fontSize: 13.8,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
