@@ -10,6 +10,7 @@ import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.ParentRepo;
 import org.example.backend.repo.community.PostLikeRepo;
 import org.example.backend.repo.community.PostRepo;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,10 @@ public class PostLikeService {
             postLikeRepo.save(like);
             return "Liked";
         }
+    }
+    public boolean isLikedByCurrentParent(int postId) {
+        Parent parent = SecurityUtils.getCurrentUser();
+        return postLikeRepo.existsByPostIdAndParentId(postId, parent.getId());
     }
 
     public long getLikeCount(int postId) {
