@@ -322,4 +322,34 @@ class KitService {
 
     return body.trim().isEmpty ? fallback : body.trim();
   }
+
+  Future<int> getActivitiesCountByKitId(int kitId) async {
+    final response = await _client.get(
+      Uri.parse('${ApiConstants.baseUrl}/activities/kit/$kitId'),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+
+      if (body is Map<String, dynamic>) {
+        final totalElements = body['totalElements'];
+
+        if (totalElements is int) {
+          return totalElements;
+        }
+
+        final content = body['content'];
+
+        if (content is List) {
+          return content.length;
+        }
+      }
+
+      throw Exception('Unexpected activities response format');
+    }
+
+    throw Exception(
+      _extractErrorMessage(response.body, 'Failed to load kit activities'),
+    );
+  }
 }

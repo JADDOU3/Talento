@@ -48,8 +48,12 @@ class KitLoaded extends KitState {
 
 class KitDetailsLoaded extends KitState {
   final KitModel kit;
+  final int activitiesCount;
 
-  const KitDetailsLoaded(this.kit);
+  const KitDetailsLoaded(
+      this.kit, {
+        this.activitiesCount = 0,
+      });
 }
 
 class KitError extends KitState {

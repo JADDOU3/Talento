@@ -205,7 +205,21 @@ class KitCubit extends Cubit<KitState> {
 
     try {
       final kit = await _kitService.getKitById(id);
-      emit(KitDetailsLoaded(kit));
+
+      int activitiesCount = 0;
+
+      try {
+        activitiesCount = await _kitService.getActivitiesCountByKitId(id);
+      } catch (_) {
+        activitiesCount = 0;
+      }
+
+      emit(
+        KitDetailsLoaded(
+          kit,
+          activitiesCount: activitiesCount,
+        ),
+      );
     } catch (e) {
       emit(KitError(e.toString().replaceFirst('Exception: ', '')));
     }
