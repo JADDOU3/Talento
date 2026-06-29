@@ -9,20 +9,42 @@ class KitCubit extends Cubit<KitState> {
 
   KitCubit(this._kitService) : super(const KitInitial());
 
-  Future<void> getAllKits() async {
+  Future<void> getAllKits({int page = 0, int size = 10}) async {
     emit(const KitLoading());
     try {
-      final kits = await _kitService.getAllKits();
+      final kits = await _kitService.getAllKits(page: page, size: size);
       emit(KitLoaded(kits));
     } catch (e) {
       emit(KitError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
 
+  // Kept temporarily so the current hardcoded chip UI keeps compiling.
+  // The library screen will be changed next to use getKitsByMindsetId().
   Future<void> getKitsByMindset(Mindset mindset) async {
     emit(const KitLoading());
     try {
-      final kits = await _kitService.getKitsByMindset(mindset.apiValue);
+      final kits = await _kitService.getKitsByMindsetLegacy(mindset.apiValue);
+      emit(KitLoaded(kits));
+    } catch (e) {
+      emit(KitError(e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  Future<void> getKitsByMindsetId(int mindsetId) async {
+    emit(const KitLoading());
+    try {
+      final kits = await _kitService.getKitsByMindset(mindsetId);
+      emit(KitLoaded(kits));
+    } catch (e) {
+      emit(KitError(e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  Future<void> getKitsByType(String type) async {
+    emit(const KitLoading());
+    try {
+      final kits = await _kitService.getKitsByType(type);
       emit(KitLoaded(kits));
     } catch (e) {
       emit(KitError(e.toString().replaceFirst('Exception: ', '')));

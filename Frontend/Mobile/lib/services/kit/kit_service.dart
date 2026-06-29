@@ -4,15 +4,21 @@ import 'package:http/http.dart' as http;
 
 import '../../core/config/api_constants.dart';
 import '../../models/kit/kit_model.dart';
+import '../../models/kit/mindset_model.dart';
 import '../auth/auth_api_client.dart';
 
 class KitService {
   final AuthApiClient _client = AuthApiClient();
 
-  Future<List<KitModel>> getAllKits() async {
-    final response = await _client.get(
-      Uri.parse('${ApiConstants.kits}/'),
+  Future<List<KitModel>> getAllKits({int page = 0, int size = 10}) async {
+    final uri = Uri.parse('${ApiConstants.kits}/').replace(
+      queryParameters: {
+        'page': page.toString(),
+        'size': size.toString(),
+      },
     );
+
+    final response = await _client.get(uri);
 
     return _parseKitListResponse(
       response,
@@ -20,11 +26,32 @@ class KitService {
     );
   }
 
-  Future<List<KitModel>> getKitsByMindset(String mindset) async {
-    final url = '${ApiConstants.kitsByMindset}/$mindset';
-
+  Future<List<MindsetModel>> getMindsets() async {
     final response = await _client.get(
-      Uri.parse(url),
+      Uri.parse(ApiConstants.mindsets),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+      final data = _extractList(body);
+
+      if (data != null) {
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map(MindsetModel.fromJson)
+            .where((mindset) => mindset.id != 0 && mindset.name.isNotEmpty)
+            .toList();
+      }
+
+      throw Exception('Unexpected mindsets response format');
+    }
+
+    throw Exception(_extractErrorMessage(response.body, 'Failed to load mindsets'));
+  }
+
+  Future<List<KitModel>> getKitsByMindset(int mindsetId) async {
+    final response = await _client.get(
+      Uri.parse('${ApiConstants.kitsByMindset}/$mindsetId'),
     );
 
     return _parseKitListResponse(
@@ -33,14 +60,34 @@ class KitService {
     );
   }
 
+  Future<List<KitModel>> getKitsByMindsetLegacy(String mindset) async {
+    final response = await _client.get(
+      Uri.parse('${ApiConstants.kitsByMindset}/$mindset'),
+    );
+
+    return _parseKitListResponse(
+      response,
+      fallbackError: 'Failed to load kits by mindset',
+    );
+  }
+
+  Future<List<KitModel>> getKitsByType(String type) async {
+    final response = await _client.get(
+      Uri.parse('${ApiConstants.kitsByType}/$type'),
+    );
+
+    return _parseKitListResponse(
+      response,
+      fallbackError: 'Failed to load kits by type',
+    );
+  }
+
   Future<List<KitModel>> searchKits(String keyword) async {
     final uri = Uri.parse(ApiConstants.kitsSearch).replace(
       queryParameters: {'keyword': keyword},
     );
 
-    final response = await _client.get(
-      uri,
-    );
+    final response = await _client.get(uri);
 
     return _parseKitListResponse(
       response,
@@ -49,10 +96,8 @@ class KitService {
   }
 
   Future<KitModel> getKitById(int id) async {
-    final url = '${ApiConstants.kits}/$id';
-
     final response = await _client.get(
-      Uri.parse(url),
+      Uri.parse('${ApiConstants.kits}/$id'),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -81,28 +126,42 @@ class KitService {
       }) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
+      final data = _extractList(body);
 
-      if (body is List) {
-        return body.map((item) => KitModel.fromJson(item)).toList();
-      }
-
-      if (body is Map<String, dynamic>) {
-        final dynamic data =
-            body['data'] ??
-                body['content'] ??
-                body['kits'] ??
-                body['result'] ??
-                body['items'];
-
-        if (data is List) {
-          return data.map((item) => KitModel.fromJson(item)).toList();
-        }
+      if (data != null) {
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map(KitModel.fromJson)
+            .toList();
       }
 
       throw Exception('Unexpected kits response format');
     }
 
     throw Exception(_extractErrorMessage(response.body, fallbackError));
+  }
+
+  List<dynamic>? _extractList(dynamic body) {
+    if (body is List) return body;
+
+    if (body is Map<String, dynamic>) {
+      final dynamic directData =
+          body['data'] ?? body['content'] ?? body['kits'] ?? body['result'] ?? body['items'];
+
+      if (directData is List) return directData;
+
+      if (directData is Map<String, dynamic>) {
+        final dynamic nestedData = directData['content'] ??
+            directData['data'] ??
+            directData['kits'] ??
+            directData['items'] ??
+            directData['result'];
+
+        if (nestedData is List) return nestedData;
+      }
+    }
+
+    return null;
   }
 
   String _extractErrorMessage(String body, String fallback) {
