@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../models/kit/kit_enums.dart';
 
 class LibraryKitCard extends StatelessWidget {
   final String title;
   final String description;
-  final String mindset;
+  final String type;
   final String imageUrl;
   final double rating;
   final int age;
@@ -15,38 +17,23 @@ class LibraryKitCard extends StatelessWidget {
     super.key,
     required this.title,
     required this.description,
-    required this.mindset,
+    required this.type,
     required this.imageUrl,
     required this.rating,
     required this.age,
     required this.onTap,
   });
 
-  String _mindsetArabic() {
-    switch (mindset.toUpperCase()) {
-      case 'BUILDER':
-        return 'البنّاء';
-      case 'SCIENTIST':
-        return 'العالِم';
-      case 'EXPLORER':
-        return 'المستكشف';
-      case 'INVENTOR':
-        return 'المخترع';
-      default:
-        return mindset.isEmpty ? 'حزمة' : mindset;
-    }
-  }
+  String get _typeLabel => kitTypeArabicLabel(type);
 
-  Color _badgeColor() {
-    switch (mindset.toUpperCase()) {
-      case 'BUILDER':
-        return AppColors.yellow;
-      case 'SCIENTIST':
-        return AppColors.red;
-      case 'EXPLORER':
-        return AppColors.secondary;
-      case 'INVENTOR':
+  Color get _badgeColor {
+    switch (type.toUpperCase()) {
+      case 'DISCOVERY':
+        return AppColors.primary;
+      case 'HOBBY':
         return AppColors.pink;
+      case 'DEVELOPMENT':
+        return AppColors.secondary;
       default:
         return AppColors.primary;
     }
@@ -60,8 +47,8 @@ class LibraryKitCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
           boxShadow: [
             BoxShadow(
               color: AppColors.black.withValues(alpha: 0.06),
@@ -76,22 +63,23 @@ class LibraryKitCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(22),
-                  child: imageUrl.isEmpty
+                  borderRadius: BorderRadius.circular(24),
+                  child: imageUrl.trim().isEmpty
                       ? _imagePlaceholder()
                       : Image.network(
                     imageUrl,
                     width: double.infinity,
-                    height: 175,
+                    height: 178,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _imagePlaceholder(),
                   ),
                 ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: _badge(_mindsetArabic()),
-                ),
+                if (_typeLabel.isNotEmpty)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: _badge(_typeLabel),
+                  ),
                 Positioned(
                   top: 12,
                   left: 12,
@@ -126,7 +114,7 @@ class LibraryKitCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -158,10 +146,10 @@ class LibraryKitCard extends StatelessWidget {
   Widget _imagePlaceholder() {
     return Container(
       width: double.infinity,
-      height: 175,
+      height: 178,
       decoration: BoxDecoration(
         color: AppColors.inputFill,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: const Icon(
         Icons.image_outlined,
@@ -175,8 +163,15 @@ class LibraryKitCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: _badgeColor(),
+        color: _badgeColor,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Text(
         text,
@@ -195,6 +190,13 @@ class LibraryKitCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBackground.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

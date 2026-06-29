@@ -1,12 +1,3 @@
-enum Mindset {
-  builder,
-  scientist,
-  explorer,
-  inventor;
-
-  String get apiValue => name.toUpperCase();
-}
-
 enum KitType {
   discovery,
   hobby,
