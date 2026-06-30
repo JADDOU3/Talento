@@ -9,6 +9,7 @@ class ApiConstants {
 
   // Kits
   static const String kits = '$baseUrl/kits';
+  static const String mindsets = '$baseUrl/mindsets';
   static const String kitsByType = '$baseUrl/kits/type';
   static const String kitsByMindset = '$baseUrl/kits/mindset';
   static const String kitsSearch = '$baseUrl/kits/search';
