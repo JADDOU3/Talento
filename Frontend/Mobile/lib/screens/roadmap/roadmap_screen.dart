@@ -25,12 +25,14 @@ class RoadmapScreen extends StatelessWidget {
   final int kitId;
   final int childId;
   final int? initialActivityId;
+  final int? initialActivityIndex;
 
   const RoadmapScreen({
     super.key,
     required this.kitId,
     required this.childId,
     this.initialActivityId,
+    this.initialActivityIndex,
   });
 
   @override
@@ -45,6 +47,7 @@ class RoadmapScreen extends StatelessWidget {
         kitId: kitId,
         childId: childId,
         initialActivityId: initialActivityId,
+        initialActivityIndex: initialActivityIndex,
       ),
     );
   }
@@ -54,11 +57,13 @@ class _RoadmapView extends StatelessWidget {
   final int kitId;
   final int childId;
   final int? initialActivityId;
+  final int? initialActivityIndex;
 
   const _RoadmapView({
     required this.kitId,
     required this.childId,
     this.initialActivityId,
+    this.initialActivityIndex,
   });
 
   @override
@@ -110,6 +115,7 @@ class _RoadmapView extends StatelessWidget {
                           activities: state.activities,
                           childId: childId,
                           initialActivityId: initialActivityId,
+                          initialActivityIndex: initialActivityIndex,
                           onActivityTap: (activity) {
                             _handleActivityTap(
                               context,

@@ -87,6 +87,7 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
   void _openRoadmap(
       BuildContext context, {
         int? initialActivityId,
+        int? initialActivityIndex,
       }) {
     final kitId = _kitId;
     final childId = widget.childId;
@@ -114,6 +115,7 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
           kitId: kitId,
           childId: childId,
           initialActivityId: initialActivityId,
+          initialActivityIndex: initialActivityIndex,
         ),
       ),
     );
@@ -260,10 +262,11 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
           children: [
             ActiveJourneyMapSection(
               activities: activities,
-              onCurrentActivityTap: (activity) {
+              onCurrentActivityTap: (activity, activityIndex) {
                 _openRoadmap(
                   context,
                   initialActivityId: activity.activityId,
+                  initialActivityIndex: activityIndex,
                 );
               },
             ),
@@ -272,9 +275,15 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
               CurriculumPathSection(
                 activity: currentActivity,
                 onOpenRoadmap: () {
+                  final currentIndex = activities.indexWhere(
+                        (activity) => identical(activity, currentActivity),
+                  );
+
                   _openRoadmap(
                     context,
                     initialActivityId: currentActivity.activityId,
+                    initialActivityIndex:
+                    currentIndex == -1 ? null : currentIndex,
                   );
                 },
               ),

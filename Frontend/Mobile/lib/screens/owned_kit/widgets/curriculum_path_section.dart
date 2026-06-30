@@ -38,27 +38,6 @@ class CurriculumPathSection extends StatelessWidget {
           buttonText: 'Resume Now',
           onPressed: onOpenRoadmap,
         ),
-        const SizedBox(height: 12),
-        TextButton.icon(
-          onPressed: onOpenRoadmap,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
-          icon: const Icon(
-            Icons.route_rounded,
-            size: 18,
-          ),
-          label: Text(
-            'Navigate to Roadmap',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
       ],
     );
   }

@@ -5,9 +5,14 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../models/roadmap/roadmap_activity_model.dart';
 import 'journey_step_item.dart';
 
+typedef JourneyCurrentActivityTap = void Function(
+    RoadmapActivityModel activity,
+    int activityIndex,
+    );
+
 class ActiveJourneyMapSection extends StatelessWidget {
   final List<RoadmapActivityModel> activities;
-  final ValueChanged<RoadmapActivityModel> onCurrentActivityTap;
+  final JourneyCurrentActivityTap onCurrentActivityTap;
 
   const ActiveJourneyMapSection({
     super.key,
@@ -182,7 +187,10 @@ class ActiveJourneyMapSection extends StatelessWidget {
                             status: _stepStatus(nodes[i].activity),
                             color: _colorForStep(i, nodes[i].activity),
                             onTap: nodes[i].activity.isCurrent
-                                ? () => onCurrentActivityTap(nodes[i].activity)
+                                ? () => onCurrentActivityTap(
+                              nodes[i].activity,
+                              nodes[i].activityIndex,
+                            )
                                 : null,
                           ),
                         ),
@@ -206,6 +214,7 @@ class ActiveJourneyMapSection extends StatelessWidget {
           _JourneyPreviewItem(
             activity: activities[i],
             levelNumber: i + 1,
+            activityIndex: i,
           ),
       ];
     }
@@ -234,6 +243,7 @@ class ActiveJourneyMapSection extends StatelessWidget {
         _JourneyPreviewItem(
           activity: activities[i],
           levelNumber: i + 1,
+          activityIndex: i,
         ),
     ];
   }
@@ -297,10 +307,12 @@ class _PositionedStep extends StatelessWidget {
 class _JourneyPreviewItem {
   final RoadmapActivityModel activity;
   final int levelNumber;
+  final int activityIndex;
 
   const _JourneyPreviewItem({
     required this.activity,
     required this.levelNumber,
+    required this.activityIndex,
   });
 }
 

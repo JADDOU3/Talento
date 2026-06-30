@@ -13,6 +13,7 @@ class RoadmapGameBoard extends StatefulWidget {
   final String mascotAssetPath;
   final int? childId;
   final int? initialActivityId;
+  final int? initialActivityIndex;
 
   const RoadmapGameBoard({
     super.key,
@@ -21,6 +22,7 @@ class RoadmapGameBoard extends StatefulWidget {
     this.mascotAssetPath = 'assets/images/template_mascot.png',
     this.childId,
     this.initialActivityId,
+    this.initialActivityIndex,
   });
 
   @override
@@ -29,7 +31,6 @@ class RoadmapGameBoard extends StatefulWidget {
 
 class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   late final ScrollController _scrollController;
-
   final Map<int, GlobalKey> _activityKeysByIndex = {};
 
   bool _didAutoScroll = false;
@@ -50,7 +51,8 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
 
     if (oldWidget.activities != widget.activities ||
         oldWidget.childId != widget.childId ||
-        oldWidget.initialActivityId != widget.initialActivityId) {
+        oldWidget.initialActivityId != widget.initialActivityId ||
+        oldWidget.initialActivityIndex != widget.initialActivityIndex) {
       _didAutoScroll = false;
       _removeStaleIndexKeys();
 
@@ -69,50 +71,37 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   Future<void> _runInitialScroll() async {
     if (_didAutoScroll) return;
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 650));
 
     if (!mounted || !_scrollController.hasClients) return;
 
-    final targetActivityId = widget.initialActivityId;
+    final targetIndex = _resolveTargetIndex();
 
-    if (targetActivityId != null) {
-      final didScrollToTarget = await _scrollToActivity(targetActivityId);
-
-      if (didScrollToTarget) {
-        _didAutoScroll = true;
-        return;
-      }
+    if (targetIndex != null) {
+      await _scrollToActivityIndex(targetIndex);
+      _didAutoScroll = true;
+      return;
     }
 
     await _scrollToRoadStart();
     _didAutoScroll = true;
   }
 
-  Future<bool> _scrollToActivity(int activityId) async {
-    final targetIndex = _findBestActivityIndex(activityId);
+  int? _resolveTargetIndex() {
+    final directIndex = widget.initialActivityIndex;
 
-    if (targetIndex == null) {
-      return false;
+    if (directIndex != null &&
+        directIndex >= 0 &&
+        directIndex < widget.activities.length) {
+      return directIndex;
     }
 
-    final key = _activityKeysByIndex[targetIndex];
-    final targetContext = key?.currentContext;
+    final activityId = widget.initialActivityId;
 
-    if (targetContext == null) {
-      return false;
+    if (activityId == null) {
+      return null;
     }
 
-    await Scrollable.ensureVisible(
-      targetContext,
-      duration: const Duration(milliseconds: 850),
-      curve: Curves.easeInOutCubic,
-      alignment: 0.46,
-    );
-
-    return true;
-  }
-
-  int? _findBestActivityIndex(int activityId) {
     final currentIndex = widget.activities.indexWhere(
           (activity) => activity.activityId == activityId && activity.isCurrent,
     );
@@ -126,6 +115,43 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     );
 
     return firstIndex == -1 ? null : firstIndex;
+  }
+
+  Future<void> _scrollToActivityIndex(int targetIndex) async {
+    if (!mounted || !_scrollController.hasClients) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+
+    if (maxScroll <= 0 || widget.activities.length <= 1) {
+      return;
+    }
+
+    final count = widget.activities.length;
+
+    final ratioFromTop = (count - 1 - targetIndex) / (count - 1);
+    final estimatedOffset = (maxScroll * ratioFromTop).clamp(0.0, maxScroll);
+
+    await _scrollController.animateTo(
+      estimatedOffset,
+      duration: const Duration(milliseconds: 850),
+      curve: Curves.easeInOutCubic,
+    );
+
+    await Future.delayed(const Duration(milliseconds: 120));
+
+    if (!mounted) return;
+
+    final key = _activityKeysByIndex[targetIndex];
+    final targetContext = key?.currentContext;
+
+    if (targetContext == null) return;
+
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      alignment: 0.42,
+    );
   }
 
   Future<void> _scrollToRoadStart() async {
