@@ -391,12 +391,12 @@ class _KitDetailsViewState extends State<_KitDetailsView> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Align(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.center,
           child: Text(
             kit.name,
-            textAlign: TextAlign.right,
+            textAlign: TextAlign.center,
             style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 29,
+              fontSize: 26,
               fontWeight: FontWeight.w900,
               color: AppColors.textPrimary,
               height: 1.25,
@@ -412,8 +412,8 @@ class _KitDetailsViewState extends State<_KitDetailsView> {
               textAlign: TextAlign.right,
               style: AppTextStyles.bodyMedium.copyWith(
                 height: 1.7,
-                fontSize: 13.5,
-                color: AppColors.textSecondary,
+                fontSize: 15,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
