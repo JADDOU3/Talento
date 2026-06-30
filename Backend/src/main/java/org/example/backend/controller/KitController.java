@@ -73,11 +73,16 @@ public class KitController {
     }
 
     @GetMapping("/child/{id}")
-    public ResponseEntity<Page<ChildKit>> getKitsByChildId(@PathVariable int id, Pageable pageable) {
+    public ResponseEntity<Page<KitResponseDto>> getKitsByChildId(
+            @PathVariable int id, Pageable pageable) {
         if (childService.getChildById(id) == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(
-                PaginationUtil.paginate(kitService.getKitsByChildId(id), pageable),
+                PaginationUtil.paginate(
+                        kitService.getKitsByChildId(id).stream()
+                                .map(ck -> KitResponseDto.from(ck.getKit(), s3Service))
+                                .toList(),
+                        pageable),
                 HttpStatus.OK
         );
     }
