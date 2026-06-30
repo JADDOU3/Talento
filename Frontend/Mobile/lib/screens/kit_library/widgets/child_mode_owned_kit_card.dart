@@ -24,43 +24,44 @@ class ChildModeOwnedKitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final typeLabel = kitTypeArabicLabel(type);
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(34),
-        border: Border.all(
-          color: AppColors.white.withValues(alpha: 0.95),
-          width: 1.4,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.055),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(32),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: AppColors.white.withValues(alpha: 0.96),
+              width: 1.3,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 9),
+              ),
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.04),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
+              ),
+            ],
           ),
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.035),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(34),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _ChildKitCoverImage(
+                _ChildKitImageArea(
                   imageUrl: imageUrl,
                   rating: rating,
                   typeLabel: typeLabel,
                 ),
-                _ChildKitInfoArea(
+                _ChildKitCompactInfoArea(
                   name: name,
                   onTap: onTap,
                 ),
@@ -73,12 +74,12 @@ class ChildModeOwnedKitCard extends StatelessWidget {
   }
 }
 
-class _ChildKitCoverImage extends StatelessWidget {
+class _ChildKitImageArea extends StatelessWidget {
   final String imageUrl;
   final double rating;
   final String typeLabel;
 
-  const _ChildKitCoverImage({
+  const _ChildKitImageArea({
     required this.imageUrl,
     required this.rating,
     required this.typeLabel,
@@ -87,9 +88,9 @@ class _ChildKitCoverImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 226,
+      height: 250,
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
+      padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
       color: AppColors.white.withValues(alpha: 0.96),
       child: Container(
         padding: const EdgeInsets.all(5),
@@ -98,7 +99,7 @@ class _ChildKitCoverImage extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
             color: AppColors.primary.withValues(alpha: 0.22),
-            width: 2.4,
+            width: 2.2,
           ),
           boxShadow: [
             BoxShadow(
@@ -114,42 +115,44 @@ class _ChildKitCoverImage extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               imageUrl.trim().isEmpty
-                  ? const _ChildCardImagePlaceholder()
+                  ? const _ChildImagePlaceholder()
                   : Image.network(
-                      imageUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.center,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
+                imageUrl,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
 
-                        return Container(
-                          color: AppColors.inputFill,
-                          alignment: Alignment.center,
-                          child: const SizedBox(
-                            width: 26,
-                            height: 26,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.4,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (_, __, ___) {
-                        return const _ChildCardImagePlaceholder();
-                      },
+                  return Container(
+                    color: AppColors.inputFill,
+                    alignment: Alignment.center,
+                    child: const SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                      ),
                     ),
+                  );
+                },
+                errorBuilder: (_, __, ___) {
+                  return const _ChildImagePlaceholder();
+                },
+              ),
+
               Positioned(
                 top: 12,
                 left: 12,
-                child: _ChildRatingBadge(rating: rating),
+                child: _RatingBadge(rating: rating),
               ),
+
               if (typeLabel.isNotEmpty)
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: _ChildTypeBadge(label: typeLabel),
+                  child: _TypeBadge(label: typeLabel),
                 ),
             ],
           ),
@@ -159,10 +162,10 @@ class _ChildKitCoverImage extends StatelessWidget {
   }
 }
 
-class _ChildRatingBadge extends StatelessWidget {
+class _RatingBadge extends StatelessWidget {
   final double rating;
 
-  const _ChildRatingBadge({
+  const _RatingBadge({
     required this.rating,
   });
 
@@ -174,7 +177,7 @@ class _ChildRatingBadge extends StatelessWidget {
         color: AppColors.white.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: AppColors.yellow.withValues(alpha: 0.18),
+          color: AppColors.yellow.withValues(alpha: 0.20),
         ),
         boxShadow: [
           BoxShadow(
@@ -208,10 +211,10 @@ class _ChildRatingBadge extends StatelessWidget {
   }
 }
 
-class _ChildTypeBadge extends StatelessWidget {
+class _TypeBadge extends StatelessWidget {
   final String label;
 
-  const _ChildTypeBadge({
+  const _TypeBadge({
     required this.label,
   });
 
@@ -253,11 +256,11 @@ class _ChildTypeBadge extends StatelessWidget {
   }
 }
 
-class _ChildKitInfoArea extends StatelessWidget {
+class _ChildKitCompactInfoArea extends StatelessWidget {
   final String name;
   final VoidCallback onTap;
 
-  const _ChildKitInfoArea({
+  const _ChildKitCompactInfoArea({
     required this.name,
     required this.onTap,
   });
@@ -265,7 +268,7 @@ class _ChildKitInfoArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 190,
+      height: 150,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -274,24 +277,26 @@ class _ChildKitInfoArea extends StatelessWidget {
               color: AppColors.white.withValues(alpha: 0.96),
             ),
           ),
+
           Positioned(
-            left: -36,
-            top: 16,
+            left: -34,
+            top: 18,
             child: Container(
-              width: 145,
-              height: 145,
+              width: 125,
+              height: 125,
               decoration: BoxDecoration(
-                color: AppColors.pink.withValues(alpha: 0.08),
+                color: AppColors.pink.withValues(alpha: 0.075),
                 shape: BoxShape.circle,
               ),
             ),
           ),
+
           Positioned(
-            right: -36,
+            right: -34,
             bottom: -34,
             child: Container(
-              width: 140,
-              height: 140,
+              width: 128,
+              height: 128,
               decoration: BoxDecoration(
                 color: AppColors.secondary.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
@@ -299,75 +304,29 @@ class _ChildKitInfoArea extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: 46,
-            top: 42,
-            child: CustomPaint(
-              size: const Size(260, 86),
-              painter: _ChildKitTrailPainter(),
-            ),
-          ),
-          Positioned(
-            right: 28,
-            top: 26,
-            child: Transform.rotate(
-              angle: 0.45,
-              child: Icon(
-                Icons.navigation_rounded,
-                color: AppColors.primary.withValues(alpha: 0.72),
-                size: 38,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 46,
-            top: 42,
+            left: 44,
+            top: 24,
             child: Icon(
               Icons.star_rounded,
-              color: AppColors.yellow.withValues(alpha: 0.92),
-              size: 18,
+              color: AppColors.yellow.withValues(alpha: 0.85),
+              size: 17,
             ),
           ),
+
           Positioned(
-            right: 86,
-            top: 78,
+            right: 78,
+            top: 58,
             child: Icon(
               Icons.star_rounded,
-              color: AppColors.pink.withValues(alpha: 0.72),
-              size: 13,
+              color: AppColors.pink.withValues(alpha: 0.55),
+              size: 12,
             ),
           ),
-          Positioned(
-            top: -18,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset(
-                'assets/images/kit_details_mascot.png',
-                width: 124,
-                height: 124,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) {
-                  return Container(
-                    width: 92,
-                    height: 92,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.smart_toy_rounded,
-                      color: AppColors.primary,
-                      size: 48,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
+
           Positioned(
             left: 18,
             right: 18,
-            top: 88,
+            top: 22,
             child: Column(
               children: [
                 Text(
@@ -382,8 +341,25 @@ class _ChildKitInfoArea extends StatelessWidget {
                     height: 1.08,
                   ),
                 ),
-                const SizedBox(height: 18),
-                _ChildStartButton(onTap: onTap),
+
+                const SizedBox(height: 7),
+
+                Text(
+                  'صندوقك جاهز للاستكشاف ✨',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+
+                const SizedBox(height: 13),
+
+                _StartExplorationButton(onTap: onTap),
               ],
             ),
           ),
@@ -393,18 +369,18 @@ class _ChildKitInfoArea extends StatelessWidget {
   }
 }
 
-class _ChildStartButton extends StatelessWidget {
+class _StartExplorationButton extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _ChildStartButton({
+  const _StartExplorationButton({
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
-      width: 215,
+      height: 44,
+      width: 230,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(999),
@@ -423,14 +399,14 @@ class _ChildStartButton extends StatelessWidget {
                 ],
               ),
               border: Border.all(
-                color: AppColors.white.withValues(alpha: 0.65),
-                width: 1.4,
+                color: AppColors.white.withValues(alpha: 0.60),
+                width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.24),
-                  blurRadius: 15,
-                  offset: const Offset(0, 7),
+                  color: AppColors.primary.withValues(alpha: 0.22),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -440,7 +416,7 @@ class _ChildStartButton extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.white,
-                  fontSize: 15.5,
+                  fontSize: 15,
                   fontWeight: FontWeight.w900,
                   height: 1,
                 ),
@@ -453,81 +429,8 @@ class _ChildStartButton extends StatelessWidget {
   }
 }
 
-class _ChildKitTrailPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(size.width * 0.06, size.height * 0.78)
-      ..cubicTo(
-        size.width * 0.18,
-        size.height * 0.48,
-        size.width * 0.32,
-        size.height * 0.92,
-        size.width * 0.48,
-        size.height * 0.68,
-      )
-      ..cubicTo(
-        size.width * 0.64,
-        size.height * 0.42,
-        size.width * 0.78,
-        size.height * 0.52,
-        size.width * 0.92,
-        size.height * 0.26,
-      )
-      ..cubicTo(
-        size.width * 0.96,
-        size.height * 0.18,
-        size.width * 0.99,
-        size.height * 0.13,
-        size.width * 1.02,
-        size.height * 0.08,
-      );
-
-    final paint = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.25)
-      ..strokeWidth = 2.1
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    _drawDashedPath(
-      canvas: canvas,
-      path: path,
-      paint: paint,
-      dashWidth: 7,
-      dashSpace: 7,
-    );
-  }
-
-  void _drawDashedPath({
-    required Canvas canvas,
-    required Path path,
-    required Paint paint,
-    required double dashWidth,
-    required double dashSpace,
-  }) {
-    for (final metric in path.computeMetrics()) {
-      double distance = 0;
-
-      while (distance < metric.length) {
-        final nextDistance = distance + dashWidth;
-
-        final extractPath = metric.extractPath(
-          distance,
-          nextDistance.clamp(0, metric.length),
-        );
-
-        canvas.drawPath(extractPath, paint);
-        distance += dashWidth + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _ChildCardImagePlaceholder extends StatelessWidget {
-  const _ChildCardImagePlaceholder();
+class _ChildImagePlaceholder extends StatelessWidget {
+  const _ChildImagePlaceholder();
 
   @override
   Widget build(BuildContext context) {
@@ -547,13 +450,13 @@ class _ChildCardImagePlaceholder extends StatelessWidget {
       child: Center(
         child: Image.asset(
           'assets/images/kit_placeholder.png',
-          width: 78,
-          height: 78,
+          width: 74,
+          height: 74,
           fit: BoxFit.contain,
           errorBuilder: (_, __, ___) {
             return Container(
-              width: 70,
-              height: 70,
+              width: 66,
+              height: 66,
               decoration: BoxDecoration(
                 color: AppColors.white.withValues(alpha: 0.88),
                 shape: BoxShape.circle,
@@ -561,7 +464,7 @@ class _ChildCardImagePlaceholder extends StatelessWidget {
               child: const Icon(
                 Icons.image_not_supported_outlined,
                 color: AppColors.primary,
-                size: 34,
+                size: 32,
               ),
             );
           },

@@ -76,7 +76,7 @@ class KitLibraryHeader extends StatelessWidget {
                         children: [
                           Text(
                             isChildMode ? 'صناديقي' : 'مكتبة الصناديق',
-                            textAlign: TextAlign.right,
+                            textAlign: TextAlign.center,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.headlineMedium.copyWith(
