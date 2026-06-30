@@ -459,10 +459,11 @@ class _KitDetailsViewState extends State<_KitDetailsView> {
     if (kit.age > 0) {
       chips.add(
         _infoChip(
-          icon: Icons.child_care_rounded,
+          icon: Icons.face_rounded,
           title: 'العمر',
           value: '${kit.age}–${kit.age + 3} سنوات',
-          color: AppColors.red,
+          color: const Color(0xFFFF7C87),
+          lightColor: const Color(0xFFFFF5F6),
         ),
       );
     }
@@ -474,7 +475,8 @@ class _KitDetailsViewState extends State<_KitDetailsView> {
           icon: Icons.category_rounded,
           title: 'النوع',
           value: typeLabel,
-          color: AppColors.primary,
+          color: const Color(0xFF52C7B3),
+          lightColor: const Color(0xFFF3FCF9),
         ),
       );
     }
@@ -485,22 +487,25 @@ class _KitDetailsViewState extends State<_KitDetailsView> {
           icon: Icons.extension_rounded,
           title: 'الأنشطة',
           value: '$activitiesCount نشاط',
-          color: AppColors.secondary,
+          color: const Color(0xFF72B7F4),
+          lightColor: const Color(0xFFF4F9FF),
         ),
       );
     }
 
-    if (chips.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (chips.isEmpty) return const SizedBox.shrink();
 
-    return Row(
-      children: [
-        for (int index = 0; index < chips.length; index++) ...[
-          Expanded(child: chips[index]),
-          if (index != chips.length - 1) const SizedBox(width: 8),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int index = 0; index < chips.length; index++) ...[
+            Expanded(child: chips[index]),
+            if (index != chips.length - 1) const SizedBox(width: 10),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -509,121 +514,391 @@ class _KitDetailsViewState extends State<_KitDetailsView> {
     required String title,
     required String value,
     required Color color,
+    required Color lightColor,
   }) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 88),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
+      height: 128,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.white.withValues(alpha: 0.99),
+            lightColor,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: color.withValues(alpha: 0.13),
+          color: color.withValues(alpha: 0.20),
+          width: 1.1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.035),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withValues(alpha: 0.07),
+            blurRadius: 15,
+            offset: const Offset(0, 7),
+          ),
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.018),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 27,
-            height: 27,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.10),
-              shape: BoxShape.circle,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: -12,
+              left: -8,
+              right: -8,
+              child: Container(
+                height: 35,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.075),
+                  borderRadius: BorderRadius.circular(40),
+                ),
+              ),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 16,
+            Positioned(
+              top: 16,
+              left: 16,
+              child: _chipDecorDot(color.withValues(alpha: 0.18), 6),
             ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            title,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
+            Positioned(
+              top: 28,
+              right: 18,
+              child: _chipDecorDot(color.withValues(alpha: 0.14), 5),
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
+            Positioned(
+              top: 18,
+              right: 34,
+              child: Icon(
+                Icons.star_rounded,
+                size: 9,
+                color: color.withValues(alpha: 0.20),
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+              child: Column(
+                children: [
+                  Container(
+                    width: 43,
+                    height: 43,
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.97),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.white,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.10),
+                          blurRadius: 9,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 21,
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: color,
+                      fontSize: 12.2,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 54,
+                    height: 1.1,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.23),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: const Color(0xFF17233D),
+                          fontSize: value.length > 12 ? 13.5 : 15,
+                          fontWeight: FontWeight.w900,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _chipDecorDot(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+
 
   Widget _buildInsideSection(List<String> items) {
     if (items.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            'ماذا يوجد في الداخل؟',
-            textAlign: TextAlign.right,
-            style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 23,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.07),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.025),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            top: -15,
+            right: -15,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.055),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 14),
-        ...items.map(
-              (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: InsideItemTile(text: item),
+          Positioned(
+            bottom: -20,
+            left: -15,
+            child: Container(
+              width: 95,
+              height: 95,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.yellow.withValues(alpha: 0.13),
+              ),
+            ),
           ),
-        ),
-      ],
+
+          Positioned(
+            top: 30,
+            left: -28,
+            child: Image.asset(
+              'assets/images/details_mascot_peek.png',
+              width: 145,
+              fit: BoxFit.contain,
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.only(left: 88),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'ماذا يوجد في الداخل؟',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...items.asMap().entries.map(
+                      (entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index == items.length - 1 ? 0 : 8,
+                      ),
+                      child: _insideItemCard(
+                        text: item,
+                        index: index,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildBottomButton(BuildContext context, int kitId) {
-    return SizedBox(
+  Widget _insideItemCard({
+    required String text,
+    required int index,
+  }) {
+    final accentColor = index.isEven ? AppColors.primary : AppColors.secondary;
+
+    return Container(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _openWebDetails(context, kitId),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          elevation: 0,
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(26),
-          ),
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 9),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.07),
         ),
-        child: Text(
-          'مزيد من التفاصيل',
-          style: AppTextStyles.button.copyWith(
-            color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.014),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 27,
+            height: 27,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.10),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.white.withValues(alpha: 0.95),
+                width: 1.4,
+              ),
+            ),
+            child: Icon(
+              Icons.check_rounded,
+              color: accentColor,
+              size: 17,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 12.7,
+                fontWeight: FontWeight.w800,
+                height: 1.1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+
+  Widget _buildBottomButton(BuildContext context, int kitId) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.88),
+            AppColors.secondary.withValues(alpha: 0.92),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.24),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.035),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(28),
+        child: InkWell(
+          onTap: () => _openWebDetails(context, kitId),
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: AppColors.white.withValues(alpha: 0.35),
+                width: 1.1,
+              ),
+            ),
+            child: Text(
+              'مزيد من التفاصيل',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.button.copyWith(
+                color: AppColors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                letterSpacing: 0.1,
+                shadows: [
+                  Shadow(
+                    color: AppColors.black.withValues(alpha: 0.16),
+                    blurRadius: 5,
+                    offset: const Offset(0, 1.5),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
-
   Future<void> _openWebDetails(BuildContext context, int kitId) async {
     final uri = Uri.parse('https://talentokids.com/kits/$kitId');
 

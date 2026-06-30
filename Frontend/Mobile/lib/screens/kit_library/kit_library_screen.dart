@@ -561,12 +561,10 @@ class _KitLibraryViewState extends State<_KitLibraryView> {
       final normalizedImage = _normalizeImageUrl(image);
 
       if (normalizedImage.isNotEmpty) {
-        debugPrint('KIT IMAGE URL: $normalizedImage');
         return normalizedImage;
       }
     }
 
-    debugPrint('KIT IMAGE URL EMPTY for kit: ${kit.name}');
     return '';
   }
 
