@@ -24,11 +24,13 @@ import 'widgets/roadmap_state_views.dart';
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
   final int childId;
+  final int? initialActivityId;
 
   const RoadmapScreen({
     super.key,
     required this.kitId,
     required this.childId,
+    this.initialActivityId,
   });
 
   @override
@@ -42,6 +44,7 @@ class RoadmapScreen extends StatelessWidget {
       child: _RoadmapView(
         kitId: kitId,
         childId: childId,
+        initialActivityId: initialActivityId,
       ),
     );
   }
@@ -50,10 +53,12 @@ class RoadmapScreen extends StatelessWidget {
 class _RoadmapView extends StatelessWidget {
   final int kitId;
   final int childId;
+  final int? initialActivityId;
 
   const _RoadmapView({
     required this.kitId,
     required this.childId,
+    this.initialActivityId,
   });
 
   @override
@@ -104,6 +109,7 @@ class _RoadmapView extends StatelessWidget {
                         return RoadmapGameBoard(
                           activities: state.activities,
                           childId: childId,
+                          initialActivityId: initialActivityId,
                           onActivityTap: (activity) {
                             _handleActivityTap(
                               context,
@@ -167,26 +173,20 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-
     if (activityName == 'empathy mirror') {
-      Navigator.push(context, MaterialPageRoute(
-        builder: (_) => EmpathyMirrorLauncher(
-          activityId: activity.activityId,
-          kitId: kitId,
-          childId: childId,
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmpathyMirrorLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
         ),
-      ));
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
     }
 
-    // Maze tilt engine — pure test screen (no levels, no session/event
-    // logging), reached directly like the old internal test menu used to,
-    // just triggered from a roadmap tap now instead.
-    //
-    // ⚠️ REQUIRES a real backend Activity entry named "Maze Engine Test"
-    // (or whatever name the backend confirms) so a roadmap tile exists at
-    // all to tap on — roadmap tiles are 100% backend-driven, there's no
-    // client-only tile mechanism. Coordinate with the team before this
-    // branch can actually be reached.
     if (activityName == 'gyro maze') {
       Navigator.push(
         context,
@@ -272,7 +272,7 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-    if (activityName == 'sound trackers'){
+    if (activityName == 'sound trackers') {
       Navigator.push(
         context,
         MaterialPageRoute(

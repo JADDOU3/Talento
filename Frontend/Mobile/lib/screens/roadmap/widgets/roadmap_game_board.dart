@@ -12,6 +12,7 @@ class RoadmapGameBoard extends StatefulWidget {
   final ValueChanged<RoadmapActivityModel> onActivityTap;
   final String mascotAssetPath;
   final int? childId;
+  final int? initialActivityId;
 
   const RoadmapGameBoard({
     super.key,
@@ -19,6 +20,7 @@ class RoadmapGameBoard extends StatefulWidget {
     required this.onActivityTap,
     this.mascotAssetPath = 'assets/images/template_mascot.png',
     this.childId,
+    this.initialActivityId,
   });
 
   @override
@@ -27,6 +29,9 @@ class RoadmapGameBoard extends StatefulWidget {
 
 class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   late final ScrollController _scrollController;
+
+  final Map<int, GlobalKey> _activityKeysByIndex = {};
+
   bool _didAutoScroll = false;
 
   @override
@@ -35,7 +40,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     _scrollController = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToRoadStart();
+      _runInitialScroll();
     });
   }
 
@@ -44,20 +49,86 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.activities != widget.activities ||
-        oldWidget.childId != widget.childId) {
+        oldWidget.childId != widget.childId ||
+        oldWidget.initialActivityId != widget.initialActivityId) {
       _didAutoScroll = false;
+      _removeStaleIndexKeys();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToRoadStart();
+        _runInitialScroll();
       });
     }
   }
 
-  Future<void> _scrollToRoadStart() async {
+  void _removeStaleIndexKeys() {
+    _activityKeysByIndex.removeWhere(
+          (index, _) => index < 0 || index >= widget.activities.length,
+    );
+  }
+
+  Future<void> _runInitialScroll() async {
     if (_didAutoScroll) return;
 
-    await Future.delayed(const Duration(milliseconds: 650));
+    await Future.delayed(const Duration(milliseconds: 500));
 
+    if (!mounted || !_scrollController.hasClients) return;
+
+    final targetActivityId = widget.initialActivityId;
+
+    if (targetActivityId != null) {
+      final didScrollToTarget = await _scrollToActivity(targetActivityId);
+
+      if (didScrollToTarget) {
+        _didAutoScroll = true;
+        return;
+      }
+    }
+
+    await _scrollToRoadStart();
+    _didAutoScroll = true;
+  }
+
+  Future<bool> _scrollToActivity(int activityId) async {
+    final targetIndex = _findBestActivityIndex(activityId);
+
+    if (targetIndex == null) {
+      return false;
+    }
+
+    final key = _activityKeysByIndex[targetIndex];
+    final targetContext = key?.currentContext;
+
+    if (targetContext == null) {
+      return false;
+    }
+
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 850),
+      curve: Curves.easeInOutCubic,
+      alignment: 0.46,
+    );
+
+    return true;
+  }
+
+  int? _findBestActivityIndex(int activityId) {
+    final currentIndex = widget.activities.indexWhere(
+          (activity) => activity.activityId == activityId && activity.isCurrent,
+    );
+
+    if (currentIndex != -1) {
+      return currentIndex;
+    }
+
+    final firstIndex = widget.activities.indexWhere(
+          (activity) => activity.activityId == activityId,
+    );
+
+    return firstIndex == -1 ? null : firstIndex;
+  }
+
+  Future<void> _scrollToRoadStart() async {
     if (!mounted || !_scrollController.hasClients) return;
 
     _scrollController.jumpTo(0);
@@ -69,7 +140,6 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     final firstMaxScroll = _scrollController.position.maxScrollExtent;
 
     if (firstMaxScroll <= 0) {
-      _didAutoScroll = true;
       return;
     }
 
@@ -92,8 +162,10 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
         curve: Curves.easeOutCubic,
       );
     }
+  }
 
-    _didAutoScroll = true;
+  GlobalKey _keyForIndex(int index) {
+    return _activityKeysByIndex.putIfAbsent(index, GlobalKey.new);
   }
 
   @override
@@ -127,11 +199,14 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
       children.add(
         _RoadmapStep(
           isRight: isRight,
-          child: RoadmapActivityTile(
-            activity: activity,
-            index: originalIndex,
-            childId: widget.childId,
-            onTap: () => widget.onActivityTap(activity),
+          child: KeyedSubtree(
+            key: _keyForIndex(originalIndex),
+            child: RoadmapActivityTile(
+              activity: activity,
+              index: originalIndex,
+              childId: widget.childId,
+              onTap: () => widget.onActivityTap(activity),
+            ),
           ),
         ),
       );
