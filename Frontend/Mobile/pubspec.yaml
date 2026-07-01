@@ -48,6 +48,13 @@ flutter:
     - assets/icons/
     - assets/images/cards/
     - assets/images/face/
+    - assets/creature/eyes/
+    - assets/creature/mouth/
+    - assets/creature/feeling/
+    - assets/creature/hair/
+    - assets/images/cards/eyes/
+    - assets/images/cards/mouth/
+    - assets/images/cards/feeling/
 
   fonts:
     - family: ArialRounded

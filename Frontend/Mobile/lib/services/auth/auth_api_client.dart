@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'auth_service.dart';
 import 'token_storage_service.dart';
 
@@ -31,7 +34,6 @@ class AuthApiClient {
     );
   }
 
-
   Future<http.Response> put(
       Uri uri, {
         Map<String, String>? headers,
@@ -50,7 +52,6 @@ class AuthApiClient {
       ),
     );
   }
-
 
   Future<http.Response> patch(
       Uri uri, {
@@ -116,5 +117,54 @@ class AuthApiClient {
         'Authorization': 'Bearer $accessToken',
       ...?extraHeaders,
     };
+  }
+
+  Future<http.Response> multipartPost(
+      Uri uri, {
+        required String filePath,
+        required String fileField,
+        Map<String, String>? fields,
+        Map<String, List<String>>? repeatedFields,
+        String? jsonField,
+        Object? jsonBody,
+      }) async {
+    Future<http.Response> buildAndSend() async {
+      final request = http.MultipartRequest('POST', uri);
+
+      final headers = await authHeaders(null);
+      headers.remove('Content-Type');
+      request.headers.addAll(headers);
+
+      fields?.forEach((key, value) {
+        request.fields[key] = value;
+      });
+
+      repeatedFields?.forEach((key, values) {
+        for (final value in values) {
+          request.files.add(http.MultipartFile.fromString(key, value));
+        }
+      });
+
+      request.files.add(await http.MultipartFile.fromPath(fileField, filePath));//originally after the if statement
+
+      if (jsonField != null && jsonBody != null) {
+        request.files.add(
+          http.MultipartFile.fromString(
+            jsonField,
+            jsonEncode(jsonBody),
+            contentType: MediaType('application', 'json'),
+          ),
+        );
+      }
+
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      print('MULTIPART RAW BODY: "${response.body}"');
+      return response;
+      return http.Response.fromStream(streamed);
+    }
+
+    return _sendWithRefresh(buildAndSend, buildAndSend);
   }
 }

@@ -6,6 +6,7 @@ import '../../services/activities/create_creature_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'create_creature_face_screen.dart';
+import 'create_creature_gender_hair_screen.dart';
 
 class CreateCreatureIntro extends StatefulWidget {
   final int? childId;
@@ -62,7 +63,7 @@ class _CreateCreatureIntroState extends State<CreateCreatureIntro> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => CreateCreatureFaceScreen(
+          builder: (_) => CreateCreatureGenderHairScreen(
             activityId: resolvedData.activityId,
             activitySessionId: activitySessionId,
             childId: resolvedData.childId,

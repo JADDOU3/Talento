@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../models/activities/create_creature/create_creature_challenge_model.dart';
 import '../../../services/activities/create_creature_service.dart';
 import 'create_creature_state.dart';
+import 'dart:io';
+import '../../../activities/create_creature/icon_arabic_labels.dart';
 
 class CreateCreatureCubit extends Cubit<CreateCreatureState> {
   CreateCreatureCubit({
@@ -28,6 +31,7 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     final currentState = state;
     if (currentState is CreateCreatureLoaded) return currentState;
     if (currentState is CreateCreatureStepCompleted) return currentState.previousState;
+    if (currentState is CreateCreatureVoiceCheckFailed) return currentState.previousState;
     return null;
   }
 
@@ -82,6 +86,11 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
 
       _gameLoaded = true;
 
+      // final appearanceChallenge = level.challenges
+      //     .where((c) => c.type == CreateCreatureChallengeType.preview)
+      //     .firstOrNull;
+      // final creatureLookup = appearanceChallenge?.lookup ?? const [];
+
       emit(
         CreateCreatureLoaded(
           level: level,
@@ -89,6 +98,7 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
           attemptNumber: 1,
           currentAttemptStartedAt: startedAt,
           elapsed: Duration.zero,
+          // creatureLookup: creatureLookup,
         ),
       );
 
@@ -114,6 +124,46 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     final loaded = _getLoaded();
     if (loaded == null) return;
     _emitLoaded(loaded.copyWith(feelingSelection: icon));
+  }
+
+  void onGenderSelected(String icon) {
+    final loaded = _getLoaded();
+    if (loaded == null) return;
+    _emitLoaded(loaded.copyWith(genderSelection: icon));
+  }
+
+  void onHairColorSelected(String icon) {
+    print('HAIR COLOR SELECTED: "$icon"');
+    final loaded = _getLoaded();
+    if (loaded == null) return;
+    _emitLoaded(loaded.copyWith(hairColorSelection: icon));
+  }
+
+  Future<void> onGenderHairConfirmed() async {
+    final loaded = _getLoaded();
+    if (loaded == null) return;
+    if (!loaded.genderHairComplete) return;
+
+    try {
+      for (int i = 0; i < 2; i++) {
+        await _createCreatureService.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'COMPLETED',
+        );
+      }
+
+      emit(
+        CreateCreatureStepCompleted(
+          step: 'genderHair',
+          previousState: loaded,
+        ),
+      );
+      // _loadCreatureBaseImage();
+    } catch (error) {
+      emit(CreateCreatureError(error.toString()));
+    }
   }
 
   Future<void> onFaceConfirmed() async {
@@ -148,52 +198,30 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     _emitLoaded(loaded.copyWith(abilitySelection: icon));
   }
 
-  Future<void> onAbilityConfirmed() async {
-    final loaded = _getLoaded();
-    if (loaded == null) return;
-    if (loaded.abilitySelection == null) return;
-
-    try {
-      await _createCreatureService.postLevelEvent(
-        childId: _childId,
-        sessionId: _sessionId,
-        activitySessionId: _activitySessionId,
-        action: 'COMPLETED',
-      );
-
-      emit(
-        CreateCreatureStepCompleted(
-          step: 'ability',
-          previousState: loaded,
-        ),
-      );
-    } catch (error) {
-      emit(CreateCreatureError(error.toString()));
-    }
-  }
-
   void onHomeSelected(String icon) {
     final loaded = _getLoaded();
     if (loaded == null) return;
     _emitLoaded(loaded.copyWith(homeSelection: icon));
   }
 
-  Future<void> onHomeConfirmed() async {
+  Future<void> onAbilityHomeConfirmed() async {
     final loaded = _getLoaded();
     if (loaded == null) return;
-    if (loaded.homeSelection == null) return;
+    if (!loaded.abilityHomeComplete) return;
 
     try {
-      await _createCreatureService.postLevelEvent(
-        childId: _childId,
-        sessionId: _sessionId,
-        activitySessionId: _activitySessionId,
-        action: 'COMPLETED',
-      );
+      for (int i = 0; i < 2; i++) {
+        await _createCreatureService.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'COMPLETED',
+        );
+      }
 
       emit(
         CreateCreatureStepCompleted(
-          step: 'home',
+          step: 'abilityHome',
           previousState: loaded,
         ),
       );
@@ -230,36 +258,85 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     if (loaded == null) return;
     if (!loaded.hasRecording) return;
 
+    final abilityKeyword = iconArabicLabels[loaded.abilitySelection];
+    final homeKeyword = iconArabicLabels[loaded.homeSelection];
+
+    if (abilityKeyword == null || homeKeyword == null) {
+      emit(const CreateCreatureError('Missing ability or home keyword mapping.'));
+      return;
+    }
+
+    final keywords = [abilityKeyword, homeKeyword];
+
+    if (state is CreateCreatureVoiceCheckFailed) {
+      try {
+        await _createCreatureService.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'RETRIED',
+        );
+      } catch (_) {}
+    }
+
     try {
-      await _createCreatureService.postLevelEvent(
-        childId: _childId,
-        sessionId: _sessionId,
-        activitySessionId: _activitySessionId,
-        action: 'COMPLETED',
-      );
-
-      await _createCreatureService.updateLevelAttempt(
-        attemptId: loaded.currentAttemptId,
-        attemptNumber: loaded.attemptNumber,
-        startedAt: loaded.currentAttemptStartedAt,
-        activitySessionId: _activitySessionId,
-        levelId: loaded.level.id,
-        completed: true,
-      );
-
-      await _createCreatureService.postActivityEvent(
-        childId: _childId,
-        sessionId: _sessionId,
+      final response = await _createCreatureService.transcribeWithKeywords(
+        file: File(loaded.recordedFilePath!),
         activityId: _activityId,
-        action: 'COMPLETED',
+        keywords: keywords,
       );
 
-      await _createCreatureService.completeActivitySession(_activitySessionId);
+      final success = response['success'] == true;
+      final text = response['text']?.toString() ?? '';
+      final missingKeywords = (response['missingKeywords'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList() ??
+          [];
 
-      _activityCompleted = true;
-      _timer?.cancel();
+      if (success) {
+        await _createCreatureService.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'COMPLETED',
+        );
 
-      emit(const CreateCreatureActivityComplete());
+        await _createCreatureService.updateLevelAttempt(
+          attemptId: loaded.currentAttemptId,
+          attemptNumber: loaded.attemptNumber,
+          startedAt: loaded.currentAttemptStartedAt,
+          activitySessionId: _activitySessionId,
+          levelId: loaded.level.id,
+          completed: true,
+        );
+
+        await _createCreatureService.postActivityEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activityId: _activityId,
+          action: 'COMPLETED',
+        );
+
+        await _createCreatureService.completeActivitySession(_activitySessionId);
+
+        _activityCompleted = true;
+        _timer?.cancel();
+
+        emit(const CreateCreatureActivityComplete());
+      } else {
+        await _createCreatureService.postLevelEvent(
+          childId: _childId,
+          sessionId: _sessionId,
+          activitySessionId: _activitySessionId,
+          action: 'FAILED',
+        );
+
+        emit(CreateCreatureVoiceCheckFailed(
+          missingKeywords: missingKeywords,
+          transcribedText: text,
+          previousState: loaded,
+        ));
+      }
     } catch (error) {
       emit(CreateCreatureError(error.toString()));
     }
@@ -268,19 +345,20 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
   void onTimerTick() {
     final loaded = _getLoaded();
     if (loaded == null) return;
-    // Preserve StepCompleted state if that's what we're in
     final currentState = state;
     if (currentState is CreateCreatureStepCompleted) {
       emit(CreateCreatureStepCompleted(
         step: currentState.step,
-        previousState: loaded.copyWith(
-          elapsed: loaded.elapsed + const Duration(seconds: 1),
-        ),
+        previousState: loaded.copyWith(elapsed: loaded.elapsed + const Duration(seconds: 1)),
+      ));
+    } else if (currentState is CreateCreatureVoiceCheckFailed) {
+      emit(CreateCreatureVoiceCheckFailed(
+        missingKeywords: currentState.missingKeywords,
+        transcribedText: currentState.transcribedText,
+        previousState: loaded.copyWith(elapsed: loaded.elapsed + const Duration(seconds: 1)),
       ));
     } else {
-      emit(loaded.copyWith(
-        elapsed: loaded.elapsed + const Duration(seconds: 1),
-      ));
+      emit(loaded.copyWith(elapsed: loaded.elapsed + const Duration(seconds: 1)));
     }
   }
 
@@ -312,4 +390,78 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     await endActivityIfNotCompleted();
     return super.close();
   }
+
+// void _loadCreatureBaseImage() {
+//   final loaded = _getLoaded();
+//   if (loaded == null) return;
+
+//   final gender = loaded.genderSelection;
+//   final hairColor = loaded.hairColorSelection;
+//   if (gender == null || hairColor == null) return;
+
+//   final match = _resolveCreatureEntry(loaded.creatureLookup, gender, hairColor);
+
+//   if (match == null) {
+//     print(
+//       'CREATE CREATURE: no lookup entry for gender=$gender hairColor=$hairColor',
+//     );
+//     return;
+//   }
+
+//   final url = match['url']?.toString();
+
+//   if (url == null || url.isEmpty) {
+//     print(
+//       'CREATE CREATURE: no url in lookup entry for gender=$gender hairColor=$hairColor',
+//     );
+//     return;
+//   }
+
+//   print('CREATE CREATURE: resolved creature image url=$url');
+
+//   _setCreatureImageUrl(url);
+// }
+
+// Map<String, dynamic>? _resolveCreatureEntry(
+//     List<Map<String, dynamic>> lookup,
+//     String gender,
+//     String hairColor,
+//     ) {
+//   final match = lookup.firstWhere(
+//         (e) => e['gender'] == gender && e['hairColor'] == hairColor,
+//     orElse: () => {},
+//   );
+//   return match.isEmpty ? null : match;
+// }
+
+// void _setCreatureImageLoading(bool loading) {
+//   final currentState = state;
+//   if (currentState is CreateCreatureStepCompleted) {
+//     emit(CreateCreatureStepCompleted(
+//       step: currentState.step,
+//       previousState:
+//       currentState.previousState.copyWith(creatureImageLoading: loading),
+//     ));
+//   } else if (currentState is CreateCreatureLoaded) {
+//     emit(currentState.copyWith(creatureImageLoading: loading));
+//   }
+// }
+
+// void _setCreatureImageUrl(String url) {
+//   final currentState = state;
+//   if (currentState is CreateCreatureStepCompleted) {
+//     emit(CreateCreatureStepCompleted(
+//       step: currentState.step,
+//       previousState: currentState.previousState.copyWith(
+//         creatureBaseImageUrl: url,
+//         creatureImageLoading: false,
+//       ),
+//     ));
+//   } else if (currentState is CreateCreatureLoaded) {
+//     emit(currentState.copyWith(
+//       creatureBaseImageUrl: url,
+//       creatureImageLoading: false,
+//     ));
+//   }
+// }
 }

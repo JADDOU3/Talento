@@ -9,6 +9,7 @@ class OptionPickerWidget extends StatelessWidget {
   final String? selectedIcon;
   final void Function(String icon) onSelected;
   final int? maxOptions;
+  final String? assetFolder;
 
   const OptionPickerWidget({
     super.key,
@@ -17,6 +18,7 @@ class OptionPickerWidget extends StatelessWidget {
     required this.selectedIcon,
     required this.onSelected,
     this.maxOptions,
+    this.assetFolder,
   });
 
   @override
@@ -42,6 +44,7 @@ class OptionPickerWidget extends StatelessWidget {
             icon: icon,
             isSelected: icon == selectedIcon,
             onTap: () => onSelected(icon),
+            assetFolder: assetFolder,
           )).toList(),
         ),
       ],
@@ -53,11 +56,13 @@ class _OptionCard extends StatelessWidget {
   final String icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final String? assetFolder;
 
   const _OptionCard({
     required this.icon,
     required this.isSelected,
     required this.onTap,
+    this.assetFolder,
   });
 
 
@@ -91,14 +96,14 @@ class _OptionCard extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(10),
-              child : Image.asset(
-                  'assets/images/cards/$icon.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.broken_image_outlined,
-                    color: Colors.grey,
-                  ),
-                ),
+          child: Image.asset(
+            assetFolder != null ? '$assetFolder/$icon.png' : 'assets/images/cards/$icon.png',
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Icon(
+              Icons.broken_image_outlined,
+              color: Colors.grey,
+            ),
+          ),
         ),
       ),
     );

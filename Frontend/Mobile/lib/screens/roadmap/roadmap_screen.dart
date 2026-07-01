@@ -170,7 +170,7 @@ class _RoadmapView extends StatelessWidget {
       context,
       'النشاط "${activity.activityName}" غير جاهز بعد',
     );
-    if (activityName == 'create your own creature') {
+    if (activityName == 'صمم بطلك') {
       Navigator.push(
         context,
         MaterialPageRoute(

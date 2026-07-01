@@ -93,4 +93,8 @@ class ApiConstants {
   static const String childModeEnable = '$baseUrl/childMode/enable';
   static const String childModeDisable = '$baseUrl/childMode/disable';
   static const String childModeSetPin = '$baseUrl/childMode/setPin';
+
+  //Create Creature
+  static const String transcribeWithKeywords = '$baseUrl/voice/transcribe-with-keywords';
+  static const String presignedUrlEndpoint = '$baseUrl/media/presigned-url';
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import '../../core/config/api_constants.dart';
 import '../../models/activities/create_creature/create_creature_level_model.dart';
@@ -216,8 +217,9 @@ class CreateCreatureService {
   }
 
   String _shortBody(String body) {
-    if (body.length <= 800) return body;
-    return '${body.substring(0, 800)}...';
+    return body;
+    //if (body.length <= 800) return body;
+    //return '${body.substring(0, 800)}...';
   }
 
   void _ensureSuccess(int statusCode, String body, String actionName) {
@@ -227,6 +229,7 @@ class CreateCreatureService {
       'Failed to $actionName. Status code: $statusCode. Body: $body',
     );
   }
+
   Future<int> getSelectedChildId() async {
     final response = await _apiClient.get(
       Uri.parse(ApiConstants.selectedChild),
@@ -372,4 +375,54 @@ class CreateCreatureService {
 
     return 0;
   }
+
+  Future<Map<String, dynamic>> transcribeWithKeywords({
+    required File file,
+    required int activityId,
+    required List<String> keywords,
+  }) async {
+    final response = await _apiClient.multipartPost(
+      Uri.parse(ApiConstants.transcribeWithKeywords),
+      filePath: file.path,
+      fileField: 'file',
+      jsonField: 'request',
+      jsonBody: {
+        'activityId': activityId,
+        'keywords': keywords,
+      },
+    );
+
+    print(
+      'CREATE CREATURE: transcribe response = '
+          '${response.statusCode} - ${_shortBody(response.body)}',
+    );
+
+    _ensureSuccess(response.statusCode, response.body, 'transcribe with keywords');
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+// Future<String> getPresignedUrl(String s3Key) async {
+//   final uri = Uri.parse(ApiConstants.presignedUrlEndpoint).replace(
+//     queryParameters: {'key': s3Key},
+//   );
+
+//   final response = await _apiClient.get(uri);
+
+//   print(
+//     'CREATE CREATURE: get presigned url response = '
+//         '${response.statusCode} - ${_shortBody(response.body)}',
+//   );
+
+//   _ensureSuccess(response.statusCode, response.body, 'get presigned url');
+
+//   final data = jsonDecode(response.body);
+//   final url = data is Map ? data['url']?.toString() : null;
+
+//   if (url == null || url.isEmpty) {
+//     throw Exception('Presigned URL not found in response.');
+//   }
+
+//   return url;
+// }
 }
