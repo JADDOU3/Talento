@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../services/color_lab/color_lab_context_service.dart';
+import '../../services/activities/color_lab_context_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'empathy_mirror_intro.dart';
 
