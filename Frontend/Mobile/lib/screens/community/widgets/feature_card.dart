@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
 class FeatureCard extends StatelessWidget {
-  const FeatureCard({super.key});
+  final VoidCallback? onJoinMission;
+
+  const FeatureCard({
+    super.key,
+    this.onJoinMission,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,6 @@ class FeatureCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // shapes
           Positioned(
             left: -40,
             top: 10,
@@ -38,7 +42,6 @@ class FeatureCard extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             right: -30,
             bottom: 0,
@@ -51,15 +54,14 @@ class FeatureCard extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             left: 0,
             top: 0,
             child: Transform.rotate(
               angle: -0.6,
-              child: Opacity(
+              child: const Opacity(
                 opacity: 0.2,
-                child: const Icon(
+                child: Icon(
                   Icons.rocket_launch_rounded,
                   size: 130,
                   color: Colors.white,
@@ -67,22 +69,20 @@ class FeatureCard extends StatelessWidget {
               ),
             ),
           ),
-
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 4),
-
               Directionality(
                 textDirection: TextDirection.rtl,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // badge
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF472B6),
                         borderRadius: BorderRadius.circular(20),
@@ -96,9 +96,7 @@ class FeatureCard extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
                     const Text(
                       'مهمة الفضاء: بناء\nصاروخ',
                       style: TextStyle(
@@ -108,9 +106,7 @@ class FeatureCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
                     Text(
                       'انطلق في رحلة عبر النجوم، استخدم مهاراتك لاكتشاف أسرار الفلك والمجرات السماوية. ستحصل على 150 نقطة!',
                       style: TextStyle(
@@ -122,9 +118,7 @@ class FeatureCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Align(
                 alignment: Alignment.centerLeft,
                 child: Container(
@@ -139,12 +133,14 @@ class FeatureCard extends StatelessWidget {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: onJoinMission,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.pink,
                       foregroundColor: AppColors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 22, vertical: 10),
+                        horizontal: 22,
+                        vertical: 10,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       elevation: 0,

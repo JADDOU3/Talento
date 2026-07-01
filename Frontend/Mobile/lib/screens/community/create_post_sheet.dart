@@ -13,7 +13,9 @@ import '../../cubits/community/media_state.dart';
 import '../../cubits/community/post_cubit.dart';
 import '../../cubits/community/post_state.dart';
 import '../../models/community/create_post.dart';
+import '../../models/kit/kit_model.dart';
 import '../../services/auth/auth_api_client.dart';
+import '../../services/kit/kit_service.dart';
 
 class CreatePostSheet extends StatefulWidget {
   const CreatePostSheet({super.key});
@@ -25,22 +27,50 @@ class CreatePostSheet extends StatefulWidget {
 class _CreatePostSheetState extends State<CreatePostSheet> {
   final TextEditingController _contentController = TextEditingController();
   final AuthApiClient _client = AuthApiClient();
+  final KitService _kitService = KitService();
 
   int? selectedKitId;
   File? selectedFile;
   String? uploadedS3Key;
   bool isUploading = false;
   bool isCheckingSelectedChild = false;
+  bool isLoadingKits = true;
+  String? kitsError;
+  List<KitModel> kits = [];
 
-  final List<Map<String, dynamic>> kits = const [
-    {'id': 1, 'name': 'حقيبة مستكشف الفضاء'},
-    {'id': 2, 'name': 'حقيبة الروبوتات'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadKits();
+  }
 
   @override
   void dispose() {
     _contentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadKits() async {
+    setState(() {
+      isLoadingKits = true;
+      kitsError = null;
+    });
+
+    try {
+      final loadedKits = await _kitService.getAllKits(size: 50);
+      if (!mounted) return;
+      setState(() {
+        kits = loadedKits;
+        isLoadingKits = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        kitsError = e.toString();
+        selectedKitId = null;
+        isLoadingKits = false;
+      });
+    }
   }
 
   Future<void> _pickMedia() async {
@@ -150,6 +180,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -238,23 +269,56 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
                     const SizedBox(height: 14),
                     DropdownButtonFormField<int?>(
                       value: selectedKitId,
-                      decoration: _inputDecoration('اختر الحقيبة (اختياري)'),
+                      decoration: _inputDecoration('اختر الصندوق (اختياري)'),
                       items: [
                         const DropdownMenuItem<int?>(
                           value: null,
-                          child: Text('بدون حقيبة'),
+                          child: Text('بدون صندوق'),
                         ),
                         ...kits.map(
                               (kit) => DropdownMenuItem<int?>(
-                            value: kit['id'],
-                            child: Text(kit['name']),
+                            value: kit.id,
+                            child: Text(kit.name),
                           ),
                         ),
                       ],
-                      onChanged: (value) {
+                      onChanged: isLoadingKits || kitsError != null
+                          ? null
+                          : (value) {
                         setState(() => selectedKitId = value);
                       },
                     ),
+                    if (isLoadingKits) ...[
+                      const SizedBox(height: 8),
+                      const LinearProgressIndicator(minHeight: 3),
+                    ],
+                    if (kitsError != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.red,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'تعذر تحميل الصناديق',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _loadKits,
+                            child: const Text('إعادة المحاولة'),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     OutlinedButton.icon(
                       onPressed: isUploading ? null : _pickMedia,
@@ -273,8 +337,9 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
                     ],
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed:
-                      isUploading || isCheckingSelectedChild ? null : _createPost,
+                      onPressed: isUploading || isCheckingSelectedChild
+                          ? null
+                          : _createPost,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
