@@ -1,9 +1,11 @@
 package org.example.backend.controller;
 
+import org.example.backend.Dto.activity.DailySessionCountDto;
 import org.example.backend.Dto.aiReport.AIReportResponseDto;
 import org.example.backend.Dto.aiReport.CreateAIReportDto;
 import org.example.backend.Dto.aiReport.UpdateAIReportDto;
 import org.example.backend.service.AIReportService;
+import org.example.backend.service.activity.ActivityProgressService;
 import org.example.backend.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,12 +13,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/ai-reports")
 public class AIReportController {
 
     @Autowired
     private AIReportService aiReportService;
+
+    @Autowired
+    private ActivityProgressService activityProgressService;
 
     @PostMapping
     public ResponseEntity<AIReportResponseDto> createReport(@RequestBody CreateAIReportDto dto) {
@@ -70,5 +77,9 @@ public class AIReportController {
     public ResponseEntity<AIReportResponseDto> getLatestReport(@PathVariable int childId) {
         var report = aiReportService.getLatestReport(childId);
         return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
+    }
+    @GetMapping("/weekly-sessions")
+    public ResponseEntity<List<DailySessionCountDto>> getWeeklySessionCounts() {
+        return ResponseEntity.ok(activityProgressService.getWeeklySessionCounts());
     }
 }

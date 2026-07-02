@@ -52,4 +52,18 @@ public interface ActivitySessionRepo extends JpaRepository<ActivitySession, Inte
             @Param("childId") int childId,
             @Param("cutoff") LocalDateTime cutoff
     );
+
+    @Query(value = """
+    SELECT DATE(a.started_at) as date, COUNT(*) as count
+    FROM activity_session a
+    INNER JOIN session s ON a.session_id = s.id
+    WHERE s.child_id = :childId
+      AND a.started_at >= :from
+    GROUP BY DATE(a.started_at)
+    ORDER BY DATE(a.started_at) ASC
+""", nativeQuery = true)
+    List<Object[]> countSessionsPerDayByChildId(
+            @Param("childId") int childId,
+            @Param("from") LocalDateTime from
+    );
 }

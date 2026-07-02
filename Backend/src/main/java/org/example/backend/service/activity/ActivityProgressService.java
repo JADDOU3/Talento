@@ -1,6 +1,7 @@
 package org.example.backend.service.activity;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.example.backend.Dto.activity.DailySessionCountDto;
 import org.example.backend.Dto.progress.ActivityProgressResponseDto;
 import org.example.backend.Dto.progress.CompletedActivitiesCountDto;
 import org.example.backend.Dto.progress.LastActivityReachedDto;
@@ -17,9 +18,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ActivityProgressService {
@@ -39,6 +40,34 @@ public class ActivityProgressService {
         this.activitySessionRepo = activitySessionRepo;
         this.levelRepo = levelRepo;
         this.childService = childService;
+    }
+
+    public List<DailySessionCountDto> getWeeklySessionCounts() {
+        Child child = childService.getSelectedChild();
+        if (child == null) throw new EntityNotFoundException("No selected child found");
+
+        LocalDateTime from = LocalDateTime.now().minusDays(6).toLocalDate().atStartOfDay();
+        List<Object[]> raw = activitySessionRepo.countSessionsPerDayByChildId(child.getId(), from);
+
+        // Build a map of date → count from DB results
+        Map<LocalDate, Long> countMap = new LinkedHashMap<>();
+        for (Object[] row : raw) {
+            LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
+            long count = ((Number) row[1]).longValue();
+            countMap.put(date, count);
+        }
+
+        // Fill in all 7 days — including days with 0 sessions
+        List<DailySessionCountDto> result = new ArrayList<>();
+        for (int i = 6; i >= 0; i--) {
+            LocalDate date = LocalDate.now().minusDays(i);
+            result.add(new DailySessionCountDto(
+                    date.toString(),
+                    countMap.getOrDefault(date, 0L)
+            ));
+        }
+
+        return result;
     }
 
     // ─────────────────────────────────────────────────────────────
