@@ -93,7 +93,7 @@ public class AiAnalysisService {
 
     public AiAnalysisResponseDto runAnalysis(Child child, String responseLanguage) {
         // ── 1. Find last report to get the cutoff timestamp ──────────────
-        AIReport lastReport = aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(child.getId());
+        AIReport lastReport = aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(child.getId()).orElse(null);
         LocalDateTime cutoff = lastReport != null ? lastReport.getGeneratedAt() : null;
 
         // ── 2. Collect unanalyzed ActivitySessions ───────────────────────

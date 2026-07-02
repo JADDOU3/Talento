@@ -32,6 +32,11 @@ public class AIReportService {
         report.setChild(child);
         return AIReportResponseDto.from(aiReportRepo.save(report));
     }
+    public AIReportResponseDto getLatestReport(int childId) {
+        return aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(childId)
+                .map(AIReportResponseDto::from)
+                .orElse(null);
+    }
 
     public List<AIReportResponseDto> getAll() {
         return aiReportRepo.findAll().stream()

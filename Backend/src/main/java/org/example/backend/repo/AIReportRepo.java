@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface AIReportRepo extends JpaRepository<AIReport, Integer> {
     List<AIReport> findByChildId(int childId);
-    AIReport findTopByChildIdOrderByGeneratedAtDesc(int childId);
     Optional<AIReport> findByChildIdAndAnalysisVersion(int childId, String analysisVersion);
+    Optional<AIReport> findTopByChildIdOrderByGeneratedAtDesc(int childId);
 }

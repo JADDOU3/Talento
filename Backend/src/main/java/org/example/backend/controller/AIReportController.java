@@ -62,4 +62,13 @@ public class AIReportController {
         var report = aiReportService.getReportByVersion(childId, version);
         return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
     }
+    /**
+     * GET /api/ai-reports/child/{childId}/latest
+     * Returns the most recent AI report for a child
+     */
+    @GetMapping("/child/{childId}/latest")
+    public ResponseEntity<AIReportResponseDto> getLatestReport(@PathVariable int childId) {
+        var report = aiReportService.getLatestReport(childId);
+        return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
+    }
 }
