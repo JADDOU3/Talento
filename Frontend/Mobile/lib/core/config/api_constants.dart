@@ -103,6 +103,12 @@ class ApiConstants {
   static const String likesToggle = '$baseUrl/likes/toggle';
   static const String likesPost = '$baseUrl/likes/post';
 
+  static String likeCount(int postId) =>
+      '$baseUrl/likes/post/$postId/count';
+
+  static String isPostLiked(int postId, int parentId) =>
+      '$baseUrl/likes/post/$postId/liked?parentId=$parentId';
+
   // Comments
   static const String comments = '$baseUrl/comments';
   static const String commentsByPost = '$baseUrl/comments/post';
