@@ -143,7 +143,7 @@ class _CreateCreatureGenderHairViewState
 
         return Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: const CreateCreatureAppBar(title: 'مخلوقك'),
+          appBar: const CreateCreatureAppBar(title: 'صفات بطلك الخارق!'),
           body: Stack(
             fit: StackFit.expand,
             children: [
@@ -157,14 +157,14 @@ class _CreateCreatureGenderHairViewState
                   ),
                   children: [
                     OptionPickerWidget(
-                      label: 'الجنس؟',
+                      label: 'فتاة أم ولد؟',
                       icons: const ['boy', 'girl'],
                       selectedIcon: loaded.genderSelection,
                       onSelected: cubit.onGenderSelected,
                     ),
                     const SizedBox(height: 24),
                     OptionPickerWidget(
-                      label: 'لون الشعر',
+                      label: 'ما لون شعره/ها؟',
                       icons: const ['black', 'brown', 'blonde'],
                       selectedIcon: loaded.hairColorSelection,
                       onSelected: cubit.onHairColorSelected,

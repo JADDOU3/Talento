@@ -138,7 +138,7 @@ class _CreateCreatureAbilityHomeViewState
 
         return Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: const CreateCreatureAppBar(title: 'قدرة ومكان مخلوقك'),
+          appBar: const CreateCreatureAppBar(title: 'قوة بطلك الخارقة ومكان سكته!'),
           body: Stack(
             fit: StackFit.expand,
             children: [

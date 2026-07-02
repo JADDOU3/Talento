@@ -204,7 +204,7 @@ class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
 
         return Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: const CreateCreatureAppBar(title: 'قصة مخلوقك'),
+          appBar: const CreateCreatureAppBar(title: 'حكاية بطلك!'),
           body: Stack(
             fit: StackFit.expand,
             children: [
@@ -252,7 +252,7 @@ class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
                     ],
                     const SizedBox(height: 24),
                     const Text(
-                      'احكِ لنا قصة مخلوقك',
+                      'احكِ لنا حكاية بطلك!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 25,

@@ -152,7 +152,7 @@ class _CreateCreatureFaceViewState extends State<_CreateCreatureFaceView> {
 
         return Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: const CreateCreatureAppBar(title: 'صمّم وجه مخلوقك'),
+          appBar: const CreateCreatureAppBar(title: 'كيف يبدو بطلك؟'),
           body: Stack(
             fit: StackFit.expand,
             children: [
@@ -196,7 +196,7 @@ class _CreateCreatureFaceViewState extends State<_CreateCreatureFaceView> {
                     ],
                     if (feelingChallenge != null) ...[
                       OptionPickerWidget(
-                        label: 'الشعور',
+                        label: 'بماذا يشعر بطلك الآن؟',
                         icons: feelingChallenge.choices.map((c) => c.icon).toList(),
                         selectedIcon: loaded.feelingSelection,
                         onSelected: cubit.onFeelingSelected,
