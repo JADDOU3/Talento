@@ -51,4 +51,15 @@ public class AIReportController {
         aiReportService.deleteReport(id);
         return ResponseEntity.noContent().build();
     }
+    /**
+     * GET /api/ai-reports/child/{childId}/version/{version}
+     * Returns the AI report for a specific child at a specific version (e.g. v1, v2, v3)
+     */
+    @GetMapping("/child/{childId}/version/{version}")
+    public ResponseEntity<AIReportResponseDto> getReportByVersion(
+            @PathVariable int childId,
+            @PathVariable String version) {
+        var report = aiReportService.getReportByVersion(childId, version);
+        return report != null ? ResponseEntity.ok(report) : ResponseEntity.notFound().build();
+    }
 }

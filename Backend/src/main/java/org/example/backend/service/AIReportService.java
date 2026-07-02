@@ -38,6 +38,11 @@ public class AIReportService {
                 .map(AIReportResponseDto::from)
                 .toList();
     }
+    public AIReportResponseDto getReportByVersion(int childId, String version) {
+        return aiReportRepo.findByChildIdAndAnalysisVersion(childId, version)
+                .map(AIReportResponseDto::from)
+                .orElse(null);
+    }
 
     public AIReportResponseDto getById(int id) {
         return aiReportRepo.findById(id)
