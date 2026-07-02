@@ -13,7 +13,7 @@ class CommunityFilterSection extends StatelessWidget {
   final int? selectedMindsetId;
   final int? selectedKitId;
   final CommunityFilterType activeFilterType;
-  final VoidCallback onDefaultMindsetSelected;
+  final VoidCallback onMyPostsSelected;
   final VoidCallback onAllKitsSelected;
   final ValueChanged<MindsetModel> onMindsetSelected;
   final ValueChanged<KitModel> onKitSelected;
@@ -23,7 +23,7 @@ class CommunityFilterSection extends StatelessWidget {
     required this.selectedMindsetId,
     required this.selectedKitId,
     required this.activeFilterType,
-    required this.onDefaultMindsetSelected,
+    required this.onMyPostsSelected,
     required this.onAllKitsSelected,
     required this.onMindsetSelected,
     required this.onKitSelected,
@@ -86,15 +86,16 @@ class CommunityFilterSection extends StatelessWidget {
               _HorizontalChipRow(
                 children: [
                   CategoryChip(
-                    label: 'مستوراتي',
-                    isSelected: activeFilterType == CommunityFilterType.none,
-                    onTap: onDefaultMindsetSelected,
+                    label: 'منشوراتي',
+                    isSelected:
+                    activeFilterType == CommunityFilterType.myPosts,
+                    onTap: onMyPostsSelected,
                   ),
                   ...state.mindsets.map(
-                    (mindset) => CategoryChip(
+                        (mindset) => CategoryChip(
                       label: mindset.name,
-                      isSelected: activeFilterType ==
-                              CommunityFilterType.mindset &&
+                      isSelected:
+                      activeFilterType == CommunityFilterType.mindset &&
                           selectedMindsetId == mindset.id,
                       onTap: () => onMindsetSelected(mindset),
                     ),
@@ -106,13 +107,15 @@ class CommunityFilterSection extends StatelessWidget {
                 children: [
                   CategoryChip(
                     label: 'الكل',
-                    isSelected: activeFilterType == CommunityFilterType.kitAll,
+                    isSelected:
+                    activeFilterType == CommunityFilterType.kitAll,
                     onTap: onAllKitsSelected,
                   ),
                   ...state.kits.map(
-                    (kit) => CategoryChip(
+                        (kit) => CategoryChip(
                       label: kit.name,
-                      isSelected: activeFilterType == CommunityFilterType.kit &&
+                      isSelected:
+                      activeFilterType == CommunityFilterType.kit &&
                           selectedKitId == kit.id,
                       onTap: () => onKitSelected(kit),
                     ),
@@ -150,7 +153,7 @@ class _HorizontalChipRow extends StatelessWidget {
 }
 
 enum CommunityFilterType {
-  none,
+  myPosts,
   mindset,
   kitAll,
   kit,

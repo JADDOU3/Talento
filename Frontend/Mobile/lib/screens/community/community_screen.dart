@@ -59,7 +59,7 @@ class _CommunityView extends StatefulWidget {
 }
 
 class _CommunityViewState extends State<_CommunityView> {
-  CommunityFilterType _activeFilterType = CommunityFilterType.none;
+  CommunityFilterType _activeFilterType = CommunityFilterType.kitAll;
   int? _selectedMindsetId;
   int? _selectedKitId;
   Set<int> _ownerChildIds = const {};
@@ -84,14 +84,14 @@ class _CommunityViewState extends State<_CommunityView> {
     }
   }
 
-  void _showDefaultFeedFromMindsetRow() {
+  void _showMyPosts() {
     setState(() {
-      _activeFilterType = CommunityFilterType.none;
+      _activeFilterType = CommunityFilterType.myPosts;
       _selectedMindsetId = null;
       _selectedKitId = null;
     });
 
-    context.read<PostCubit>().getAllPosts();
+    context.read<PostCubit>().getMyPosts();
   }
 
   void _showDefaultFeedFromKitRow() {
@@ -180,7 +180,7 @@ class _CommunityViewState extends State<_CommunityView> {
                         onJoinMission: _goToHome,
                       ),
                       Transform.translate(
-                        offset: const Offset(0, -28),
+                        offset: const Offset(0, -30),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 22),
                           child: Column(
@@ -192,8 +192,7 @@ class _CommunityViewState extends State<_CommunityView> {
                                 selectedMindsetId: _selectedMindsetId,
                                 selectedKitId: _selectedKitId,
                                 activeFilterType: _activeFilterType,
-                                onDefaultMindsetSelected:
-                                _showDefaultFeedFromMindsetRow,
+                                onMyPostsSelected: _showMyPosts,
                                 onAllKitsSelected: _showDefaultFeedFromKitRow,
                                 onMindsetSelected: _filterByMindset,
                                 onKitSelected: _filterByKit,
