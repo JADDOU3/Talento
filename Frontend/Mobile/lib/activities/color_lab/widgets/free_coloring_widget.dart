@@ -139,8 +139,11 @@ class FreeColoringWidgetState extends State<FreeColoringWidget> {
     super.dispose();
   }
 
-  void _notify() => widget.onColoringChanged?.call(hasColoring);
-
+void _notify() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onColoringChanged?.call(hasColoring);
+    });
+  }
   void _onPanStart(DragStartDetails d) {
     setState(() {
       _current = ColoringStroke(color: _selected, points: [d.localPosition]);
