@@ -6,9 +6,9 @@ const Map<String, String> iconArabicLabels = {
   'speed': 'سرعة',
   'magic': 'سحر',
 
-  'magical_forest': 'غابة سحرية',
-  'glowing_volcano': 'بركان متوهج',
-  'underwater_city': 'مدينة تحت الماء',
+  'magical_forest': 'غابة',
+  'glowing_volcano': 'بركان',
+  //'underwater_city': 'مدينة تحت الماء',
   'moon': 'قمر',
   'sky': 'سماء',
 };

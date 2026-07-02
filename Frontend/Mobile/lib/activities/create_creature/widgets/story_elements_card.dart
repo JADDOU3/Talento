@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'story_element_item.dart';
 import 'creature_face_widget.dart';
+import '../icon_arabic_labels.dart';
 
 class StoryElementsCard extends StatelessWidget {
   final String? genderSelection;
@@ -78,7 +79,7 @@ class StoryElementsCard extends StatelessWidget {
                 ),
               ),
               StoryElementItem(
-                label: 'الحدث',
+                label: iconArabicLabels[abilitySelection] ?? 'الحدث',
                 bgColor: const Color(0xFFFAEEDA),
                 missing: abilityMissing,
                 icon: abilitySelection != null
@@ -89,7 +90,7 @@ class StoryElementsCard extends StatelessWidget {
                     : const Icon(Icons.bolt_outlined, color: Colors.grey),
               ),
               StoryElementItem(
-                label: 'المكان',
+                label: iconArabicLabels[homeSelection] ?? 'المكان',
                 bgColor: const Color(0xFFE1F5EE),
                 missing: homeMissing,
                 icon: homeSelection != null

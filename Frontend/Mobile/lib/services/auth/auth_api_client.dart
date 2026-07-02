@@ -145,7 +145,7 @@ class AuthApiClient {
         }
       });
 
-      request.files.add(await http.MultipartFile.fromPath(fileField, filePath));//originally after the if statement
+      request.files.add(await http.MultipartFile.fromPath(fileField, filePath));//originally after the if statementsham
 
       if (jsonField != null && jsonBody != null) {
         request.files.add(
