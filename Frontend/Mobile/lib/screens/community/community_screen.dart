@@ -128,7 +128,10 @@ class _CommunityViewState extends State<_CommunityView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       backgroundColor: Colors.transparent,
+      barrierColor: AppColors.black.withValues(alpha: 0.55),
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider.value(value: context.read<PostCubit>()),

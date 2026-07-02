@@ -93,7 +93,7 @@ class CommunityFilterSection extends StatelessWidget {
                   ),
                   ...state.mindsets.map(
                         (mindset) => CategoryChip(
-                      label: mindset.name,
+                      label: _localizedMindsetName(mindset.name),
                       isSelected:
                       activeFilterType == CommunityFilterType.mindset &&
                           selectedMindsetId == mindset.id,
@@ -135,7 +135,9 @@ class CommunityFilterSection extends StatelessWidget {
 class _HorizontalChipRow extends StatelessWidget {
   final List<Widget> children;
 
-  const _HorizontalChipRow({required this.children});
+  const _HorizontalChipRow({
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +151,30 @@ class _HorizontalChipRow extends StatelessWidget {
         itemBuilder: (context, index) => children[index],
       ),
     );
+  }
+}
+
+String _localizedMindsetName(String name) {
+  final normalizedName = name.trim().toLowerCase();
+
+  switch (normalizedName) {
+    case 'cognitive':
+      return 'معرفي';
+
+    case 'social-emotional':
+    case 'social emotional':
+      return 'اجتماعي';
+
+    case 'creative-visual':
+    case 'creative visual':
+      return 'إبداعي';
+
+    case 'sensory-kinesthetic':
+    case 'sensory kinesthetic':
+      return 'حسي-جسدي';
+
+    default:
+      return name;
   }
 }
 
