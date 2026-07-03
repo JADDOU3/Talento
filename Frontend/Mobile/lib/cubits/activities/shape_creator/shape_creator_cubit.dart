@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../models/activities/shape_creator/shape_creator_level_model.dart';
 import '../../../services/activities/shape_creator_service.dart';
 import 'shape_creator_state.dart';
+import 'dart:async';
 
 class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
   final ShapeCreatorService _service;
@@ -21,11 +22,14 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
 
   List<ShapeCreatorLevelModel> _levels = [];
   int _currentLevelIndex = 0;
+  int _currentChallengeIndex = 0;
 
   ShapeCreatorLevelModel? _currentLevel;
   int _attemptNumber = 1;
   int _currentAttemptId = 0;
   String? _currentAttemptStartedAt;
+  Timer? _timer;
+Duration _elapsed = Duration.zero;
 
   bool get _isLastLevel {
     return _currentLevelIndex >= _levels.length - 1;
@@ -52,6 +56,7 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
       }
 
       _currentLevelIndex = 0;
+      _currentChallengeIndex = 0;
       _attemptNumber = 1;
 
       final level = _levels[_currentLevelIndex];
@@ -68,13 +73,15 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
 
       await _logActivityStarted();
       await _logLevelStarted();
+      _startTimer();
 
       emit(
         ShapeCreatorLoaded(
           level: level,
           currentAttemptId: _currentAttemptId,
           attemptNumber: _attemptNumber,
-          elapsed: Duration.zero,
+          elapsed: _elapsed,
+          currentChallengeIndex: _currentChallengeIndex,
         ),
       );
     } catch (error) {
@@ -89,6 +96,7 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
   void onHintPressed() {
     // Part 2 placeholder.
   }
+  
 
   Future<void> onChecklistSubmitted({
     required bool allChecked,
@@ -123,43 +131,78 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
     await _completeCurrentAttempt();
     await _logLevelCompleted();
 
-    if (_isLastLevel) {
-      _isCompleted = true;
+if (_currentLevel != null &&
+    _currentChallengeIndex <
+        _currentLevel!.challengeImages.length - 1) {
+  _currentChallengeIndex++;
 
-      await _logActivityCompleted();
-      await _completeActivitySession();
-
-      emit(const ShapeCreatorLevelComplete());
-      return;
-    }
-
-    _currentLevelIndex++;
-    _attemptNumber = 1;
-
-    final nextLevel = _levels[_currentLevelIndex];
-
-    final nextAttemptInfo = await _service.createLevelAttempt(
+  emit(
+    ShapeCreatorLoaded(
+      level: _currentLevel!,
+      currentAttemptId: _currentAttemptId,
       attemptNumber: _attemptNumber,
-      activitySessionId: _activitySessionId!,
-      levelId: nextLevel.id,
-    );
+      elapsed: _elapsed,
+      currentChallengeIndex: _currentChallengeIndex,
+    ),
+  );
 
-    _currentLevel = nextLevel;
-    _currentAttemptId = nextAttemptInfo.id;
-    _currentAttemptStartedAt = nextAttemptInfo.startedAt;
+  return;
+}
 
-    await _logLevelStarted();
+if (_isLastLevel) {
+  _isCompleted = true;
 
-    emit(
-      ShapeCreatorLoaded(
-        level: nextLevel,
-        currentAttemptId: _currentAttemptId,
-        attemptNumber: _attemptNumber,
-        elapsed: Duration.zero,
-      ),
-    );
-  }
+  await _logActivityCompleted();
+  await _completeActivitySession();
 
+  emit(const ShapeCreatorLevelComplete());
+  return;
+}
+
+// هنا انتهى مستوى لكن ما زال يوجد مستويات أخرى
+print("BEFORE LEVEL FINISHED");
+
+emit(
+  ShapeCreatorLevelFinished(
+    levelNumber: _currentLevel!.levelNumber,
+  ),
+);
+
+print("AFTER LEVEL FINISHED");
+
+await Future.delayed(
+  const Duration(seconds: 2),
+);
+
+_currentLevelIndex++;
+_currentChallengeIndex = 0;
+_attemptNumber = 1;
+
+final nextLevel = _levels[_currentLevelIndex];
+
+final nextAttemptInfo = await _service.createLevelAttempt(
+  attemptNumber: _attemptNumber,
+  activitySessionId: _activitySessionId!,
+  levelId: nextLevel.id,
+);
+
+_currentLevel = nextLevel;
+_currentAttemptId = nextAttemptInfo.id;
+_currentAttemptStartedAt = nextAttemptInfo.startedAt;
+
+await _logLevelStarted();
+_startTimer();
+
+emit(
+  ShapeCreatorLoaded(
+    level: nextLevel,
+    currentAttemptId: _currentAttemptId,
+    attemptNumber: _attemptNumber,
+    elapsed: _elapsed,
+    currentChallengeIndex: _currentChallengeIndex,
+  ),
+);
+}
   Future<void> _handleFailedAttempt() async {
     await _failCurrentAttempt();
     await _logLevelFailed();
@@ -176,6 +219,7 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
     _currentAttemptStartedAt = newAttemptInfo.startedAt;
 
     await _logLevelRetried();
+    _startTimer();
 
     emit(
       const ShapeCreatorChecklistResult(
@@ -188,7 +232,8 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
         level: _currentLevel!,
         currentAttemptId: _currentAttemptId,
         attemptNumber: _attemptNumber,
-        elapsed: Duration.zero,
+        elapsed: _elapsed,
+        currentChallengeIndex: _currentChallengeIndex,
       ),
     );
   }
@@ -298,7 +343,38 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
         // Avoid crashing while disposing the cubit.
       }
     }
-
+    _timer?.cancel();
     return super.close();
   }
+  void _startTimer() {
+  _timer?.cancel();
+
+  _elapsed = Duration.zero;
+
+  _timer = Timer.periodic(
+    const Duration(seconds: 1),
+    (_) {
+      if (state is ShapeCreatorLoaded) {
+        final currentState = state as ShapeCreatorLoaded;
+
+        emit(
+          ShapeCreatorLoaded(
+            level: currentState.level,
+            currentAttemptId: currentState.currentAttemptId,
+            attemptNumber: currentState.attemptNumber,
+            elapsed: Duration(
+              seconds: _elapsed.inSeconds + 1,
+            ),
+            currentChallengeIndex:
+                currentState.currentChallengeIndex,
+          ),
+        );
+
+        _elapsed = Duration(
+          seconds: _elapsed.inSeconds + 1,
+        );
+      }
+    },
+  );
+}
 }

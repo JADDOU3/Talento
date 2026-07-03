@@ -31,12 +31,14 @@ class ChecklistItemWidget extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+  text,
+  style: const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: Colors.black87,
+    height: 1.4,
+  ),
+)
             ),
           ],
         ),

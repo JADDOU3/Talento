@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../cubits/activities/shape_creator/shape_creator_cubit.dart';
 import '../../models/activities/shape_creator/shape_creator_checklist_item_model.dart';
-//import '../../services/child_mode_service.dart';
+import '../../services/child_mode_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'shape_creator_checklist_screen.dart';
 
@@ -29,8 +29,8 @@ class _ShapeCreatorPinScreenState
   final TextEditingController _pinController =
       TextEditingController();
 
- //final ChildModeService _childModeService =
-      //ChildModeService();
+ final ChildModeService _childModeService =
+      ChildModeService();
 
   bool _loading = false;
   String? _error;
@@ -49,11 +49,10 @@ class _ShapeCreatorPinScreenState
     });
 
     try {
-      //final verified = await _childModeService.verifyPin(
-        //_pinController.text,
-        final verified = true;
-        //مؤقت
-      //);
+      final verified = await _childModeService.verifyPin(
+        _pinController.text,
+        
+      );
 
       if (!mounted) return;
 

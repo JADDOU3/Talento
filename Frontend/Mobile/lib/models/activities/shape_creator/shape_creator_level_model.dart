@@ -7,6 +7,7 @@ class ShapeCreatorLevelModel {
   final int levelNumber;
   final String name;
   final String? imageUrl;
+  final List<String> challengeImages;
   final String prompt;
   final List<ShapeCreatorChecklistItemModel> checklist;
 
@@ -15,6 +16,7 @@ class ShapeCreatorLevelModel {
     required this.levelNumber,
     required this.name,
     required this.imageUrl,
+    required this.challengeImages,
     required this.prompt,
     required this.checklist,
   });
@@ -22,12 +24,14 @@ class ShapeCreatorLevelModel {
   factory ShapeCreatorLevelModel.fromJson(Map<String, dynamic> json) {
     final targetImage = _extractTargetImage(json);
     final meta = _parseMeta(targetImage['meta'] ?? json['meta']);
+final challengeImages = _extractChallengeImages(json);
 
     return ShapeCreatorLevelModel(
       id: _parseInt(json['id']),
       levelNumber: _parseInt(json['levelNumber']),
       name: (json['name'] ?? json['title'] ?? '').toString(),
       imageUrl: targetImage['url']?.toString(),
+      challengeImages: challengeImages,
       prompt: (meta['prompt'] ??
           'Build this object using the pieces in your kit.')
           .toString(),
@@ -83,7 +87,30 @@ static List<ShapeCreatorLevelModel> listFromPageResponse(
       )
       .toList();
 }
+static List<String> _extractChallengeImages(
+  Map<String, dynamic> json,
+) {
+  final images = json['images'];
 
+  if (images is! List) {
+    return <String>[];
+  }
+
+  return images
+      .whereType<Map>()
+      .map((item) => Map<String, dynamic>.from(item))
+      .where(
+        (image) =>
+            image['role']?.toString().toUpperCase() == 'TARGET',
+      )
+      .map(
+        (image) => image['url']?.toString() ?? '',
+      )
+      .where(
+        (url) => url.isNotEmpty,
+      )
+      .toList();
+}
   static Map<String, dynamic> _extractTargetImage(Map<String, dynamic> json) {
     final candidates = [
       json['images'],

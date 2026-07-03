@@ -7,6 +7,7 @@ import '../../shared/layout/app_background.dart';
 //import 'shape_creator_checklist_screen.dart';
 import 'widgets/target_image_widget.dart';
 import 'shape_creator_pin_screen.dart';
+import '../../core/theme/app_colors.dart';
 
 class ShapeCreatorBuildScreen extends StatefulWidget {
   final int activityId;
@@ -58,7 +59,8 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
         child: ShapeCreatorPinScreen(
           checklist: state.level.checklist,
           currentAttemptId: state.currentAttemptId,
-          targetImageUrl: state.level.imageUrl,
+          targetImageUrl: 
+           state.level.challengeImages[state.currentChallengeIndex],
         ),
       ),
     ),
@@ -95,43 +97,40 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
               );
             }
 
-            if (state is ShapeCreatorLevelComplete) {
-              return SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'أحسنت! اكتمل المستوى',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'أحسنت! لقد أنهيت نشاط صانع الأشكال.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: _finishActivity,
-                        child: const Text('إنهاء'),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
+            if (state is ShapeCreatorLevelFinished) {
+              print("BUILD SCREEN RECEIVED LEVEL FINISHED");
+  return Scaffold(
+    backgroundColor: Colors.green,
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.check_circle,
+            size: 120,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'ممتاز! لقد أنهيت المستوى ${state.levelNumber}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 
             if (state is ShapeCreatorLoaded) {
               final level = state.level;
+              final currentImage = level.challengeImages[
+               state.currentChallengeIndex
+                     ];
 
               return SafeArea(
                 child: Padding(
@@ -139,11 +138,18 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      const SizedBox(height: 10),
+
+                      _TopInfoBar(
+                       elapsed: state.elapsed,
+                     ),
+
+const SizedBox(height: 20),
                       Expanded(
                         child: Center(
                           child: TargetImageWidget(
-                            imageUrl: level.imageUrl,
-                            prompt: level.prompt,
+                             imageUrl: currentImage,
+                             prompt: level.prompt,
                           ),
                         ),
                       ),
@@ -201,4 +207,124 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
       ),
     );
   }
+  
+}
+class _TopInfoBar extends StatelessWidget {
+  final Duration elapsed;
+
+  const _TopInfoBar({
+    required this.elapsed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 54,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          _TopCircleButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icons.arrow_back_ios_new_rounded,
+          ),
+
+          const SizedBox(width: 8),
+
+          _InfoPill(
+            icon: Icons.timer_rounded,
+            text: _formatDuration(elapsed),
+          ),
+
+          const Spacer(),
+
+          Image.asset(
+  'assets/icons/logo1.png',
+  height: 50,
+  fit: BoxFit.contain,
+  errorBuilder: (_, __, ___) {
+    return const Text(
+      'Talento',
+      style: TextStyle(
+        fontFamily: 'BerlinSans',
+        fontSize: 30,
+        fontWeight: FontWeight.w800,
+        color: AppColors.primary,
+      ),
+    );
+  },
+),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopCircleButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  const _TopCircleButton({
+    required this.onPressed,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Icon(
+          icon,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _InfoPill({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 6),
+          Text(text),
+        ],
+      ),
+    );
+  }
+}
+
+String _formatDuration(Duration duration) {
+  final minutes =
+      duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+
+  final seconds =
+      duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+
+  return '$minutes:$seconds';
 }

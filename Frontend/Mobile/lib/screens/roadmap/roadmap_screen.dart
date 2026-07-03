@@ -129,7 +129,7 @@ class _RoadmapView extends StatelessWidget {
       RoadmapActivityModel activity,
       ) {
     if (activity.isLocked) {
-      _showMessage(context, 'أكملي الأنشطة السابقة أولًا');
+      _showMessage(context, 'أكمل الأنشطة السابقة أولًا');
       return;
       
     }

@@ -33,12 +33,14 @@ class ShapeCreatorLoaded extends ShapeCreatorState {
   final int currentAttemptId;
   final int attemptNumber;
   final Duration elapsed;
+  final int currentChallengeIndex;
 
   const ShapeCreatorLoaded({
     required this.level,
     required this.currentAttemptId,
     required this.attemptNumber,
     required this.elapsed,
+    required this.currentChallengeIndex,
   });
 
   @override
@@ -47,6 +49,7 @@ class ShapeCreatorLoaded extends ShapeCreatorState {
     currentAttemptId,
     attemptNumber,
     elapsed,
+    currentChallengeIndex,
   ];
 }
 
@@ -59,6 +62,16 @@ class ShapeCreatorChecklistResult extends ShapeCreatorState {
 
   @override
   List<Object?> get props => [allChecked];
+}
+class ShapeCreatorLevelFinished extends ShapeCreatorState {
+  final int levelNumber;
+
+  const ShapeCreatorLevelFinished({
+    required this.levelNumber,
+  });
+
+  @override
+  List<Object?> get props => [levelNumber];
 }
 
 class ShapeCreatorLevelComplete extends ShapeCreatorState {
