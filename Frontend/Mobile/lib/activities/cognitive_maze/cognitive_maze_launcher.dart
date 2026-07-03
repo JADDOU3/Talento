@@ -13,19 +13,21 @@ import 'cognitive_maze_intro.dart';
 /// identical across maze/colour activities, so there's no reason to
 /// duplicate it. Open THIS screen from the roadmap.
 class CognitiveMazeLauncher extends StatefulWidget {
-  final int activityId;
-  final int kitId;
-  final int childId;
+final int activityId;
+final int kitId;
+final int childId;
+final int? initialLevelNumber;
 
-  const CognitiveMazeLauncher({
-    super.key,
-    required this.activityId,
-    required this.kitId,
-    required this.childId,
-  });
+const CognitiveMazeLauncher({
+super.key,
+required this.activityId,
+required this.kitId,
+required this.childId,
+this.initialLevelNumber,
+});
 
-  @override
-  State<CognitiveMazeLauncher> createState() => _CognitiveMazeLauncherState();
+@override
+State<CognitiveMazeLauncher> createState() => _CognitiveMazeLauncherState();
 }
 
 class _CognitiveMazeLauncherState extends State<CognitiveMazeLauncher> {
@@ -64,7 +66,7 @@ class _CognitiveMazeLauncherState extends State<CognitiveMazeLauncher> {
             childId: ctx.childId,
             sessionId: ctx.sessionId,
             startLevelId: ctx.startLevelId,
-            startLevelNumber: ctx.startLevelNumber,
+            startLevelNumber: widget.initialLevelNumber ?? ctx.startLevelNumber,
           ),
         ),
       );

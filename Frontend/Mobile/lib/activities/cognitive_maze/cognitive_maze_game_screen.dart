@@ -11,16 +11,9 @@ import '../../cubits/cognitive_maze/cognitive_maze_cubit.dart';
 import '../../cubits/cognitive_maze/cognitive_maze_state.dart';
 import '../../services/activities/cognitive_maze_service.dart';
 import '../../shared/layout/app_background.dart';
+import '../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
 import 'widgets/cognitive_maze_game_widget.dart';
 
-/// The Cognitive Maze play screen: question banner + maze image + transparent
-/// Flame ball overlay, a count-up timer, and a calibrate button.
-///
-/// Differs from Bodily Maze in that:
-/// - there's a question banner above the maze
-/// - there's no tap-to-jump gesture (CognitiveMazeGame has none)
-/// - wrong answers don't end the round — the ball resets and a toast shows,
-///   handled via the transient CognitiveMazeWrongAnswer state
 class CognitiveMazeGameScreen extends StatelessWidget {
   final int activityId;
   final int activitySessionId;
@@ -87,7 +80,6 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     await context.read<CognitiveMazeCubit>().logExitIfNotCompleted();
     return true;
   }
-
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -103,25 +95,30 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
                   if (state is CognitiveMazeLoaded) {
                     _startTimer(context);
                   }
+
                   if (state is CognitiveMazeWrongAnswer) {
                     _lastLoaded = CognitiveMazeLoaded(
                       level: state.level,
                       config: state.config,
                       elapsed: state.elapsed,
+                      collectedColors: state.collectedColors,
                     );
+
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()
                       ..showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'إجابة خاطئة، حاول مرة أخرى 💪',
+                            'الجواب غير صحيح، حاول مرة أخرى',
                             textAlign: TextAlign.right,
                           ),
                           duration: Duration(seconds: 2),
                         ),
                       );
                   }
-                  if (state is CognitiveMazeComplete && !_completedNavigated) {
+
+                  if (state is CognitiveMazeComplete &&
+                      !_completedNavigated) {
                     _completedNavigated = true;
                     _timer?.cancel();
                     _showCompleteDialog(context);
@@ -132,18 +129,19 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
                       state is CognitiveMazeInitial) {
                     return const Center(child: CircularProgressIndicator());
                   }
+
                   if (state is CognitiveMazeError) {
                     return _buildError(context, state.message);
                   }
 
-                  // Loaded / WrongAnswer / Complete all render the playfield
-                  // from the last known Loaded snapshot.
                   final loaded = state is CognitiveMazeLoaded
                       ? state
                       : _lastLoaded;
+
                   if (loaded == null) {
                     return const Center(child: CircularProgressIndicator());
                   }
+
                   _lastLoaded = loaded;
                   return _buildPlayfield(context, loaded);
                 },
@@ -155,9 +153,8 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     );
   }
 
-  Widget _buildPlayfield(BuildContext context, CognitiveMazeLoaded loaded) {
-    final correctIndex = loaded.level.correctChoiceIndex;
-
+  Widget _buildPlayfield(
+      BuildContext context, CognitiveMazeLoaded loaded) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       child: Column(
@@ -169,16 +166,23 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                // Build (or reuse) the game once we have a size + config.
                 _game ??= CognitiveMazeGame(
                   config: loaded.config,
-                  correctEndpointIndex: correctIndex,
+                  correctEndpointIndex:
+                  loaded.config.isStarCollectLevel
+                      ? null
+                      : loaded.level.correctChoiceIndex,
                   tiltController: _tiltController,
-                  onCorrectAnswer: () =>
-                      context.read<CognitiveMazeCubit>().onCorrectAnswer(),
+                  onCorrectAnswer: () => context
+                      .read<CognitiveMazeCubit>()
+                      .onCorrectAnswer(),
                   onWrongAnswer: (endpointIndex) => context
                       .read<CognitiveMazeCubit>()
                       .onWrongAnswer(endpointIndex),
+                  onStarCollected:
+                      (color, isTarget) => context
+                      .read<CognitiveMazeCubit>()
+                      .onStarCollected(color, isTarget),
                 );
 
                 return ClipRRect(
@@ -186,7 +190,6 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Maze image (presigned url — never s3Key).
                       Image.network(
                         loaded.level.imageUrl,
                         fit: BoxFit.fill,
@@ -197,8 +200,17 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
                           ),
                         ),
                       ),
-                      // Transparent Flame overlay (only the ball is drawn).
+
                       GameWidget(game: _game!),
+
+                      if (loaded.config.isStarCollectLevel)
+                        Positioned(
+                          left: 12,
+                          bottom: 12,
+                          child: _PalestineFlagProgress(
+                            collected: loaded.collectedColors,
+                          ),
+                        ),
                     ],
                   ),
                 );
@@ -214,7 +226,6 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
       ),
     );
   }
-
   Widget _buildTopBar(BuildContext context, CognitiveMazeLoaded loaded) {
     return Row(
       children: [
@@ -230,19 +241,11 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
         const Spacer(),
         Image.asset('assets/icons/logo1.png', height: 40),
         const Spacer(),
-        // Count-up timer.
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.cardBackground,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: Row(
             children: [
@@ -252,9 +255,7 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
               Text(
                 _fmt(loaded.elapsed),
                 style: const TextStyle(
-                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w900,
-                  fontSize: 15,
                 ),
               ),
             ],
@@ -264,8 +265,6 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     );
   }
 
-  /// Question banner shown above the maze — the child reads this, then
-  /// navigates the ball toward the endpoint matching the correct choice.
   Widget _buildQuestionBanner(CognitiveMazeLoaded loaded) {
     return Container(
       width: double.infinity,
@@ -273,25 +272,17 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Row(
         children: [
           const Icon(Icons.psychology_alt_rounded,
-              size: 22, color: AppColors.primary),
+              color: AppColors.primary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               loaded.level.question,
               textAlign: TextAlign.right,
               style: const TextStyle(
-                color: AppColors.textPrimary,
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
               ),
@@ -306,80 +297,95 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogCtx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.emoji_events_rounded,
-                  size: 64, color: AppColors.yellow),
-              const SizedBox(height: 12),
-              const Text(
-                'أحسنت! وصلت للنهاية 🎉',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(dialogCtx); // close dialog
-                  Navigator.pop(context); // leave game
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                ),
-                child: const Text('تم'),
-              ),
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.emoji_events_rounded,
+                size: 60, color: AppColors.yellow),
+            SizedBox(height: 12),
+            Text(
+              'أحسنت! 🎉',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w900),
             ),
           ],
         ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                Navigator.pop(context);
+              },
+              child: const Text('تم'),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildError(BuildContext context, String message) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 52, color: AppColors.hint),
-            const SizedBox(height: 14),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
+      child: Text(message),
+    );
+  }
+}
+
+class _PalestineFlagProgress extends StatelessWidget {
+  final Set<Color> collected;
+
+  const _PalestineFlagProgress({required this.collected});
+
+  Color _stripe(Color target) =>
+      collected.contains(target) ? target : AppColors.inputFill;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 70,
+      height: 46,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.black26),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(child: Container(color: _stripe(PalestineFlagColors.black))),
+              Expanded(child: Container(color: _stripe(PalestineFlagColors.white))),
+              Expanded(child: Container(color: _stripe(PalestineFlagColors.green))),
+            ],
+          ),
+          ClipPath(
+            clipper: _FlagTriangleClipper(),
+            child: Container(
+              width: 26,
+              color: _stripe(PalestineFlagColors.red),
             ),
-            const SizedBox(height: 18),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
-              ),
-              child: const Text('رجوع'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _FlagTriangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, size.height / 2)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

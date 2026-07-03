@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../../models/activities/cognitive_maze/cognitive_maze_models.dart';
 import '../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
 
@@ -18,28 +20,28 @@ class CognitiveMazeLoaded extends CognitiveMazeState {
   final CognitiveMazeLevelConfig config;
   final Duration elapsed;
 
+  /// Colors collected so far — only meaningful for star-collect levels.
+  final Set<Color> collectedColors;
+
   const CognitiveMazeLoaded({
     required this.level,
     required this.config,
     required this.elapsed,
+    this.collectedColors = const {},
   });
 }
 
-/// Transient state: emitted the instant the ball lands on an incorrect
-/// endpoint. The screen's playfield keeps rendering from the last
-/// CognitiveMazeLoaded (same fallback pattern used for Complete), while a
-/// BlocListener reacts to this specific state to show a one-off "wrong
-/// answer, try again" toast. The ball itself is already reset to start by
-/// the game engine before this is even emitted.
 class CognitiveMazeWrongAnswer extends CognitiveMazeState {
   final CognitiveMazeLevel level;
   final CognitiveMazeLevelConfig config;
   final Duration elapsed;
+  final Set<Color> collectedColors;
 
   const CognitiveMazeWrongAnswer({
     required this.level,
     required this.config,
     required this.elapsed,
+    this.collectedColors = const {},
   });
 }
 

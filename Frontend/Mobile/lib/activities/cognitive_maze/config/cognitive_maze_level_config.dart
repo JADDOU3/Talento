@@ -1,52 +1,57 @@
 import 'package:flutter/material.dart';
 
-/// Per-level maze geometry, defined MANUALLY by the developer — same
-/// approach as Bodily Maze's MazeLevelConfig, with two differences:
-/// - no holeRects (Cognitive Maze has no fall-through hazards)
-/// - a single startPoint but MULTIPLE endPoints, one per answer choice
-///
-/// endPoints[i] MUST correspond to the same index as the level's
-/// choices[i] (from CognitiveMazeLevel.choices) — that pairing is what lets
-/// the game know which physical path is the correct answer. Measure and
-/// order them to match the backend's choices array exactly.
-///
-/// All coordinates are NORMALIZED (0.0–1.0) relative to the rendered image
-/// size, same convention as Bodily Maze.
-class CognitiveMazeLevelConfig {
-  /// Backend level id this config belongs to.
-  final int levelId;
 
-  /// Ball spawn position (the green dot), normalized 0.0–1.0.
+class PalestineFlagColors {
+  static const red = Color(0xFFCE1126);
+  static const green = Color(0xFF007A3D);
+  static const black = Color(0xFF000000);
+  static const white = Color(0xFFFFFFFF);
+
+  static final Set<Color> all = {red, green, black, white};
+}
+
+class MazeStar {
+  final Offset position; // normalized 0.0–1.0
+  final Color color;
+  final double radius; // normalized, relative to image width
+
+  const MazeStar({
+    required this.position,
+    required this.color,
+    this.radius = 0.035,
+  });
+}
+
+class CognitiveMazeLevelConfig {
+  final int levelId;
   final Offset startPoint;
 
-  /// One win-zone center per answer choice, normalized 0.0–1.0. Index i
-  /// pairs with CognitiveMazeLevel.choices[i].
+  /// Single-answer mode (level 1 style). Empty for star-collect levels.
   final List<Offset> endPoints;
-
-  /// Win zone radius, normalized (relative to image width) — shared by
-  /// every endpoint.
   final double endPointRadius;
 
-  /// Wall collision boxes, normalized 0.0–1.0.
   final List<Rect> wallRects;
+
+  /// Star-collect mode (level 2 style). Empty for single-answer levels.
+  final List<MazeStar> stars;
+
+  /// Colors that must ALL be collected to finish a star-collect level.
+  final Set<Color> targetColors;
 
   const CognitiveMazeLevelConfig({
     required this.levelId,
     required this.startPoint,
-    required this.endPoints,
-    required this.endPointRadius,
+    this.endPoints = const [],
+    this.endPointRadius = 0.04,
     required this.wallRects,
+    this.stars = const [],
+    this.targetColors = const {},
   });
+
+  bool get isStarCollectLevel => stars.isNotEmpty;
 }
 
-/// All known level configs, keyed by backend levelId.
-///
-/// ⚠️ DEVELOPER TODO: the key below is 52, carried over as-is from the
-/// coordinate-picker draft — the real Level 1 JSON has id 58. Rename the
-/// key to 58 (or whichever levelId this geometry was actually measured
-/// against) before wiring it up, or CognitiveMazeCubit.loadGame will fail
-/// to find a config for the level it loads.
-const Map<int, CognitiveMazeLevelConfig> cognitiveMazeConfigs = {
+final  Map<int, CognitiveMazeLevelConfig> cognitiveMazeConfigs = {
   58: CognitiveMazeLevelConfig(
     levelId: 58,
     startPoint: Offset(0.0656, 0.3733),
@@ -96,5 +101,85 @@ const Map<int, CognitiveMazeLevelConfig> cognitiveMazeConfigs = {
       Rect.fromLTWH(0.1133, 0.6738, 0.2123, 0.0675),
       Rect.fromLTWH(0.2578, 0.7262, 0.0655, 0.0702),
     ],
+  ),
+  59: CognitiveMazeLevelConfig(
+    levelId: 59,
+    startPoint: Offset(0.0878, 0.2652),
+    endPoints: [Offset(0.8533, 0.7984)],
+    endPointRadius: 0.04,
+    wallRects: [
+      Rect.fromLTWH(0.2067, 0.1526, 0.2355, 0.0169),
+      Rect.fromLTWH(0.4189, 0.167, 0.0722, 0.095),
+      Rect.fromLTWH(0.5167, 0.2489, 0.08, 0.1082),
+      Rect.fromLTWH(0.4844, 0.2477, 0.06, 0.0162),
+      Rect.fromLTWH(0.5567, 0.331, 0.32, 0.0244),
+      Rect.fromLTWH(0.7533, 0.2629, 0.1223, 0.09),
+      Rect.fromLTWH(0.6489, 0.3504, 0.0867, 0.1145),
+      Rect.fromLTWH(0.6511, 0.4605, 0.1533, 0.0657),
+      Rect.fromLTWH(0.5156, 0.4674, 0.1611, 0.06),
+      Rect.fromLTWH(0.3822, 0.5149, 0.1778, 0.0275),
+      Rect.fromLTWH(0.4511, 0.5287, 0.1089, 0.0719),
+      Rect.fromLTWH(0.1567, 0.3554, 0.1855, 0.0957),
+      Rect.fromLTWH(0.2989, 0.4424, 0.16, 0.0412),
+      Rect.fromLTWH(0.2667, 0.5733, 0.13, 0.0413),
+      Rect.fromLTWH(0.26, 0.4532, 0.07, 0.1226),
+      Rect.fromLTWH(0.2544, 0.4469, 0.0656, 0.1114),
+      Rect.fromLTWH(0.26, 0.5533, 0.0711, 0.0613),
+      Rect.fromLTWH(0.2678, 0.6064, 0.1233, 0.015),
+      Rect.fromLTWH(0.3689, 0.6239, 0.0278, 0.1351),
+      Rect.fromLTWH(0.3622, 0.6058, 0.0078, 0.1663),
+      Rect.fromLTWH(0.3833, 0.6296, 0.1778, 0.035),
+      Rect.fromLTWH(0.3967, 0.66, 0.0311, 0.1282),
+      Rect.fromLTWH(0.3978, 0.7638, 0.1266, 0.02),
+      Rect.fromLTWH(0.4489, 0.7713, 0.0722, 0.0688),
+      Rect.fromLTWH(0.5167, 0.8226, 0.4, 0.0325),
+      Rect.fromLTWH(0.8911, 0.5956, 0.08, 0.2501),
+      Rect.fromLTWH(0.6156, 0.5595, 0.36, 0.0394),
+      Rect.fromLTWH(0.6156, 0.5922, 0.1188, 0.0676),
+      Rect.fromLTWH(0.6811, 0.6548, 0.0533, 0.0531),
+      Rect.fromLTWH(0.4711, 0.6948, 0.16, 0.0394),
+      Rect.fromLTWH(0.5744, 0.74, 0.2145, 0.0513),
+      Rect.fromLTWH(0.7844, 0.6275, 0.0567, 0.1188),
+      Rect.fromLTWH(0.7744, 0.725, 0.0345, 0.0157),
+      Rect.fromLTWH(0.7778, 0.7375, 0.0278, 0.0176),
+      Rect.fromLTWH(0.5744, 0.7282, 0.0534, 0.0344),
+      Rect.fromLTWH(0.8578, 0.428, 0.09, 0.1501),
+      Rect.fromLTWH(0.7878, 0.3898, 0.1589, 0.0407),
+      Rect.fromLTWH(0.9267, 0.226, 0.0555, 0.1726),
+      Rect.fromLTWH(0.8333, 0.162, 0.11, 0.0656),
+      Rect.fromLTWH(0.5433, 0.1914, 0.2267, 0.0281),
+      Rect.fromLTWH(0.7178, 0.1945, 0.0622, 0.0331),
+      Rect.fromLTWH(0.65, 0.2026, 0.0533, 0.0938),
+      Rect.fromLTWH(0.4811, 0.1463, 0.4456, 0.0176),
+      Rect.fromLTWH(0.2667, 0.2005, 0.1033, 0.1226),
+      Rect.fromLTWH(0.3378, 0.2944, 0.1355, 0.0293),
+      Rect.fromLTWH(0.3889, 0.2994, 0.0789, 0.1063),
+      Rect.fromLTWH(0.5089, 0.3894, 0.0889, 0.0469),
+      Rect.fromLTWH(0.4356, 0.3888, 0.12, 0.0181),
+      Rect.fromLTWH(0.0578, 0.2843, 0.1533, 0.0401),
+      Rect.fromLTWH(0.2044, 0.1611, 0.0056, 0.0932),
+      Rect.fromLTWH(0.0233, 0.2293, 0.1878, 0.0238),
+      Rect.fromLTWH(0.0278, 0.2387, 0.0344, 0.085),
+      Rect.fromLTWH(0.1244, 0.158, 0.0889, 0.0963),
+      Rect.fromLTWH(0.0289, 0.3179, 0.0789, 0.2158),
+      Rect.fromLTWH(0.0944, 0.4805, 0.1067, 0.0607),
+      Rect.fromLTWH(0.0578, 0.5391, 0.0711, 0.1907),
+      Rect.fromLTWH(0.0722, 0.704, 0.1434, 0.0656),
+      Rect.fromLTWH(0.1533, 0.7534, 0.2211, 0.0275),
+      Rect.fromLTWH(0.1733, 0.5729, 0.0456, 0.1013),
+      Rect.fromLTWH(0.1789, 0.6504, 0.1333, 0.0225),
+      Rect.fromLTWH(0.2633, 0.6579, 0.0534, 0.0688),
+    ],
+    stars: [
+      MazeStar(position: Offset(0.6722, 0.3139), color: PalestineFlagColors.red),
+      MazeStar(position: Offset(0.7656, 0.4028), color: PalestineFlagColors.green),
+      MazeStar(position: Offset(0.4556, 0.7121), color: PalestineFlagColors.black),
+      MazeStar(position: Offset(0.7089, 0.7221), color: PalestineFlagColors.white),
+      MazeStar(position: Offset(0.3522, 0.6865), color: Colors.blue),
+      MazeStar(position: Offset(0.1578, 0.6421), color: Colors.orange),
+      MazeStar(position: Offset(0.4667, 0.424), color: Colors.purple),
+      MazeStar(position: Offset(0.5067, 0.6146), color: Colors.yellow),
+    ],
+    targetColors: PalestineFlagColors.all,
   ),
 };

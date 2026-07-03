@@ -8,35 +8,22 @@ import '../../../../maze_engine/physics/tilt_gravity_behavior.dart';
 import '../../../../maze_engine/tilt/tilt_controller.dart';
 import '../config/cognitive_maze_level_config.dart';
 
-/// Same tilt-driven ball-in-a-maze engine as BodilyMazeGame, minus the two
-/// things Cognitive Maze doesn't have:
-/// - no tap-to-jump (there's nothing to jump over)
-/// - no holes (a "wrong path" isn't a hazard, it's an answer)
-///
-/// Instead, there are multiple endpoints — one per answer choice — and the
-/// game reports back which one the ball reached via [onCorrectAnswer] or
-/// [onWrongAnswer]. On a wrong answer, the ball is reset to start
-/// immediately, same mechanic Bodily Maze already uses for holes.
 class CognitiveMazeGame extends Forge2DGame {
   CognitiveMazeGame({
     required this.config,
-    required this.correctEndpointIndex,
+    this.correctEndpointIndex,
     required this.tiltController,
     required this.onCorrectAnswer,
-    required this.onWrongAnswer,
+    this.onWrongAnswer,
+    this.onStarCollected,
   }) : super(gravity: Vector2.zero(), zoom: 1);
 
   final CognitiveMazeLevelConfig config;
-
-  /// Index into config.endPoints that is the correct answer for this level
-  /// (i.e. CognitiveMazeLevel.correctChoiceIndex).
-  final int correctEndpointIndex;
-
+  final int? correctEndpointIndex;
   final TiltController tiltController;
   final VoidCallback onCorrectAnswer;
-
-  /// Called with the index of the wrong endpoint the ball reached.
-  final void Function(int endpointIndex) onWrongAnswer;
+  final void Function(int endpointIndex)? onWrongAnswer;
+  final void Function(Color color, bool isTarget)? onStarCollected;
 
   MazeBallComponent? _ball;
   TiltGravityBehavior? _tiltBehavior;
@@ -44,6 +31,11 @@ class CognitiveMazeGame extends Forge2DGame {
 
   bool _worldBuilt = false;
   bool _finished = false;
+
+  final Map<int, CircleComponent> _starComponents = {};
+  final Set<int> _collectedStarIndices = {};
+  final Set<Color> _collectedTargetColors = {};
+  bool _touchedWrongColor = false;
 
   @override
   Color backgroundColor() => const Color(0x00000000);
@@ -80,6 +72,7 @@ class CognitiveMazeGame extends Forge2DGame {
         color: const Color(0x00000000),
       ));
     }
+
     _startPixel = Vector2(config.startPoint.dx * s.x, config.startPoint.dy * s.y);
     final ball = MazeBallComponent(
       startPosition: _startPixel.clone(),
@@ -88,10 +81,24 @@ class CognitiveMazeGame extends Forge2DGame {
     );
     _ball = ball;
     add(ball);
+
+    if (config.isStarCollectLevel) {
+      for (int i = 0; i < config.stars.length; i++) {
+        final star = config.stars[i];
+        final center = Vector2(star.position.dx * s.x, star.position.dy * s.y);
+        final radiusPx = star.radius * s.x;
+        final comp = CircleComponent(
+          radius: radiusPx,
+          position: center,
+          anchor: Anchor.center,
+          paint: Paint()..color = star.color,
+        );
+        _starComponents[i] = comp;
+        add(comp);
+      }
+    }
   }
 
-  /// Returns the index of the endpoint the ball is currently inside, or -1
-  /// if it isn't at any endpoint.
   int _endpointBallIsAt() {
     final ball = _ball;
     if (ball == null) return -1;
@@ -107,10 +114,78 @@ class CognitiveMazeGame extends Forge2DGame {
     return -1;
   }
 
+  void _checkStarPickups() {
+    final ball = _ball;
+    if (ball == null) return;
+    final s = size;
+    final pos = ball.body.position;
+
+    for (int i = 0; i < config.stars.length; i++) {
+      if (_collectedStarIndices.contains(i)) continue;
+      final star = config.stars[i];
+      final c = Offset(star.position.dx * s.x, star.position.dy * s.y);
+      final rPx = star.radius * s.x;
+      final dx = pos.x - c.dx, dy = pos.y - c.dy;
+      if ((dx * dx + dy * dy) > (rPx * rPx)) continue;
+
+      _collectedStarIndices.add(i);
+      // Hide visually without depending on a HasPaint.opacity API.
+      _starComponents[i]?.paint = Paint()..color = const Color(0x00000000);
+
+      final isTarget = config.targetColors.contains(star.color);
+      if (isTarget) {
+        _collectedTargetColors.add(star.color);
+      } else {
+        _touchedWrongColor = true;
+      }
+      onStarCollected?.call(star.color, isTarget);
+      // Note: no completion check here anymore — completion only happens
+      // when the ball reaches the endpoint (see _checkStarEndpoint).
+    }
+  }
+
+  void _checkStarEndpoint() {
+    if (config.endPoints.isEmpty) return;
+    final ball = _ball;
+    if (ball == null) return;
+    final s = size;
+    final pos = ball.body.position;
+    final rPx = config.endPointRadius * s.x;
+    final ep = config.endPoints.first;
+    final c = Offset(ep.dx * s.x, ep.dy * s.y);
+    final dx = pos.x - c.dx, dy = pos.y - c.dy;
+    if ((dx * dx + dy * dy) > (rPx * rPx)) return; // not there yet
+
+    final hasAllColors = _collectedTargetColors.length == config.targetColors.length;
+    if (hasAllColors && !_touchedWrongColor) {
+      _finished = true;
+      onCorrectAnswer();
+    } else {
+      _resetStarLevel();
+      onWrongAnswer?.call(0);
+    }
+  }
+
+  void _resetStarLevel() {
+    _collectedStarIndices.clear();
+    _collectedTargetColors.clear();
+    _touchedWrongColor = false;
+    for (int i = 0; i < config.stars.length; i++) {
+      _starComponents[i]?.paint = Paint()..color = config.stars[i].color;
+    }
+    _resetBall();
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
     if (_finished || _ball == null) return;
+
+    if (config.isStarCollectLevel) {
+      _checkStarPickups();
+      _checkStarEndpoint();
+      return;
+    }
 
     final reachedIndex = _endpointBallIsAt();
     if (reachedIndex == -1) return;
@@ -120,7 +195,7 @@ class CognitiveMazeGame extends Forge2DGame {
       onCorrectAnswer();
     } else {
       _resetBall();
-      onWrongAnswer(reachedIndex);
+      onWrongAnswer?.call(reachedIndex);
     }
   }
 
