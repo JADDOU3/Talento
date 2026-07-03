@@ -25,79 +25,78 @@ class RoadmapActivityTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tileColor = _tileColor;
     final statusColor = _statusColor;
-    final rotation = _rotationForIndex(index);
 
-    return Transform.rotate(
-      angle: activity.isLocked ? rotation * 0.45 : rotation,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(32),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
-            width: activity.isCurrent ? 188 : 170,
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
-            decoration: BoxDecoration(
-              color: tileColor,
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(
-                color: activity.isCurrent
-                    ? AppColors.white.withValues(alpha: 0.98)
-                    : AppColors.white.withValues(alpha: 0.72),
-                width: activity.isCurrent ? 2.6 : 1.7,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: statusColor.withValues(
-                    alpha: activity.isCurrent || activity.isCompleted
-                        ? 0.30
-                        : 0.18,
-                  ),
-                  blurRadius: activity.isCurrent || activity.isCompleted
-                      ? 26
-                      : 18,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(32),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          width: activity.isCurrent ? 188 : 170,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
+          decoration: BoxDecoration(
+            color: tileColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: activity.isCurrent
+                  ? AppColors.white.withOpacity(0.98)
+                  : AppColors.white.withOpacity(0.72),
+              width: activity.isCurrent ? 2.6 : 1.7,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (activity.isCompleted)
-                  const SizedBox(height: 27)
-                else
-                  _StatusBadge(
-                    activity: activity,
-                    color: statusColor,
-                  ),
-                const SizedBox(height: 6),
-                _ActivityIcon(
+            boxShadow: [
+              BoxShadow(
+                color: statusColor.withOpacity(
+                  activity.isCurrent || activity.isCompleted ? 0.30 : 0.18,
+                ),
+                blurRadius:
+                activity.isCurrent || activity.isCompleted ? 26 : 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (activity.isCompleted)
+                const SizedBox(height: 27)
+              else
+                _StatusBadge(
                   activity: activity,
                   color: statusColor,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  activity.activityName.trim().isEmpty
-                      ? 'نشاط ${index + 1}'
-                      : activity.activityName,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: activity.isCurrent ? 14.8 : 14,
-                    height: 1.18,
-                  ),
+              const SizedBox(height: 6),
+              _ActivityIcon(
+                activity: activity,
+                color: statusColor,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                activity.activityName.trim().isEmpty
+                    ? 'نشاط ${index + 1}'
+                    : activity.activityName,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: activity.isCurrent ? 14.8 : 14,
+                  height: 1.18,
                 ),
+              ),
+              const SizedBox(height: 5),
+              _ActivitySubtitle(
+                activity: activity,
+                childId: childId,
+              ),
+              if (activity.hasStoryCount) ...[
                 const SizedBox(height: 5),
-                _ActivitySubtitle(
-                  activity: activity,
-                  childId: childId,
+                _StoryCountBadge(
+                  count: activity.storyCount!,
                 ),
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -106,20 +105,19 @@ class RoadmapActivityTile extends StatelessWidget {
 
   Color get _tileColor {
     final colors = <Color>[
-      AppColors.pink.withValues(alpha: 0.8),
-      AppColors.yellow.withValues(alpha: 0.8),
-      AppColors.secondary.withValues(alpha: 0.8),
-      AppColors.primary.withValues(alpha: 0.8),
-      const Color(0xFF48C5DC).withValues(alpha: 0.8),
+      AppColors.pink.withOpacity(0.8),
+      AppColors.yellow.withOpacity(0.8),
+      AppColors.secondary.withOpacity(0.8),
+      AppColors.primary.withOpacity(0.8),
+      const Color(0xFF48C5DC).withOpacity(0.8),
     ];
 
     final baseColor = colors[index % colors.length];
 
     if (activity.isLocked) {
-      return baseColor.withValues(alpha: 0.46);
+      return baseColor.withOpacity(0.46);
     }
 
-    // Completed and current keep their original card color.
     return baseColor;
   }
 
@@ -138,13 +136,59 @@ class RoadmapActivityTile extends StatelessWidget {
 
     return AppColors.textPrimary;
   }
-
-  static double _rotationForIndex(int index) {
-    final rotations = <double>[-0.040, 0.034, -0.024, 0.030];
-    return rotations[index % rotations.length];
-  }
 }
 
+class _StoryCountBadge extends StatelessWidget {
+  final int count;
+
+  const _StoryCountBadge({
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.76),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: AppColors.white.withOpacity(0.82),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.03),
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        textDirection: TextDirection.ltr,
+        children: [
+          Icon(
+            Icons.menu_book_rounded,
+            size: 12,
+            color: AppColors.textPrimary.withOpacity(0.74),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            count.toString(),
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary.withOpacity(0.78),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 class _ActivitySubtitle extends StatelessWidget {
   final RoadmapActivityModel activity;
   final int? childId;
@@ -170,8 +214,8 @@ class _ActivitySubtitle extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
           decoration: BoxDecoration(
             color: activity.isCurrent
-                ? AppColors.white.withValues(alpha: 0.20)
-                : AppColors.white.withValues(alpha: 0.64),
+                ? AppColors.white.withOpacity(0.20)
+                : AppColors.white.withOpacity(0.64),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
@@ -210,9 +254,8 @@ class _ActivitySubtitle extends StatelessWidget {
       return _backendSubtitle;
     }
 
-    final backendLevelNumber = activity.currentLevelNumber <= 0
-        ? 1
-        : activity.currentLevelNumber;
+    final backendLevelNumber =
+    activity.currentLevelNumber <= 0 ? 1 : activity.currentLevelNumber;
 
     final totalLevels = activity.totalLevels <= 0 ? 1 : activity.totalLevels;
 
@@ -293,8 +336,8 @@ class _ActivityIcon extends StatelessWidget {
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(
-          alpha: activity.isLocked ? 0.82 : 0.92,
+        color: AppColors.white.withOpacity(
+          activity.isLocked ? 0.82 : 0.92,
         ),
         shape: BoxShape.circle,
       ),
@@ -365,11 +408,11 @@ class _PulsingIconState extends State<_PulsingIcon>
         width: 66,
         height: 66,
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.96),
+          color: AppColors.white.withOpacity(0.96),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: widget.color.withValues(alpha: 0.36),
+              color: widget.color.withOpacity(0.36),
               blurRadius: 22,
               spreadRadius: 3,
             ),
@@ -396,9 +439,8 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = activity.isCurrent
-        ? Icons.auto_awesome_rounded
-        : Icons.lock_rounded;
+    final icon =
+    activity.isCurrent ? Icons.auto_awesome_rounded : Icons.lock_rounded;
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -406,11 +448,11 @@ class _StatusBadge extends StatelessWidget {
         width: 27,
         height: 27,
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.94),
+          color: AppColors.white.withOpacity(0.94),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.04),
+              color: AppColors.black.withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),

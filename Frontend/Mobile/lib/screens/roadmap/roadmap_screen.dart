@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
+import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
+import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/story_spinner/story_spinner_intro.dart';
 import '../../activities/tower_builder/tower_builder_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/roadmap/roadmap_cubit.dart';
@@ -167,6 +170,34 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
+
+    if (activityName == 'empathy mirror') {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) => EmpathyMirrorLauncher(
+          activityId: activity.activityId,
+          kitId: kitId,
+          childId: childId,
+        ),
+      ));
+    }
+
+    // Maze tilt engine — pure test screen (no levels, no session/event
+    // logging), reached directly like the old internal test menu used to,
+    // just triggered from a roadmap tap now instead.
+    //
+    // ⚠️ REQUIRES a real backend Activity entry named "Maze Engine Test"
+    // (or whatever name the backend confirms) so a roadmap tile exists at
+    // all to tap on — roadmap tiles are 100% backend-driven, there's no
+    // client-only tile mechanism. Coordinate with the team before this
+    // branch can actually be reached.
+    if (activityName == 'gyro maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MazeEngineTestScreen()),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
     if (activityName == 'tower builder') {
       Navigator.push(
         context,
@@ -244,6 +275,21 @@ class _RoadmapView extends StatelessWidget {
 
   return;
 }
+
+    if (activityName == 'story spinner' ||
+        activityName == 'story spinner cards') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StorySpinnerIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
     _showMessage(
       context,

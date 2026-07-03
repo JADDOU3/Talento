@@ -8,7 +8,7 @@ import '../roadmap/roadmap_service.dart';
 
 /// Resolves everything the Tower Builder game needs BEFORE it opens:
 /// selected child → last used kit → current activity via roadmap →
-/// session → activity session.
+/// progress → session → activity session.
 ///
 /// The game itself never refetches any of this.
 /// It only receives the final ids.
@@ -17,12 +17,28 @@ class TowerBuilderContext {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const TowerBuilderContext({
     required this.activityId,
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
+  });
+}
+
+class _TowerBuilderProgress {
+  final bool completed;
+  final int? currentLevelId;
+  final int currentLevelNumber;
+
+  const _TowerBuilderProgress({
+    required this.completed,
+    required this.currentLevelId,
+    required this.currentLevelNumber,
   });
 }
 
@@ -48,6 +64,8 @@ class TowerBuilderContextService {
       throw Exception('لا يوجد نشاط حالي في خارطة الرحلة.');
     }
 
+    final progress = await _getActivityProgress(activityId);
+
     final sessionId = await _createSession(
       kitId: kitId,
       childId: childId,
@@ -63,6 +81,8 @@ class TowerBuilderContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
+      startLevelId: progress.completed ? null : progress.currentLevelId,
+      startLevelNumber: progress.completed ? 1 : progress.currentLevelNumber,
     );
   }
 
@@ -73,6 +93,8 @@ class TowerBuilderContextService {
     required int kitId,
     required int childId,
   }) async {
+    final progress = await _getActivityProgress(activityId);
+
     final sessionId = await _createSession(
       kitId: kitId,
       childId: childId,
@@ -88,7 +110,58 @@ class TowerBuilderContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
+      startLevelId: progress.completed ? null : progress.currentLevelId,
+      startLevelNumber: progress.completed ? 1 : progress.currentLevelNumber,
     );
+  }
+
+  // GET /api/roadmap/progress/{activityId}
+  // GET /api/roadmap/progress/{activityId}
+  Future<_TowerBuilderProgress> _getActivityProgress(int activityId) async {
+    final url = ApiConstants.roadmapProgress(activityId);
+
+    final response = await _client.get(
+      Uri.parse(url),
+    );
+
+    debugPrint(
+      'TOWER BUILDER ACTIVITY PROGRESS: ${response.statusCode} - ${response.body}',
+    );
+
+    // If no progress exists yet, start from Level 1.
+    if (response.statusCode == 404) {
+      return const _TowerBuilderProgress(
+        completed: false,
+        currentLevelId: null,
+        currentLevelNumber: 1,
+      );
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.trim().isEmpty) {
+        return const _TowerBuilderProgress(
+          completed: false,
+          currentLevelId: null,
+          currentLevelNumber: 1,
+        );
+      }
+
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is Map) {
+        final completed = decoded['completed'] == true;
+
+        final levelNumber = _toInt(decoded['currentLevelNumber']);
+
+        return _TowerBuilderProgress(
+          completed: completed,
+          currentLevelId: _nullableInt(decoded['currentLevelId']),
+          currentLevelNumber: levelNumber == 0 ? 1 : levelNumber,
+        );
+      }
+    }
+
+    throw Exception('فشل تحميل تقدم النشاط');
   }
 
   // GET /api/children/selected
@@ -97,7 +170,9 @@ class TowerBuilderContextService {
       Uri.parse(ApiConstants.selectedChild),
     );
 
-    debugPrint('TOWER BUILDER SELECTED CHILD: ${response.statusCode} - ${response.body}');
+    debugPrint(
+      'TOWER BUILDER SELECTED CHILD: ${response.statusCode} - ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.trim().isEmpty) return null;
@@ -121,7 +196,9 @@ class TowerBuilderContextService {
       Uri.parse(url),
     );
 
-    debugPrint('TOWER BUILDER LAST SESSION: ${response.statusCode} - ${response.body}');
+    debugPrint(
+      'TOWER BUILDER LAST SESSION: ${response.statusCode} - ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.trim().isEmpty) return null;
@@ -185,7 +262,9 @@ class TowerBuilderContextService {
       body: jsonEncode(body),
     );
 
-    debugPrint('TOWER BUILDER CREATE SESSION: ${response.statusCode} - ${response.body}');
+    debugPrint(
+      'TOWER BUILDER CREATE SESSION: ${response.statusCode} - ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
@@ -232,5 +311,11 @@ class TowerBuilderContextService {
   static int _toInt(dynamic value) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static int? _nullableInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
   }
 }

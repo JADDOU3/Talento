@@ -21,7 +21,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
   List<TowerBuilderLevelModel> _levels = [];
   int _currentLevelIndex = 0;
-
+  int _currentChallengeIndex = 0;
   TowerBuilderLevelModel? _currentLevel;
   int _attemptNumber = 1;
   int _currentAttemptId = 0;
@@ -30,12 +30,21 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
   bool get _isLastLevel {
     return _currentLevelIndex >= _levels.length - 1;
   }
+  bool get _isLastChallenge {
+    if (_currentLevel == null) return true;
+    return _currentChallengeIndex >= _currentLevel!.challenges.length - 1;
+  }
+
+  TowerBuilderLevelModel get _activeLevel {
+    return _currentLevel!.withActiveChallenge(_currentChallengeIndex);
+  }
 
   Future<void> loadGame({
     required int activityId,
     required int activitySessionId,
     required int childId,
     required int sessionId,
+    int? startLevelId,
   }) async {
     emit(const TowerBuilderLoading());
 
@@ -51,7 +60,16 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
         throw Exception('No Tower Builder levels found.');
       }
 
-      _currentLevelIndex = 0;
+      if (startLevelId != null) {
+        final foundIndex = _levels.indexWhere(
+              (level) => level.id == startLevelId,
+        );
+
+        _currentLevelIndex = foundIndex == -1 ? 0 : foundIndex;
+      } else {
+        _currentLevelIndex = 0;
+      }
+      _currentChallengeIndex = 0;
       _attemptNumber = 1;
 
       final level = _levels[_currentLevelIndex];
@@ -71,7 +89,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
       emit(
         TowerBuilderLoaded(
-          level: level,
+          level: _activeLevel,
           currentAttemptId: _currentAttemptId,
           attemptNumber: _attemptNumber,
           elapsed: Duration.zero,
@@ -120,6 +138,21 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
   }
 
   Future<void> _handleSuccessfulAttempt() async {
+    if (!_isLastChallenge) {
+      _currentChallengeIndex++;
+
+      emit(
+        TowerBuilderLoaded(
+          level: _activeLevel,
+          currentAttemptId: _currentAttemptId,
+          attemptNumber: _attemptNumber,
+          elapsed: Duration.zero,
+        ),
+      );
+
+      return;
+    }
+
     await _completeCurrentAttempt();
     await _logLevelCompleted();
 
@@ -134,6 +167,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     }
 
     _currentLevelIndex++;
+    _currentChallengeIndex = 0;
     _attemptNumber = 1;
 
     final nextLevel = _levels[_currentLevelIndex];
@@ -152,7 +186,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
     emit(
       TowerBuilderLoaded(
-        level: nextLevel,
+        level: _activeLevel,
         currentAttemptId: _currentAttemptId,
         attemptNumber: _attemptNumber,
         elapsed: Duration.zero,
@@ -185,7 +219,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
     emit(
       TowerBuilderLoaded(
-        level: _currentLevel!,
+        level: _activeLevel,
         currentAttemptId: _currentAttemptId,
         attemptNumber: _attemptNumber,
         elapsed: Duration.zero,
@@ -221,7 +255,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
       sessionId: _sessionId!,
       activityId: _activityId!,
       action: 'STARTED',
-      responseLanguage: 'en',
+      responseLanguage: 'ar',
     );
   }
 
@@ -231,7 +265,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
       sessionId: _sessionId!,
       activityId: _activityId!,
       action: 'COMPLETED',
-      responseLanguage: 'en',
+      responseLanguage: 'ar',
     );
   }
 

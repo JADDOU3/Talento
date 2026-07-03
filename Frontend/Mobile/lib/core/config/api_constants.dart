@@ -31,6 +31,21 @@ class ApiConstants {
   static const String levelAttempts = '$baseUrl/level-attempts';
   static const String activityEvents = '$baseUrl/events/activity';
   static const String levelEvents = '$baseUrl/events/level';
+  static const String voiceTranscribeWithKeywords =
+      '$baseUrl/voice/transcribe-with-keywords';
+
+  // Story submissions
+  static String storySubmissionCountByActivityAndChild(
+      int activityId,
+      int childId,
+      ) =>
+      '$baseUrl/story-submissions/count/by-activity/$activityId/child/$childId';
+
+  static String storySubmissionsByActivityAndChild(
+      int activityId,
+      int childId,
+      ) =>
+      '$baseUrl/story-submissions/by-activity/$activityId/child/$childId';
 
   static String endSession(int sessionId) =>
       '$baseUrl/sessions/$sessionId/end';
