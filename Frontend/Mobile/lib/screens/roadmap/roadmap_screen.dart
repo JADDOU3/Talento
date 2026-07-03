@@ -21,6 +21,8 @@ import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
 import '../../activities/bodily_maze/bodily_maze_launcher.dart';
+import '../../activities/cognitive_maze/cognitive_maze_launcher.dart';
+
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -168,26 +170,20 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-
     if (activityName == 'empathy mirror') {
-      Navigator.push(context, MaterialPageRoute(
-        builder: (_) => EmpathyMirrorLauncher(
-          activityId: activity.activityId,
-          kitId: kitId,
-          childId: childId,
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmpathyMirrorLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
         ),
-      ));
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
     }
 
-    // Maze tilt engine — pure test screen (no levels, no session/event
-    // logging), reached directly like the old internal test menu used to,
-    // just triggered from a roadmap tap now instead.
-    //
-    // ⚠️ REQUIRES a real backend Activity entry named "Maze Engine Test"
-    // (or whatever name the backend confirms) so a roadmap tile exists at
-    // all to tap on — roadmap tiles are 100% backend-driven, there's no
-    // client-only tile mechanism. Coordinate with the team before this
-    // branch can actually be reached.
     if (activityName == 'gyro maze') {
       Navigator.push(
         context,
@@ -273,7 +269,7 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-    if (activityName == 'sound trackers'){
+    if (activityName == 'sound trackers') {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -294,6 +290,20 @@ class _RoadmapView extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => BodilyMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'cognitive maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CognitiveMazeLauncher(
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
