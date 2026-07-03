@@ -51,9 +51,9 @@ const Map<int, CognitiveMazeLevelConfig> cognitiveMazeConfigs = {
     levelId: 58,
     startPoint: Offset(0.0656, 0.3733),
     endPoints: [
+      Offset(0.6433, 0.8027),
       Offset(0.6444, 0.2418),
       Offset(0.6522, 0.5378),
-      Offset(0.6433, 0.8027),
     ],
     endPointRadius: 0.04,
     wallRects: [
