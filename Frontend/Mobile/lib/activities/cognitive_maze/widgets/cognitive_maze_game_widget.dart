@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../maze_engine/physics/maze_ball_component.dart';
 import '../../../../maze_engine/physics/maze_wall_component.dart';
+import '../../../../maze_engine/physics/maze_star_component.dart';
+import '../../../../maze_engine/physics/maze_flag_fill_component.dart';
 import '../../../../maze_engine/physics/tilt_gravity_behavior.dart';
 import '../../../../maze_engine/tilt/tilt_controller.dart';
 import '../config/cognitive_maze_level_config.dart';
@@ -32,7 +34,7 @@ class CognitiveMazeGame extends Forge2DGame {
   bool _worldBuilt = false;
   bool _finished = false;
 
-  final Map<int, CircleComponent> _starComponents = {};
+  final Map<int, MazeStarComponent> _starComponents = {};
   final Set<int> _collectedStarIndices = {};
   final Set<Color> _collectedTargetColors = {};
   bool _touchedWrongColor = false;
@@ -87,14 +89,30 @@ class CognitiveMazeGame extends Forge2DGame {
         final star = config.stars[i];
         final center = Vector2(star.position.dx * s.x, star.position.dy * s.y);
         final radiusPx = star.radius * s.x;
-        final comp = CircleComponent(
-          radius: radiusPx,
+        final comp = MazeStarComponent(
           position: center,
-          anchor: Anchor.center,
-          paint: Paint()..color = star.color,
+          radius: radiusPx,
+          color: star.color,
         );
         _starComponents[i] = comp;
         add(comp);
+      }
+
+      // Fills in the flag artwork already baked into the level image as
+      // target colors are collected. No-op if this level has no flagRect.
+      final fr = config.flagRect;
+      if (fr != null) {
+        final flagRectPx = Rect.fromLTWH(
+          fr.left * s.x,
+          fr.top * s.y,
+          fr.width * s.x,
+          fr.height * s.y,
+        );
+        add(MazeFlagFillComponent(
+          position: Vector2(flagRectPx.left, flagRectPx.top),
+          size: Vector2(flagRectPx.width, flagRectPx.height),
+          collectedColors: _collectedTargetColors,
+        ));
       }
     }
   }
@@ -129,8 +147,7 @@ class CognitiveMazeGame extends Forge2DGame {
       if ((dx * dx + dy * dy) > (rPx * rPx)) continue;
 
       _collectedStarIndices.add(i);
-      // Hide visually without depending on a HasPaint.opacity API.
-      _starComponents[i]?.paint = Paint()..color = const Color(0x00000000);
+      _starComponents[i]?.collected = true;
 
       final isTarget = config.targetColors.contains(star.color);
       if (isTarget) {
@@ -171,7 +188,7 @@ class CognitiveMazeGame extends Forge2DGame {
     _collectedTargetColors.clear();
     _touchedWrongColor = false;
     for (int i = 0; i < config.stars.length; i++) {
-      _starComponents[i]?.paint = Paint()..color = config.stars[i].color;
+      _starComponents[i]?.collected = false;
     }
     _resetBall();
   }

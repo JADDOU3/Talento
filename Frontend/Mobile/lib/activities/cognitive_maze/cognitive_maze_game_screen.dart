@@ -205,14 +205,6 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
 
                       GameWidget(game: _game!),
 
-                      if (loaded.config.isStarCollectLevel)
-                        Positioned(
-                          left: 12,
-                          bottom: 12,
-                          child: _PalestineFlagProgress(
-                            collected: loaded.collectedColors,
-                          ),
-                        ),
                     ],
                   ),
                 );
@@ -338,56 +330,3 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
   }
 }
 
-class _PalestineFlagProgress extends StatelessWidget {
-  final Set<Color> collected;
-
-  const _PalestineFlagProgress({required this.collected});
-
-  Color _stripe(Color target) =>
-      collected.contains(target) ? target : AppColors.inputFill;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 70,
-      height: 46,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.black26),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(child: Container(color: _stripe(PalestineFlagColors.black))),
-              Expanded(child: Container(color: _stripe(PalestineFlagColors.white))),
-              Expanded(child: Container(color: _stripe(PalestineFlagColors.green))),
-            ],
-          ),
-          ClipPath(
-            clipper: _FlagTriangleClipper(),
-            child: Container(
-              width: 26,
-              color: _stripe(PalestineFlagColors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FlagTriangleClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, size.height / 2)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
