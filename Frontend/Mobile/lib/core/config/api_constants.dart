@@ -128,4 +128,17 @@ class ApiConstants {
   static const String childModeEnable = '$baseUrl/childMode/enable';
   static const String childModeDisable = '$baseUrl/childMode/disable';
   static const String childModeSetPin = '$baseUrl/childMode/setPin';
+
+  // Journal / AI Reports
+  static String aiReportLatest(int childId) =>
+      '$baseUrl/ai-reports/child/$childId/latest';
+
+  static String aiReportByVersion(int childId, String version) =>
+      '$baseUrl/ai-reports/child/$childId/version/${Uri.encodeComponent(version)}';
+
+  static const String aiReportsWeeklySessions =
+      '$baseUrl/ai-reports/weekly-sessions';
+
+  static String performanceByChild(int childId) =>
+      '$baseUrl/performance/child/$childId';
 }
