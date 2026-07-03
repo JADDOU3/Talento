@@ -89,18 +89,9 @@ class JournalService {
   Future<List<PerformanceModel>> getPerformances(int childId) async {
     final url = ApiConstants.performanceByChild(childId);
 
-    // ignore: avoid_print
-    print('Journal performances URL: $url');
-
     final response = await _client.get(
       Uri.parse(url),
     );
-
-    // ignore: avoid_print
-    print('Journal performances status: ${response.statusCode}');
-
-    // ignore: avoid_print
-    print('Journal performances body: ${utf8.decode(response.bodyBytes)}');
 
     final list = _parseListResponse(
       response,
@@ -117,8 +108,6 @@ class JournalService {
       ],
     );
 
-    // ignore: avoid_print
-    print('Journal performances parsed count: ${list.length}');
 
     return list.map(PerformanceModel.fromJson).toList();
   }
