@@ -87,9 +87,20 @@ class JournalService {
   }
 
   Future<List<PerformanceModel>> getPerformances(int childId) async {
+    final url = ApiConstants.performanceByChild(childId);
+
+    // ignore: avoid_print
+    print('Journal performances URL: $url');
+
     final response = await _client.get(
-      Uri.parse(ApiConstants.performanceByChild(childId)),
+      Uri.parse(url),
     );
+
+    // ignore: avoid_print
+    print('Journal performances status: ${response.statusCode}');
+
+    // ignore: avoid_print
+    print('Journal performances body: ${utf8.decode(response.bodyBytes)}');
 
     final list = _parseListResponse(
       response,
@@ -98,14 +109,19 @@ class JournalService {
         'data',
         'performances',
         'performance',
+        'activityPerformances',
+        'childPerformances',
         'items',
+        'content',
         'result',
       ],
     );
 
+    // ignore: avoid_print
+    print('Journal performances parsed count: ${list.length}');
+
     return list.map(PerformanceModel.fromJson).toList();
   }
-
   AIReportModel? _parseReportResponse(
       http.Response response, {
         required String fallbackError,
@@ -168,6 +184,18 @@ class JournalService {
 
         if (value is List) {
           return _mapList(value);
+        }
+
+        if (value is Map<String, dynamic>) {
+          final nested = _extractList(value, keys);
+          if (nested.isNotEmpty) return nested;
+        }
+      }
+
+      for (final value in decoded.values) {
+        if (value is List) {
+          final mapped = _mapList(value);
+          if (mapped.isNotEmpty) return mapped;
         }
 
         if (value is Map<String, dynamic>) {

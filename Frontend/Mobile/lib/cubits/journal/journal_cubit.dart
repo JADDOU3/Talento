@@ -29,23 +29,27 @@ class JournalCubit extends Cubit<JournalState> {
   Future<void> loadJournal(int childId) async {
     emit(const JournalLoading());
 
-    try {
-      await _loadJournalData(childId);
-    } catch (e) {
-      emit(JournalError(_cleanError(e)));
-    }
+    await _loadJournalData(childId);
   }
 
   Future<void> _loadJournalData(int childId) async {
-    final results = await Future.wait<dynamic>([
-      _journalService.getLatestReport(childId),
-      _journalService.getWeeklySessions(),
-      _journalService.getPerformances(childId),
-    ]);
+    final report = await _safeLoad<AIReportModel?>(
+      label: 'latest report',
+      fallback: null,
+      loader: () => _journalService.getLatestReport(childId),
+    );
 
-    final report = results[0] as AIReportModel?;
-    final weeklySessions = results[1] as List<DailySessionModel>;
-    final performances = results[2] as List<PerformanceModel>;
+    final weeklySessions = await _safeLoad<List<DailySessionModel>>(
+      label: 'weekly sessions',
+      fallback: <DailySessionModel>[],
+      loader: _journalService.getWeeklySessions,
+    );
+
+    final performances = await _safeLoad<List<PerformanceModel>>(
+      label: 'performances',
+      fallback: <PerformanceModel>[],
+      loader: () => _journalService.getPerformances(childId),
+    );
 
     if (report == null) {
       emit(
@@ -74,33 +78,50 @@ class JournalCubit extends Cubit<JournalState> {
     final weeklySessions = _currentWeeklySessions(currentState);
     final performances = _currentPerformances(currentState);
 
-    try {
-      final report = await _journalService.getReportByVersion(
-        childId,
-        version,
-      );
+    final report = await _safeLoad<AIReportModel?>(
+      label: 'report version $version',
+      fallback: null,
+      loader: () => _journalService.getReportByVersion(childId, version),
+    );
 
-      if (report == null) {
-        emit(
-          JournalNoReport(
-            weeklySessions: weeklySessions,
-            performances: performances,
-          ),
-        );
+    if (report == null) {
+      if (currentState is JournalLoaded) {
+        emit(currentState);
         return;
       }
 
       emit(
-        JournalLoaded(
-          report: report,
-          mindsetScores: report.mindsetScores,
+        JournalNoReport(
           weeklySessions: weeklySessions,
           performances: performances,
-          childId: childId,
         ),
       );
+      return;
+    }
+
+    emit(
+      JournalLoaded(
+        report: report,
+        mindsetScores: report.mindsetScores,
+        weeklySessions: weeklySessions,
+        performances: performances,
+        childId: childId,
+      ),
+    );
+  }
+
+  Future<T> _safeLoad<T>({
+    required String label,
+    required T fallback,
+    required Future<T> Function() loader,
+  }) async {
+    try {
+      return await loader();
     } catch (e) {
-      emit(JournalError(_cleanError(e)));
+      // مهم للتشخيص: هيك بنعرف أي endpoint ضرب من الـ debug console
+      // ignore: avoid_print
+      print('Journal $label failed: ${_cleanError(e)}');
+      return fallback;
     }
   }
 
