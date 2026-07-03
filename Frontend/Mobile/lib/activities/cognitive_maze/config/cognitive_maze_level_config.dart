@@ -186,9 +186,9 @@ final  Map<int, CognitiveMazeLevelConfig> cognitiveMazeConfigs = {
     levelId: 60,
     startPoint: Offset(0.053, 0.5213),
     endPoints: [
-      Offset(0.683, 0.2684),
       Offset(0.6764, 0.5226),
       Offset(0.6775, 0.8078),
+      Offset(0.683, 0.2684),
     ],
     endPointRadius: 0.04,
     wallRects: [
