@@ -307,6 +307,9 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 2
+                : activity.currentLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));

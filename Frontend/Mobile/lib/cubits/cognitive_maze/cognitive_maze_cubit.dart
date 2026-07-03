@@ -32,25 +32,47 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
 
   final Set<Color> _collectedColors = {};
 
-  Future<void> loadGame({int? startLevelId}) async {
+  Future<void> loadGame({
+    int? startLevelId,
+    int? startLevelNumber,
+  }) async {
     emit(const CognitiveMazeLoading());
 
     try {
       final levels = await service.getLevels(activityId);
+
+      debugPrint('Requested startLevelNumber = $startLevelNumber');
+
+      for (final l in levels) {
+        debugPrint(
+          'Level: id=${l.id}, number=${l.levelNumber}',
+        );
+      }
 
       if (levels.isEmpty) {
         emit(const CognitiveMazeError('لا توجد مستويات لهذا النشاط'));
         return;
       }
 
-      final level = startLevelId != null
-          ? levels.firstWhere(
-            (l) => l.id == startLevelId,
-        orElse: () => levels.first,
-      )
-          : levels.first;
+      CognitiveMazeLevel level;
+
+      if (startLevelNumber != null) {
+        level = levels.firstWhere(
+              (l) => l.levelNumber == startLevelNumber,
+          orElse: () => levels.first,
+        );
+      } else if (startLevelId != null) {
+        level = levels.firstWhere(
+              (l) => l.id == startLevelId,
+          orElse: () => levels.first,
+        );
+      } else {
+        level = levels.first;
+      }
 
       final config = cognitiveMazeConfigs[level.id];
+
+      // ... keep the rest of your code exactly the same
 
       if (config == null) {
         emit(const CognitiveMazeError('لم يتم إعداد إحداثيات هذا المستوى بعد'));

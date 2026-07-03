@@ -20,6 +20,7 @@ class CognitiveMazeGameScreen extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int? startLevelId;
+  final int? startLevelNumber;
 
   const CognitiveMazeGameScreen({
     super.key,
@@ -28,6 +29,7 @@ class CognitiveMazeGameScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.startLevelId,
+    this.startLevelNumber
   });
 
   @override
@@ -39,7 +41,7 @@ class CognitiveMazeGameScreen extends StatelessWidget {
         activitySessionId: activitySessionId,
         childId: childId,
         sessionId: sessionId,
-      )..loadGame(startLevelId: startLevelId),
+      )..loadGame(startLevelId: startLevelId, startLevelNumber: startLevelNumber),
       child: _CognitiveMazeView(),
     );
   }

@@ -57,6 +57,11 @@ class _CognitiveMazeLauncherState extends State<CognitiveMazeLauncher> {
 
       if (!mounted) return;
 
+      debugPrint(
+        'Launcher -> requested level = ${widget.initialLevelNumber}, '
+            'ctx level = ${ctx.startLevelNumber}',
+      );
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
