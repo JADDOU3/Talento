@@ -77,11 +77,7 @@ class CognitiveMazeService {
     );
   }
 
-  // ───────────────────────────── Events ──────────────────────────────────
-  // NOTE: 'WRONG_ANSWER' is not one of the actions already seen elsewhere
-  // (START/FINISH/EXIT). Confirm it exists in the backend's consolidated
-  // EventAction enum before shipping — otherwise swap it for whatever value
-  // is actually defined there.
+
 
   Future<void> logActivityEvent({
     required int childId,

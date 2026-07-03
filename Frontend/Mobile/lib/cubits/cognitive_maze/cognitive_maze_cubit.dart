@@ -26,7 +26,9 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
   CognitiveMazeLevel? _level;
   CognitiveMazeLevelConfig? _config;
   int? _attemptId;
-  final int _attemptNumber = 1;
+  // No longer final -- a wrong answer starts a new attempt, matching the
+  // Color Lab Step C flow (attemptNumber + 1 per retry).
+  int _attemptNumber = 1;
   Duration _elapsed = Duration.zero;
   bool _completed = false;
 
@@ -90,9 +92,11 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
       _level = level;
       _config = config;
       _completed = false;
+      _attemptNumber = 1;
       _elapsed = Duration.zero;
       _collectedColors.clear();
 
+      // Step A -- Color Lab pattern: create attempt, then STARTED events.
       _attemptId = await service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
@@ -103,14 +107,14 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         childId: childId,
         sessionId: sessionId,
         activityId: activityId,
-        action: 'START',
+        action: 'STARTED',
       ));
 
       unawaited(service.logLevelEvent(
         childId: childId,
         sessionId: sessionId,
         activitySessionId: activitySessionId,
-        action: 'START',
+        action: 'STARTED',
       ));
 
       emit(CognitiveMazeLoaded(
@@ -140,7 +144,11 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
     ));
   }
 
-  /// Called when the player collects a star.
+  /// Called when the player collects a star. Star pickups are just visual
+  /// progress toward the endpoint check -- they don't submit an answer by
+  /// themselves, so no level-attempt/event calls happen here. The actual
+  /// correct/wrong submission is _checkStarEndpoint() in the game engine,
+  /// which calls onCorrectAnswer()/onWrongAnswer() below.
   void onStarCollected(Color color, bool isTarget) {
     final level = _level;
     final config = _config;
@@ -157,13 +165,6 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         collectedColors: Set.of(_collectedColors),
       ));
     } else {
-      unawaited(service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'WRONG_ANSWER',
-      ));
-
       emit(CognitiveMazeWrongAnswer(
         level: level,
         config: config,
@@ -174,22 +175,51 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
   }
 
   /// Called by the game screen the instant the ball lands on a WRONG
-  /// endpoint. The ball has already been reset to start by the game engine
-  /// itself — this just logs it and lets the UI show a "try again" toast.
-  void onWrongAnswer(int chosenIndex) {
+  /// endpoint (or fails the star-collect check). Matches Color Lab's
+  /// Step C exactly: close out the failed attempt, log FAILED, open a
+  /// new attempt, log RETRIED. The ball has already been reset to start
+  /// by the game engine itself.
+  Future<void> onWrongAnswer(int chosenIndex) async {
     final level = _level;
     final config = _config;
 
     if (level == null || config == null || _completed) return;
 
-    _collectedColors.clear(); // <-- add this: star-collect resets need to clear cubit state too
+    _collectedColors.clear();
 
-    unawaited(service.logLevelEvent(
-      childId: childId,
-      sessionId: sessionId,
-      activitySessionId: activitySessionId,
-      action: 'WRONG_ANSWER',
-    ));
+    final failedAttemptId = _attemptId;
+
+    try {
+      if (failedAttemptId != null) {
+        await service.updateLevelAttempt(
+          attemptId: failedAttemptId,
+          completed: false,
+        );
+      }
+
+      await service.logLevelEvent(
+        childId: childId,
+        sessionId: sessionId,
+        activitySessionId: activitySessionId,
+        action: 'FAILED',
+      );
+
+      _attemptNumber += 1;
+      _attemptId = await service.createLevelAttempt(
+        attemptNumber: _attemptNumber,
+        activitySessionId: activitySessionId,
+        levelId: level.id,
+      );
+
+      await service.logLevelEvent(
+        childId: childId,
+        sessionId: sessionId,
+        activitySessionId: activitySessionId,
+        action: 'RETRIED',
+      );
+    } catch (_) {
+      // Wrong-answer feedback still shows even if a background call fails.
+    }
 
     emit(CognitiveMazeWrongAnswer(
       level: level,
@@ -199,7 +229,7 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
   }
 
   /// Called by the game screen the instant the ball lands on the CORRECT
-  /// endpoint.
+  /// endpoint. Matches Color Lab's Step B exactly.
   Future<void> onCorrectAnswer() async {
     final level = _level;
 
@@ -219,14 +249,19 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         childId: childId,
         sessionId: sessionId,
         activitySessionId: activitySessionId,
-        action: 'FINISH',
+        action: 'COMPLETED',
       );
 
+      // Each Cognitive Maze card covers a single level (levelFrom ==
+      // levelTo per the roadmap payload), so completing this level always
+      // completes the activity for this card -- there's no multi-challenge
+      // "last challenge in last level" check needed here like Color Lab's
+      // multi-target-per-level structure.
       await service.logActivityEvent(
         childId: childId,
         sessionId: sessionId,
         activityId: activityId,
-        action: 'FINISH',
+        action: 'COMPLETED',
       );
 
       await service.completeActivitySession(activitySessionId);
@@ -249,11 +284,11 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         completed: false,
       );
 
-      await service.logLevelEvent(
+      await service.logActivityEvent(
         childId: childId,
         sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'EXIT',
+        activityId: activityId,
+        action: 'ENDED',
       );
     } catch (_) {}
   }

@@ -329,4 +329,3 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     );
   }
 }
-
