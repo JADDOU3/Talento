@@ -22,20 +22,28 @@ class AchievementRateCard extends StatelessWidget {
     final percent = (value * 100).round();
 
     return SizedBox(
-      width: 108,
+      width: 96,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 92,
-            height: 92,
+            width: 82,
+            height: 82,
+            padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: AppColors.white,
               shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.white,
+                  AppColors.primary.withValues(alpha: 0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.13),
-                  blurRadius: 16,
+                  color: AppColors.primary.withValues(alpha: 0.001),
+                  blurRadius: 14,
                   offset: const Offset(0, 7),
                 ),
               ],
@@ -44,29 +52,47 @@ class AchievementRateCard extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 CustomPaint(
-                  size: const Size(78, 78),
+                  size: const Size(68, 68),
                   painter: _AchievementRingPainter(progress: value),
                 ),
-                Text(
-                  '$percent%',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.headlineLarge.copyWith(
-                    color: AppColors.primary,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.07),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$percent%',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.headlineLarge.copyWith(
+                        color: AppColors.primary,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           Text(
             'معدل الإنجاز العام',
             textAlign: TextAlign.center,
             maxLines: 2,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textPrimary,
-              fontSize: 12,
+              fontSize: 10.8,
               height: 1.25,
               fontWeight: FontWeight.w800,
             ),
@@ -86,9 +112,12 @@ class _AchievementRingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final strokeWidth = 8.0;
+    final clampedProgress = progress.clamp(0.0, 1.0).toDouble();
+    final strokeWidth = 7.0;
     final rect = Offset.zero & size;
     final circleRect = rect.deflate(strokeWidth / 2);
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
 
     final backgroundPaint = Paint()
       ..color = AppColors.primary.withValues(alpha: 0.10)
@@ -97,21 +126,13 @@ class _AchievementRingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final progressPaint = Paint()
-      ..shader = const SweepGradient(
+      ..shader = SweepGradient(
         colors: [
-          AppColors.secondary,
           AppColors.primary,
-          AppColors.yellow,
-          AppColors.pink,
           AppColors.secondary,
+          AppColors.primary.withValues(alpha: 0.92),
         ],
-        stops: [
-          0.0,
-          0.42,
-          0.72,
-          0.88,
-          1.0,
-        ],
+        stops: const [0.0, 0.55, 1.0],
         startAngle: -math.pi / 2,
         endAngle: math.pi * 1.5,
       ).createShader(circleRect)
@@ -130,10 +151,29 @@ class _AchievementRingPainter extends CustomPainter {
     canvas.drawArc(
       circleRect,
       -math.pi / 2,
-      math.pi * 2 * progress.clamp(0.0, 1.0),
+      math.pi * 2 * clampedProgress,
       false,
       progressPaint,
     );
+
+    if (clampedProgress > 0) {
+      final endAngle = -math.pi / 2 + (math.pi * 2 * clampedProgress);
+      final endPoint = Offset(
+        center.dx + radius * math.cos(endAngle),
+        center.dy + radius * math.sin(endAngle),
+      );
+
+      final dotPaint = Paint()
+        ..color = AppColors.yellow
+        ..style = PaintingStyle.fill;
+
+      final dotBorderPaint = Paint()
+        ..color = AppColors.white
+        ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(endPoint, 5.2, dotBorderPaint);
+      canvas.drawCircle(endPoint, 3.4, dotPaint);
+    }
   }
 
   @override

@@ -225,49 +225,111 @@ class _JournalScreenState extends State<JournalScreen> {
         required JournalLoaded? loadedState,
       }) {
     if (loadedState == null) {
-      return Align(
-        alignment: Alignment.centerRight,
-        child: _buildJournalTitle(),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: _headerDecoration(),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: _buildJournalTitle(),
+        ),
       );
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildJournalTitle(),
-              const SizedBox(height: 12),
-              _buildVersionDropdown(context, loadedState),
-            ],
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 18, 16),
+      decoration: _headerDecoration(),
+      child: Row(
+        textDirection: TextDirection.ltr,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          AchievementRateCard(report: loadedState.report),
+          const SizedBox(width: 16),
+          Container(
+            width: 1.2,
+            height: 112,
+            decoration: BoxDecoration(
+              color: AppColors.border.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(99),
+            ),
           ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildJournalTitle(),
+                const SizedBox(height: 7),
+                Text(
+                  'تحليل شامل لتقدم طفلك هذا الأسبوع',
+                  textAlign: TextAlign.right,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _buildVersionDropdown(context, loadedState),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  BoxDecoration _headerDecoration() {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.white.withValues(alpha: 0.92),
+          AppColors.white.withValues(alpha: 0.72),
+        ],
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+      ),
+      borderRadius: BorderRadius.circular(32),
+      border: Border.all(
+        color: AppColors.white.withValues(alpha: 0.95),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.07),
+          blurRadius: 22,
+          offset: const Offset(0, 10),
         ),
-        const SizedBox(width: 14),
-        AchievementRateCard(report: loadedState.report),
+        BoxShadow(
+          color: AppColors.white.withValues(alpha: 0.70),
+          blurRadius: 10,
+          offset: const Offset(0, -2),
+        ),
       ],
     );
   }
 
   Widget _buildJournalTitle() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'اليوميات',
-          style: AppTextStyles.headlineLarge.copyWith(
-            fontSize: 29,
-            fontWeight: FontWeight.w900,
-            color: AppColors.primary,
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 40),
+          Text(
+            'اليوميات',
+            textAlign: TextAlign.right,
+            style: AppTextStyles.headlineLarge.copyWith(
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              color: AppColors.primary,
+              height: 1,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        const Text(
-          '✨',
-          style: TextStyle(fontSize: 18),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -282,73 +344,93 @@ class _JournalScreenState extends State<JournalScreen> {
         ? 'الأسبوع الحالي'
         : _selectedVersion;
 
-    return PopupMenuButton<String>(
-      initialValue: _selectedVersion,
-      onSelected: (value) {
-        if (value == _selectedVersion) return;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: PopupMenuButton<String>(
+        initialValue: _selectedVersion,
+        onSelected: (value) {
+          if (value == _selectedVersion) return;
 
-        setState(() {
-          _selectedVersion = value;
-        });
+          setState(() {
+            _selectedVersion = value;
+          });
 
-        if (value == _latestOptionValue) {
-          context.read<JournalCubit>().loadJournal(state.childId);
-          return;
-        }
+          if (value == _latestOptionValue) {
+            context.read<JournalCubit>().loadJournal(state.childId);
+            return;
+          }
 
-        context.read<JournalCubit>().loadReportByVersion(
-          state.childId,
-          value,
-        );
-      },
-      itemBuilder: (context) {
-        return [
-          const PopupMenuItem<String>(
-            value: _latestOptionValue,
-            child: Text('الأسبوع الحالي'),
-          ),
-          if (versions.isNotEmpty) const PopupMenuDivider(),
-          ...versions.map(
-                (version) => PopupMenuItem<String>(
-              value: version,
-              child: Text(version),
+          context.read<JournalCubit>().loadReportByVersion(
+            state.childId,
+            value,
+          );
+        },
+        itemBuilder: (context) {
+          return [
+            const PopupMenuItem<String>(
+              value: _latestOptionValue,
+              child: Text('الأسبوع الحالي'),
             ),
-          ),
-        ];
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: AppColors.yellow.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.yellow.withValues(alpha: 0.36),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.yellow.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: AppColors.yellow,
-              size: 22,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              selectedLabel,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
+            if (versions.isNotEmpty) const PopupMenuDivider(),
+            ...versions.map(
+                  (version) => PopupMenuItem<String>(
+                value: version,
+                child: Text(version),
               ),
             ),
-          ],
+          ];
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.yellow.withValues(alpha: 0.20),
+                AppColors.yellow.withValues(alpha: 0.08),
+              ],
+              begin: Alignment.centerRight,
+              end: Alignment.centerLeft,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.yellow.withValues(alpha: 0.36),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.yellow.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.calendar_month_rounded,
+                  color: AppColors.yellow.withValues(alpha: 0.95),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  selectedLabel,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontSize: 12.8,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.yellow,
+                  size: 21,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -433,16 +515,6 @@ class _JournalScreenState extends State<JournalScreen> {
           ),
         ],
       ],
-    );
-  }
-  Widget _sectionTitle(String text) {
-    return Text(
-      text,
-      style: AppTextStyles.bodyLarge.copyWith(
-        fontSize: 16,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textPrimary,
-      ),
     );
   }
 }
