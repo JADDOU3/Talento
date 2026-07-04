@@ -52,8 +52,8 @@ class WeeklySessionsCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
@@ -88,9 +88,10 @@ class WeeklySessionsCard extends StatelessWidget {
     );
   }
 
+
   Widget _buildChart(List<_WeeklyChartDay> days, int maxCount) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+      padding: const EdgeInsets.fromLTRB(4, 10, 4, 10),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
@@ -100,7 +101,7 @@ class WeeklySessionsCard extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.08),
         ),
@@ -109,11 +110,8 @@ class WeeklySessionsCard extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
-          children: days.asMap().entries.map(
-                (entry) {
-              final index = entry.key;
-              final day = entry.value;
-
+          children: days.map(
+                (day) {
               return Expanded(
                 child: _WeeklyDayCard(
                   label: day.label,
@@ -209,11 +207,11 @@ class _WeeklyDayCard extends StatelessWidget {
         : (76.0 * fillPercent).clamp(8.0, 76.0).toDouble();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2.5),
-      padding: const EdgeInsets.fromLTRB(3, 8, 3, 8),
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(18),
+        color: AppColors.white.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.035),
         ),
@@ -277,15 +275,20 @@ class _WeeklyDayCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 7),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontSize: 9.4,
-              fontWeight: FontWeight.w800,
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
         ],
@@ -293,7 +296,6 @@ class _WeeklyDayCard extends StatelessWidget {
     );
   }
 }
-
 
 List<_WeeklyChartDay> _buildWeeklyChartDays(
     List<DailySessionModel> sessions,

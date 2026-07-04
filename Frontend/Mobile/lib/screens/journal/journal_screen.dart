@@ -106,6 +106,13 @@ class _JournalScreenState extends State<JournalScreen> {
                                   context,
                                   loadedState: loadedState,
                                 ),
+                                if (loadedState != null) ...[
+                                  const SizedBox(height: 12),
+                                  _buildReportSelector(
+                                    context,
+                                    loadedState,
+                                  ),
+                                ],
                                 const SizedBox(height: 18),
                                 if (state is JournalLoaded) ...[
                                   if (state.mindsetScores.isNotEmpty) ...[
@@ -252,28 +259,26 @@ class _JournalScreenState extends State<JournalScreen> {
               borderRadius: BorderRadius.circular(99),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 18),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildJournalTitle(),
                 const SizedBox(height: 7),
                 Text(
-                  'تحليل شامل لتقدم طفلك هذا الأسبوع',
+                  'تحليل شامل لتقدّم طفلك',
                   textAlign: TextAlign.right,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
-                    fontSize: 13,
-                    height: 1.35,
+                    fontSize: 16,
+                    height: 1.5,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 14),
-                _buildVersionDropdown(context, loadedState),
               ],
             ),
           ),
@@ -317,9 +322,9 @@ class _JournalScreenState extends State<JournalScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(width: 40),
+          const SizedBox(width: 10),
           Text(
-            'اليوميات',
+            'متابعة التقدّم',
             textAlign: TextAlign.right,
             style: AppTextStyles.headlineLarge.copyWith(
               fontSize: 30,
@@ -333,107 +338,294 @@ class _JournalScreenState extends State<JournalScreen> {
     );
   }
 
+  Widget _buildReportSelector(
+      BuildContext context,
+      JournalLoaded state,
+      ) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: _buildVersionDropdown(context, state),
+    );
+  }
+
   Widget _buildVersionDropdown(
       BuildContext context,
       JournalLoaded state,
       ) {
     final latestVersion =
         _latestVersion ?? state.report.analysisVersion.trim();
+
     final versions = versionsUpTo(latestVersion);
+    final latestNumber = _versionNumber(latestVersion);
+
+    final oldVersions = versions.where((version) {
+      final versionNumber = _versionNumber(version);
+
+      if (latestNumber == null || versionNumber == null) {
+        return version != latestVersion;
+      }
+
+      return versionNumber < latestNumber;
+    }).toList()
+      ..sort((a, b) {
+        final aNumber = _versionNumber(a) ?? 0;
+        final bNumber = _versionNumber(b) ?? 0;
+        return bNumber.compareTo(aNumber);
+      });
+
     final selectedLabel = _selectedVersion == _latestOptionValue
-        ? 'الأسبوع الحالي'
-        : _selectedVersion;
+        ? _versionDisplayName(latestVersion)
+        : _versionDisplayName(_selectedVersion);
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: PopupMenuButton<String>(
-        initialValue: _selectedVersion,
-        onSelected: (value) {
-          if (value == _selectedVersion) return;
+    return PopupMenuButton<String>(
+      initialValue: _selectedVersion,
+      elevation: 10,
+      color: AppColors.white,
+      shadowColor: AppColors.primary.withValues(alpha: 0.12),
+      offset: const Offset(0, 48),
+      constraints: const BoxConstraints(
+        minWidth: 210,
+        maxWidth: 240,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(
+          color: AppColors.yellow.withValues(alpha: 0.18),
+        ),
+      ),
+      onSelected: (value) {
+        if (value == _selectedVersion) return;
 
-          setState(() {
-            _selectedVersion = value;
-          });
+        setState(() {
+          _selectedVersion = value;
+        });
 
-          if (value == _latestOptionValue) {
-            context.read<JournalCubit>().loadJournal(state.childId);
-            return;
-          }
+        if (value == _latestOptionValue) {
+          context.read<JournalCubit>().loadJournal(state.childId);
+          return;
+        }
 
-          context.read<JournalCubit>().loadReportByVersion(
-            state.childId,
-            value,
-          );
-        },
-        itemBuilder: (context) {
-          return [
-            const PopupMenuItem<String>(
-              value: _latestOptionValue,
-              child: Text('الأسبوع الحالي'),
-            ),
-            if (versions.isNotEmpty) const PopupMenuDivider(),
-            ...versions.map(
-                  (version) => PopupMenuItem<String>(
-                value: version,
-                child: Text(version),
+        context.read<JournalCubit>().loadReportByVersion(
+          state.childId,
+          value,
+        );
+      },
+      itemBuilder: (context) {
+        return <PopupMenuEntry<String>>[
+          PopupMenuItem<String>(
+            enabled: false,
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text(
+                'التقارير',
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-          ];
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.yellow.withValues(alpha: 0.20),
-                AppColors.yellow.withValues(alpha: 0.08),
-              ],
-              begin: Alignment.centerRight,
-              end: Alignment.centerLeft,
+          ),
+          PopupMenuItem<String>(
+            value: _latestOptionValue,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            child: _buildVersionMenuItem(
+              icon: Icons.article_rounded,
+              label: _versionDisplayName(latestVersion),
+              isSelected: _selectedVersion == _latestOptionValue,
             ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.yellow.withValues(alpha: 0.36),
+          ),
+          if (oldVersions.isNotEmpty)
+            PopupMenuItem<String>(
+              enabled: false,
+              height: 12,
+              padding: EdgeInsets.zero,
+              child: Divider(
+                height: 1,
+                thickness: 0.8,
+                indent: 14,
+                endIndent: 14,
+                color: AppColors.border.withValues(alpha: 0.75),
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.yellow.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 5),
+          ...oldVersions.map(
+                (version) => PopupMenuItem<String>(
+              value: version,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              child: _buildVersionMenuItem(
+                icon: Icons.history_rounded,
+                label: _versionDisplayName(version),
+                isSelected: _selectedVersion == version,
+              ),
+            ),
+          ),
+        ];
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.yellow.withValues(alpha: 0.20),
+              AppColors.yellow.withValues(alpha: 0.08),
+            ],
+            begin: Alignment.centerRight,
+            end: Alignment.centerLeft,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.yellow.withValues(alpha: 0.36),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.yellow.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.article_rounded,
+                color: AppColors.yellow.withValues(alpha: 0.95),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                selectedLabel,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 12.8,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.yellow,
+                size: 21,
               ),
             ],
-          ),
-          child: Directionality(
-            textDirection: TextDirection.rtl,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  color: AppColors.yellow.withValues(alpha: 0.95),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  selectedLabel,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    fontSize: 12.8,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: AppColors.yellow,
-                  size: 21,
-                ),
-              ],
-            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildVersionMenuItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+  }) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+            colors: [
+              AppColors.yellow.withValues(alpha: 0.18),
+              AppColors.yellow.withValues(alpha: 0.07),
+            ],
+            begin: Alignment.centerRight,
+            end: Alignment.centerLeft,
+          )
+              : null,
+          color: isSelected ? null : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.yellow.withValues(alpha: 0.22)
+                : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.white.withValues(alpha: 0.85)
+                    : AppColors.yellow.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? AppColors.primary : AppColors.yellow,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 12.8,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: isSelected ? 1 : 0,
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _versionDisplayName(String version) {
+    final number = _versionNumber(version);
+
+    if (number == null) return version;
+
+    switch (number) {
+      case 1:
+        return 'التقرير الأول';
+      case 2:
+        return 'التقرير الثاني';
+      case 3:
+        return 'التقرير الثالث';
+      case 4:
+        return 'التقرير الرابع';
+      case 5:
+        return 'التقرير الخامس';
+      case 6:
+        return 'التقرير السادس';
+      case 7:
+        return 'التقرير السابع';
+      case 8:
+        return 'التقرير الثامن';
+      case 9:
+        return 'التقرير التاسع';
+      case 10:
+        return 'التقرير العاشر';
+      default:
+        return 'التقرير $number';
+    }
+  }
+
+  int? _versionNumber(String version) {
+    return int.tryParse(version.replaceAll(RegExp(r'[^0-9]'), ''));
   }
 
   Widget _buildPerformanceCards(List<PerformanceModel> performances) {

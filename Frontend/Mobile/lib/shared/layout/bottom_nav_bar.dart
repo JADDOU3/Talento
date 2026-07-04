@@ -53,7 +53,7 @@ class BottomNavBar extends StatelessWidget {
       _NavItem(
         Icons.auto_stories_outlined,
         Icons.auto_stories_rounded,
-        'اليوميات',
+        'متابعة التقدّم',
         AppColors.success,
         AppColors.success,
       ),
