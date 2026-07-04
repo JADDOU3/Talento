@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
+import '../../activities/create_creature/create_creature_intro.dart';
 import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
 import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
@@ -289,6 +290,20 @@ class _RoadmapView extends StatelessWidget {
             initialLevelNumber: activity.currentLevelNumber <= 0
                 ? 1
                 : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'صمم بطلك') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CreateCreatureIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
