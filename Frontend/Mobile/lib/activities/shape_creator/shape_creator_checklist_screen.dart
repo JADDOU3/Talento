@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/shape_creator/shape_creator_cubit.dart';
 import '../../cubits/activities/shape_creator/shape_creator_state.dart';
 import '../../models/activities/shape_creator/shape_creator_checklist_item_model.dart';
 import '../../shared/layout/app_background.dart';
-import 'widgets/checklist_item_widget.dart';
+import '../tower_builder/widgets/checklist_item_widget.dart';
 
 class ShapeCreatorChecklistScreen extends StatefulWidget {
   final List<ShapeCreatorChecklistItemModel> checklist;
@@ -41,120 +43,183 @@ class _ShapeCreatorChecklistScreenState
   }
 
   void _submitChecklist() {
-  _hasSubmitted = true;
+    _hasSubmitted = true;
 
-  final requiredItems = widget.checklist
-      .where((item) => item.text != 'هل تمت مساعدته')
-      .toList();
+    final requiredItems = widget.checklist
+        .where((item) => item.text != 'هل تمت مساعدته')
+        .toList();
 
-  final checkedRequiredItems = requiredItems
-      .where((item) => _checkedItemIds.contains(item.id))
-      .toList();
+    final checkedRequiredItems = requiredItems
+        .where((item) => _checkedItemIds.contains(item.id))
+        .toList();
 
-  final allChecked =
-      checkedRequiredItems.length == requiredItems.length;
+    final allChecked =
+        checkedRequiredItems.length == requiredItems.length;
 
-  context.read<ShapeCreatorCubit>().onChecklistSubmitted(
-    allChecked: allChecked,
-  );
-}
+    context.read<ShapeCreatorCubit>().onChecklistSubmitted(
+      allChecked: allChecked,
+    );
+  }
+
+  Widget _buildTargetImage() {
+    final imageUrl = widget.targetImageUrl;
+
+    if (imageUrl == null || imageUrl.trim().isEmpty) {
+      return Container(
+        height: 220,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.border,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            'صورة البناء',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLarge.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 220,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.border,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.network(
+        imageUrl,
+        width: double.infinity,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: Text(
+              'صورة البناء',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyLarge.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      'تحقق من البناء',
+      textAlign: TextAlign.center,
+      style: AppTextStyles.headlineMedium.copyWith(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        color: AppColors.primary,
+      ),
+    );
+  }
+
+  Widget _buildInstruction() {
+    return Text(
+      'ضع علامة على كل ما يطابق البناء',
+      textAlign: TextAlign.center,
+      style: AppTextStyles.bodyLarge.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
+        color: AppColors.primary,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        child: BlocListener<ShapeCreatorCubit, ShapeCreatorState>(
-          listener: (context, state) {
-            if (state is ShapeCreatorLevelComplete) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('أحسنت! اكتمل المستوى'),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: AppBackground(
+          child: BlocListener<ShapeCreatorCubit, ShapeCreatorState>(
+            listener: (context, state) {
+              if (state is ShapeCreatorLevelComplete) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('أحسنت! اكتمل المستوى'),
+                  ),
+                );
+
+                Navigator.of(context).pop();
+                return;
+              }
+
+              if (state is ShapeCreatorChecklistResult && !state.allChecked) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('لم يكتمل البناء، حاول مجدداً'),
+                  ),
+                );
+
+                return;
+              }
+
+              if (_hasSubmitted && state is ShapeCreatorLoaded) {
+                Navigator.of(context).pop();
+                return;
+              }
+            },
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildTitle(),
+
+                    const SizedBox(height: 20),
+
+                    _buildTargetImage(),
+
+                    const SizedBox(height: 20),
+
+                    _buildInstruction(),
+
+                    const SizedBox(height: 16),
+
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: widget.checklist.length,
+                        separatorBuilder: (context, index) =>
+                        const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final item = widget.checklist[index];
+
+                          return ChecklistItemWidget(
+                            text: item.text,
+                            isChecked: _checkedItemIds.contains(item.id),
+                            onToggle: () => _toggleItem(item.id),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    ElevatedButton(
+                      onPressed: _submitChecklist,
+                      child: const Text('إرسال'),
+                    ),
+                  ],
                 ),
-              );
-
-              Navigator.of(context).pop();
-              return;
-            }
-
-            if (state is ShapeCreatorChecklistResult && !state.allChecked) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('لم يكتمل البناء، حاول مجدداً'),
-                ),
-              );
-
-             // Navigator.of(context).pop();
-              return;
-            }
-
-            if (_hasSubmitted && state is ShapeCreatorLoaded) {
-              Navigator.of(context).pop();
-              return;
-            }
-          },
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'تحقق من البناء:',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-                  if (widget.targetImageUrl != null &&
-                     widget.targetImageUrl!.isNotEmpty) ...[
-                   ClipRRect(
-                     borderRadius: BorderRadius.circular(16),
-                     child: Image.network(
-                       widget.targetImageUrl!,
-                       height: 220,
-                       fit: BoxFit.contain,
-                    ),
-                   ),
-                   const SizedBox(height: 20),
-                 ],
-
-                  const Text(
-                    'ضع علامة على كل ما يطابق البناء',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-
-                 const SizedBox(height: 24),
-
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: widget.checklist.length,
-                      separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final item = widget.checklist[index];
-
-                        return ChecklistItemWidget(
-                          text: item.text,
-                          isChecked: _checkedItemIds.contains(item.id),
-                          onToggle: () => _toggleItem(item.id),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  ElevatedButton(
-                    onPressed: _submitChecklist,
-                    child: const Text('إرسال'),
-                  ),
-                ],
               ),
             ),
           ),

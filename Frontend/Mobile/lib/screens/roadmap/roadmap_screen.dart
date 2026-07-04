@@ -271,12 +271,11 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
           ),
         ),
-      ),
-    ).then((_) {
-      _refreshRoadmapIfMounted(context);
-    });
-  return;
-}
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+
    if (activityName == 'shape builder'||
     activityName == 'shape creator') {
     Navigator.push(
