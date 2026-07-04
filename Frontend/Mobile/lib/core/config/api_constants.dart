@@ -90,6 +90,9 @@ class ApiConstants {
   static String roadmapProgress(int activityId) =>
       '$baseUrl/roadmap/progress/$activityId';
 
+  static String roadmapCardById(int cardId) =>
+      '$baseUrl/roadmap-cards/$cardId';
+
   // Posts
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';

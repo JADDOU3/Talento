@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/activities/emotional_maze/emotional_maze_launcher.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
 import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
@@ -20,6 +21,9 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
+import '../../activities/bodily_maze/bodily_maze_launcher.dart';
+import '../../activities/cognitive_maze/cognitive_maze_launcher.dart';
+
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -288,6 +292,53 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             initialLevelNumber: activity.currentLevelNumber <= 0
                 ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+    if (activityName == 'bodily maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BodilyMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'cognitive maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CognitiveMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 2
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'emotional maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmotionalMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 2
                 : activity.currentLevelNumber,
           ),
         ),
