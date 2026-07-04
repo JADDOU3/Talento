@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../models/community/comment.dart';
 import '../../models/community/create_comment.dart';
 import '../../services/community/comment.dart';
 import 'comment_state.dart';
@@ -7,14 +8,16 @@ import 'comment_state.dart';
 class CommentCubit extends Cubit<CommentState> {
   final CommentService _commentService;
 
+  List<Comment> _comments = [];
+
   CommentCubit(this._commentService) : super(CommentInitial());
 
   Future<void> getCommentsByPost(int postId) async {
     emit(CommentLoading());
 
     try {
-      final comments = await _commentService.getCommentsByPost(postId);
-      emit(CommentLoaded(comments));
+      _comments = await _commentService.getCommentsByPost(postId);
+      emit(CommentLoaded(_comments));
     } catch (e) {
       emit(CommentError(e.toString()));
     }
@@ -27,6 +30,7 @@ class CommentCubit extends Cubit<CommentState> {
       return true;
     } catch (e) {
       emit(CommentError(e.toString()));
+      if (_comments.isNotEmpty) emit(CommentLoaded(_comments));
       return false;
     }
   }
@@ -37,10 +41,11 @@ class CommentCubit extends Cubit<CommentState> {
   }) async {
     try {
       await _commentService.deleteComment(commentId);
-      await getCommentsByPost(postId);
+      _comments = _comments.where((comment) => comment.id != commentId).toList();
+      emit(CommentLoaded(_comments));
       return true;
-    } catch (e) {
-      emit(CommentError(e.toString()));
+    } catch (_) {
+      emit(CommentLoaded(_comments));
       return false;
     }
   }

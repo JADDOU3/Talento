@@ -90,6 +90,9 @@ class ApiConstants {
   static String roadmapProgress(int activityId) =>
       '$baseUrl/roadmap/progress/$activityId';
 
+  static String roadmapCardById(int cardId) =>
+      '$baseUrl/roadmap-cards/$cardId';
+
   // Posts
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';
@@ -102,6 +105,12 @@ class ApiConstants {
   // Likes
   static const String likesToggle = '$baseUrl/likes/toggle';
   static const String likesPost = '$baseUrl/likes/post';
+
+  static String likeCount(int postId) =>
+      '$baseUrl/likes/post/$postId/count';
+
+  static String isPostLiked(int postId, int parentId) =>
+      '$baseUrl/likes/post/$postId/liked?parentId=$parentId';
 
   // Comments
   static const String comments = '$baseUrl/comments';

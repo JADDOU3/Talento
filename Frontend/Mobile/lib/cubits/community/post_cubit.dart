@@ -80,11 +80,22 @@ class PostCubit extends Cubit<PostState> {
   Future<bool> deletePost(int id) async {
     try {
       await _postService.deletePost(id);
-      await getAllPosts();
+      removePostLocally(id);
       return true;
     } catch (e) {
-      emit(PostError(e.toString()));
       return false;
+    }
+  }
+
+  void removePostLocally(int id) {
+    final currentState = state;
+
+    if (currentState is PostLoaded) {
+      emit(
+        PostLoaded(
+          currentState.posts.where((post) => post.id != id).toList(),
+        ),
+      );
     }
   }
 }
