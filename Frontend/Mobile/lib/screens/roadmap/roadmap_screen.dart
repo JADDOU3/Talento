@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/activities/emotional_maze/emotional_maze_launcher.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
 import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
@@ -304,6 +305,23 @@ class _RoadmapView extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => CognitiveMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 2
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'emotional maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmotionalMazeLauncher(
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
