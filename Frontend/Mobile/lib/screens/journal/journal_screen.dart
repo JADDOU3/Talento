@@ -30,6 +30,7 @@ class _JournalScreenState extends State<JournalScreen> {
   static const String _latestOptionValue = '__latest__';
 
   late final JournalCubit _journalCubit;
+  late final PageController _performancePageController;
 
   String? _latestVersion;
   String _selectedVersion = _latestOptionValue;
@@ -38,10 +39,14 @@ class _JournalScreenState extends State<JournalScreen> {
   void initState() {
     super.initState();
     _journalCubit = JournalCubit(JournalService())..loadSelectedChildJournal();
+    _performancePageController = PageController(
+      viewportFraction: 0.90,
+    );
   }
 
   @override
   void dispose() {
+    _performancePageController.dispose();
     _journalCubit.close();
     super.dispose();
   }
@@ -350,28 +355,86 @@ class _JournalScreenState extends State<JournalScreen> {
   }
 
   Widget _buildPerformanceCards(List<PerformanceModel> performances) {
+    final sortedPerformances = [...performances]
+      ..sort((a, b) => a.activityId.compareTo(b.activityId));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _sectionTitle('أداء الأنشطة'),
-        const SizedBox(height: 10),
-        ...performances.asMap().entries.map(
-              (entry) {
-            final index = entry.key;
-            final performance = entry.value;
-
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index == performances.length - 1 ? 0 : 12,
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            children: [
+              Text(
+                'أداء الأنشطة',
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              child: PerformanceActivityCard(performance: performance),
-            );
-          },
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  '${sortedPerformances.length} نشاط',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 305,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: PageView.builder(
+              controller: _performancePageController,
+              itemCount: sortedPerformances.length,
+              padEnds: false,
+              itemBuilder: (context, index) {
+                final performance = sortedPerformances[index];
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index == sortedPerformances.length - 1 ? 0 : 10,
+                  ),
+                  child: PerformanceActivityCard(
+                    performance: performance,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        if (sortedPerformances.length > 1) ...[
+          const SizedBox(height: 8),
+          Text(
+            'اسحب لعرض باقي الأنشطة',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.hint,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ],
     );
   }
-
   Widget _sectionTitle(String text) {
     return Text(
       text,
