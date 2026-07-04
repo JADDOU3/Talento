@@ -22,8 +22,14 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
+
+import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/emotion_chain/emotion_chain_intro.dart';
+import '../../activities/shape_creator/shape_creator_launcher.dart';
+
 import '../../activities/bodily_maze/bodily_maze_launcher.dart';
 import '../../activities/cognitive_maze/cognitive_maze_launcher.dart';
+
 
 
 class RoadmapScreen extends StatelessWidget {
@@ -147,8 +153,9 @@ class _RoadmapView extends StatelessWidget {
       RoadmapActivityModel activity,
       ) {
     if (activity.isLocked) {
-      _showMessage(context, 'أكملي الأنشطة السابقة أولًا');
+      _showMessage(context, 'أكمل الأنشطة السابقة أولًا');
       return;
+      
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
@@ -264,9 +271,27 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
           ),
         ),
-      ).then((_) => _refreshRoadmapIfMounted(context));
-      return;
-    }
+      ),
+    ).then((_) {
+      _refreshRoadmapIfMounted(context);
+    });
+  return;
+}
+   if (activityName == 'shape builder'||
+    activityName == 'shape creator') {
+    Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ShapeCreatorLauncher(
+        activityId: activity.activityId,
+        kitId: kitId,
+        childId: childId,
+      ),
+    ),
+  ).then((_) => _refreshRoadmapIfMounted(context));
+
+  return;
+}
 
     if (activityName == 'story spinner' ||
         activityName == 'story spinner cards') {
