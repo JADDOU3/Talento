@@ -200,6 +200,7 @@ class _CreateCreatureFaceViewState extends State<_CreateCreatureFaceView> {
                         icons: feelingChallenge.choices.map((c) => c.icon).toList(),
                         selectedIcon: loaded.feelingSelection,
                         onSelected: cubit.onFeelingSelected,
+                        showArabicLabels: true,
                         assetFolder: 'assets/images/cards/feeling',
                       ),
                       const SizedBox(height: 40),
