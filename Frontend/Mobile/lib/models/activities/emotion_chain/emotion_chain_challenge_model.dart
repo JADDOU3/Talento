@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'dart:convert';
+
 /// One TARGET step in an Emotion Chain level.
 /// There are no CHOICE images in this activity — answers come from QR scans.
 class EmotionChainChallengeModel {
@@ -79,6 +83,13 @@ class EmotionChainChallengeModel {
 
   static Map<String, dynamic> _parseMeta(dynamic value) {
     if (value is Map) return Map<String, dynamic>.from(value);
+    // The backend sends meta as a JSON-encoded string.
+    if (value is String && value.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
     return <String, dynamic>{};
   }
 

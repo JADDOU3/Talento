@@ -12,6 +12,8 @@ class RoadmapGameBoard extends StatefulWidget {
   final ValueChanged<RoadmapActivityModel> onActivityTap;
   final String mascotAssetPath;
   final int? childId;
+  final int? initialActivityId;
+  final int? initialActivityIndex;
 
   const RoadmapGameBoard({
     super.key,
@@ -19,6 +21,8 @@ class RoadmapGameBoard extends StatefulWidget {
     required this.onActivityTap,
     this.mascotAssetPath = 'assets/images/template_mascot.png',
     this.childId,
+    this.initialActivityId,
+    this.initialActivityIndex,
   });
 
   @override
@@ -27,6 +31,8 @@ class RoadmapGameBoard extends StatefulWidget {
 
 class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   late final ScrollController _scrollController;
+  final Map<int, GlobalKey> _activityKeysByIndex = {};
+
   bool _didAutoScroll = false;
 
   @override
@@ -35,7 +41,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     _scrollController = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToRoadStart();
+      _runInitialScroll();
     });
   }
 
@@ -44,20 +50,111 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.activities != widget.activities ||
-        oldWidget.childId != widget.childId) {
+        oldWidget.childId != widget.childId ||
+        oldWidget.initialActivityId != widget.initialActivityId ||
+        oldWidget.initialActivityIndex != widget.initialActivityIndex) {
       _didAutoScroll = false;
+      _removeStaleIndexKeys();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToRoadStart();
+        _runInitialScroll();
       });
     }
   }
 
-  Future<void> _scrollToRoadStart() async {
+  void _removeStaleIndexKeys() {
+    _activityKeysByIndex.removeWhere(
+          (index, _) => index < 0 || index >= widget.activities.length,
+    );
+  }
+
+  Future<void> _runInitialScroll() async {
     if (_didAutoScroll) return;
 
     await Future.delayed(const Duration(milliseconds: 650));
 
+    if (!mounted || !_scrollController.hasClients) return;
+
+    final targetIndex = _resolveTargetIndex();
+
+    if (targetIndex != null) {
+      await _scrollToActivityIndex(targetIndex);
+      _didAutoScroll = true;
+      return;
+    }
+
+    await _scrollToRoadStart();
+    _didAutoScroll = true;
+  }
+
+  int? _resolveTargetIndex() {
+    final directIndex = widget.initialActivityIndex;
+
+    if (directIndex != null &&
+        directIndex >= 0 &&
+        directIndex < widget.activities.length) {
+      return directIndex;
+    }
+
+    final activityId = widget.initialActivityId;
+
+    if (activityId == null) {
+      return null;
+    }
+
+    final currentIndex = widget.activities.indexWhere(
+          (activity) => activity.activityId == activityId && activity.isCurrent,
+    );
+
+    if (currentIndex != -1) {
+      return currentIndex;
+    }
+
+    final firstIndex = widget.activities.indexWhere(
+          (activity) => activity.activityId == activityId,
+    );
+
+    return firstIndex == -1 ? null : firstIndex;
+  }
+
+  Future<void> _scrollToActivityIndex(int targetIndex) async {
+    if (!mounted || !_scrollController.hasClients) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+
+    if (maxScroll <= 0 || widget.activities.length <= 1) {
+      return;
+    }
+
+    final count = widget.activities.length;
+
+    final ratioFromTop = (count - 1 - targetIndex) / (count - 1);
+    final estimatedOffset = (maxScroll * ratioFromTop).clamp(0.0, maxScroll);
+
+    await _scrollController.animateTo(
+      estimatedOffset,
+      duration: const Duration(milliseconds: 850),
+      curve: Curves.easeInOutCubic,
+    );
+
+    await Future.delayed(const Duration(milliseconds: 120));
+
+    if (!mounted) return;
+
+    final key = _activityKeysByIndex[targetIndex];
+    final targetContext = key?.currentContext;
+
+    if (targetContext == null) return;
+
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      alignment: 0.42,
+    );
+  }
+
+  Future<void> _scrollToRoadStart() async {
     if (!mounted || !_scrollController.hasClients) return;
 
     _scrollController.jumpTo(0);
@@ -69,7 +166,6 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     final firstMaxScroll = _scrollController.position.maxScrollExtent;
 
     if (firstMaxScroll <= 0) {
-      _didAutoScroll = true;
       return;
     }
 
@@ -92,8 +188,10 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
         curve: Curves.easeOutCubic,
       );
     }
+  }
 
-    _didAutoScroll = true;
+  GlobalKey _keyForIndex(int index) {
+    return _activityKeysByIndex.putIfAbsent(index, GlobalKey.new);
   }
 
   @override
@@ -127,11 +225,14 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
       children.add(
         _RoadmapStep(
           isRight: isRight,
-          child: RoadmapActivityTile(
-            activity: activity,
-            index: originalIndex,
-            childId: widget.childId,
-            onTap: () => widget.onActivityTap(activity),
+          child: KeyedSubtree(
+            key: _keyForIndex(originalIndex),
+            child: RoadmapActivityTile(
+              activity: activity,
+              index: originalIndex,
+              childId: widget.childId,
+              onTap: () => widget.onActivityTap(activity),
+            ),
           ),
         ),
       );

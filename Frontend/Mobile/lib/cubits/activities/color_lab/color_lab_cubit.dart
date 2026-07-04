@@ -373,6 +373,56 @@ class ColorLabCubit extends Cubit<ColorLabState> {
     }
   }
 
+  // ===================== LEVEL 4: FREE COLORING =====================
+
+  /// Level 4 submit. Reuses the same color comparison (`_colorSimilarity`) and
+  /// the same attempt/event flow (`_handleCorrect` / `_handleWrong`) as the
+  /// palette-mix mode — only the pass condition differs.
+  ///
+  /// Pass = the coloring's dominant color is close enough to the target AND a
+  /// high-enough share of the coloring fell inside the derived outline.
+  ///
+  /// TODO(threshold): `insideThreshold` and `colorThreshold` are NOT finalised
+  /// by product yet — adjust these two values once specified.
+  Future<void> submitColoring({
+    required bool hasColoring,
+    required double insideRatio,
+    required List<int> dominantRgb,
+    required bool maskReliable,
+  }) async {
+    if (!hasColoring) return;
+
+    final challenge = _level.challenges[_currentChallengeIndex];
+    final target = challenge.primaryTarget;
+    if (target == null) {
+      await _handleWrong();
+      return;
+    }
+
+    final tc = target.color;
+    final colorSim = _colorSimilarity(dominantRgb, [tc.red, tc.green, tc.blue]);
+
+   // اللون لازم أصفر (شرط) + التغطية 70%.
+    const colorThreshold = 0.70; // رح نظبّطه حسب الرقم الحقيقي
+    const coverageThreshold = 0.40;
+
+    final bool colorOk = colorSim >= colorThreshold;
+    final bool coverageOk = !maskReliable || insideRatio >= coverageThreshold;
+
+    debugPrint(
+      'COLORING SUBMIT | colorSim=${_pct(colorSim)} (need ${_pctV(colorThreshold)}) | '
+      'inside=${_pct(insideRatio)} (need ${_pctV(coverageThreshold)}, reliable=$maskReliable) | '
+      'colorOk=$colorOk coverageOk=$coverageOk | '
+      'dom=$dominantRgb target=[${tc.red}, ${tc.green}, ${tc.blue}]',
+    );
+
+    if (colorOk && coverageOk) {
+      await _handleCorrect();
+    } else {
+      await _handleWrong();
+    }
+  }
+
   String _pctV(double v) => '${(v * 100).toStringAsFixed(0)}%';
 
   String _pct(double v) => '${(v * 100).toStringAsFixed(1)}%';

@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../cubits/activities/emotion_chain/emotion_chain_cubit.dart';
 import '../../cubits/activities/emotion_chain/emotion_chain_state.dart';
 import '../../shared/layout/app_background.dart';
+import 'emotion_chain_ar.dart';
 import 'widgets/chain_progress_bar.dart';
 import 'widgets/emotion_chain_scanner_screen.dart';
 import 'widgets/timer_bar_widget.dart';
@@ -52,6 +53,8 @@ class EmotionChainStepView extends StatelessWidget {
                   ChainProgressBar(
                     steps: state.level.chainSteps,
                     currentIndex: state.currentChallengeIndex,
+                    characters:
+                        state.level.challenges.map((c) => c.character).toList(),
                   ),
                   const SizedBox(height: 20),
 
@@ -121,7 +124,7 @@ class EmotionChainStepView extends StatelessWidget {
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Text(
-                      challenge.prompt,
+                      EmotionChainAr.prompt(original: challenge.prompt),
                       style: const TextStyle(
                         fontFamily: 'ArialRounded',
                         fontSize: 16,
@@ -135,7 +138,11 @@ class EmotionChainStepView extends StatelessWidget {
 
                   // Question
                   Text(
-                    challenge.question,
+                    EmotionChainAr.question(
+                      original: challenge.question,
+                      chainStep: challenge.chainStep,
+                      character: challenge.character,
+                    ),
                     style: const TextStyle(
                       fontFamily: 'DGAgnadeen',
                       fontSize: 20,

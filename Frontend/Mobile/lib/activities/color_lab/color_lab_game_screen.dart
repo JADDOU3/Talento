@@ -11,6 +11,7 @@ import '../../services/activities/color_lab_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'color_lab_result_screen.dart';
 import 'widgets/color_palette_widget.dart';
+import 'widgets/free_coloring_widget.dart';
 import 'widgets/mixing_bowl_widget.dart';
 import 'widgets/target_image_widget.dart';
 import 'widgets/undo_reset_controls.dart';
@@ -70,6 +71,11 @@ class _ColorLabGameView extends StatefulWidget {
 class _ColorLabGameViewState extends State<_ColorLabGameView> {
   Timer? _timer;
   bool _timerStarted = false;
+
+  // Level 4 (free coloring) — read the result on submit via this key.
+  final GlobalKey<FreeColoringWidgetState> _coloringKey =
+      GlobalKey<FreeColoringWidgetState>();
+  bool _hasColoring = false;
 
   void _startTimer(BuildContext context) {
     if (_timerStarted) return;
@@ -216,43 +222,72 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
                 ),
                 const SizedBox(height: 14),
 
-                // Target image
-                TargetImageWidget(challenge: challenge),
-                const SizedBox(height: 16),
+                // ===== Level 4: Free coloring =====
+                if (loaded.level.isFreeColoring) ...[
+                  FreeColoringWidget(
+                    key: _coloringKey,
+                    challenge: challenge,
+                    onColoringChanged: (has) {
+                      if (mounted) setState(() => _hasColoring = has);
+                    },
+                  ),
+                  const SizedBox(height: 18),
+                  _SubmitButton(
+                    enabled: _hasColoring,
+                    onTap: () => _submitColoring(context),
+                  ),
+                ]
+                // ===== Part 1: Palette-mix (unchanged) =====
+                else ...[
+                  // Target image
+                  TargetImageWidget(challenge: challenge),
+                  const SizedBox(height: 16),
 
-                // Mixing bowl
-                MixingBowlWidget(selectedColors: loaded.selectedColors),
-                const SizedBox(height: 14),
+                  // Mixing bowl
+                  MixingBowlWidget(selectedColors: loaded.selectedColors),
+                  const SizedBox(height: 14),
 
-                // Undo / Reset
-                UndoResetControls(
-                  canUndo: loaded.selectedColors.isNotEmpty,
-                  canReset: loaded.selectedColors.isNotEmpty,
-                  undosLeft: loaded.undosLeft,
-                  onUndo: () => context.read<ColorLabCubit>().undo(),
-                  onReset: () => context.read<ColorLabCubit>().reset(),
-                ),
-                const SizedBox(height: 16),
+                  // Undo / Reset
+                  UndoResetControls(
+                    canUndo: loaded.selectedColors.isNotEmpty,
+                    canReset: loaded.selectedColors.isNotEmpty,
+                    undosLeft: loaded.undosLeft,
+                    onUndo: () => context.read<ColorLabCubit>().undo(),
+                    onReset: () => context.read<ColorLabCubit>().reset(),
+                  ),
+                  const SizedBox(height: 16),
 
-                // Palette — always shown (circles render even with no image)
-                ColorPaletteWidget(
-                  paletteImage: palette,
-                  onColorPicked: (color) =>
-                      context.read<ColorLabCubit>().pickColor(color),
-                ),
-                const SizedBox(height: 18),
+                  // Palette — always shown (circles render even with no image)
+                  ColorPaletteWidget(
+                    paletteImage: palette,
+                    onColorPicked: (color) =>
+                        context.read<ColorLabCubit>().pickColor(color),
+                  ),
+                  const SizedBox(height: 18),
 
-                // Submit
-                _SubmitButton(
-                  enabled: loaded.selectedColors.isNotEmpty,
-                  onTap: () => context.read<ColorLabCubit>().submitMix(),
-                ),
+                  // Submit
+                  _SubmitButton(
+                    enabled: loaded.selectedColors.isNotEmpty,
+                    onTap: () => context.read<ColorLabCubit>().submitMix(),
+                  ),
+                ],
               ],
             ),
           ),
         ),
       ],
     );
+  }
+
+  void _submitColoring(BuildContext context) {
+    final eval = _coloringKey.currentState?.evaluateColoring();
+    if (eval == null || !eval.hasColoring) return;
+    context.read<ColorLabCubit>().submitColoring(
+          hasColoring: eval.hasColoring,
+          insideRatio: eval.insideRatio,
+          dominantRgb: eval.dominantRgb,
+          maskReliable: eval.maskReliable,
+        );
   }
 
   Widget _buildError(BuildContext context, String message) {

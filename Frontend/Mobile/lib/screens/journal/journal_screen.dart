@@ -74,7 +74,7 @@ class JournalScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const BottomNavBar(selectedIndex: 3),
+              const BottomNavBar(selectedIndex: 4),
             ],
           ),
         ),

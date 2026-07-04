@@ -30,6 +30,8 @@ dependencies:
 
   record: ^6.2.1
   audioplayers: ^6.7.1
+  http_parser: ^4.1.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -51,8 +53,18 @@ flutter:
   assets:
     - assets/images/
     - assets/images/cards/
+    - assets/images/cards/ability/
+    - assets/images/cards/eye/
+    - assets/images/cards/mouth/
+    - assets/images/cards/feeling/
+    - assets/images/cards/home/
     - assets/fonts/
     - assets/icons/
+    - assets/creature/eye/
+    - assets/creature/mouth/
+    - assets/creature/hair/
+    - assets/creature/feeling/
+    - assets/creature/face/
 
   fonts:
     - family: ArialRounded
