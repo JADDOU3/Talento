@@ -103,8 +103,6 @@ class _JournalScreenState extends State<JournalScreen> {
                                 ),
                                 const SizedBox(height: 18),
                                 if (state is JournalLoaded) ...[
-                                  AchievementRateCard(report: state.report),
-                                  const SizedBox(height: 18),
                                   if (state.mindsetScores.isNotEmpty) ...[
                                     MindsetScoresCard(
                                       scores: state.mindsetScores,
@@ -221,20 +219,49 @@ class _JournalScreenState extends State<JournalScreen> {
       BuildContext context, {
         required JournalLoaded? loadedState,
       }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    if (loadedState == null) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: _buildJournalTitle(),
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildJournalTitle(),
+              const SizedBox(height: 12),
+              _buildVersionDropdown(context, loadedState),
+            ],
+          ),
+        ),
+        const SizedBox(width: 14),
+        AchievementRateCard(report: loadedState.report),
+      ],
+    );
+  }
+
+  Widget _buildJournalTitle() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'اليوميات',
           style: AppTextStyles.headlineLarge.copyWith(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
+            fontSize: 29,
+            fontWeight: FontWeight.w900,
+            color: AppColors.primary,
           ),
         ),
-        if (loadedState != null) ...[
-          const SizedBox(height: 10),
-          _buildVersionDropdown(context, loadedState),
-        ],
+        const SizedBox(width: 6),
+        const Text(
+          '✨',
+          style: TextStyle(fontSize: 18),
+        ),
       ],
     );
   }
@@ -285,13 +312,20 @@ class _JournalScreenState extends State<JournalScreen> {
         ];
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: AppColors.yellow.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(24),
+          color: AppColors.yellow.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: AppColors.yellow.withValues(alpha: 0.35),
+            color: AppColors.yellow.withValues(alpha: 0.36),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.yellow.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

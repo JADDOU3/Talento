@@ -24,109 +24,63 @@ class WeeklySessionsCard extends StatelessWidget {
       return current > previous ? current : previous;
     });
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle('استكشافاتك الأسبوعية'),
-        const SizedBox(height: 10),
-        JournalCard(
-          color: const Color(0xFFEFFFFB),
-          borderColor: AppColors.primary.withValues(alpha: 0.08),
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: 150,
-            child: allEmpty
-                ? Align(
-              alignment: Alignment.topRight,
-              child: Text(
-                'سيتم عرض استكشافاتك الأسبوعية هنا قريباً',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 12,
-                  color: AppColors.hint,
-                ),
-              ),
-            )
-                : Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: days
-                  .map(
-                    (day) => Expanded(
-                  child: _buildWeeklyBar(
-                    label: day.label,
-                    count: day.count,
-                    maxCount: maxCount,
-                  ),
-                ),
-              )
-                  .toList(),
-            ),
-          ),
-        ),
-      ],
+    return JournalCard(
+      color: AppColors.cardBackground,
+      borderColor: AppColors.primary.withValues(alpha: 0.07),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+      radius: 28,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 14),
+          if (allEmpty)
+            _buildEmptyState()
+          else ...[
+            _buildChart(days, maxCount),
+            const SizedBox(height: 12),
+            _buildFooterHint(),
+          ],
+        ],
+      ),
     );
   }
 
-  Widget _buildWeeklyBar({
-    required String label,
-    required int count,
-    required int maxCount,
-  }) {
-    final fillPercent = maxCount == 0 ? 0.0 : count / maxCount;
-    final barHeight = 86.0 * fillPercent;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 3),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+  Widget _buildHeader() {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Row(
         children: [
-          Text(
-            '$count',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.bar_chart_rounded,
+              color: AppColors.primary,
+              size: 20,
             ),
           ),
-          const SizedBox(height: 6),
-          SizedBox(
-            height: 90,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: 18,
-                height: 90,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                  ),
-                ),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 350),
-                    width: 18,
-                    height: count == 0 ? 0 : barHeight.clamp(8.0, 86.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'استكشافاتك الأسبوعية',
+              textAlign: TextAlign.right,
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
               ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -134,17 +88,212 @@ class WeeklySessionsCard extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String text) {
-    return Text(
-      text,
-      style: AppTextStyles.bodyLarge.copyWith(
-        fontSize: 16,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textPrimary,
+  Widget _buildChart(List<_WeeklyChartDay> days, int maxCount) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFF8FFFE),
+            Color(0xFFEFFFFB),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: days.asMap().entries.map(
+                (entry) {
+              final index = entry.key;
+              final day = entry.value;
+
+              return Expanded(
+                child: _WeeklyDayCard(
+                  label: day.label,
+                  count: day.count,
+                  maxCount: maxCount,
+                ),
+              );
+            },
+          ).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFFFFB),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.explore_rounded,
+            color: AppColors.primary.withValues(alpha: 0.45),
+            size: 34,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'سيتم عرض استكشافاتك الأسبوعية هنا قريباً',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterHint() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      child: Row(
+        children: [
+          Icon(
+            Icons.auto_awesome_rounded,
+            color: AppColors.primary.withValues(alpha: 0.75),
+            size: 16,
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Text(
+              'استمرارك في الاستكشاف يصنع فرقاً في رحلة التعلّم والنمو',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.25,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+class _WeeklyDayCard extends StatelessWidget {
+  final String label;
+  final int count;
+  final int maxCount;
+
+  const _WeeklyDayCard({
+    required this.label,
+    required this.count,
+    required this.maxCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fillPercent = maxCount == 0 ? 0.0 : count / maxCount;
+    final barHeight = count == 0
+        ? 0.0
+        : (76.0 * fillPercent).clamp(8.0, 76.0).toDouble();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2.5),
+      padding: const EdgeInsets.fromLTRB(3, 8, 3, 8),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.035),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.035),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            '$count',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.primary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 7),
+          SizedBox(
+            height: 82,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: 18,
+                height: 82,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.055),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.055),
+                  ),
+                ),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOutCubic,
+                    width: 18,
+                    height: barHeight,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.80),
+                          AppColors.primary,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontSize: 9.4,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 List<_WeeklyChartDay> _buildWeeklyChartDays(
     List<DailySessionModel> sessions,
