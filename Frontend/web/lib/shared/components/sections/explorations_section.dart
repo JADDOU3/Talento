@@ -187,7 +187,7 @@ class ExplorationsSection extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32)),
         child: Row(
           children: [
-            Expanded(child: ClipRRect(borderRadius: const BorderRadius.horizontal(left: Radius.circular(32)), child: Image.asset("assets/images/img5.png", fit: BoxFit.cover, height: double.infinity))),
+            Expanded(child: ClipRRect(borderRadius: const BorderRadius.horizontal(left: Radius.circular(32)), child: Image.asset("assets/images/img55.png", fit: BoxFit.cover, height: double.infinity))),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(28),

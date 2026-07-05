@@ -19,9 +19,11 @@ dependencies:
   provider: ^6.1.5+1
   flutter_bloc: ^9.1.1  # <-- هذا السطر هو الحل، أضفه الآن
   equatable: ^2.0.8
+  shared_preferences: 2.2.1   # no ^ — exact version
+
 
 dependency_overrides:
-
+  shared_preferences_web: 2.2.1
 
 dev_dependencies:
   flutter_test:

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/components/footer/footer.dart';
 import '../../../shared/components/navbar/navbar.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../shared/providers/language_provider.dart';
+import '../../../shared/services/auth_service.dart';
+import '../../../shared/models/parent_profile.dart';
 import '../../../util/theme/app_colors.dart';
+import '../cubits/orders/orders_cubit.dart';
 import '../widgets/account_settings_card.dart';
 import '../widgets/kit_progress_card.dart';
 import '../widgets/order_history_card.dart';
@@ -21,10 +25,31 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final ScrollController _scrollController = ScrollController();
+  late final OrdersCubit _ordersCubit;
+
+  ParentProfile? _parentProfile;
+  bool _loadingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _ordersCubit = OrdersCubit()..loadOrders();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await AuthService.getCurrentUser();
+    if (!mounted) return;
+    setState(() {
+      _parentProfile = profile;
+      _loadingProfile = false;
+    });
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _ordersCubit.close();
     super.dispose();
   }
 
@@ -35,115 +60,128 @@ class _ProfilePageState extends State<ProfilePage> {
     final twoColumn = width >= 1000;
     final horizontalPadding = width >= 768 ? 40.0 : 20.0;
 
-    return Scaffold(
-      backgroundColor: AppColors.cartPageBackground,
-      endDrawer: Drawer(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.topEnd,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+    return BlocProvider.value(
+      value: _ordersCubit,
+      child: Scaffold(
+        backgroundColor: AppColors.cartPageBackground,
+        endDrawer: Drawer(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional.topEnd,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Provider.of<LanguageProvider>(context, listen: false).toggleLanguage();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(l10n.language),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                  },
-                  child: Text(l10n.navHome),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.navAbout),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.navPricing),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.navBlog),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      Provider.of<LanguageProvider>(context, listen: false).toggleLanguage();
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(l10n.language),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                    },
+                    child: Text(l10n.navHome),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(l10n.navAbout),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(l10n.navPricing),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(l10n.navBlog),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            Navbar(scrollController: _scrollController, isLoggedIn: true),
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                horizontalPadding,
-                28,
-                horizontalPadding,
-                28,
+        body: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            children: [
+              // Fixed: was hardcoded `isLoggedIn: true`, which permanently
+              // overrode real auth state. Now reads it live from AuthState.
+              Navbar(
+                scrollController: _scrollController,
               ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1180),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const WelcomeHeader(),
-                      const SizedBox(height: 28),
-                      if (twoColumn)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 62,
-                              child: _buildMainColumn(context, l10n),
-                            ),
-                            const SizedBox(width: 32),
-                            Expanded(
-                              flex: 38,
-                              child: _buildSideColumn(context),
-                            ),
-                          ],
-                        )
-                      else
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const KitProgressCard(),
-                            const SizedBox(height: 20),
-                            const OrderHistoryCard(),
-                            const SizedBox(height: 20),
-                            const SubscriptionCard(),
-                            const SizedBox(height: 20),
-                            const AccountSettingsCard(),
-                            const SizedBox(height: 32),
-                            _buildRecommendedSection(context, l10n, width),
-                          ],
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  horizontalPadding,
+                  28,
+                  horizontalPadding,
+                  28,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1180),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        WelcomeHeader(
+                          // null while loading -> WelcomeHeader falls back
+                          // to the old placeholder text automatically.
+                          userName: _loadingProfile ? null : _parentProfile?.name,
+                          // Child name still not wired — see note above
+                          // about /children/selected. Falls back too.
                         ),
-                      if (twoColumn) ...[
-                        const SizedBox(height: 36),
-                        _buildRecommendedSection(context, l10n, width),
+                        const SizedBox(height: 28),
+                        if (twoColumn)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 62,
+                                child: _buildMainColumn(context, l10n),
+                              ),
+                              const SizedBox(width: 32),
+                              Expanded(
+                                flex: 38,
+                                child: _buildSideColumn(context),
+                              ),
+                            ],
+                          )
+                        else
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const KitProgressCard(),
+                              const SizedBox(height: 20),
+                              const OrderHistoryCard(),
+                              const SizedBox(height: 20),
+                              const SubscriptionCard(),
+                              const SizedBox(height: 20),
+                              const AccountSettingsCard(),
+                              const SizedBox(height: 32),
+                              _buildRecommendedSection(context, l10n, width),
+                            ],
+                          ),
+                        if (twoColumn) ...[
+                          const SizedBox(height: 36),
+                          _buildRecommendedSection(context, l10n, width),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Footer(scrollController: _scrollController),
-          ],
+              Footer(scrollController: _scrollController),
+            ],
+          ),
         ),
       ),
     );
@@ -172,10 +210,10 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildRecommendedSection(
-    BuildContext context,
-    AppLocalizations l10n,
-    double width,
-  ) {
+      BuildContext context,
+      AppLocalizations l10n,
+      double width,
+      ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

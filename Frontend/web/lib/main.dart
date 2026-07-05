@@ -15,8 +15,17 @@ import 'features/catalog/cubits/kit/kit_cubit.dart' as catalog;
 import 'features/cart/pages/cart_page.dart';
 import 'features/profile/pages/profile_page.dart';
 import 'util/theme/app_colors.dart';
+import 'shared/services/auth_state.dart';
+import 'features/blog/pages/blog_page.dart';
+import 'features/blog/pages/blog_post_page.dart';
 
-void main() {
+
+
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthState.instance.refresh();
   runApp(
     ChangeNotifierProvider(
       create: (_) => LanguageProvider(),
@@ -106,6 +115,12 @@ class TalentoApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
+          '/blog': (context) => const BlogPage(),
+          '/blog-post': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final postId = args is String ? args : 'our-story';
+          return BlogPostPage(postId: postId);
+          },
           '/': (context) => const HomePage(),
           '/home': (context) => const HomePage(),
           '/catalog': (context) => const CatalogPage(),

@@ -111,7 +111,8 @@ class _HomePageState extends State<HomePage> {
             top: 0,
             left: 0,
             right: 0,
-            child: Navbar(scrollController: _scrollController, showCartIcon: false),
+            child: Navbar(
+            ),
           ),
         ],
       ),

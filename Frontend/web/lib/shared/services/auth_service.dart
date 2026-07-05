@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 
+import '../models/parent_profile.dart';
 import 'api_service.dart';
+import 'local_storage.dart';
+import 'auth_state.dart';
 
 class AuthService {
-  /// Register parent — backend returns **plain text** `"Parent registered successfully"` on 200,
-  /// or plain text / JSON error bodies on 4xx (e.g. `"Email already exists"`).
+  /// Register parent
   static Future<Map<String, dynamic>> register({
     required String name,
     required String email,
@@ -23,10 +25,7 @@ class AuthService {
         return {
           'success': false,
           'message':
-              'Could not reach the API from this browser (CORS or network). '
-              'Ensure the backend at ${ApiService.baseUrl} allows http://localhost:3000, '
-              'or run the backend locally and start Flutter with '
-              '--dart-define=API_BASE_URL=http://localhost:8080/api',
+          'Could not reach the API. Check CORS or backend URL: ${ApiService.baseUrl}',
         };
       }
 
@@ -36,34 +35,42 @@ class AuthService {
       if (kDebugMode) {
         debugPrint(
           '[AuthService.register] HTTP ${ApiService.httpStatusOf(response)} '
-          'ok=$okHttp msg="$serverMsg"',
+              'ok=$okHttp msg="$serverMsg"',
         );
       }
 
       if (okHttp) {
         final lower = serverMsg.toLowerCase();
-        if (lower.contains('registered successfully')) {
-          return {'success': true, 'message': 'Account created successfully!'};
+
+        if (lower.contains('registered successfully') || serverMsg.isEmpty) {
+          return {
+            'success': true,
+            'message': 'Account created successfully!',
+          };
         }
-        // Unexpected 200 body — still show what the server sent
-        if (serverMsg.isEmpty) {
-          return {'success': true, 'message': 'Account created successfully!'};
-        }
-        return {'success': true, 'message': serverMsg};
+
+        return {
+          'success': true,
+          'message': serverMsg,
+        };
       }
 
-      final detail = serverMsg.isNotEmpty
-          ? serverMsg
-          : 'Registration failed (HTTP ${ApiService.httpStatusOf(response)})';
-
-      return {'success': false, 'message': detail};
+      return {
+        'success': false,
+        'message': serverMsg.isNotEmpty
+            ? serverMsg
+            : 'Registration failed (HTTP ${ApiService.httpStatusOf(response)})',
+      };
     } catch (e, st) {
       debugPrint('[AuthService.register] exception: $e\n$st');
-      return {'success': false, 'message': 'Something went wrong: $e'};
+      return {
+        'success': false,
+        'message': 'Something went wrong: $e',
+      };
     }
   }
 
-  /// Login — [LoginDto] uses field `email` (see backend).
+  /// Login
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -77,16 +84,16 @@ class AuthService {
       if (response == null) {
         return {
           'success': false,
-          'message':
-              'Could not reach the API from this browser (CORS or network). '
-              'Ensure the backend at ${ApiService.baseUrl} allows http://localhost:3000, '
-              'or run the backend locally and start Flutter with '
-              '--dart-define=API_BASE_URL=http://localhost:8080/api',
+          'message': 'Could not reach backend. Check network/CORS.',
         };
       }
 
       if (!ApiService.isSuccessfulHttp(response)) {
         final msg = ApiService.userFacingMessage(response);
+
+        // Keep auth state in sync
+        await AuthState.instance.refresh();
+
         return {
           'success': false,
           'message': msg.isNotEmpty
@@ -95,29 +102,62 @@ class AuthService {
         };
       }
 
-      final rawAccess = response['accessToken'];
-      final rawRefresh = response['refreshToken'];
+      final access = response['accessToken'];
+      final refresh = response['refreshToken'];
 
-      if (rawAccess is String && rawAccess.isNotEmpty) {
-        await LocalStorage.setAccessToken(rawAccess);
-        if (rawRefresh is String && rawRefresh.isNotEmpty) {
-          await LocalStorage.setRefreshToken(rawRefresh);
+      if (access is String && access.isNotEmpty) {
+        await LocalStorage.setAccessToken(access);
+
+        if (refresh is String && refresh.isNotEmpty) {
+          await LocalStorage.setRefreshToken(refresh);
         }
-        return {'success': true, 'message': 'Login successful!'};
+
+        // ✅ Notify the app immediately that the user is logged in.
+        AuthState.instance.setLoggedIn(true);
+
+        return {
+          'success': true,
+          'message': 'Login successful!',
+        };
       }
 
-      final fallback = ApiService.userFacingMessage(response);
+      await AuthState.instance.refresh();
+
       return {
         'success': false,
-        'message':
-            fallback.isNotEmpty ? fallback : 'Invalid credentials',
+        'message': ApiService.userFacingMessage(response),
       };
     } catch (e, st) {
       debugPrint('[AuthService.login] exception: $e\n$st');
-      return {'success': false, 'message': 'Something went wrong: $e'};
+
+      await AuthState.instance.refresh();
+
+      return {
+        'success': false,
+        'message': 'Something went wrong: $e',
+      };
     }
   }
 
-  /// ✅ Logout
-  static void logout() => LocalStorage.clear();
+  /// Get current logged-in user
+  static Future<ParentProfile?> getCurrentUser() async {
+    try {
+      final response = await ApiService.get('/currentUser');
+
+      if (response == null) return null;
+
+      return ParentProfile.fromJson(response);
+    } catch (e) {
+      debugPrint('[AuthService.getCurrentUser] $e');
+      return null;
+    }
+  }
+
+  /// Logout
+  static Future<void> logout() async {
+    await LocalStorage.clear();
+
+    // Notify listeners immediately.
+    AuthState.instance.setLoggedIn(false);
+  }
 }

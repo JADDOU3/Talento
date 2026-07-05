@@ -5,11 +5,9 @@ import 'package:flutter/foundation.dart';
 
 import '../models/cart_model.dart';
 import 'api_result.dart';
+import 'local_storage.dart';
 
-import 'package:flutter/foundation.dart';
 
-import '../models/cart_model.dart';
-import 'api_result.dart';
 
 class ApiService {
   /// Override for local backend: `--dart-define=API_BASE_URL=http://localhost:8080/api`
@@ -358,34 +356,5 @@ class ApiService {
       };
     }
     return addCartItem(kitId: kitId, quantity: quantity);
-  }
-}
-
-class LocalStorage {
-  static const String _accessTokenKey  = 'access_token';
-  static const String _refreshTokenKey = 'refresh_token';
-
-  static Future<String?> getAccessToken() async =>
-      html.window.localStorage[_accessTokenKey];
-
-  static Future<void> setAccessToken(String token) async {
-    html.window.localStorage[_accessTokenKey] = token;
-    print('Token saved: $token');
-  }
-
-  static Future<String?> getRefreshToken() async =>
-      html.window.localStorage[_refreshTokenKey];
-
-  static Future<void> setRefreshToken(String token) async =>
-      html.window.localStorage[_refreshTokenKey] = token;
-
-  static Future<void> clear() async {
-    html.window.localStorage.remove(_accessTokenKey);
-    html.window.localStorage.remove(_refreshTokenKey);
-  }
-
-  static Future<bool> isLoggedIn() async {
-    final token = html.window.localStorage[_accessTokenKey];
-    return token != null && token.isNotEmpty;
   }
 }

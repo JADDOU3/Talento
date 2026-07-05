@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/models/kit_model.dart';
-import '../../../../shared/services/api_service.dart';  // ← uses ApiService.LocalStorage
+import '../../../../shared/services/local_storage.dart';
 import 'kit_state.dart';
 
 class KitCubit extends Cubit<KitState> {

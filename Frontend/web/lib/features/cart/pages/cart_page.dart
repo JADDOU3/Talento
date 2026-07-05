@@ -130,7 +130,10 @@ class _CartPageState extends State<CartPage> {
         controller: _scrollController,
         child: Column(
           children: [
-            Navbar(scrollController: _scrollController, isLoggedIn: true),
+            Navbar(
+              isLoggedIn: true,
+              cartCount: 3,
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width >= 768 ? 40 : 20, vertical: 28),
               child: Center(
