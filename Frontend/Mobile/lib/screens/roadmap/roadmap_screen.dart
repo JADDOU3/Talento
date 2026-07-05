@@ -333,6 +333,12 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             initialLevelNumber: activity.currentLevelNumber <= 0
                 ? 1
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
     if (activityName == 'bodily maze') {
       Navigator.push(
