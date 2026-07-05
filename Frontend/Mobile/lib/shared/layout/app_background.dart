@@ -54,36 +54,36 @@ class _AppBackgroundState extends State<AppBackground>
             top: -80,
             left: -60,
             size: 200,
-            color: AppColors.secondary.withValues(alpha: 0.20),
+            color: AppColors.secondary.withValues(alpha: 0.12),
           ),
           _buildShape(
             top: 100,
             right: -60,
             size: 170,
-            color: AppColors.pink.withValues(alpha: 0.20),
+            color: AppColors.pink.withValues(alpha: 0.12),
           ),
           _buildShape(
             bottom: -70,
             left: -40,
             size: 200,
-            color: AppColors.yellow.withValues(alpha: 0.20),
+            color: AppColors.yellow.withValues(alpha: 0.12),
           ),
           _buildShape(
             bottom: 80,
             right: -80,
             size: 180,
-            color: AppColors.primary.withValues(alpha: 0.20),
+            color: AppColors.primary.withValues(alpha: 0.12),
           ),
           _buildShape(
             top: 250,
             left: -60,
             size: 150,
-            color: AppColors.red.withValues(alpha: 0.20),
+            color: AppColors.red.withValues(alpha: 0.12),
           ),
 
-          Stack(
+         /* Stack(
             children: _buildSmallBubbles(0),
-          ),
+          ),*/
 
           Positioned.fill(
             child: IgnorePointer(
@@ -99,7 +99,7 @@ class _AppBackgroundState extends State<AppBackground>
     );
   }
 
-  List<Widget> _buildSmallBubbles(double move) {
+  /*List<Widget> _buildSmallBubbles(double move) {
     return [
       _bubble(
         top: 12 + move,
@@ -294,7 +294,7 @@ class _AppBackgroundState extends State<AppBackground>
         ),
       ),
     );
-  }
+  }*/
 
   Widget _buildShape({
     double? top,

@@ -84,6 +84,63 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
     setState(_loadRoadmapSections);
   }
 
+  Future<void> _openRoadmapAtCurrentActivity(BuildContext context) async {
+    final kitId = _kitId;
+    final childId = widget.childId;
+
+    if (kitId == null) {
+      _showSnackBar(
+        context,
+        'لا يمكن فتح خارطة الرحلة لأن رقم الصندوق غير متوفر',
+      );
+      return;
+    }
+
+    if (childId == null) {
+      _showSnackBar(
+        context,
+        'اختاري طفلًا أولًا حتى تظهر رحلة التعلّم',
+      );
+      return;
+    }
+
+    try {
+      _roadmapFuture ??= _roadmapService.getRoadmap(
+        kitId: kitId,
+        childId: childId,
+      );
+
+      final roadmap = await _roadmapFuture;
+      final activities = roadmap?.activities ?? <RoadmapActivityModel>[];
+
+      final currentIndex = activities.indexWhere(
+            (activity) => activity.isCurrent,
+      );
+
+      if (!mounted) return;
+
+      if (currentIndex == -1) {
+        _openRoadmap(context);
+        return;
+      }
+
+      final currentActivity = activities[currentIndex];
+
+      _openRoadmap(
+        context,
+        initialActivityId: currentActivity.activityId,
+        initialActivityIndex: currentIndex,
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      _showSnackBar(
+        context,
+        'تعذر فتح النشاط الحالي، جرّبي مرة ثانية',
+      );
+    }
+  }
+
   void _openRoadmap(
       BuildContext context, {
         int? initialActivityId,
@@ -111,6 +168,7 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: RoadmapScreen.routeName),
         builder: (_) => RoadmapScreen(
           kitId: kitId,
           childId: childId,
@@ -206,7 +264,7 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
                           name: _kitName,
                           description: _kitDescription,
                           imageUrl: _kitImageUrl,
-                          onResume: () => _openRoadmap(context),
+                          onResume: () => _openRoadmapAtCurrentActivity(context),
                         ),
                         const SizedBox(height: 22),
                         _buildRoadmapContent(context),

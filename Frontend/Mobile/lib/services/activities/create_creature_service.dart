@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_constants.dart';
 import '../../models/activities/create_creature/create_creature_level_model.dart';
@@ -138,7 +138,7 @@ class CreateCreatureService {
       'sessionId': sessionId,
       'activityId': activityId,
       'action': action,
-      'responseLanguage': 'en',
+      'responseLanguage': 'ar',
     });
 
     print('CREATE CREATURE: post activity event body = $body');
@@ -382,36 +382,71 @@ class CreateCreatureService {
   Future<Map<String, dynamic>> transcribeWithKeywords({
     required File file,
     required int activityId,
+    required int activitySessionId,
+    required int levelId,
     required List<String> keywords,
   }) async {
+    if (!await file.exists()) {
+      throw Exception('Recorded audio file was not found.');
+    }
+
+    final cleanedKeywords = keywords
+        .map((keyword) => keyword.trim())
+        .where((keyword) => keyword.isNotEmpty)
+        .toList();
+
+    if (cleanedKeywords.length != 2) {
+      throw Exception('Create Creature needs exactly 2 Arabic keywords.');
+    }
+
+    final requestBody = jsonEncode({
+      'activityId': activityId,
+      'activitySessionId': activitySessionId,
+      'levelId': levelId,
+      'keywords': cleanedKeywords,
+    });
+
+    print('CREATE CREATURE: voice check request = $requestBody');
+    print('CREATE CREATURE: voice check file = ${file.path}');
+
     final response = await _apiClient.multipartPost(
-      //Uri.parse(ApiConstants.transcribeWithKeywords),
       Uri.parse(ApiConstants.voiceTranscribeWithKeywords),
       buildRequest: (request) async {
         request.files.add(
-          http.MultipartFile.fromString(
-            'request',
-            jsonEncode({
-              'activityId': activityId,
-              'keywords': keywords,
-            }),
-            contentType: MediaType('application', 'json'),
+          await http.MultipartFile.fromPath(
+            'file',
+            file.path,
           ),
         );
+
         request.files.add(
-          await http.MultipartFile.fromPath('file', file.path),
+          http.MultipartFile.fromString(
+            'request',
+            requestBody,
+            contentType: MediaType('application', 'json'),
+          ),
         );
       },
     );
 
     print(
-      'CREATE CREATURE: transcribe response = '
+      'CREATE CREATURE: voice check response = '
           '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
-    _ensureSuccess(response.statusCode, response.body, 'transcribe with keywords');
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'transcribe story with keywords',
+    );
 
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    final data = jsonDecode(response.body);
+
+    if (data is! Map<String, dynamic>) {
+      throw Exception('Invalid voice check response.');
+    }
+
+    return data;
   }
 
 // Future<String> getPresignedUrl(String s3Key) async {

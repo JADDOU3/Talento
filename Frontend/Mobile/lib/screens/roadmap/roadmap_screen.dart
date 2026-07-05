@@ -33,6 +33,8 @@ import '../../activities/cognitive_maze/cognitive_maze_launcher.dart';
 
 
 class RoadmapScreen extends StatelessWidget {
+  static const String routeName = '/roadmap';
+
   final int kitId;
   final int childId;
   final int? initialActivityId;

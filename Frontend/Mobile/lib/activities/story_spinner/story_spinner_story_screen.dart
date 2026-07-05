@@ -8,6 +8,7 @@ import '../../cubits/activities/story_spinner/story_spinner_state.dart';
 import '../../models/activities/story_spinner/icon_arabic_labels.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/voice_recorder_widget.dart';
+import '../../screens/roadmap/roadmap_screen.dart';
 
 String _cleanStoryIconName(String icon) {
   var clean = icon.trim();
@@ -69,7 +70,10 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
               ),
             );
 
-            Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.of(context).popUntil(
+                  (route) =>
+              route.settings.name == RoadmapScreen.routeName || route.isFirst,
+            );
             return;
           }
 
