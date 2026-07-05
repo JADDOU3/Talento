@@ -12,6 +12,7 @@ import '../../shared/layout/app_background.dart';
 import 'icon_arabic_labels.dart';
 import 'widgets/story_elements_card.dart';
 import 'widgets/voice_recorder_widget.dart';
+import '../../screens/roadmap/roadmap_screen.dart';
 
 class CreateCreatureStoryScreen extends StatelessWidget {
   final int activityId;
@@ -132,7 +133,10 @@ class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
     return BlocConsumer<CreateCreatureCubit, CreateCreatureState>(
       listener: (context, state) {
         if (state is CreateCreatureActivityComplete) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.of(context).popUntil(
+                (route) =>
+            route.settings.name == RoadmapScreen.routeName || route.isFirst,
+          );
         }
 
         if (state is CreateCreatureError) {

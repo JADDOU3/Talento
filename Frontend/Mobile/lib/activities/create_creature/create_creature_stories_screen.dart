@@ -93,6 +93,7 @@ class _CreateCreatureStoriesScreenState
                               child: _StoryCard(
                                 story: entry.value,
                                 index: entry.key,
+                                storyNumber: stories.length - entry.key,
                               ),
                             ),
                           ),
@@ -385,10 +386,12 @@ class _ErrorCard extends StatelessWidget {
 class _StoryCard extends StatelessWidget {
   final StorySubmission story;
   final int index;
+  final int storyNumber;
 
   const _StoryCard({
     required this.story,
     required this.index,
+    required this.storyNumber,
   });
 
   @override
@@ -435,7 +438,7 @@ class _StoryCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'قصة ${index + 1}',
+                  'قصة $storyNumber',
                   textAlign: TextAlign.right,
                   style: const TextStyle(
                     color: Color(0xFF1A1A2E),

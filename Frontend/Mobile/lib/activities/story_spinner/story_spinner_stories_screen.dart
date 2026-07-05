@@ -92,10 +92,11 @@ class _StorySpinnerStoriesScreenState extends State<StorySpinnerStoriesScreen> {
                           ...stories.asMap().entries.map(
                                 (entry) => Padding(
                               padding: const EdgeInsets.only(bottom: 14),
-                              child: _StoryCard(
-                                story: entry.value,
-                                index: entry.key,
-                              ),
+                                  child: _StoryCard(
+                                    story: entry.value,
+                                    index: entry.key,
+                                    storyNumber: stories.length - entry.key,
+                                  ),
                             ),
                           ),
                     ],
@@ -411,10 +412,12 @@ class _ErrorCard extends StatelessWidget {
 class _StoryCard extends StatelessWidget {
   final StorySubmission story;
   final int index;
+  final int storyNumber;
 
   const _StoryCard({
     required this.story,
     required this.index,
+    required this.storyNumber,
   });
 
   @override
@@ -461,7 +464,7 @@ class _StoryCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'قصة ${index + 1}',
+                  'قصة $storyNumber',
                   textAlign: TextAlign.right,
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: AppColors.textPrimary,
