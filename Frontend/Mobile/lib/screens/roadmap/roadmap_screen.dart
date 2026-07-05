@@ -8,6 +8,7 @@ import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
 import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/emotion_chain/emotion_chain_intro.dart';
+import '../../activities/creative_maze/creative_maze_intro.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../activities/sound_tracker/sound_tracker_intro.dart';
@@ -323,6 +324,16 @@ class _RoadmapView extends StatelessWidget {
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
+    if (activityName == 'creative maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CreativeMazeIntro(
+            activityId: activity.activityId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 1
+
     if (activityName == 'bodily maze') {
       Navigator.push(
         context,
@@ -347,12 +358,14 @@ class _RoadmapView extends StatelessWidget {
             childId: childId,
             initialLevelNumber: activity.currentLevelNumber <= 0
                 ? 2
+
                 : activity.currentLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
 
     if (activityName == 'emotional maze') {
       Navigator.push(
@@ -384,6 +397,7 @@ class _RoadmapView extends StatelessWidget {
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
 
     _showMessage(
       context,
