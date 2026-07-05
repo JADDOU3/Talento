@@ -42,6 +42,11 @@ class TiltGravityBehavior extends Component with HasGameReference<Forge2DGame> {
   final double gravityScale;
   final double maxGravityMagnitude;
 
+  /// Resets gravity back to tilt-driven mode after a jump.
+  void resetGravity() {
+    game.world.gravity = Vector2.zero();
+  }
+
   @override
   void update(double dt) {
     super.update(dt);

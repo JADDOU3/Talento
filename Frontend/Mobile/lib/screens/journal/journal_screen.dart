@@ -5,228 +5,279 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../cubits/child_mode/child_mode_state.dart';
+import '../../cubits/journal/journal_cubit.dart';
+import '../../cubits/journal/journal_state.dart';
+import '../../models/journal/journal_models.dart';
+import '../../services/journal/journal_service.dart';
+import '../../shared/layout/app_background.dart';
 import '../../shared/layout/app_drawer.dart';
 import '../../shared/layout/bottom_nav_bar.dart';
 import '../../shared/layout/top_bar.dart';
-import '../../shared/layout/app_background.dart';
 
-import 'widgets/insight_item.dart';
-import 'widgets/journal_card.dart';
-import 'widgets/skill_progress_item.dart';
-import 'widgets/stat_card.dart';
+import 'widgets/journal_report_cards.dart';
+import 'widgets/journal_ui_helpers.dart';
+import 'widgets/performance_activity_card.dart';
+import 'widgets/weekly_sessions_card.dart';
 
-class JournalScreen extends StatelessWidget {
+class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Watch child mode — if active, show blocked message instead of redirecting
-    final childModeState = context.watch<ChildModeCubit>().state;
-    final isChildMode =
-        childModeState is ChildModeStatus && childModeState.isChildMode;
+  State<JournalScreen> createState() => _JournalScreenState();
+}
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        drawer: const AppDrawer(),
-        body: AppBackground(
-          child: Column(
-            children: [
-              const TopBar(),
-              Expanded(
-                // In child mode: show blocked page message
-                child: isChildMode
-                    ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.lock_rounded,
-                          size: 64,
-                          color: AppColors.hint.withValues(alpha: 0.5)),
-                      const SizedBox(height: 16),
-                      Text(
-                        'هذه الصفحة غير متاحة في وضع الطفل',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                    : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 18),
-                      _buildPerformanceCard(),
-                      const SizedBox(height: 18),
-                      _buildWeeklyInsights(),
-                      const SizedBox(height: 18),
-                      _buildAchievementCard(),
-                      const SizedBox(height: 18),
-                      _buildAhaCard(),
-                      const SizedBox(height: 14),
-                      _buildStatsSection(),
-                    ],
+class _JournalScreenState extends State<JournalScreen> {
+  static const String _latestOptionValue = '__latest__';
+
+  late final JournalCubit _journalCubit;
+  late final PageController _performancePageController;
+
+  String? _latestVersion;
+  String _selectedVersion = _latestOptionValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _journalCubit = JournalCubit(JournalService())..loadSelectedChildJournal();
+    _performancePageController = PageController(
+      viewportFraction: 0.90,
+    );
+  }
+
+  @override
+  void dispose() {
+    _performancePageController.dispose();
+    _journalCubit.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: _journalCubit,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          drawer: const AppDrawer(),
+          body: AppBackground(
+            child: Column(
+              children: [
+                const TopBar(),
+                Expanded(
+                  child: Builder(
+                    builder: (context) {
+                      final childModeState =
+                          context.watch<ChildModeCubit>().state;
+                      final isChildMode = childModeState is ChildModeStatus &&
+                          childModeState.isChildMode;
+
+                      if (isChildMode) {
+                        return _buildChildModeBlocked();
+                      }
+
+                      return BlocConsumer<JournalCubit, JournalState>(
+                        listener: _onJournalStateChanged,
+                        builder: (context, state) {
+                          if (state is JournalInitial ||
+                              state is JournalLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            );
+                          }
+
+                          if (state is JournalError) {
+                            return _buildErrorState(context, state.message);
+                          }
+
+                          final loadedState =
+                          state is JournalLoaded ? state : null;
+                          final weeklySessions =
+                          _weeklySessionsFromState(state);
+                          final performances = _performancesFromState(state);
+
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildHeader(
+                                  context,
+                                  loadedState: loadedState,
+                                ),
+                                if (loadedState != null) ...[
+                                  const SizedBox(height: 12),
+                                  _buildReportSelector(
+                                    context,
+                                    loadedState,
+                                  ),
+                                ],
+                                const SizedBox(height: 18),
+                                if (state is JournalLoaded) ...[
+                                  if (state.mindsetScores.isNotEmpty) ...[
+                                    MindsetScoresCard(
+                                      scores: state.mindsetScores,
+                                    ),
+                                    const SizedBox(height: 18),
+                                  ],
+                                  AhaMomentsCard(report: state.report),
+                                  const SizedBox(height: 18),
+                                ],
+                                if (state is JournalNoReport) ...[
+                                  const NoReportBanner(),
+                                  const SizedBox(height: 18),
+                                ],
+                                WeeklySessionsCard(
+                                  sessions: weeklySessions,
+                                ),
+                                if (performances.isNotEmpty) ...[
+                                  const SizedBox(height: 18),
+                                  _buildPerformanceCards(performances),
+                                ],
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
-              ),
-              const BottomNavBar(selectedIndex: 4),
-            ],
+                const BottomNavBar(selectedIndex: 4),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('اليوميات',
-            style: AppTextStyles.headlineLarge
-                .copyWith(fontSize: 28, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-          decoration: BoxDecoration(
-            color: AppColors.yellow.withValues(alpha: 0.18),
-            borderRadius: BorderRadius.circular(24),
-            border:
-            Border.all(color: AppColors.yellow.withValues(alpha: 0.35)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: AppColors.yellow, size: 22),
-              const SizedBox(width: 6),
-              Text('الأسبوع الحالي',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800)),
-            ],
-          ),
-        ),
-      ],
-    );
+  void _onJournalStateChanged(BuildContext context, JournalState state) {
+    if (state is JournalLoaded) {
+      final version = state.report.analysisVersion.trim();
+
+      if (_latestVersion == null && version.isNotEmpty) {
+        setState(() {
+          _latestVersion = version;
+          _selectedVersion = _latestOptionValue;
+        });
+      }
+    }
   }
 
-  Widget _buildPerformanceCard() {
-    final items = [
-      _SkillProgress('البنّاء', 0.78, AppColors.primary),
-      _SkillProgress('العالم', 0.64, AppColors.pink),
-      _SkillProgress('المستكشف', 0.82, AppColors.secondary),
-      _SkillProgress('المخترع', 0.55, AppColors.yellow),
-    ];
-    return JournalCard(
-      color: const Color(0xFFFFF3F6),
-      borderColor: AppColors.pink.withValues(alpha: 0.08),
+  Widget _buildChildModeBlocked() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _sectionTitle('بطاقة أداء المهارات'),
-          const SizedBox(height: 4),
-          Text('بناء على أدائك الأسبوعي',
-              style: AppTextStyles.bodyMedium.copyWith(fontSize: 12)),
-          const SizedBox(height: 18),
-          ...items.map((item) => SkillProgressItem(
-              name: item.name, value: item.value, color: item.color)),
+          Icon(
+            Icons.lock_rounded,
+            size: 64,
+            color: AppColors.hint.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'هذه الصفحة غير متاحة في وضع الطفل',
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildWeeklyInsights() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle('استكشافاتك الأسبوعية'),
-        const SizedBox(height: 10),
-        JournalCard(
-          color: const Color(0xFFEFFFFB),
-          borderColor: AppColors.primary.withValues(alpha: 0.08),
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: 110,
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Text(
-                'سيتم عرض استكشافاتك الأسبوعية هنا قريباً',
-                style: AppTextStyles.bodyMedium
-                    .copyWith(fontSize: 12, color: AppColors.hint),
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.redAccent,
+              size: 50,
+            ),
+            const SizedBox(height: 14),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ),
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _latestVersion = null;
+                  _selectedVersion = _latestOptionValue;
+                });
+
+                context.read<JournalCubit>().loadSelectedChildJournal();
+              },
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildAchievementCard() {
+  Widget _buildHeader(
+      BuildContext context, {
+        required JournalLoaded? loadedState,
+      }) {
+    if (loadedState == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: _headerDecoration(),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: _buildJournalTitle(),
+        ),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Stack(
+      padding: const EdgeInsets.fromLTRB(16, 16, 18, 16),
+      decoration: _headerDecoration(),
+      child: Row(
+        textDirection: TextDirection.ltr,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.16),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.track_changes_rounded,
-                  color: AppColors.white, size: 24),
+          AchievementRateCard(report: loadedState.report),
+          const SizedBox(width: 16),
+          Container(
+            width: 1.2,
+            height: 112,
+            decoration: BoxDecoration(
+              color: AppColors.border.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(99),
             ),
           ),
-          SizedBox(
-            width: double.infinity,
+          const SizedBox(width: 18),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 8),
-                Text('84%',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.headlineLarge.copyWith(
-                        color: AppColors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900)),
-                const SizedBox(height: 4),
-                Text('معدل الإنجاز العام',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                        color: AppColors.white, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.yellow.withValues(alpha: 0.20),
-                    borderRadius: BorderRadius.circular(20),
+                _buildJournalTitle(),
+                const SizedBox(height: 7),
+                Text(
+                  'تحليل شامل لتقدّم طفلك',
+                  textAlign: TextAlign.right,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                    height: 1.5,
+                    fontWeight: FontWeight.w600,
                   ),
-                  child: Text('تحسن عن الأسبوع الماضي +12%',
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
@@ -236,102 +287,438 @@ class JournalScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAhaCard() {
-    return JournalCard(
-      color: AppColors.cardBackground,
-      borderColor: AppColors.border,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _iconBubble(Icons.auto_awesome_rounded, AppColors.pink),
-              const SizedBox(width: 10),
-              _sectionTitle('لحظات "Aha!"'),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const InsightItem(
-            icon: Icons.psychology_alt_rounded,
-            color: AppColors.primary,
-            title: 'اكتشفت نمط الطفل الهندسي',
-            description:
-            'لاحظنا اهتماماً واضحاً بالتجارب التي تعتمد على التركيب والبناء وحل المشكلات.',
-          ),
-          const SizedBox(height: 12),
-          const InsightItem(
-            icon: Icons.lightbulb_outline_rounded,
-            color: AppColors.pink,
-            title: 'قفزة إبداعية جديدة',
-            description:
-            'بدأ الطفل يقترح حلولاً خاصة به بدل اتباع الخطوات فقط.',
-          ),
+  BoxDecoration _headerDecoration() {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.white.withValues(alpha: 0.92),
+          AppColors.white.withValues(alpha: 0.72),
         ],
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
       ),
-    );
-  }
-
-  Widget _buildStatsSection() {
-    return const Column(
-      children: [
-        StatCard(
-          icon: Icons.lightbulb_outline_rounded,
-          iconColor: AppColors.primary,
-          background: Color(0xFFEFFFFB),
-          title: 'المعدل اليومي',
-          description: 'متوسط التفاعل اليومي: 10 - 15 دقيقة.',
+      borderRadius: BorderRadius.circular(32),
+      border: Border.all(
+        color: AppColors.white.withValues(alpha: 0.95),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.07),
+          blurRadius: 22,
+          offset: const Offset(0, 10),
         ),
-        SizedBox(height: 12),
-        StatCard(
-          icon: Icons.travel_explore_rounded,
-          iconColor: AppColors.pink,
-          background: Color(0xFFFFF3F6),
-          title: 'نسبة الاستكشاف',
-          description: 'اهتمام واضح بالتجارب الجديدة والأنشطة المتنوعة.',
-        ),
-        SizedBox(height: 12),
-        StatCard(
-          icon: Icons.trending_up_rounded,
-          iconColor: AppColors.secondary,
-          background: Color(0xFFEFFFFB),
-          title: 'معدل الاستقلالية',
-          description: 'قدرة أفضل على تنفيذ الخطوات بدون مساعدة مباشرة.',
+        BoxShadow(
+          color: AppColors.white.withValues(alpha: 0.70),
+          blurRadius: 10,
+          offset: const Offset(0, -2),
         ),
       ],
     );
   }
 
-  Widget _sectionTitle(String text) {
-    return Text(text,
-        style: AppTextStyles.bodyLarge.copyWith(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-            color: AppColors.textPrimary));
-  }
-
-  Widget _iconBubble(IconData icon, Color color) {
-    return Container(
-      width: 42,
-      height: 42,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.13),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+  Widget _buildJournalTitle() {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 10),
+          Text(
+            'متابعة التقدّم',
+            textAlign: TextAlign.right,
+            style: AppTextStyles.headlineLarge.copyWith(
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              color: AppColors.primary,
+              height: 1,
+            ),
           ),
         ],
       ),
-      child: Icon(icon, color: color, size: 23),
+    );
+  }
+
+  Widget _buildReportSelector(
+      BuildContext context,
+      JournalLoaded state,
+      ) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: _buildVersionDropdown(context, state),
+    );
+  }
+
+  Widget _buildVersionDropdown(
+      BuildContext context,
+      JournalLoaded state,
+      ) {
+    final latestVersion =
+        _latestVersion ?? state.report.analysisVersion.trim();
+
+    final versions = versionsUpTo(latestVersion);
+    final latestNumber = _versionNumber(latestVersion);
+
+    final oldVersions = versions.where((version) {
+      final versionNumber = _versionNumber(version);
+
+      if (latestNumber == null || versionNumber == null) {
+        return version != latestVersion;
+      }
+
+      return versionNumber < latestNumber;
+    }).toList()
+      ..sort((a, b) {
+        final aNumber = _versionNumber(a) ?? 0;
+        final bNumber = _versionNumber(b) ?? 0;
+        return bNumber.compareTo(aNumber);
+      });
+
+    final selectedLabel = _selectedVersion == _latestOptionValue
+        ? _versionDisplayName(latestVersion)
+        : _versionDisplayName(_selectedVersion);
+
+    return PopupMenuButton<String>(
+      initialValue: _selectedVersion,
+      elevation: 10,
+      color: AppColors.white,
+      shadowColor: AppColors.primary.withValues(alpha: 0.12),
+      offset: const Offset(0, 48),
+      constraints: const BoxConstraints(
+        minWidth: 210,
+        maxWidth: 240,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(
+          color: AppColors.yellow.withValues(alpha: 0.18),
+        ),
+      ),
+      onSelected: (value) {
+        if (value == _selectedVersion) return;
+
+        setState(() {
+          _selectedVersion = value;
+        });
+
+        if (value == _latestOptionValue) {
+          context.read<JournalCubit>().loadJournal(state.childId);
+          return;
+        }
+
+        context.read<JournalCubit>().loadReportByVersion(
+          state.childId,
+          value,
+        );
+      },
+      itemBuilder: (context) {
+        return <PopupMenuEntry<String>>[
+          PopupMenuItem<String>(
+            enabled: false,
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text(
+                'التقارير',
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          PopupMenuItem<String>(
+            value: _latestOptionValue,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            child: _buildVersionMenuItem(
+              icon: Icons.article_rounded,
+              label: _versionDisplayName(latestVersion),
+              isSelected: _selectedVersion == _latestOptionValue,
+            ),
+          ),
+          if (oldVersions.isNotEmpty)
+            PopupMenuItem<String>(
+              enabled: false,
+              height: 12,
+              padding: EdgeInsets.zero,
+              child: Divider(
+                height: 1,
+                thickness: 0.8,
+                indent: 14,
+                endIndent: 14,
+                color: AppColors.border.withValues(alpha: 0.75),
+              ),
+            ),
+          ...oldVersions.map(
+                (version) => PopupMenuItem<String>(
+              value: version,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              child: _buildVersionMenuItem(
+                icon: Icons.history_rounded,
+                label: _versionDisplayName(version),
+                isSelected: _selectedVersion == version,
+              ),
+            ),
+          ),
+        ];
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.yellow.withValues(alpha: 0.20),
+              AppColors.yellow.withValues(alpha: 0.08),
+            ],
+            begin: Alignment.centerRight,
+            end: Alignment.centerLeft,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.yellow.withValues(alpha: 0.36),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.yellow.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.article_rounded,
+                color: AppColors.yellow.withValues(alpha: 0.95),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                selectedLabel,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 12.8,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.yellow,
+                size: 21,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVersionMenuItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+  }) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+            colors: [
+              AppColors.yellow.withValues(alpha: 0.18),
+              AppColors.yellow.withValues(alpha: 0.07),
+            ],
+            begin: Alignment.centerRight,
+            end: Alignment.centerLeft,
+          )
+              : null,
+          color: isSelected ? null : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.yellow.withValues(alpha: 0.22)
+                : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.white.withValues(alpha: 0.85)
+                    : AppColors.yellow.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? AppColors.primary : AppColors.yellow,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 12.8,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: isSelected ? 1 : 0,
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _versionDisplayName(String version) {
+    final number = _versionNumber(version);
+
+    if (number == null) return version;
+
+    switch (number) {
+      case 1:
+        return 'التقرير الأول';
+      case 2:
+        return 'التقرير الثاني';
+      case 3:
+        return 'التقرير الثالث';
+      case 4:
+        return 'التقرير الرابع';
+      case 5:
+        return 'التقرير الخامس';
+      case 6:
+        return 'التقرير السادس';
+      case 7:
+        return 'التقرير السابع';
+      case 8:
+        return 'التقرير الثامن';
+      case 9:
+        return 'التقرير التاسع';
+      case 10:
+        return 'التقرير العاشر';
+      default:
+        return 'التقرير $number';
+    }
+  }
+
+  int? _versionNumber(String version) {
+    return int.tryParse(version.replaceAll(RegExp(r'[^0-9]'), ''));
+  }
+
+  Widget _buildPerformanceCards(List<PerformanceModel> performances) {
+    final sortedPerformances = [...performances]
+      ..sort((a, b) => a.activityId.compareTo(b.activityId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            children: [
+              Text(
+                'أداء الأنشطة',
+                textAlign: TextAlign.right,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  '${sortedPerformances.length} نشاط',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 305,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: PageView.builder(
+              controller: _performancePageController,
+              itemCount: sortedPerformances.length,
+              padEnds: false,
+              itemBuilder: (context, index) {
+                final performance = sortedPerformances[index];
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index == sortedPerformances.length - 1 ? 0 : 10,
+                  ),
+                  child: PerformanceActivityCard(
+                    performance: performance,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        if (sortedPerformances.length > 1) ...[
+          const SizedBox(height: 8),
+          Text(
+            'اسحب لعرض باقي الأنشطة',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.hint,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
 
-class _SkillProgress {
-  final String name;
-  final double value;
-  final Color color;
-  const _SkillProgress(this.name, this.value, this.color);
+List<DailySessionModel> _weeklySessionsFromState(JournalState state) {
+  if (state is JournalLoaded) return state.weeklySessions;
+  if (state is JournalNoReport) return state.weeklySessions;
+  return [];
+}
+
+List<PerformanceModel> _performancesFromState(JournalState state) {
+  if (state is JournalLoaded) return state.performances;
+  if (state is JournalNoReport) return state.performances;
+  return [];
 }

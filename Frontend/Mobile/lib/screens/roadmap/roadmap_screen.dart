@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/activities/emotional_maze/emotional_maze_launcher.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
+import '../../activities/create_creature/create_creature_intro.dart';
 import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
 import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
@@ -21,6 +23,15 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
+
+import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
+import '../../activities/emotion_chain/emotion_chain_intro.dart';
+import '../../activities/shape_creator/shape_creator_launcher.dart';
+
+import '../../activities/bodily_maze/bodily_maze_launcher.dart';
+import '../../activities/cognitive_maze/cognitive_maze_launcher.dart';
+
+
 
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
@@ -143,8 +154,9 @@ class _RoadmapView extends StatelessWidget {
       RoadmapActivityModel activity,
       ) {
     if (activity.isLocked) {
-      _showMessage(context, 'أكملي الأنشطة السابقة أولًا');
+      _showMessage(context, 'أكمل الأنشطة السابقة أولًا');
       return;
+      
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
@@ -264,6 +276,23 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
+
+   if (activityName == 'shape builder'||
+    activityName == 'shape creator') {
+    Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ShapeCreatorLauncher(
+        activityId: activity.activityId,
+        kitId: kitId,
+        childId: childId,
+      ),
+    ),
+  ).then((_) => _refreshRoadmapIfMounted(context));
+
+  return;
+}
+
     if (activityName == 'story spinner' ||
         activityName == 'story spinner cards') {
       Navigator.push(
@@ -295,6 +324,7 @@ class _RoadmapView extends StatelessWidget {
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
     if (activityName == 'creative maze') {
       Navigator.push(
         context,
@@ -303,12 +333,72 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             initialLevelNumber: activity.currentLevelNumber <= 0
                 ? 1
+
+    if (activityName == 'bodily maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BodilyMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'cognitive maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CognitiveMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 2
+
                 : activity.currentLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
+
+
+    if (activityName == 'emotional maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmotionalMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.currentLevelNumber <= 0
+                ? 2
+                : activity.currentLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+    if (activityName == 'صمم بطلك') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CreateCreatureIntro(
+            childId: childId,
+            kitId: kitId,
+            activityId: activity.activityId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+
+
     _showMessage(
       context,
       'النشاط "${activity.activityName}" غير جاهز بعد',

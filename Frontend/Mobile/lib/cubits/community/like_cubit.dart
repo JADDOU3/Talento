@@ -11,6 +11,30 @@ class LikeCubit extends Cubit<LikeState> {
 
   LikeCubit(this._likeService) : super(LikeInitial());
 
+  Future<void> loadPostLikeData(int postId) async {
+    try {
+      final results = await Future.wait<dynamic>([
+        _likeService.getLikeCount(postId),
+        _likeService.isPostLiked(postId),
+      ]);
+
+      final count = results[0] as int;
+      final isLiked = results[1] as bool;
+
+      likeCounts[postId] = count;
+      likedPosts[postId] = isLiked;
+
+      emit(
+        LikeUpdated(
+          postId: postId,
+          count: count,
+          isLiked: isLiked,
+        ),
+      );
+    } catch (e) {
+      emit(LikeError(e.toString()));
+    }
+  }
   Future<void> getLikeCount(int postId) async {
     try {
       final count = await _likeService.getLikeCount(postId);
@@ -63,9 +87,8 @@ class LikeCubit extends Cubit<LikeState> {
 
       final normalizedResult = result.toLowerCase().trim();
 
-      final confirmedIsLiked =
-          normalizedResult.contains('liked') &&
-              !normalizedResult.contains('unliked');
+      final confirmedIsLiked = normalizedResult.contains('liked') &&
+          !normalizedResult.contains('unliked');
 
       final confirmedCount = confirmedIsLiked ? oldCount + 1 : oldCount - 1;
 

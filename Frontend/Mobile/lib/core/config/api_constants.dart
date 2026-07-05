@@ -90,6 +90,9 @@ class ApiConstants {
   static String roadmapProgress(int activityId) =>
       '$baseUrl/roadmap/progress/$activityId';
 
+  static String roadmapCardById(int cardId) =>
+      '$baseUrl/roadmap-cards/$cardId';
+
   // Posts
   static const String posts = '$baseUrl/posts';
   static const String myPosts = '$baseUrl/posts/my';
@@ -102,6 +105,12 @@ class ApiConstants {
   // Likes
   static const String likesToggle = '$baseUrl/likes/toggle';
   static const String likesPost = '$baseUrl/likes/post';
+
+  static String likeCount(int postId) =>
+      '$baseUrl/likes/post/$postId/count';
+
+  static String isPostLiked(int postId, int parentId) =>
+      '$baseUrl/likes/post/$postId/liked?parentId=$parentId';
 
   // Comments
   static const String comments = '$baseUrl/comments';
@@ -122,4 +131,17 @@ class ApiConstants {
   static const String childModeEnable = '$baseUrl/childMode/enable';
   static const String childModeDisable = '$baseUrl/childMode/disable';
   static const String childModeSetPin = '$baseUrl/childMode/setPin';
+
+  // Journal / AI Reports
+  static String aiReportLatest(int childId) =>
+      '$baseUrl/ai-reports/child/$childId/latest';
+
+  static String aiReportByVersion(int childId, String version) =>
+      '$baseUrl/ai-reports/child/$childId/version/${Uri.encodeComponent(version)}';
+
+  static const String aiReportsWeeklySessions =
+      '$baseUrl/ai-reports/weekly-sessions';
+
+  static String performanceByChild(int childId) =>
+      '$baseUrl/performance/child/$childId';
 }
