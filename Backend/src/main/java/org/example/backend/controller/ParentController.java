@@ -99,4 +99,14 @@ public class ParentController {
         }
         return ResponseEntity.ok("PIN correct");
     }
+
+    @PostMapping("/legal/privacy-policy/accept")
+    public ResponseEntity<String> acceptPrivacyPolicy() {
+        return ResponseEntity.ok(userService.acceptPrivacyPolicy());
+    }
+
+    @GetMapping("/legal/privacy-policy/accepted")
+    public ResponseEntity<Boolean> hasAcceptedPrivacyPolicy() {
+        return ResponseEntity.ok(userService.hasPrivacyPolicyAccepted());
+    }
 }

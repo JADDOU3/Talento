@@ -40,6 +40,18 @@ public class ParentService implements UserDetailsService {
         return new ParentPrincipal(parent);
     }
 
+    public String acceptPrivacyPolicy() {
+        Parent parent = SecurityUtils.getCurrentUser();
+        parent.setPrivacyPolicyAcceptedAt(LocalDateTime.now());
+        repo.save(parent);
+        return "Privacy policy accepted";
+    }
+
+    public boolean hasPrivacyPolicyAccepted() {
+        Parent parent = SecurityUtils.getCurrentUser();
+        return parent.getPrivacyPolicyAcceptedAt() != null;
+    }
+
     public String register(RegisterDto registerDto) {
         if(repo.findByEmail(registerDto.getEmail()) != null) {
             return "Email already exists";
