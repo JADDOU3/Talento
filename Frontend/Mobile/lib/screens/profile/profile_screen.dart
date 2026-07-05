@@ -15,8 +15,8 @@ import '../../shared/layout/top_bar.dart';
 import 'widgets/available_kits_section.dart';
 import 'widgets/children_section.dart';
 import 'widgets/profile_header.dart';
-import 'widgets/profile_progress_card.dart';
 import 'widgets/settings_section.dart';
+import '../qr_scanner/qr_scanner_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final bool openAddChildDialog;
@@ -43,6 +43,55 @@ class _ProfileView extends StatelessWidget {
   const _ProfileView({
     required this.openAddChildDialog,
   });
+
+
+  Future<void> _openKitQrScanner(BuildContext context) async {
+    final scannedValue = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const QrScannerScreen(returnFirstScan: true),
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    if (scannedValue == null || scannedValue.trim().isEmpty) {
+      return;
+    }
+
+    final kitId = int.tryParse(scannedValue.trim());
+
+    if (kitId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('هذا الـ QR لا يحتوي رقم صندوق صحيح'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await context.read<ProfileCubit>().addKitToSelectedChild(kitId);
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تمت إضافة الصندوق بنجاح'),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      final message = e.toString().replaceFirst('Exception: ', '');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,15 +168,13 @@ class _ProfileView extends StatelessWidget {
                         : <KitModel>[];
 
                     final isKitsLoading = state is ProfileKitsLoading;
-
                     final displayName = isChildMode && selectedChild != null
                         ? selectedChild.name
                         : user.name;
 
-                    final displayAvatar = isChildMode && selectedChild != null
-                        ? (selectedChild.avatarUrl ??
-                        'https://api.dicebear.com/7.x/adventurer/png?seed=${selectedChild.name}')
-                        : (user.avatarUrl ?? '');
+                    final String? displayAvatar = isChildMode && selectedChild != null
+                        ? selectedChild.avatarUrl
+                        : null;
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -139,6 +186,7 @@ class _ProfileView extends StatelessWidget {
                             name: displayName,
                             email: isChildMode ? '' : user.email,
                             avatarUrl: displayAvatar,
+                            isChildMode: isChildMode,
                           ),
                           const SizedBox(height: 24),
 
@@ -167,12 +215,6 @@ class _ProfileView extends StatelessWidget {
 
                           if (!isChildMode) const SizedBox(height: 24),
 
-                          const ProfileProgressCard(
-                            level: 'المستوى 3',
-                            progress: 0.7,
-                          ),
-                          const SizedBox(height: 24),
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -186,24 +228,17 @@ class _ProfileView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
-
                           if (isKitsLoading)
                             const Center(
                               child: CircularProgressIndicator(
                                 color: AppColors.primary,
                               ),
                             )
-                          else if (kits.isEmpty)
-                            Center(
-                              child: Text(
-                                'لا توجد حقائب لهذا الطفل',
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            )
                           else
-                            AvailableKitsSection(kits: kits),
+                            AvailableKitsSection(
+                              kits: kits,
+                              onAddKitTap: () => _openKitQrScanner(context),
+                            ),
 
                           const SizedBox(height: 24),
 
