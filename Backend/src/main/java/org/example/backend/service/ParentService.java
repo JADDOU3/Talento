@@ -1,5 +1,7 @@
 package org.example.backend.service;
 
+import org.example.backend.Dto.parent.UpdatePasswordDto;
+import org.example.backend.Dto.parent.UpdateProfileDto;
 import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.config.PasswordEncoderConfig;
 import org.example.backend.model.Parent;
@@ -75,6 +77,38 @@ public class ParentService implements UserDetailsService {
             return true;
         }
         return false;
+    }
+
+    public String updateProfile(UpdateProfileDto dto) {
+        Parent parent = SecurityUtils.getCurrentUser();
+
+        if (dto.getName() != null) {
+            parent.setName(dto.getName());
+        }
+        if (dto.getPhone() != null) {
+            parent.setPhone(dto.getPhone());
+        }
+        if (dto.getLocation() != null) {
+            parent.setLocation(dto.getLocation());
+        }
+
+        repo.save(parent);
+        return "Profile updated successfully";
+    }
+
+    public String updatePassword(UpdatePasswordDto dto) {
+        Parent parent = SecurityUtils.getCurrentUser();
+
+        boolean matches = passwordEncoderConfig.passwordEncoder()
+                .matches(dto.getCurrentPassword(), parent.getPassword());
+
+        if (!matches) {
+            return "Current password is incorrect";
+        }
+
+        parent.setPassword(passwordEncoderConfig.passwordEncoder().encode(dto.getNewPassword()));
+        repo.save(parent);
+        return "Password updated successfully";
     }
 
 
