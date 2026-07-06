@@ -15,6 +15,7 @@ import 'widgets/free_coloring_widget.dart';
 import 'widgets/mixing_bowl_widget.dart';
 import 'widgets/target_image_widget.dart';
 import 'widgets/undo_reset_controls.dart';
+import '../../shared/layout/top_bar.dart';
 
 class ColorLabGameScreen extends StatelessWidget {
   final int activityId;
@@ -99,12 +100,6 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
     return true;
   }
 
-  String _formatTime(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ColorLabCubit, ColorLabState>(
@@ -185,27 +180,17 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
 
     return Column(
       children: [
-        // Header: back + timer
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
-            children: [
-              _CircleButton(
-                icon: Icons.arrow_forward_ios_rounded,
-                onTap: () async {
-                  final canPop = await _onWillPop(context);
-                  if (canPop && context.mounted) {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-              const Spacer(),
-              _TimerChip(text: _formatTime(loaded.elapsed)),
-              const Spacer(),
-              const SizedBox(width: 42),
-            ],
-          ),
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_rounded,
+          onLeadingPressed: () async {
+            final canPop = await _onWillPop(context);
+
+            if (canPop && context.mounted) {
+              Navigator.pop(context);
+            }
+          },
         ),
+        const SizedBox(height: 8),
 
         Expanded(
           child: SingleChildScrollView(
@@ -324,95 +309,6 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
               child: const Text('إعادة المحاولة'),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TimerChip extends StatelessWidget {
-  final String text;
-
-  const _TimerChip({
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.timer_outlined,
-            color: AppColors.primary,
-            size: 18,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: AppTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-              fontSize: 15,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CircleButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _CircleButton({
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.border),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 18,
-          ),
         ),
       ),
     );

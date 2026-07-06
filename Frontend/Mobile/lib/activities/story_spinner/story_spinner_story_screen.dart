@@ -9,6 +9,7 @@ import '../../models/activities/story_spinner/icon_arabic_labels.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/voice_recorder_widget.dart';
 import '../../screens/roadmap/roadmap_screen.dart';
+import '../../shared/layout/top_bar.dart';
 
 String _cleanStoryIconName(String icon) {
   var clean = icon.trim();
@@ -96,9 +97,7 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
         builder: (context, state) {
           return Scaffold(
             body: AppBackground(
-              child: SafeArea(
-                child: _buildBody(context, state),
-              ),
+              child: _buildBody(context, state),
             ),
           );
         },
@@ -197,155 +196,83 @@ class _LoadedStoryView extends StatelessWidget {
     final checkingStory = isCompleting || state.isCompleting;
     final missingKeywords = state.missingKeywords;
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _TopHeader(),
-        const SizedBox(height: 14),
-        _StoryElementsCard(
-          characterIcon: characterIcon,
-          eventIcon: eventIcon,
-          placeIcon: placeIcon,
-          missingKeywords: missingKeywords,
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.of(context).pop(),
         ),
-        const SizedBox(height: 14),
-        _MascotPromptCard(prompt: prompt),
-        if (missingKeywords.isNotEmpty) ...[
-          const SizedBox(height: 14),
-          _VoiceCheckFeedbackCard(missingKeywords: missingKeywords),
-        ],
-        const SizedBox(height: 14),
-        VoiceRecorderWidget(
-          isRecording: isRecording,
-          onToggleRecording: onToggleRecording,
-          onRecordingComplete: onRecordingComplete,
-        ),
-        const SizedBox(height: 22),
-        SizedBox(
-          width: double.infinity,
-          height: 58,
-          child: ElevatedButton.icon(
-            onPressed: state.hasRecording && !isRecording && !checkingStory
-                ? onDone
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              disabledBackgroundColor: AppColors.border,
-              foregroundColor: AppColors.white,
-              elevation: state.hasRecording ? 4 : 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(22),
-              ),
-            ),
-            icon: checkingStory
-                ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.3,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.white,
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+              children: [
+                _StoryElementsCard(
+                  characterIcon: characterIcon,
+                  eventIcon: eventIcon,
+                  placeIcon: placeIcon,
+                  missingKeywords: missingKeywords,
                 ),
-              ),
-            )
-                : const Icon(Icons.check_circle_rounded),
-            label: Text(
-              checkingStory ? 'جاري فحص القصة...' : 'إنهاء',
-              style: AppTextStyles.button.copyWith(
-                fontFamily: 'DGAgnadeen',
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-              ),
+                const SizedBox(height: 14),
+                _MascotPromptCard(prompt: prompt),
+                if (missingKeywords.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _VoiceCheckFeedbackCard(missingKeywords: missingKeywords),
+                ],
+                const SizedBox(height: 14),
+                VoiceRecorderWidget(
+                  isRecording: isRecording,
+                  onToggleRecording: onToggleRecording,
+                  onRecordingComplete: onRecordingComplete,
+                ),
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  height: 58,
+                  child: ElevatedButton.icon(
+                    onPressed:
+                    state.hasRecording && !isRecording && !checkingStory
+                        ? onDone
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.border,
+                      foregroundColor: AppColors.white,
+                      elevation: state.hasRecording ? 4 : 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
+                    icon: checkingStory
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.3,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.white,
+                        ),
+                      ),
+                    )
+                        : const Icon(Icons.check_circle_rounded),
+                    label: Text(
+                      checkingStory ? 'جاري فحص القصة...' : 'إنهاء',
+                      style: AppTextStyles.button.copyWith(
+                        fontFamily: 'DGAgnadeen',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _TopHeader extends StatelessWidget {
-  const _TopHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.white.withOpacity(0.92),
-          width: 1.1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 13,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _TopCircleButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icons.arrow_back_ios_new_rounded,
-          ),
-          const Spacer(),
-          Image.asset(
-            'assets/icons/logo1.png',
-            height: 42,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
-              return const Text(
-                'Talento',
-                style: TextStyle(
-                  fontFamily: 'BerlinSans',
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-
-  const _TopCircleButton({
-    required this.onPressed,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withOpacity(0.95),
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: AppColors.black.withOpacity(0.08),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 20,
-          ),
-        ),
-      ),
     );
   }
 }

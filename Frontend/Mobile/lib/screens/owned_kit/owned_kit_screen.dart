@@ -13,6 +13,7 @@ import 'widgets/active_journey_map_section.dart';
 import 'widgets/curriculum_path_section.dart';
 import 'widgets/owned_kit_header.dart';
 import 'widgets/primary_button.dart';
+import '../../shared/layout/top_bar.dart';
 
 class OwnedKitScreen extends StatefulWidget {
   final dynamic kit;
@@ -251,7 +252,10 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                _buildDetailsTopBar(context),
+                TopBar(
+                  leadingIcon: Icons.arrow_back_ios_rounded,
+                  onLeadingPressed: () => Navigator.pop(context),
+                ),
                 _buildScreenTitle(),
                 Expanded(
                   child: SingleChildScrollView(

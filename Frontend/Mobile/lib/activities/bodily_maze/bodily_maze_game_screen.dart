@@ -12,6 +12,7 @@ import '../../cubits/bodily_maze/bodily_maze_state.dart';
 import '../../services/activities/bodily_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/bodily_maze_game_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 /// The Bodily Maze play screen: maze image + transparent Flame ball overlay,
 /// a count-up timer, a tap-to-jump gesture, and a calibrate button.
@@ -70,12 +71,6 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
     });
   }
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
   Future<bool> _onWillPop(BuildContext context) async {
     await context.read<BodilyMazeCubit>().logExitIfNotCompleted();
     return true;
@@ -131,106 +126,72 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
 
   BodilyMazeLoaded? _lastLoaded;
 
+
   Widget _buildPlayfield(BuildContext context, BodilyMazeLoaded loaded) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      child: Column(
-        children: [
-          _buildTopBar(context, loaded),
-          const SizedBox(height: 10),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Build (or reuse) the game once we have a size + config.
-                _game ??= BodilyMazeGame(
-                  config: loaded.config,
-                  tiltController: _tiltController,
-                  onFellInHole: () =>
-                      context.read<BodilyMazeCubit>().onBallFellInHole(),
-                  onReachedEnd: () =>
-                      context.read<BodilyMazeCubit>().onBallReachedEnd(),
-                );
-
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: GestureDetector(
-                    onTapDown: (_) => _game?.handleTap(),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // Maze image (presigned url — never s3Key).
-                        Image.network(
-                          loaded.level.imageUrl,
-                          fit: BoxFit.fill,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: AppColors.inputFill,
-                            child: const Center(
-                              child: Text('تعذّر تحميل صورة المتاهة'),
-                            ),
-                          ),
-                        ),
-                        // Transparent Flame overlay (only the ball is drawn).
-                        GameWidget(game: _game!),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-          TiltCalibrationButton(
-            tiltController: _tiltController,
-            onCalibrated: () => _game?.calibrate(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopBar(BuildContext context, BodilyMazeLoaded loaded) {
-    return Row(
+    return Column(
       children: [
-        IconButton(
-          onPressed: () async {
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
             if (await _onWillPop(context) && context.mounted) {
               Navigator.pop(context);
             }
           },
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: AppColors.textPrimary,
         ),
-        const Spacer(),
-        Image.asset('assets/icons/logo1.png', height: 40),
-        const Spacer(),
-        // Count-up timer.
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        _game ??= BodilyMazeGame(
+                          config: loaded.config,
+                          tiltController: _tiltController,
+                          onFellInHole: () => context
+                              .read<BodilyMazeCubit>()
+                              .onBallFellInHole(),
+                          onReachedEnd: () => context
+                              .read<BodilyMazeCubit>()
+                              .onBallReachedEnd(),
+                        );
+
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: GestureDetector(
+                            onTapDown: (_) => _game?.handleTap(),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  loaded.level.imageUrl,
+                                  fit: BoxFit.fill,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: AppColors.inputFill,
+                                    child: const Center(
+                                      child: Text('تعذّر تحميل صورة المتاهة'),
+                                    ),
+                                  ),
+                                ),
+                                GameWidget(game: _game!),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TiltCalibrationButton(
+                    tiltController: _tiltController,
+                    onCalibrated: () => _game?.calibrate(),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.timer_outlined,
-                  size: 18, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Text(
-                _fmt(loaded.elapsed),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ],

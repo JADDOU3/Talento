@@ -8,6 +8,7 @@ import '../../cubits/activities/creative_maze/creative_maze_state.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
 import 'widgets/creative_maze_game_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 /// Hosts the running Creative Maze: the maze image is the play area with the
 /// transparent Flame game (ball + physics walls from config) on top, plus a
@@ -74,8 +75,7 @@ class _CreativeMazeGameScreenState extends State<CreativeMazeGameScreen> {
               colors: [Color(0xFFE9FAF6), Color(0xFFFFF9EA), Color(0xFFFFEEF3)],
             ),
           ),
-          child: SafeArea(
-            child: BlocConsumer<CreativeMazeCubit, CreativeMazeState>(
+          child: BlocConsumer<CreativeMazeCubit, CreativeMazeState>(
               bloc: _cubit,
               listener: (context, state) {
                 if (state is CreativeMazeComplete) {
@@ -98,76 +98,64 @@ class _CreativeMazeGameScreenState extends State<CreativeMazeGameScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 
   Widget _buildGame(CreativeMazeLoaded state) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-      child: Column(
-        children: [
-          _buildTopBar(),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Stack(
-                fit: StackFit.expand,
+    return Column(
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.pop(context),
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
                 children: [
-                  // Maze image (the walls the child sees).
-                  Image.network(
-                    state.level.imageUrl,
-                    fit: BoxFit.fill,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.white,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.broken_image_outlined,
-                          size: 48, color: Colors.black26),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            state.level.imageUrl,
+                            fit: BoxFit.fill,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: Colors.white,
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.broken_image_outlined,
+                                size: 48,
+                                color: Colors.black26,
+                              ),
+                            ),
+                          ),
+                          Builder(
+                            builder: (context) {
+                              _game ??= CreativeMazeGame(
+                                tiltController: _tiltController,
+                                config: state.config,
+                                onReachedEnd: _cubit.onBallReachedEnd,
+                              );
+
+                              return GameWidget(game: _game!);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  // Transparent physics layer (ball + walls on top).
-                  Builder(
-                    builder: (context) {
-                      _game ??= CreativeMazeGame(
-                        tiltController: _tiltController,
-                        config: state.config,
-                        onReachedEnd: _cubit.onBallReachedEnd,
-                      );
-                      return GameWidget(game: _game!);
-                    },
-                  ),
+                  const SizedBox(height: 14),
+                  TiltCalibrationButton(tiltController: _tiltController),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 14),
-          TiltCalibrationButton(tiltController: _tiltController),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: AppColors.textPrimary,
         ),
-        const Expanded(
-          child: Text(
-            'المتاهة الإبداعية',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color(0xFF123835),
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-        const SizedBox(width: 48),
       ],
     );
   }

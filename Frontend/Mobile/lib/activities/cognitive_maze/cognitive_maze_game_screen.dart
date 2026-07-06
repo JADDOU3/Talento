@@ -13,6 +13,7 @@ import '../../services/activities/cognitive_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
 import 'widgets/cognitive_maze_game_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 class CognitiveMazeGameScreen extends StatelessWidget {
   final int activityId;
@@ -72,11 +73,7 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     });
   }
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
+
 
   Future<bool> _onWillPop(BuildContext context) async {
     await context.read<CognitiveMazeCubit>().logExitIfNotCompleted();
@@ -155,109 +152,81 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     );
   }
 
-  Widget _buildPlayfield(
-      BuildContext context, CognitiveMazeLoaded loaded) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      child: Column(
-        children: [
-          _buildTopBar(context, loaded),
-          const SizedBox(height: 10),
-          _buildQuestionBanner(loaded),
-          const SizedBox(height: 10),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _game ??= CognitiveMazeGame(
-                  config: loaded.config,
-                  correctEndpointIndex:
-                  loaded.config.isStarCollectLevel
-                      ? null
-                      : loaded.level.correctChoiceIndex,
-                  tiltController: _tiltController,
-                  onCorrectAnswer: () => context
-                      .read<CognitiveMazeCubit>()
-                      .onCorrectAnswer(),
-                  onWrongAnswer: (endpointIndex) => context
-                      .read<CognitiveMazeCubit>()
-                      .onWrongAnswer(endpointIndex),
-                  onStarCollected:
-                      (color, isTarget) => context
-                      .read<CognitiveMazeCubit>()
-                      .onStarCollected(color, isTarget),
-                );
 
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        loaded.level.imageUrl,
-                        fit: BoxFit.fill,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.inputFill,
-                          child: const Center(
-                            child: Text('تعذّر تحميل صورة المتاهة'),
-                          ),
-                        ),
-                      ),
-
-                      GameWidget(game: _game!),
-
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-          TiltCalibrationButton(
-            tiltController: _tiltController,
-            onCalibrated: () => _game?.calibrate(),
-          ),
-        ],
-      ),
-    );
-  }
-  Widget _buildTopBar(BuildContext context, CognitiveMazeLoaded loaded) {
-    return Row(
+  Widget _buildPlayfield(BuildContext context, CognitiveMazeLoaded loaded) {
+    return Column(
       children: [
-        IconButton(
-          onPressed: () async {
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
             if (await _onWillPop(context) && context.mounted) {
               Navigator.pop(context);
             }
           },
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: AppColors.textPrimary,
         ),
-        const Spacer(),
-        Image.asset('assets/icons/logo1.png', height: 40),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.timer_outlined,
-                  size: 18, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Text(
-                _fmt(loaded.elapsed),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Column(
+              children: [
+                _buildQuestionBanner(loaded),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      _game ??= CognitiveMazeGame(
+                        config: loaded.config,
+                        correctEndpointIndex:
+                        loaded.config.isStarCollectLevel
+                            ? null
+                            : loaded.level.correctChoiceIndex,
+                        tiltController: _tiltController,
+                        onCorrectAnswer: () => context
+                            .read<CognitiveMazeCubit>()
+                            .onCorrectAnswer(),
+                        onWrongAnswer: (endpointIndex) => context
+                            .read<CognitiveMazeCubit>()
+                            .onWrongAnswer(endpointIndex),
+                        onStarCollected: (color, isTarget) => context
+                            .read<CognitiveMazeCubit>()
+                            .onStarCollected(color, isTarget),
+                      );
+
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.network(
+                              loaded.level.imageUrl,
+                              fit: BoxFit.fill,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: AppColors.inputFill,
+                                child: const Center(
+                                  child: Text('تعذّر تحميل صورة المتاهة'),
+                                ),
+                              ),
+                            ),
+                            GameWidget(game: _game!),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                TiltCalibrationButton(
+                  tiltController: _tiltController,
+                  onCalibrated: () => _game?.calibrate(),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
+
 
   Widget _buildQuestionBanner(CognitiveMazeLoaded loaded) {
     return Container(

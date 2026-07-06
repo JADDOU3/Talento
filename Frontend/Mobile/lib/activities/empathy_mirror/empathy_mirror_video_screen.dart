@@ -14,6 +14,7 @@ import 'empathy_mirror_result_screen.dart';
 import 'widgets/card_choices_widget.dart';
 import 'widgets/split_character_screen.dart';
 import 'widgets/video_player_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 class EmpathyMirrorVideoScreen extends StatelessWidget {
   final int activityId;
@@ -110,9 +111,7 @@ class _EmpathyMirrorView extends StatelessWidget {
             child: Scaffold(
               backgroundColor: AppColors.background,
               body: AppBackground(
-                child: SafeArea(
                   child: _buildBody(context, state),
-                ),
               ),
             ),
           ),
@@ -153,32 +152,52 @@ class _EmpathyMirrorView extends StatelessWidget {
       final char1Challenge = loaded.level.challengeForCharacter(1);
       final char2Challenge = loaded.level.challengeForCharacter(2);
 
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: SplitCharacterScreen(
-                videoUrl: introChallenge?.hasVideo == true
-                    ? introChallenge!.url
-                    : null,
-                videoPrompt: introChallenge?.prompt ?? '',
-                character1Question: char1Challenge?.question ?? '',
-                character2Question: char2Challenge?.question ?? '',
-                onScanCharacter1: () => _openQrForCharacter(context, 1),
-                onScanCharacter2: () => _openQrForCharacter(context, 2),
-                character1Done: loaded.character1Answered,
-                character1Correct: loaded.character1Correct,
-                character2Done: loaded.character2Answered,
-                character2Correct: loaded.character2Correct,
-                videoFinished: loaded.videoFinished,
-                onVideoFinished: () =>
-                    context.read<EmpathyMirrorCubit>().onVideoFinished(),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TopBar(
+            leadingIcon: Icons.arrow_back_ios_new_rounded,
+            onLeadingPressed: () async {
+              await _onWillPop(context);
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  children: [
+                    _buildHeader(context),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: SplitCharacterScreen(
+                        videoUrl: introChallenge?.hasVideo == true
+                            ? introChallenge!.url
+                            : null,
+                        videoPrompt: introChallenge?.prompt ?? '',
+                        character1Question: char1Challenge?.question ?? '',
+                        character2Question: char2Challenge?.question ?? '',
+                        onScanCharacter1: () => _openQrForCharacter(context, 1),
+                        onScanCharacter2: () => _openQrForCharacter(context, 2),
+                        character1Done: loaded.character1Answered,
+                        character1Correct: loaded.character1Correct,
+                        character2Done: loaded.character2Answered,
+                        character2Correct: loaded.character2Correct,
+                        videoFinished: loaded.videoFinished,
+                        onVideoFinished: () =>
+                            context.read<EmpathyMirrorCubit>().onVideoFinished(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
@@ -194,80 +213,102 @@ class _EmpathyMirrorView extends StatelessWidget {
   // ─── Level 1 / 4 / 5 ──────────────────────────────────────────────────────
 
   Widget _buildVideoQrLevel(
-      BuildContext context, EmpathyMirrorLoaded loaded) {
+      BuildContext context,
+      EmpathyMirrorLoaded loaded,
+      ) {
     final challenge = loaded.currentChallenge;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(context),
-          const SizedBox(height: 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
+            await _onWillPop(context);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 10),
 
-          // Progress bar
-          _buildProgressBar(loaded),
-          const SizedBox(height: 18),
+                  _buildProgressBar(loaded),
+                  const SizedBox(height: 18),
 
-          VideoPlayerWidget(
-            key: ValueKey(
-                'vid-${loaded.currentChallengeIndex}-${loaded.videoFinished}'),
-            videoUrl: challenge.hasVideo ? challenge.url : null,
-            promptText: challenge.prompt,
-            onVideoFinished: () =>
-                context.read<EmpathyMirrorCubit>().onVideoFinished(),
-          ),
-          const SizedBox(height: 18),
-
-          // Question wrapped in a card (no "choose card" title — this level uses QR)
-          if (challenge.question.isNotEmpty) ...[
-            _buildQuestionCard(challenge.question),
-            const SizedBox(height: 20),
-          ],
-
-          Row(
-            children: [
-              // QR scan (primary, green) — always enabled (no real video gate)
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _openQrScanner(context),
-                  icon: const Icon(Icons.qr_code_scanner_rounded),
-                  label: const Text('امسح البطاقة'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    minimumSize: const Size(double.infinity, 54),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22)),
-                    textStyle: AppTextStyles.button
-                        .copyWith(fontWeight: FontWeight.w900),
+                  VideoPlayerWidget(
+                    key: ValueKey(
+                      'vid-${loaded.currentChallengeIndex}-${loaded.videoFinished}',
+                    ),
+                    videoUrl: challenge.hasVideo ? challenge.url : null,
+                    promptText: challenge.prompt,
+                    onVideoFinished: () =>
+                        context.read<EmpathyMirrorCubit>().onVideoFinished(),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Replay (yellow) — always tappable, restarts video
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () =>
-                      context.read<EmpathyMirrorCubit>().replayVideo(),
-                  icon: const Icon(Icons.replay_rounded),
-                  label: const Text('إعادة'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.yellow,
-                    foregroundColor: AppColors.white,
-                    minimumSize: const Size(double.infinity, 54),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22)),
-                    textStyle: AppTextStyles.button
-                        .copyWith(fontWeight: FontWeight.w900),
+                  const SizedBox(height: 18),
+
+                  if (challenge.question.isNotEmpty) ...[
+                    _buildQuestionCard(challenge.question),
+                    const SizedBox(height: 20),
+                  ],
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _openQrScanner(context),
+                          icon: const Icon(Icons.qr_code_scanner_rounded),
+                          label: const Text('امسح البطاقة'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.white,
+                            minimumSize: const Size(double.infinity, 54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            textStyle: AppTextStyles.button.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () =>
+                              context.read<EmpathyMirrorCubit>().replayVideo(),
+                          icon: const Icon(Icons.replay_rounded),
+                          label: const Text('إعادة'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.yellow,
+                            foregroundColor: AppColors.white,
+                            minimumSize: const Size(double.infinity, 54),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            textStyle: AppTextStyles.button.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -378,18 +419,37 @@ class _EmpathyMirrorView extends StatelessWidget {
   // ─── Level 2 ───────────────────────────────────────────────────────────────
 
   Widget _buildLevel2(BuildContext context, EmpathyMirrorLoaded loaded) {
-    return _Level2Body(
-      loaded: loaded,
-      // key forces a fresh widget (clears selection) on every challenge AND
-      // on every retry (attemptNumber changes), so the selection resets.
-      key: ValueKey(
-          'lvl2-${loaded.currentChallengeIndex}-${loaded.attemptNumber}'),
-      header: _buildHeader(context),
-      questionCardBuilder: (q) =>
-          _buildQuestionCard(q, title: 'اختر البطاقة المناسبة'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
+            await _onWillPop(context);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: _Level2Body(
+              loaded: loaded,
+              key: ValueKey(
+                'lvl2-${loaded.currentChallengeIndex}-${loaded.attemptNumber}',
+              ),
+              header: _buildHeader(context),
+              questionCardBuilder: (q) => _buildQuestionCard(
+                q,
+                title: 'اختر البطاقة المناسبة',
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
-
   // ─── Shared ────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
@@ -404,135 +464,85 @@ class _EmpathyMirrorView extends StatelessWidget {
 
     final levelInfo = _levelInfo(levelNumber);
 
-    return Column(
+    return Row(
       children: [
-        // Talento bar
         Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.yellow.withValues(alpha: 0.4)),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.25),
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: AppColors.primary.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/icons/logo1.png',
-                height: 40,
-                fit: BoxFit.contain,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.yellow.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.yellow,
+                  size: 18,
+                ),
               ),
-              const Spacer(),
-              const Icon(Icons.chevron_left_rounded,
-                  color: AppColors.textSecondary, size: 24),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    levelInfo['name']!,
+                    style: AppTextStyles.headlineMedium.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                      fontSize: 19,
+                    ),
+                  ),
+                  Text(
+                    levelInfo['subtitle']!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-
-        // Level header row
-        Row(
-          children: [
-            // Level name badge — appears on the RIGHT in RTL
-            Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.25)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: AppColors.yellow.withValues(alpha: 0.18),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.auto_awesome_rounded,
-                        color: AppColors.yellow, size: 18),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        levelInfo['name']!,
-                        style: AppTextStyles.headlineMedium.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                          fontSize: 19,
-                        ),
-                      ),
-                      Text(
-                        levelInfo['subtitle']!,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Text(
+            '${challengeIndex + 1} / $totalChallenges',
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+              fontSize: 14,
             ),
-
-            const Spacer(),
-
-            // Challenge counter — appears on the LEFT in RTL
-            Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Text(
-                '${challengeIndex + 1} / $totalChallenges',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 10),
-
-            // Back button (far left)
-            _CircleButton(
-              icon: Icons.arrow_forward_ios_rounded,
-              onTap: () async {
-                await _onWillPop(context);
-                if (context.mounted) Navigator.pop(context);
-              },
-            ),
-          ],
+          ),
         ),
       ],
     );
   }
-
   /// Arabic level name + subtitle + emoji per level number.
   Map<String, String> _levelInfo(int levelNumber) {
     const levels = {
@@ -572,31 +582,55 @@ class _EmpathyMirrorView extends StatelessWidget {
 
 
   Widget _buildError(BuildContext context, String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 52, color: AppColors.hint),
-            const SizedBox(height: 12),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textSecondary)),
-            const SizedBox(height: 14),
-            ElevatedButton(
-              onPressed: () =>
-                  context.read<EmpathyMirrorCubit>().loadGame(),
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
+            await _onWillPop(context);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          },
         ),
-      ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      size: 52,
+                      color: AppColors.hint,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ElevatedButton(
+                      onPressed: () =>
+                          context.read<EmpathyMirrorCubit>().loadGame(),
+                      child: const Text('إعادة المحاولة'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
-
   Future<void> _showCompleteDialog(BuildContext context) async {
     await showDialog(
       context: context,
@@ -759,33 +793,6 @@ class _Level2BodyState extends State<_Level2Body> {
   }
 }
 
-class _CircleButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  const _CircleButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 18),
-        ),
-      ),
-    );
-  }
-}
 
 /// Single-scan QR screen: pops with the first scanned value.
 /// Also has a "تجربة" button to simulate a scan for testing without a camera.
@@ -824,64 +831,65 @@ class _SimpleQrScannerScreenState extends State<_SimpleQrScannerScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: AppBackground(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      _CircleButton(
-                        icon: Icons.arrow_forward_ios_rounded,
-                        onTap: () => Navigator.pop(context, null),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'امسح البطاقة',
-                        style: AppTextStyles.headlineMedium.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
-                          fontSize: 18,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TopBar(
+                leadingIcon: Icons.arrow_back_ios_new_rounded,
+                onLeadingPressed: () => Navigator.pop(context, null),
+              ),
+              Expanded(
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'امسح البطاقة',
+                          style: AppTextStyles.headlineMedium.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      const SizedBox(width: 42),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
+                        const SizedBox(height: 22),
 
-                  // Camera viewfinder (same widget as the app scanner)
-                  CameraViewfinder(
-                    scannerController: _controller,
-                    onDetect: _onDetect,
-                    isScannerStopped: false,
-                    hasReachedMaxScans: false,
-                  ),
-                  const SizedBox(height: 24),
+                        CameraViewfinder(
+                          scannerController: _controller,
+                          onDetect: _onDetect,
+                          isScannerStopped: false,
+                          hasReachedMaxScans: false,
+                        ),
+                        const SizedBox(height: 24),
 
-                  const Spacer(),
+                        const Spacer(),
 
-                  // Test button: simulate a scan with any value
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context,
-                          'TEST_SCAN_${DateTime.now().millisecondsSinceEpoch}'),
-                      icon: const Icon(Icons.check_circle_rounded),
-                      label: const Text('تجربة (أي بطاقة)'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
-                        minimumSize: const Size(double.infinity, 54),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22)),
-                      ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => Navigator.pop(
+                              context,
+                              'TEST_SCAN_${DateTime.now().millisecondsSinceEpoch}',
+                            ),
+                            icon: const Icon(Icons.check_circle_rounded),
+                            label: const Text('تجربة (أي بطاقة)'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.white,
+                              minimumSize: const Size(double.infinity, 54),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

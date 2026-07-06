@@ -12,6 +12,7 @@ import '../../cubits/emotional_maze/emotional_maze_state.dart';
 import '../../services/activities/emotional_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/emotional_maze_game.dart';
+import '../../shared/layout/top_bar.dart';
 
 class EmotionalMazeGameScreen extends StatelessWidget {
   final int activityId;
@@ -71,12 +72,6 @@ class _EmotionalMazeViewState extends State<_EmotionalMazeView> {
     });
   }
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
   Future<bool> _onWillPop(BuildContext context) async {
     await context.read<EmotionalMazeCubit>().logExitIfNotCompleted();
     return true;
@@ -133,92 +128,71 @@ class _EmotionalMazeViewState extends State<_EmotionalMazeView> {
     );
   }
 
+
+
   Widget _buildPlayfield(BuildContext context, EmotionalMazeLoaded loaded) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      child: Column(
-        children: [
-          _buildTopBar(context, loaded),
-          const SizedBox(height: 10),
-          _buildQuestionBanner(loaded),
-          const SizedBox(height: 10),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _game ??= EmotionalMazeGame(
-                  config: loaded.config,
-                  tiltController: _tiltController,
-                  onFinished: () =>
-                      context.read<EmotionalMazeCubit>().onFinished(),
-                );
-
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        loaded.level.imageUrl,
-                        fit: BoxFit.fill,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.inputFill,
-                          child: const Center(
-                            child: Text('تعذّر تحميل صورة المتاهة'),
-                          ),
-                        ),
-                      ),
-                      GameWidget(game: _game!),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-          TiltCalibrationButton(
-            tiltController: _tiltController,
-            onCalibrated: () => _game?.calibrate(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopBar(BuildContext context, EmotionalMazeLoaded loaded) {
-    return Row(
+    return Column(
       children: [
-        IconButton(
-          onPressed: () async {
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
             if (await _onWillPop(context) && context.mounted) {
               Navigator.pop(context);
             }
           },
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: AppColors.textPrimary,
         ),
-        const Spacer(),
-        Image.asset('assets/icons/logo1.png', height: 40),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.timer_outlined, size: 18, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Text(
-                _fmt(loaded.elapsed),
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ],
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Column(
+              children: [
+                _buildQuestionBanner(loaded),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      _game ??= EmotionalMazeGame(
+                        config: loaded.config,
+                        tiltController: _tiltController,
+                        onFinished: () =>
+                            context.read<EmotionalMazeCubit>().onFinished(),
+                      );
+
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.network(
+                              loaded.level.imageUrl,
+                              fit: BoxFit.fill,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: AppColors.inputFill,
+                                child: const Center(
+                                  child: Text('تعذّر تحميل صورة المتاهة'),
+                                ),
+                              ),
+                            ),
+                            GameWidget(game: _game!),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TiltCalibrationButton(
+                  tiltController: _tiltController,
+                  onCalibrated: () => _game?.calibrate(),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
+
 
   Widget _buildQuestionBanner(EmotionalMazeLoaded loaded) {
     return Container(
