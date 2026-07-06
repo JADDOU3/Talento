@@ -16,12 +16,14 @@ class BodilyMazeLauncher extends StatefulWidget {
   final int activityId;
   final int kitId;
   final int childId;
+  final int? initialLevelNumber;
 
   const BodilyMazeLauncher({
     super.key,
     required this.activityId,
     required this.kitId,
     required this.childId,
+    this.initialLevelNumber,
   });
 
   @override
@@ -55,6 +57,14 @@ class _BodilyMazeLauncherState extends State<BodilyMazeLauncher> {
 
       if (!mounted) return;
 
+      final requestedLevelNumber = widget.initialLevelNumber;
+
+      final effectiveStartLevelNumber =
+          requestedLevelNumber ?? ctx.startLevelNumber;
+
+      final effectiveStartLevelId =
+      requestedLevelNumber == null ? ctx.startLevelId : null;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -63,8 +73,9 @@ class _BodilyMazeLauncherState extends State<BodilyMazeLauncher> {
             activitySessionId: ctx.activitySessionId,
             childId: ctx.childId,
             sessionId: ctx.sessionId,
-            startLevelId: ctx.startLevelId,
-            startLevelNumber: ctx.startLevelNumber,
+            startLevelId: effectiveStartLevelId,
+            startLevelNumber:
+            effectiveStartLevelNumber <= 0 ? 1 : effectiveStartLevelNumber,
           ),
         ),
       );

@@ -11,14 +11,14 @@ class CreativeMazeLauncher extends StatefulWidget {
   final int activityId;
   final int kitId;
   final int childId;
-  final int initialLevelNumber;
+  final int? initialLevelNumber;
 
   const CreativeMazeLauncher({
     super.key,
     required this.activityId,
     required this.kitId,
     required this.childId,
-    this.initialLevelNumber = 1,
+    this.initialLevelNumber,
   });
 
   @override
@@ -45,25 +45,34 @@ class _CreativeMazeLauncherState extends State<CreativeMazeLauncher> {
 
       final sessionId = _service.readSessionId(session);
 
+      final requestedLevelNumber = widget.initialLevelNumber;
+
       int? startLevelId;
       int startLevelNumber =
-      widget.initialLevelNumber <= 0 ? 1 : widget.initialLevelNumber;
+      requestedLevelNumber != null && requestedLevelNumber > 0
+          ? requestedLevelNumber
+          : 1;
 
-      try {
-        final progressResp = await _apiClient.get(
-          Uri.parse(ApiConstants.roadmapProgress(widget.activityId)),
-        );
+      // مهم:
+      // إذا المستوى جاي من الرودماب، لا نخلي progress endpoint يغيّره.
+      // لأنه المتاهات مقسمة كارد لكل level.
+      if (requestedLevelNumber == null) {
+        try {
+          final progressResp = await _apiClient.get(
+            Uri.parse(ApiConstants.roadmapProgress(widget.activityId)),
+          );
 
-        if (progressResp.statusCode >= 200 && progressResp.statusCode < 300) {
-          final progress = jsonDecode(progressResp.body);
+          if (progressResp.statusCode >= 200 && progressResp.statusCode < 300) {
+            final progress = jsonDecode(progressResp.body);
 
-          if (progress is Map && progress['completed'] != true) {
-            startLevelId = _asIntOrNull(progress['currentLevelId']);
-            startLevelNumber =
-                _asIntOrNull(progress['currentLevelNumber']) ?? startLevelNumber;
+            if (progress is Map && progress['completed'] != true) {
+              startLevelId = _asIntOrNull(progress['currentLevelId']);
+              startLevelNumber =
+                  _asIntOrNull(progress['currentLevelNumber']) ?? startLevelNumber;
+            }
           }
-        }
-      } catch (_) {}
+        } catch (_) {}
+      }
 
       final activitySessionId = await _service.createActivitySession(
         activityId: widget.activityId,
@@ -81,7 +90,7 @@ class _CreativeMazeLauncherState extends State<CreativeMazeLauncher> {
             childId: widget.childId,
             sessionId: sessionId,
             startLevelId: startLevelId,
-            startLevelNumber: startLevelNumber,
+            startLevelNumber: startLevelNumber <= 0 ? 1 : startLevelNumber,
           ),
         ),
       );

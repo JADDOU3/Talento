@@ -338,9 +338,7 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
-            initialLevelNumber: activity.currentLevelNumber <= 0
-                ? 1
-                : activity.currentLevelNumber,
+            initialLevelNumber: activity.launchLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
@@ -355,6 +353,7 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
+            initialLevelNumber: activity.launchLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
@@ -382,16 +381,12 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
-            initialLevelNumber: activity.currentLevelNumber <= 0
-                ? 2
-
-                : activity.currentLevelNumber,
+            initialLevelNumber: activity.launchLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
       return;
     }
-
 
     if (activityName == 'emotional maze') {
       Navigator.push(
@@ -401,9 +396,7 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
-            initialLevelNumber: activity.currentLevelNumber <= 0
-                ? 2
-                : activity.currentLevelNumber,
+            initialLevelNumber: activity.launchLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
