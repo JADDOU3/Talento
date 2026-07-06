@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/activities/story_spinner/story_submission_model.dart';
 import '../../services/activities/story_submission_repository.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
 
 class CreateCreatureStoriesScreen extends StatefulWidget {
   final int activityId;
@@ -42,6 +43,7 @@ class _CreateCreatureStoriesScreenState
     setState(() {
       _loadStories();
     });
+
     await _storiesFuture;
   }
 
@@ -51,123 +53,72 @@ class _CreateCreatureStoriesScreenState
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: AppBackground(
-          child: SafeArea(
-            child: FutureBuilder<List<StorySubmission>>(
-              future: _storiesFuture,
-              builder: (context, snapshot) {
-                final stories = snapshot.data ?? [];
+          child: FutureBuilder<List<StorySubmission>>(
+            future: _storiesFuture,
+            builder: (context, snapshot) {
+              final stories = snapshot.data ?? [];
 
-                return RefreshIndicator(
-                  color: const Color(0xFF0F6E56),
-                  onRefresh: _refreshStories,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-                    children: [
-                      const _TopHeader(),
-                      const SizedBox(height: 20),
-                      _PageTitle(
-                        count: stories.length,
-                        isLoading: snapshot.connectionState ==
-                            ConnectionState.waiting,
-                      ),
-                      const SizedBox(height: 24),
-                      if (snapshot.connectionState == ConnectionState.waiting)
-                        const _LoadingCard()
-                      else if (snapshot.hasError)
-                        _ErrorCard(
-                          onRetry: () {
-                            setState(() {
-                              _loadStories();
-                            });
-                          },
-                        )
-                      else if (stories.isEmpty)
-                          const _EmptyStoriesCard()
-                        else
-                          ...stories.asMap().entries.map(
-                                (entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: _StoryCard(
-                                story: entry.value,
-                                index: entry.key,
-                                storyNumber: stories.length - entry.key,
-                              ),
-                            ),
-                          ),
-                    ],
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TopBar(
+                    leadingIcon: Icons.arrow_back_ios_new_rounded,
+                    onLeadingPressed: () => Navigator.of(context).pop(),
                   ),
-                );
-              },
-            ),
+                  Expanded(
+                    child: SafeArea(
+                      top: false,
+                      child: RefreshIndicator(
+                        color: const Color(0xFF0F6E56),
+                        onRefresh: _refreshStories,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+                          children: [
+                            _PageTitle(
+                              count: stories.length,
+                              isLoading: snapshot.connectionState ==
+                                  ConnectionState.waiting,
+                            ),
+                            const SizedBox(height: 24),
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting)
+                              const _LoadingCard()
+                            else if (snapshot.hasError)
+                              _ErrorCard(
+                                onRetry: () {
+                                  setState(() {
+                                    _loadStories();
+                                  });
+                                },
+                              )
+                            else if (stories.isEmpty)
+                                const _EmptyStoriesCard()
+                              else
+                                ...stories.asMap().entries.map(
+                                      (entry) => Padding(
+                                    padding:
+                                    const EdgeInsets.only(bottom: 14),
+                                    child: _StoryCard(
+                                      story: entry.value,
+                                      index: entry.key,
+                                      storyNumber:
+                                      stories.length - entry.key,
+                                    ),
+                                  ),
+                                ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _TopHeader extends StatelessWidget {
-  const _TopHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.92),
-          width: 1.1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 13,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Material(
-            color: Colors.white.withOpacity(0.95),
-            shape: const CircleBorder(),
-            elevation: 2,
-            shadowColor: Colors.black.withOpacity(0.08),
-            child: InkWell(
-              onTap: () => Navigator.pop(context),
-              customBorder: const CircleBorder(),
-              child: const SizedBox(
-                width: 36,
-                height: 36,
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Color(0xFF0F6E56),
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-          const Spacer(),
-          Image.asset(
-            'assets/icons/logo1.png',
-            height: 42,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Text(
-              'Talento',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF0F6E56),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -313,7 +264,9 @@ class _EmptyStoriesCard extends StatelessWidget {
 class _ErrorCard extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const _ErrorCard({required this.onRetry});
+  const _ErrorCard({
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -513,23 +466,30 @@ class _StoryCard extends StatelessWidget {
       Color(0xFF3B82F6),
       Color(0xFFF59E0B),
     ];
+
     return colors[index % colors.length];
   }
 
   String _formatCreatedAt(Object? value) {
     if (value == null) return '';
+
     DateTime? date;
+
     if (value is DateTime) {
       date = value;
     } else {
       date = DateTime.tryParse(value.toString());
     }
+
     if (date == null) {
       final raw = value.toString().trim();
       if (raw.isEmpty) return '';
+
       return raw.replaceFirst('T', ' ').split('.').first;
     }
+
     final localDate = date.toLocal();
+
     return '${_two(localDate.hour)}:${_two(localDate.minute)}  '
         '${_two(localDate.day)}/${_two(localDate.month)}/${localDate.year}';
   }
@@ -540,12 +500,17 @@ class _StoryCard extends StatelessWidget {
 class _KeywordChip extends StatelessWidget {
   final String keyword;
 
-  const _KeywordChip({required this.keyword});
+  const _KeywordChip({
+    required this.keyword,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: Colors.amber.withOpacity(0.17),
         borderRadius: BorderRadius.circular(999),

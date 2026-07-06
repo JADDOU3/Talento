@@ -9,6 +9,7 @@ import '../../models/activities/story_spinner/story_spinner_level_model.dart';
 import '../../shared/layout/app_background.dart';
 import 'story_spinner_story_screen.dart';
 import 'widgets/story_slot_machine_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 class StorySpinnerWheelScreen extends StatelessWidget {
   final int activityId;
@@ -74,9 +75,7 @@ class _StorySpinnerWheelViewState extends State<StorySpinnerWheelView> {
         builder: (context, state) {
           return Scaffold(
             body: AppBackground(
-              child: SafeArea(
-                child: _buildBody(context, state),
-              ),
+              child: _buildBody(context, state),
             ),
           );
         },
@@ -198,56 +197,68 @@ class _LoadedWheelViewState extends State<_LoadedWheelView> {
         !_isSlotSpinning &&
         !widget.isConfirming;
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _TopHeader(),
-        const SizedBox(height: 14),
-        const _HeaderCard(),
-        const SizedBox(height: 16),
-        if (!hasAllChallenges)
-          const _MissingChallengesCard()
-        else
-          StorySlotMachineWidget(
-            characterQuestion: _questionOrFallback(
-              characterChallenge,
-              'من الشخصية؟',
-            ),
-            eventQuestion: _questionOrFallback(
-              eventChallenge,
-              'ما الحدث؟',
-            ),
-            placeQuestion: _questionOrFallback(
-              placeChallenge,
-              'أين المكان؟',
-            ),
-            characterIcons: characterChallenge.icons,
-            eventIcons: eventChallenge.icons,
-            placeIcons: placeChallenge.icons,
-            characterLandedIcon: widget.state.characterIcon,
-            eventLandedIcon: widget.state.eventIcon,
-            placeLandedIcon: widget.state.placeIcon,
-            disabled: widget.isConfirming,
-            onSpinningChanged: (isSpinning) {
-              if (!mounted) return;
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.of(context).pop(),
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              children: [
+                const _HeaderCard(),
+                const SizedBox(height: 16),
+                if (!hasAllChallenges)
+                  const _MissingChallengesCard()
+                else
+                  StorySlotMachineWidget(
+                    characterQuestion: _questionOrFallback(
+                      characterChallenge,
+                      'من الشخصية؟',
+                    ),
+                    eventQuestion: _questionOrFallback(
+                      eventChallenge,
+                      'ما الحدث؟',
+                    ),
+                    placeQuestion: _questionOrFallback(
+                      placeChallenge,
+                      'أين المكان؟',
+                    ),
+                    characterIcons: characterChallenge.icons,
+                    eventIcons: eventChallenge.icons,
+                    placeIcons: placeChallenge.icons,
+                    characterLandedIcon: widget.state.characterIcon,
+                    eventLandedIcon: widget.state.eventIcon,
+                    placeLandedIcon: widget.state.placeIcon,
+                    disabled: widget.isConfirming,
+                    onSpinningChanged: (isSpinning) {
+                      if (!mounted) return;
 
-              setState(() {
-                _isSlotSpinning = isSpinning;
-              });
-            },
-            onStepSpinStarted: (step) {
-              context.read<StorySpinnerCubit>().onSpinStarted(step);
-            },
-            onStepLanded: (step, icon) {
-              context.read<StorySpinnerCubit>().onSpinLanded(step, icon);
-            },
+                      setState(() {
+                        _isSlotSpinning = isSpinning;
+                      });
+                    },
+                    onStepSpinStarted: (step) {
+                      context.read<StorySpinnerCubit>().onSpinStarted(step);
+                    },
+                    onStepLanded: (step, icon) {
+                      context.read<StorySpinnerCubit>().onSpinLanded(step, icon);
+                    },
+                  ),
+                const SizedBox(height: 24),
+                _NextButton(
+                  enabled: canGoNext,
+                  isLoading: widget.isConfirming,
+                  onTap: () => widget.onNext(widget.state),
+                ),
+              ],
+            ),
           ),
-        const SizedBox(height: 24),
-        _NextButton(
-          enabled: canGoNext,
-          isLoading: widget.isConfirming,
-          onTap: () => widget.onNext(widget.state),
         ),
       ],
     );
@@ -286,91 +297,6 @@ class _MissingChallengesCard extends StatelessWidget {
           color: AppColors.error,
           fontWeight: FontWeight.w800,
           height: 1.35,
-        ),
-      ),
-    );
-  }
-}
-
-class _TopHeader extends StatelessWidget {
-  const _TopHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.white.withOpacity(0.92),
-          width: 1.1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 13,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _TopCircleButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icons.arrow_back_ios_new_rounded,
-          ),
-          const Spacer(),
-          Image.asset(
-            'assets/icons/logo1.png',
-            height: 42,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
-              return const Text(
-                'Talento',
-                style: TextStyle(
-                  fontFamily: 'BerlinSans',
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-
-  const _TopCircleButton({
-    required this.onPressed,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withOpacity(0.95),
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: AppColors.black.withOpacity(0.08),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 20,
-          ),
         ),
       ),
     );

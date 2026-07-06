@@ -8,6 +8,7 @@ import '../../cubits/activities/tower_builder/tower_builder_state.dart';
 import '../../shared/layout/app_background.dart';
 import 'tower_builder_pin_screen.dart';
 import 'widgets/target_image_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 class TowerBuilderBuildScreen extends StatefulWidget {
   final int activityId;
@@ -75,51 +76,6 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Talento',
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const Spacer(),
-          InkWell(
-            onTap: () => Navigator.of(context).pop(),
-            borderRadius: BorderRadius.circular(18),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: AppColors.inputFill,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.primary,
-                size: 28,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildLevelTitle(TowerBuilderLoaded state) {
     return Column(
@@ -211,31 +167,41 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTopBar(),
-              const SizedBox(height: 18),
-              _buildLevelTitle(state),
-              const SizedBox(height: 18),
-              _buildPromptCard(level.prompt),
-              const SizedBox(height: 18),
-              Expanded(
-                child: Center(
-                  child: TargetImageWidget(
-                    imageUrl: level.imageUrl,
-                    prompt: level.prompt,
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TopBar(
+            leadingIcon: Icons.arrow_back_ios_new_rounded,
+            onLeadingPressed: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildLevelTitle(state),
+                    const SizedBox(height: 18),
+                    _buildPromptCard(level.prompt),
+                    const SizedBox(height: 18),
+                    Expanded(
+                      child: Center(
+                        child: TargetImageWidget(
+                          imageUrl: level.imageUrl,
+                          prompt: level.prompt,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildActionButtons(state),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-              _buildActionButtons(state),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

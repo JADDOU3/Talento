@@ -12,6 +12,7 @@ import '../../cubits/bodily_maze/bodily_maze_state.dart';
 import '../../services/activities/bodily_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/bodily_maze_game_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 /// The Bodily Maze play screen: maze image + transparent Flame ball overlay,
 /// a count-up timer, a tap-to-jump gesture, and a calibrate button.
@@ -70,12 +71,6 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
     });
   }
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
   Future<bool> _onWillPop(BuildContext context) async {
     await context.read<BodilyMazeCubit>().logExitIfNotCompleted();
     return true;
@@ -132,24 +127,36 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
   BodilyMazeLoaded? _lastLoaded;
 
   Widget _buildPlayfield(BuildContext context, BodilyMazeLoaded loaded) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      child: Column(
-        children: [
-          _buildTopBar(context, loaded),
-          const SizedBox(height: 10),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Build (or reuse) the game once we have a size + config.
-                _game ??= BodilyMazeGame(
-                  config: loaded.config,
-                  tiltController: _tiltController,
-                  onFellInHole: () =>
-                      context.read<BodilyMazeCubit>().onBallFellInHole(),
-                  onReachedEnd: () =>
-                      context.read<BodilyMazeCubit>().onBallReachedEnd(),
-                );
+    return Column(
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () async {
+            if (await _onWillPop(context) && context.mounted) {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        _game ??= BodilyMazeGame(
+                          config: loaded.config,
+                          tiltController: _tiltController,
+                          onFellInHole: () => context
+                              .read<BodilyMazeCubit>()
+                              .onBallFellInHole(),
+                          onReachedEnd: () => context
+                              .read<BodilyMazeCubit>()
+                              .onBallReachedEnd(),
+                        );
 
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(24),
@@ -217,22 +224,7 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.timer_outlined,
-                  size: 18, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Text(
-                _fmt(loaded.elapsed),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ],

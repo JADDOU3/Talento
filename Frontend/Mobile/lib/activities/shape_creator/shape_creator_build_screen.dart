@@ -8,6 +8,7 @@ import '../../cubits/activities/shape_creator/shape_creator_state.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/target_image_widget.dart';
 import 'shape_creator_pin_screen.dart';
+import '../../shared/layout/top_bar.dart';
 
 class ShapeCreatorBuildScreen extends StatefulWidget {
   final int activityId;
@@ -71,76 +72,7 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildTopBar(Duration elapsed) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          InkWell(
-            onTap: () => Navigator.of(context).pop(),
-            borderRadius: BorderRadius.circular(18),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: AppColors.inputFill,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.primary,
-                size: 28,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.inputFill,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.timer_rounded,
-                  size: 18,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  _formatDuration(elapsed),
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Text(
-            'Talento',
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildPromptCard(String prompt) {
     return Container(
@@ -219,6 +151,7 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
     );
   }
 
+
   Widget _buildLoadedContent(ShapeCreatorLoaded state) {
     final level = state.level;
     final currentImage = level.challengeImages[state.currentChallengeIndex];
@@ -226,33 +159,43 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTopBar(state.elapsed),
-              const SizedBox(height: 18),
-              _buildPromptCard(level.prompt),
-              const SizedBox(height: 18),
-              Expanded(
-                child: Center(
-                  child: TargetImageWidget(
-                    imageUrl: currentImage,
-                    prompt: level.prompt,
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TopBar(
+              leadingIcon: Icons.arrow_back_ios_new_rounded,
+              onLeadingPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildPromptCard(level.prompt),
+                    const SizedBox(height: 18),
+                    Expanded(
+                      child: Center(
+                        child: TargetImageWidget(
+                          imageUrl: currentImage,
+                          prompt: level.prompt,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(child: _buildAttemptPill(state.attemptNumber)),
+                    const SizedBox(height: 20),
+                    _buildActionButtons(state),
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Center(child: _buildAttemptPill(state.attemptNumber)),
-              const SizedBox(height: 20),
-              _buildActionButtons(state),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+
 
   Widget _buildLevelComplete(int levelNumber) {
     return Directionality(
@@ -393,14 +336,4 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
       ),
     );
   }
-}
-
-String _formatDuration(Duration duration) {
-  final minutes =
-  duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-
-  final seconds =
-  duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-
-  return '$minutes:$seconds';
 }

@@ -8,6 +8,7 @@ import '../../cubits/activities/tower_builder/tower_builder_state.dart';
 import '../../models/activities/tower_builder/tower_builder_checklist_item_model.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/checklist_item_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 class TowerBuilderChecklistScreen extends StatefulWidget {
   final List<TowerBuilderChecklistItemModel> checklist;
@@ -209,50 +210,62 @@ class _TowerBuilderChecklistScreenState
                 return;
               }
             },
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTitle(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TopBar(
+                  leadingIcon: Icons.arrow_back_ios_new_rounded,
+                  onLeadingPressed: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildTitle(),
 
-                    const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                    _buildTargetImage(),
+                          _buildTargetImage(),
 
-                    const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                    _buildInstruction(),
+                          _buildInstruction(),
 
-                    const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                    Expanded(
-                      child: ListView.separated(
-                        itemCount: widget.checklist.length,
-                        separatorBuilder: (context, index) =>
-                        const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final item = widget.checklist[index];
+                          Expanded(
+                            child: ListView.separated(
+                              itemCount: widget.checklist.length,
+                              separatorBuilder: (context, index) =>
+                              const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final item = widget.checklist[index];
 
-                          return ChecklistItemWidget(
-                            text: item.text,
-                            isChecked: _checkedItemIds.contains(item.id),
-                            onToggle: () => _toggleItem(item.id),
-                          );
-                        },
+                                return ChecklistItemWidget(
+                                  text: item.text,
+                                  isChecked: _checkedItemIds.contains(item.id),
+                                  onToggle: () => _toggleItem(item.id),
+                                );
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          ElevatedButton(
+                            onPressed: _hasSubmitted ? null : _submitChecklist,
+                            child: const Text('إرسال'),
+                          ),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    ElevatedButton(
-                      onPressed: _hasSubmitted ? null : _submitChecklist,
-                      child: const Text('إرسال'),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),

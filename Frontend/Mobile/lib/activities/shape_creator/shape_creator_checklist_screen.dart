@@ -7,6 +7,7 @@ import '../../cubits/activities/shape_creator/shape_creator_cubit.dart';
 import '../../cubits/activities/shape_creator/shape_creator_state.dart';
 import '../../models/activities/shape_creator/shape_creator_checklist_item_model.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
 import '../tower_builder/widgets/checklist_item_widget.dart';
 
 class ShapeCreatorChecklistScreen extends StatefulWidget {
@@ -228,50 +229,54 @@ class _ShapeCreatorChecklistScreenState
                 return;
               }
             },
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTitle(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TopBar(
+                  leadingIcon: Icons.arrow_back_ios_new_rounded,
+                  onLeadingPressed: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildTitle(),
+                          const SizedBox(height: 20),
+                          _buildTargetImage(),
+                          const SizedBox(height: 20),
+                          _buildInstruction(),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: ListView.separated(
+                              itemCount: widget.checklist.length,
+                              separatorBuilder: (context, index) =>
+                              const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final item = widget.checklist[index];
 
-                    const SizedBox(height: 20),
-
-                    _buildTargetImage(),
-
-                    const SizedBox(height: 20),
-
-                    _buildInstruction(),
-
-                    const SizedBox(height: 16),
-
-                    Expanded(
-                      child: ListView.separated(
-                        itemCount: widget.checklist.length,
-                        separatorBuilder: (context, index) =>
-                        const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final item = widget.checklist[index];
-
-                          return ChecklistItemWidget(
-                            text: item.text,
-                            isChecked: _checkedItemIds.contains(item.id),
-                            onToggle: () => _toggleItem(item.id),
-                          );
-                        },
+                                return ChecklistItemWidget(
+                                  text: item.text,
+                                  isChecked: _checkedItemIds.contains(item.id),
+                                  onToggle: () => _toggleItem(item.id),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _hasSubmitted ? null : _submitChecklist,
+                            child: const Text('إرسال'),
+                          ),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    ElevatedButton(
-                      onPressed: _hasSubmitted ? null : _submitChecklist,
-                      child: const Text('إرسال'),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
