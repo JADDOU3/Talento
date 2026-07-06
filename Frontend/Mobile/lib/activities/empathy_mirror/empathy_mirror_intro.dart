@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/layout/app_background.dart';
+import '../../shared/layout/animated_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'empathy_mirror_video_screen.dart';
 
@@ -35,7 +35,7 @@ class EmpathyMirrorIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActivityIntroTemplate(
-      background: const AppBackground(child: SizedBox.expand()),
+      background: const AnimatedBackground(child: SizedBox.expand()),
       mascotAssetPath: 'assets/images/template_mascot.png',
       startButtonText: 'ابدأ المغامرة',
       replayButtonText: 'اسمع الشرح مرة أخرى',

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/layout/animated_background.dart';
 import '../../services/activities/pattern_hacker_service.dart';
 import '../../services/roadmap/roadmap_service.dart';
-import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'pattern_hacker_game_screen.dart';
 
@@ -194,7 +194,7 @@ class _PatternHackerIntroState extends State<PatternHackerIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
-          background: const AppBackground(
+          background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),
           mascotAssetPath: 'assets/images/template_mascot.png',

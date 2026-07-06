@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/layout/animated_background.dart';
 import '../../services/activities/conflict_resolution_service.dart';
 import '../../services/roadmap/roadmap_service.dart';
-import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'conflict_resolution_video_screen.dart';
 
@@ -192,7 +192,7 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
-          background: const AppBackground(
+          background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),
           mascotAssetPath: 'assets/images/template_mascot.png',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/layout/app_background.dart';
+import '../../shared/layout/animated_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'bodily_maze_game_screen.dart';
 
@@ -44,7 +44,7 @@ class BodilyMazeIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActivityIntroTemplate(
-      background: const AppBackground(child: SizedBox.expand()),
+      background: const AnimatedBackground(child: SizedBox.expand()),
       mascotAssetPath: 'assets/images/template_mascot.png',
       startButtonText: 'ابدأ المغامرة',
       replayButtonText: 'اسمع الشرح مرة أخرى',
