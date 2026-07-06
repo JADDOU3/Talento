@@ -31,8 +31,13 @@ class _TowerBuilderChecklistScreenState
   final Set<String> _checkedItemIds = {};
 
   bool _hasSubmitted = false;
+  bool _shouldCloseOnNextLoaded = false;
+  bool _isClosing = false;
+  List<String> _missingRequiredTexts = [];
 
   void _toggleItem(String itemId) {
+    if (_hasSubmitted) return;
+
     setState(() {
       if (_checkedItemIds.contains(itemId)) {
         _checkedItemIds.remove(itemId);
@@ -43,15 +48,28 @@ class _TowerBuilderChecklistScreenState
   }
 
   void _submitChecklist() {
+    if (_hasSubmitted) return;
+
     final requiredItems = widget.checklist.where(
           (item) => item.requiredForCompletion,
     );
 
-    final allRequiredChecked = requiredItems.every(
-          (item) => _checkedItemIds.contains(item.id),
+    final missingRequiredItems = requiredItems.where(
+          (item) => !_checkedItemIds.contains(item.id),
     );
 
-    _hasSubmitted = true;
+    final missingTexts = missingRequiredItems
+        .map((item) => item.text.trim())
+        .where((text) => text.isNotEmpty)
+        .toList();
+
+    final allRequiredChecked = missingTexts.isEmpty;
+
+    setState(() {
+      _hasSubmitted = true;
+      _shouldCloseOnNextLoaded = allRequiredChecked;
+      _missingRequiredTexts = missingTexts;
+    });
 
     context.read<TowerBuilderCubit>().onChecklistSubmitted(
       allChecked: allRequiredChecked,
@@ -148,7 +166,11 @@ class _TowerBuilderChecklistScreenState
         body: AppBackground(
           child: BlocListener<TowerBuilderCubit, TowerBuilderState>(
             listener: (context, state) {
+              if (_isClosing) return;
+
               if (state is TowerBuilderLevelComplete) {
+                _isClosing = true;
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('أحسنت! اكتمل المستوى'),
@@ -160,9 +182,18 @@ class _TowerBuilderChecklistScreenState
               }
 
               if (state is TowerBuilderChecklistResult && !state.allChecked) {
+                _isClosing = true;
+
+                final missingText = _missingRequiredTexts.isEmpty
+                    ? 'أحد الشروط الأساسية غير مكتمل.'
+                    : 'الشروط الناقصة: ${_missingRequiredTexts.join('، ')}';
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('لم يكتمل البناء، حاول مجدداً'),
+                  SnackBar(
+                    content: Text(
+                      '$missingText\nحاول مرة أخرى.',
+                      textDirection: TextDirection.rtl,
+                    ),
                   ),
                 );
 
@@ -170,7 +201,10 @@ class _TowerBuilderChecklistScreenState
                 return;
               }
 
-              if (_hasSubmitted && state is TowerBuilderLoaded) {
+              if (_hasSubmitted &&
+                  _shouldCloseOnNextLoaded &&
+                  state is TowerBuilderLoaded) {
+                _isClosing = true;
                 Navigator.of(context).pop();
                 return;
               }
@@ -213,7 +247,7 @@ class _TowerBuilderChecklistScreenState
                     const SizedBox(height: 16),
 
                     ElevatedButton(
-                      onPressed: _submitChecklist,
+                      onPressed: _hasSubmitted ? null : _submitChecklist,
                       child: const Text('إرسال'),
                     ),
                   ],
