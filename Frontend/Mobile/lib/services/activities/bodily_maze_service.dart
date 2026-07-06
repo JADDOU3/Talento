@@ -66,29 +66,39 @@ class BodilyMazeService {
 
   Future<void> updateLevelAttempt({
     required int attemptId,
+    required int attemptNumber,
+    required String startedAt,
+    required int activitySessionId,
+    required int levelId,
     required bool completed,
   }) async {
-    final body = {
-      'endedAt': _nowIso(),
+    final body = jsonEncode({
+      'attemptNumber': attemptNumber,
+      'startedAt': startedAt,
+      'endedAt': DateTime.now().toIso8601String(),
       'completed': completed,
-    };
+      'activitySessionId': activitySessionId,
+      'levelId': levelId,
+    });
 
-    debugPrint('BODILY MAZE UPDATE ATTEMPT: $body');
+    debugPrint('UPDATE LEVEL ATTEMPT BODY: $body');
 
     final res = await _client.put(
       Uri.parse(ApiConstants.levelAttemptById(attemptId)),
       headers: {
         'Content-Type': 'application/json',
       },
-      body: jsonEncode(body),
+      body: body,
     );
 
     debugPrint(
-      'BODILY MAZE UPDATE ATTEMPT RESP: ${res.statusCode} - ${res.body}',
+      'UPDATE LEVEL ATTEMPT RESP: ${res.statusCode} - ${res.body}',
     );
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('Failed to update attempt: ${res.statusCode} - ${res.body}');
+      throw Exception(
+        'Failed to update attempt: ${res.statusCode} - ${res.body}',
+      );
     }
   }
 
