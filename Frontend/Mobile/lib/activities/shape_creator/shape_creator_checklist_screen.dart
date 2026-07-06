@@ -31,8 +31,24 @@ class _ShapeCreatorChecklistScreenState
   final Set<String> _checkedItemIds = {};
 
   bool _hasSubmitted = false;
+  bool _shouldCloseOnNextLoaded = false;
+  bool _isClosing = false;
+  bool _didShowSuccessMessage = false;
+  List<String> _missingRequiredTexts = [];
+
+  List<ShapeCreatorChecklistItemModel> get _requiredItems {
+    if (widget.checklist.length >= 2) {
+      return widget.checklist.take(2).toList();
+    }
+
+    return widget.checklist
+        .where((item) => item.text.trim() != 'هل تمت مساعدته')
+        .toList();
+  }
 
   void _toggleItem(String itemId) {
+    if (_hasSubmitted) return;
+
     setState(() {
       if (_checkedItemIds.contains(itemId)) {
         _checkedItemIds.remove(itemId);
@@ -43,22 +59,46 @@ class _ShapeCreatorChecklistScreenState
   }
 
   void _submitChecklist() {
-    _hasSubmitted = true;
+    if (_hasSubmitted) return;
 
-    final requiredItems = widget.checklist
-        .where((item) => item.text != 'هل تمت مساعدته')
+    final missingRequiredItems = _requiredItems.where(
+          (item) => !_checkedItemIds.contains(item.id),
+    );
+
+    final missingTexts = missingRequiredItems
+        .map((item) => item.text.trim())
+        .where((text) => text.isNotEmpty)
         .toList();
 
-    final checkedRequiredItems = requiredItems
-        .where((item) => _checkedItemIds.contains(item.id))
-        .toList();
+    final allRequiredChecked = missingTexts.isEmpty;
 
-    final allChecked =
-        checkedRequiredItems.length == requiredItems.length;
+    setState(() {
+      _hasSubmitted = true;
+      _shouldCloseOnNextLoaded = allRequiredChecked;
+      _missingRequiredTexts = missingTexts;
+    });
 
     context.read<ShapeCreatorCubit>().onChecklistSubmitted(
-      allChecked: allChecked,
+      allChecked: allRequiredChecked,
     );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          textDirection: TextDirection.rtl,
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessMessage() {
+    if (_didShowSuccessMessage) return;
+
+    _didShowSuccessMessage = true;
+    _showSnackBar('أحسنت! تم البناء بنجاح 🎉');
   }
 
   Widget _buildTargetImage() {
@@ -151,28 +191,39 @@ class _ShapeCreatorChecklistScreenState
         body: AppBackground(
           child: BlocListener<ShapeCreatorCubit, ShapeCreatorState>(
             listener: (context, state) {
-              if (state is ShapeCreatorLevelComplete) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('أحسنت! اكتمل المستوى'),
-                  ),
-                );
+              if (_isClosing) return;
 
+              if (state is ShapeCreatorLevelComplete) {
+                _isClosing = true;
+                _showSuccessMessage();
                 Navigator.of(context).pop();
                 return;
               }
 
               if (state is ShapeCreatorChecklistResult && !state.allChecked) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('لم يكتمل البناء، حاول مجدداً'),
-                  ),
-                );
+                _isClosing = true;
 
+                final missingText = _missingRequiredTexts.isEmpty
+                    ? 'أحد الشروط الأساسية غير مكتمل.'
+                    : 'الشروط الناقصة: ${_missingRequiredTexts.join('، ')}';
+
+                _showSnackBar('$missingText\nحاول مرة أخرى.');
+                Navigator.of(context).pop();
                 return;
               }
 
-              if (_hasSubmitted && state is ShapeCreatorLoaded) {
+              if (_hasSubmitted &&
+                  _shouldCloseOnNextLoaded &&
+                  state is ShapeCreatorLevelFinished) {
+                _showSuccessMessage();
+                return;
+              }
+
+              if (_hasSubmitted &&
+                  _shouldCloseOnNextLoaded &&
+                  state is ShapeCreatorLoaded) {
+                _isClosing = true;
+                _showSuccessMessage();
                 Navigator.of(context).pop();
                 return;
               }
@@ -215,7 +266,7 @@ class _ShapeCreatorChecklistScreenState
                     const SizedBox(height: 16),
 
                     ElevatedButton(
-                      onPressed: _submitChecklist,
+                      onPressed: _hasSubmitted ? null : _submitChecklist,
                       child: const Text('إرسال'),
                     ),
                   ],

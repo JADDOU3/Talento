@@ -271,7 +271,7 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'ممتاز! لقد أنهيت المستوى $levelNumber',
+                'ممتاز! تم بناء المستوى $levelNumber بنجاح',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.headlineMedium.copyWith(
                   fontSize: 26,
@@ -279,10 +279,57 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
                   color: AppColors.primary,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
+              Text(
+                'جاري فتح التحدي التالي...',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 28),
+              const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityComplete() {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Icon(
+                Icons.emoji_events_rounded,
+                size: 104,
+                color: AppColors.primary,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'أحسنت! تم إنهاء النشاط بنجاح 🎉',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.headlineMedium.copyWith(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 28),
               ElevatedButton(
                 onPressed: _finishActivity,
-                child: const Text('إنهاء'),
+                child: const Text('العودة'),
               ),
             ],
           ),
@@ -330,6 +377,10 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
 
             if (state is ShapeCreatorLevelFinished) {
               return _buildLevelComplete(state.levelNumber);
+            }
+
+            if (state is ShapeCreatorLevelComplete) {
+              return _buildActivityComplete();
             }
 
             if (state is ShapeCreatorLoaded) {
