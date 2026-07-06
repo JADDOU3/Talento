@@ -7,8 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
-import '../../cubits/bodily_maze/bodily_maze_cubit.dart';
-import '../../cubits/bodily_maze/bodily_maze_state.dart';
+import '../../cubits/activities/bodily_maze/bodily_maze_cubit.dart';
+import '../../cubits/activities/bodily_maze/bodily_maze_state.dart';
 import '../../services/activities/bodily_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/bodily_maze_game_widget.dart';
@@ -22,6 +22,7 @@ class BodilyMazeGameScreen extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int? startLevelId;
+  final int startLevelNumber;
 
   const BodilyMazeGameScreen({
     super.key,
@@ -30,6 +31,7 @@ class BodilyMazeGameScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   @override
@@ -41,7 +43,10 @@ class BodilyMazeGameScreen extends StatelessWidget {
         activitySessionId: activitySessionId,
         childId: childId,
         sessionId: sessionId,
-      )..loadGame(startLevelId: startLevelId),
+      )..loadGame(
+        startLevelId: startLevelId,
+        startLevelNumber: startLevelNumber,
+      ),
       child: _BodilyMazeView(),
     );
   }

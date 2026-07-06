@@ -70,11 +70,28 @@ class CognitiveMazeService {
     required int attemptId,
     required bool completed,
   }) async {
-    final body = {'endedAt': _nowIso(), 'completed': completed};
-    await _client.put(
-      Uri.parse(ApiConstants.updateLevelAttempt(attemptId)),
+    final body = {
+      'endedAt': _nowIso(),
+      'completed': completed,
+    };
+
+    debugPrint('COGNITIVE MAZE UPDATE ATTEMPT: $body');
+
+    final res = await _client.put(
+      Uri.parse(ApiConstants.levelAttemptById(attemptId)),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
+
+    debugPrint(
+      'COGNITIVE MAZE UPDATE ATTEMPT RESP: ${res.statusCode} - ${res.body}',
+    );
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('Failed to update attempt: ${res.statusCode} - ${res.body}');
+    }
   }
 
 
@@ -92,11 +109,22 @@ class CognitiveMazeService {
       'action': action,
       'responseLanguage': 'ar',
     };
-    debugPrint('COGNITIVE MAZE ACTIVITY EVENT: $body');
-    await _client.post(
-      Uri.parse(ApiConstants.eventsActivity),
+
+    debugPrint('MAZE ACTIVITY EVENT: $body');
+
+    final res = await _client.post(
+      Uri.parse(ApiConstants.activityEvents),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
+
+    debugPrint('COGNITIVE MAZE ACTIVITY EVENT RESP: ${res.statusCode} - ${res.body}');
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('Failed to log activity event: ${res.statusCode} - ${res.body}');
+    }
   }
 
   Future<void> logLevelEvent({
@@ -111,19 +139,43 @@ class CognitiveMazeService {
       'activitySessionId': activitySessionId,
       'action': action,
     };
-    debugPrint('COGNITIVE MAZE LEVEL EVENT: $body');
-    await _client.post(
-      Uri.parse(ApiConstants.eventsLevel),
+
+    debugPrint('MAZE LEVEL EVENT: $body');
+
+    final res = await _client.post(
+      Uri.parse(ApiConstants.levelEvents),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
+
+    debugPrint('COGNITIVE MAZE LEVEL EVENT RESP: ${res.statusCode} - ${res.body}');
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('Failed to log level event: ${res.statusCode} - ${res.body}');
+    }
   }
 
   // ──────────────────────── Activity Session ──────────────────────────────
 
   Future<void> completeActivitySession(int activitySessionId) async {
-    await _client.put(
-      Uri.parse(ApiConstants.updateActivitySession(activitySessionId)),
+    final res = await _client.put(
+      Uri.parse(ApiConstants.activitySessionById(activitySessionId)),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     );
+
+    debugPrint(
+      'MAZE COMPLETE ACTIVITY SESSION RESP: ${res.statusCode} - ${res.body}',
+    );
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(
+        'Failed to complete activity session: ${res.statusCode} - ${res.body}',
+      );
+    }
   }
 
   static int _toInt(dynamic v) {

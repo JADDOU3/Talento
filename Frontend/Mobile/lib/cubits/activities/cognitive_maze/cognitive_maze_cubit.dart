@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../models/activities/cognitive_maze/cognitive_maze_models.dart';
-import '../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
+import '../../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
 import '../../../services/activities/cognitive_maze_service.dart';
 import 'cognitive_maze_state.dart';
 
@@ -217,10 +217,9 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         activitySessionId: activitySessionId,
         action: 'RETRIED',
       );
-    } catch (_) {
-      // Wrong-answer feedback still shows even if a background call fails.
+    } catch (e) {
+      debugPrint('COGNITIVE MAZE COMPLETE ERROR: $e');
     }
-
     emit(CognitiveMazeWrongAnswer(
       level: level,
       config: config,
