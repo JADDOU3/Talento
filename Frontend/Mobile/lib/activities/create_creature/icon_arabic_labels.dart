@@ -1,5 +1,4 @@
 const Map<String, String> iconArabicLabels = {
-
   'fly': 'طار',
   'fire': 'نار',
   'water': 'ماء',
@@ -8,7 +7,11 @@ const Map<String, String> iconArabicLabels = {
 
   'magical_forest': 'غابة',
   'glowing_volcano': 'بركان',
-  //'underwater_city': 'مدينة تحت الماء',
   'moon': 'قمر',
   'sky': 'سماء',
+
+  'calm': 'هادئ',
+  'curious': 'فضولي',
+  'strong': 'قوي',
+  'kind': 'طيب',
 };
