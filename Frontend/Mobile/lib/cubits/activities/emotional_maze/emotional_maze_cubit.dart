@@ -1,9 +1,9 @@
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../models/activities/emotional_maze/emotional_maze_models.dart';
-import '../../activities/emotional_maze/config/emotional_maze_level_config.dart';
+import '../../../activities/emotional_maze/config/emotional_maze_level_config.dart';
 import '../../../services/activities/emotional_maze_service.dart';
 import 'emotional_maze_state.dart';
 
@@ -150,8 +150,8 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
       );
 
       await service.completeActivitySession(activitySessionId);
-    } catch (_) {
-      // Completion feedback still shows even if a background log call fails.
+    } catch (e) {
+      debugPrint('EMOTIONAL MAZE COMPLETE ERROR: $e');
     }
 
     emit(EmotionalMazeComplete(

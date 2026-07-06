@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../activities/bodily_maze/config/bodily_maze_level_config.dart';
-import '../../models/activities/bodily_maze/bodily_maze_models.dart';
-import '../../services/activities/bodily_maze_service.dart';
+import '../../../activities/bodily_maze/config/bodily_maze_level_config.dart';
+import '../../../models/activities/bodily_maze/bodily_maze_models.dart';
+import '../../../services/activities/bodily_maze_service.dart';
 import 'bodily_maze_state.dart';
 
 class BodilyMazeCubit extends Cubit<BodilyMazeState> {
@@ -35,36 +35,69 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
 
   // ─── Load ────────────────────────────────────────────────────────────────
 
-  Future<void> loadGame({int? startLevelId}) async {
+  Future<void> loadGame({
+    int? startLevelId,
+    int? startLevelNumber,
+  }) async {
     if (_isLoading) return;
+
     _isLoading = true;
     emit(const BodilyMazeLoading());
 
     try {
       final levels = await _service.getLevels(activityId);
+
+      debugPrint('BODILY MAZE requested startLevelId = $startLevelId');
+      debugPrint('BODILY MAZE requested startLevelNumber = $startLevelNumber');
+
+      for (final level in levels) {
+        debugPrint(
+          'BODILY MAZE LEVEL => id=${level.id}, number=${level.levelNumber}',
+        );
+      }
+
       if (levels.isEmpty) {
         emit(const BodilyMazeError('لا توجد مستويات لهذا النشاط'));
         _isLoading = false;
         return;
       }
 
-      // Pick the level to play: the requested start level, else the first.
-      _level = levels.firstWhere(
-        (l) => l.id == startLevelId,
-        orElse: () => levels.first,
-      );
+      BodilyMazeLevel selectedLevel;
 
-      // Look up the manually-defined coordinate config for this level.
+      if (startLevelNumber != null && startLevelNumber > 0) {
+        selectedLevel = levels.firstWhere(
+              (level) => level.levelNumber == startLevelNumber,
+          orElse: () => levels.first,
+        );
+      } else if (startLevelId != null && startLevelId > 0) {
+        selectedLevel = levels.firstWhere(
+              (level) => level.id == startLevelId,
+          orElse: () => levels.first,
+        );
+      } else {
+        selectedLevel = levels.first;
+      }
+
+      _level = selectedLevel;
+
       final config = mazeConfigs[_level!.id];
+
       if (config == null) {
-        emit(BodilyMazeError(
-            'لا توجد إعدادات إحداثيات للمستوى ${_level!.id}. يجب على المطوّر تعريفها.'));
+        emit(
+          BodilyMazeError(
+            'لا توجد إعدادات إحداثيات للمستوى ${_level!.id}. يجب على المطوّر تعريفها.',
+          ),
+        );
         _isLoading = false;
         return;
       }
+
       _config = config;
 
+      _completed = false;
+      _elapsed = Duration.zero;
       _attemptNumber = 1;
+
       _attemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
@@ -77,6 +110,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
         activityId: activityId,
         action: 'STARTED',
       );
+
       await _service.logLevelEvent(
         childId: childId,
         sessionId: sessionId,
@@ -88,10 +122,13 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       _emitLoaded();
     } catch (e) {
       _isLoading = false;
-      emit(BodilyMazeError(e.toString().replaceFirst('Exception: ', '')));
+      emit(
+        BodilyMazeError(
+          e.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
     }
   }
-
   void _emitLoaded() {
     emit(BodilyMazeLoaded(
       level: _level!,

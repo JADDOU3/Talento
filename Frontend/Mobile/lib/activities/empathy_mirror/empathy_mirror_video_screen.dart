@@ -5,8 +5,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../cubits/empathy_mirror/empathy_mirror_cubit.dart';
-import '../../cubits/empathy_mirror/empathy_mirror_state.dart';
+import '../../cubits/activities/empathy_mirror/empathy_mirror_cubit.dart';
+import '../../cubits/activities/empathy_mirror/empathy_mirror_state.dart';
 import '../../screens/qr_scanner/widgets/camera_viewfinder.dart';
 import '../../services/activities/empathy_mirror_service.dart';
 import '../../shared/layout/app_background.dart';
