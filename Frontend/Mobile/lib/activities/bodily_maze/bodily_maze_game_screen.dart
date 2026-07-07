@@ -21,6 +21,7 @@ class BodilyMazeGameScreen extends StatelessWidget {
   final int childId;
   final int sessionId;
   final int? startLevelId;
+  final int? startLevelNumber;
 
   const BodilyMazeGameScreen({
     super.key,
@@ -29,6 +30,7 @@ class BodilyMazeGameScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.startLevelId,
+    this.startLevelNumber,
   });
 
   @override
@@ -40,7 +42,10 @@ class BodilyMazeGameScreen extends StatelessWidget {
         activitySessionId: activitySessionId,
         childId: childId,
         sessionId: sessionId,
-      )..loadGame(startLevelId: startLevelId),
+      )..loadGame(
+        startLevelId: startLevelId,
+        startLevelNumber: startLevelNumber,
+      ),
       child: _BodilyMazeView(),
     );
   }
