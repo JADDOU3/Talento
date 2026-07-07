@@ -45,4 +45,15 @@ public class CoinController {
         Child child = childService.getSelectedChild();
         return new ResponseEntity<>(coinService.awardCoins(child, reason), HttpStatus.OK);
     }
+
+    @PostMapping("/maze-collect")
+    public ResponseEntity<?> mazeCollect(@RequestParam int count) {
+        if (count <= 0) {
+            return new ResponseEntity<>("Count must be positive", HttpStatus.BAD_REQUEST);
+        }
+        Child child = childService.getSelectedChild();
+        int totalAmount = count * CoinReason.MAZE_COIN_COLLECT.getAmount();
+        var result = coinService.awardCoins(child, totalAmount, CoinReason.MAZE_COIN_COLLECT);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 }
