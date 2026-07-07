@@ -42,6 +42,9 @@ class TiltGravityBehavior extends Component with HasGameReference<Forge2DGame> {
   final double gravityScale;
   final double maxGravityMagnitude;
 
+  /// إذا صار true، ما نطبّق أي gravity — تستعمل وقت الـ popup.
+  bool paused = false;
+
   /// Resets gravity back to tilt-driven mode after a jump.
   void resetGravity() {
     game.world.gravity = Vector2.zero();
@@ -51,6 +54,7 @@ class TiltGravityBehavior extends Component with HasGameReference<Forge2DGame> {
   void update(double dt) {
     super.update(dt);
 
+    if (paused) return; // popup مفتوح — ما نغيّر الجاذبية
     if (!tiltController.isRunning) return;
 
     // Same sign convention as the sensors prototype: X is inverted so

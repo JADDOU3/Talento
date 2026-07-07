@@ -15,14 +15,14 @@ public class ContactService {
     @Autowired
     private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
-    private String supportEmail;
+    @Value("${app.contact.recipient}")
+    private String contactRecipient;
 
     public String sendContactMessage(ContactUsDto dto) {
         Parent parent = SecurityUtils.getCurrentUser();
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(supportEmail);
+        mailMessage.setTo(contactRecipient);
         mailMessage.setSubject(dto.getSubject());
         mailMessage.setText(
                 "From: " + parent.getName() + " (" + parent.getEmail() + ")\n\n" + dto.getMessage()
