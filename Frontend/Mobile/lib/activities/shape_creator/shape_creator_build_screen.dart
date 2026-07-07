@@ -6,9 +6,10 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/shape_creator/shape_creator_cubit.dart';
 import '../../cubits/activities/shape_creator/shape_creator_state.dart';
 import '../../shared/layout/app_background.dart';
-import 'widgets/target_image_widget.dart';
-import 'shape_creator_pin_screen.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
+import 'shape_creator_pin_screen.dart';
+import 'widgets/target_image_widget.dart';
 
 class ShapeCreatorBuildScreen extends StatefulWidget {
   final int activityId;
@@ -30,6 +31,8 @@ class ShapeCreatorBuildScreen extends StatefulWidget {
 }
 
 class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
+  bool _isContinuingResult = false;
+
   @override
   void initState() {
     super.initState();
@@ -68,15 +71,32 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
     );
   }
 
+  Future<void> _continueAfterResult() async {
+    if (_isContinuingResult) return;
+
+    setState(() {
+      _isContinuingResult = true;
+    });
+
+    await context.read<ShapeCreatorCubit>().continueAfterChecklistResult();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isContinuingResult = false;
+    });
+  }
+
   void _finishActivity() {
     Navigator.of(context).pop();
   }
 
-
-
   Widget _buildPromptCard(String prompt) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 16,
+      ),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
@@ -102,7 +122,10 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
 
   Widget _buildAttemptPill(int attemptNumber) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: AppColors.inputFill,
         borderRadius: BorderRadius.circular(999),
@@ -151,14 +174,14 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
     );
   }
 
-
   Widget _buildLoadedContent(ShapeCreatorLoaded state) {
     final level = state.level;
-    final currentImage = level.challengeImages[state.currentChallengeIndex];
+    final currentImage =
+    level.challengeImages[state.currentChallengeIndex];
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
+    return AppBackground(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -167,26 +190,31 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
               onLeadingPressed: () => Navigator.of(context).pop(),
             ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildPromptCard(level.prompt),
-                    const SizedBox(height: 18),
-                    Expanded(
-                      child: Center(
-                        child: TargetImageWidget(
-                          imageUrl: currentImage,
-                          prompt: level.prompt,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildPromptCard(level.prompt),
+                      const SizedBox(height: 18),
+                      Expanded(
+                        child: Center(
+                          child: TargetImageWidget(
+                            imageUrl: currentImage,
+                            prompt: level.prompt,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Center(child: _buildAttemptPill(state.attemptNumber)),
-                    const SizedBox(height: 20),
-                    _buildActionButtons(state),
-                  ],
+                      const SizedBox(height: 12),
+                      Center(
+                        child: _buildAttemptPill(state.attemptNumber),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildActionButtons(state),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -196,104 +224,21 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
     );
   }
 
-
-  Widget _buildLevelComplete(int levelNumber) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Icon(
-                Icons.check_circle,
-                size: 100,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'ممتاز! تم بناء المستوى $levelNumber بنجاح',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'جاري فتح التحدي التالي...',
+  Widget _buildError(String message) {
+    return AppBackground(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Text(
+                message,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.error,
                   fontWeight: FontWeight.w800,
                 ),
-              ),
-              const SizedBox(height: 28),
-              const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActivityComplete() {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Icon(
-                Icons.emoji_events_rounded,
-                size: 104,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'أحسنت! تم إنهاء النشاط بنجاح 🎉',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: _finishActivity,
-                child: const Text('العودة'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildError(String message) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -305,34 +250,52 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
-        child: BlocBuilder<ShapeCreatorCubit, ShapeCreatorState>(
-          builder: (context, state) {
-            if (state is ShapeCreatorLoading) {
-              return const Center(
+      body: BlocBuilder<ShapeCreatorCubit, ShapeCreatorState>(
+        builder: (context, state) {
+          if (state is ShapeCreatorLoading) {
+            return const AppBackground(
+              child: Center(
                 child: CircularProgressIndicator(),
-              );
-            }
+              ),
+            );
+          }
 
-            if (state is ShapeCreatorError) {
-              return _buildError(state.message);
-            }
+          if (state is ShapeCreatorError) {
+            return _buildError(state.message);
+          }
 
-            if (state is ShapeCreatorLevelFinished) {
-              return _buildLevelComplete(state.levelNumber);
-            }
+          /*
+           * The checklist route closes as soon as this result is emitted.
+           * Therefore the shared result screen is rendered here on the main
+           * game screen, instead of being rendered inside the checklist.
+           */
+          if (state is ShapeCreatorChecklistResult) {
+            return ActivityFeedbackView(
+              type: state.allChecked
+                  ? ActivityFeedbackType.correct
+                  : ActivityFeedbackType.wrong,
+              onPrimaryPressed:
+              _isContinuingResult ? null : _continueAfterResult,
+            );
+          }
 
-            if (state is ShapeCreatorLevelComplete) {
-              return _buildActivityComplete();
-            }
+          if (state is ShapeCreatorLevelComplete) {
+            return ActivityFeedbackView(
+              type: ActivityFeedbackType.correct,
+              onPrimaryPressed: _finishActivity,
+            );
+          }
 
-            if (state is ShapeCreatorLoaded) {
-              return _buildLoadedContent(state);
-            }
+          if (state is ShapeCreatorLoaded) {
+            return _buildLoadedContent(state);
+          }
 
-            return const SizedBox.shrink();
-          },
-        ),
+          return const AppBackground(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
       ),
     );
   }

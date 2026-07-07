@@ -10,6 +10,7 @@ import '../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'mirror_mind_result_screen.dart';
 import 'widgets/connect_dots_drawing_widget.dart';
 import 'widgets/mirror_choices_widget.dart';
@@ -99,8 +100,14 @@ class MirrorMindGameView extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          final isUnifiedFeedback =
+              state is MirrorMindChallengeResult ||
+                  state is MirrorMindLevelComplete;
+
           return Scaffold(
-            body: AppBackground(
+            body: isUnifiedFeedback
+                ? _buildBody(context, state)
+                : AppBackground(
               child: _buildBody(context, state),
             ),
           );
@@ -121,11 +128,31 @@ class MirrorMindGameView extends StatelessWidget {
     }
 
     if (state is MirrorMindChallengeResult) {
-      return _FeedbackView(isCorrect: state.isCorrect);
+      return ActivityFeedbackView(
+        type: state.isCorrect
+            ? ActivityFeedbackType.correct
+            : ActivityFeedbackType.wrong,
+        onPrimaryPressed: state.isCorrect
+            ? () {
+          context
+              .read<MirrorMindCubit>()
+              .continueAfterChallengeResult();
+        }
+            : () {
+          context
+              .read<MirrorMindCubit>()
+              .retryCurrentChallenge();
+        },
+      );
     }
 
     if (state is MirrorMindLevelComplete) {
-      return _LevelCompleteView(message: state.message);
+      return ActivityFeedbackView(
+        type: ActivityFeedbackType.correct,
+        onPrimaryPressed: () {
+          context.read<MirrorMindCubit>().continueAfterLevelComplete();
+        },
+      );
     }
 
     if (state is MirrorMindLoaded) {
@@ -589,115 +616,6 @@ class _TonkyHint extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
                 height: 1.35,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FeedbackView extends StatelessWidget {
-  final bool isCorrect;
-
-  const _FeedbackView({
-    required this.isCorrect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TopBar(
-          leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
-        ),
-        Expanded(
-          child: SafeArea(
-            top: false,
-            child: Center(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 22,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.94),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  isCorrect ? 'إجابة صحيحة 🎉' : 'قريب! جرّب مرة أخرى ',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'DGAgnadeen',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: isCorrect ? AppColors.primary : AppColors.red,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LevelCompleteView extends StatelessWidget {
-  final String message;
-
-  const _LevelCompleteView({
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TopBar(
-          leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
-        ),
-        Expanded(
-          child: SafeArea(
-            top: false,
-            child: Center(
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                padding: const EdgeInsets.all(26),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.94),
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.12),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'DGAgnadeen',
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primary,
-                  ),
-                ),
               ),
             ),
           ),

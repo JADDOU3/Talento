@@ -31,7 +31,9 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
   String? _attemptStartedAt;
 
   Duration _elapsed = Duration.zero;
+
   bool _completed = false;
+  bool _processingAnswer = false;
 
   final Set<Color> _collectedColors = {};
 
@@ -45,11 +47,14 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
       final levels = await service.getLevels(activityId);
 
       debugPrint('COGNITIVE MAZE requested startLevelId = $startLevelId');
-      debugPrint('COGNITIVE MAZE requested startLevelNumber = $startLevelNumber');
+      debugPrint(
+        'COGNITIVE MAZE requested startLevelNumber = $startLevelNumber',
+      );
 
       for (final level in levels) {
         debugPrint(
-          'COGNITIVE MAZE LEVEL => id=${level.id}, number=${level.levelNumber}',
+          'COGNITIVE MAZE LEVEL => '
+              'id=${level.id}, number=${level.levelNumber}',
         );
       }
 
@@ -75,11 +80,12 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
       }
 
       debugPrint(
-        'COGNITIVE MAZE SELECTED => id=${level.id}, number=${level.levelNumber}',
+        'COGNITIVE MAZE SELECTED => '
+            'id=${level.id}, number=${level.levelNumber}',
       );
 
-      final config =
-          cognitiveMazeConfigs[level.levelNumber] ?? cognitiveMazeConfigs[level.id];
+      final config = cognitiveMazeConfigs[level.levelNumber] ??
+          cognitiveMazeConfigs[level.id];
 
       if (config == null) {
         emit(
@@ -104,10 +110,13 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
 
       _level = level;
       _config = config;
+
       _completed = false;
+      _processingAnswer = false;
       _attemptNumber = 1;
       _elapsed = Duration.zero;
       _collectedColors.clear();
+
       _attemptStartedAt = DateTime.now().toIso8601String();
 
       _attemptId = await service.createLevelAttempt(
@@ -134,17 +143,11 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         ),
       );
 
-      emit(
-        CognitiveMazeLoaded(
-          level: level,
-          config: config,
-          elapsed: _elapsed,
-        ),
-      );
-    } catch (e) {
+      _emitLoaded();
+    } catch (error) {
       emit(
         CognitiveMazeError(
-          e.toString().replaceFirst('Exception: ', ''),
+          error.toString().replaceFirst('Exception: ', ''),
         ),
       );
     }
@@ -154,55 +157,49 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
     final level = _level;
     final config = _config;
 
+    // مهم: لا نحدّث الوقت أثناء ظهور شاشة الصح أو الغلط،
+    // حتى لا تختفي شاشة النتيجة تلقائياً.
+    if (state is! CognitiveMazeLoaded) return;
     if (level == null || config == null || _completed) return;
 
     _elapsed += const Duration(seconds: 1);
 
-    emit(
-      CognitiveMazeLoaded(
-        level: level,
-        config: config,
-        elapsed: _elapsed,
-        collectedColors: Set.of(_collectedColors),
-      ),
-    );
+    _emitLoaded();
   }
 
   void onStarCollected(Color color, bool isTarget) {
     final level = _level;
     final config = _config;
 
-    if (level == null || config == null || _completed) return;
+    if (level == null ||
+        config == null ||
+        _completed ||
+        _processingAnswer) {
+      return;
+    }
 
     if (isTarget) {
       _collectedColors.add(color);
-
-      emit(
-        CognitiveMazeLoaded(
-          level: level,
-          config: config,
-          elapsed: _elapsed,
-          collectedColors: Set.of(_collectedColors),
-        ),
-      );
-    } else {
-      emit(
-        CognitiveMazeWrongAnswer(
-          level: level,
-          config: config,
-          elapsed: _elapsed,
-          collectedColors: Set.of(_collectedColors),
-        ),
-      );
+      _emitLoaded();
+      return;
     }
+
+    // اللون الخاطئ يُعامل كمحاولة خاطئة كاملة، وليس SnackBar.
+    unawaited(onWrongAnswer(-1));
   }
 
   Future<void> onWrongAnswer(int chosenIndex) async {
     final level = _level;
     final config = _config;
 
-    if (level == null || config == null || _completed) return;
+    if (level == null ||
+        config == null ||
+        _completed ||
+        _processingAnswer) {
+      return;
+    }
 
+    _processingAnswer = true;
     _collectedColors.clear();
 
     final failedAttemptId = _attemptId;
@@ -212,7 +209,8 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         await service.updateLevelAttempt(
           attemptId: failedAttemptId,
           attemptNumber: _attemptNumber,
-          startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+          startedAt:
+          _attemptStartedAt ?? DateTime.now().toIso8601String(),
           activitySessionId: activitySessionId,
           levelId: level.id,
           completed: false,
@@ -241,9 +239,11 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         activitySessionId: activitySessionId,
         action: 'RETRIED',
       );
-    } catch (e) {
-      debugPrint('COGNITIVE MAZE WRONG ANSWER ERROR: $e');
+    } catch (error) {
+      debugPrint('COGNITIVE MAZE WRONG ANSWER ERROR: $error');
     }
+
+    _processingAnswer = false;
 
     emit(
       CognitiveMazeWrongAnswer(
@@ -254,11 +254,22 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
     );
   }
 
+  /// ترجع لنفس المستوى فقط بعد كبسة "حاول مرة أخرى"
+  /// في شاشة النتيجة الموحّدة.
+  void retryAfterWrongAnswer() {
+    if (state is! CognitiveMazeWrongAnswer) return;
+    if (_completed || _processingAnswer) return;
+
+    _collectedColors.clear();
+    _emitLoaded();
+  }
+
   Future<void> onCorrectAnswer() async {
     final level = _level;
 
-    if (level == null || _completed) return;
+    if (level == null || _completed || _processingAnswer) return;
 
+    _processingAnswer = true;
     _completed = true;
 
     try {
@@ -266,7 +277,8 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         await service.updateLevelAttempt(
           attemptId: _attemptId!,
           attemptNumber: _attemptNumber,
-          startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+          startedAt:
+          _attemptStartedAt ?? DateTime.now().toIso8601String(),
           activitySessionId: activitySessionId,
           levelId: level.id,
           completed: true,
@@ -288,14 +300,32 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
       );
 
       await service.completeActivitySession(activitySessionId);
-    } catch (e) {
-      debugPrint('COGNITIVE MAZE COMPLETE ERROR: $e');
+    } catch (error) {
+      debugPrint('COGNITIVE MAZE COMPLETE ERROR: $error');
     }
+
+    _processingAnswer = false;
 
     emit(
       CognitiveMazeComplete(
         level: level,
         elapsed: _elapsed,
+      ),
+    );
+  }
+
+  void _emitLoaded() {
+    final level = _level;
+    final config = _config;
+
+    if (level == null || config == null) return;
+
+    emit(
+      CognitiveMazeLoaded(
+        level: level,
+        config: config,
+        elapsed: _elapsed,
+        collectedColors: Set.of(_collectedColors),
       ),
     );
   }
@@ -309,7 +339,8 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
       await service.updateLevelAttempt(
         attemptId: _attemptId!,
         attemptNumber: _attemptNumber,
-        startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toIso8601String(),
         activitySessionId: activitySessionId,
         levelId: level.id,
         completed: false,
@@ -321,8 +352,8 @@ class CognitiveMazeCubit extends Cubit<CognitiveMazeState> {
         activityId: activityId,
         action: 'ENDED',
       );
-    } catch (e) {
-      debugPrint('COGNITIVE MAZE EXIT ERROR: $e');
+    } catch (error) {
+      debugPrint('COGNITIVE MAZE EXIT ERROR: $error');
     }
   }
 }

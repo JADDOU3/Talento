@@ -28,6 +28,7 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
   bool _activityCompleted = false;
   bool _gameLoaded = false;
+  bool _isProcessingAction = false;
 
   /// Seconds (of elapsed) at the last child interaction — drives hint timing.
   int _lastInteractionSeconds = 0;
@@ -114,6 +115,7 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     _sessionId = sessionId;
     _activityCompleted = false;
     _gameLoaded = false;
+    _isProcessingAction = false;
     _lastInteractionSeconds = 0;
     _recentTaps.clear();
 
@@ -345,6 +347,9 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     final currentState = state;
     if (currentState is! PatternHackerLoaded) return;
     if (!currentState.canSubmit) return;
+    if (_isProcessingAction) return;
+
+    _isProcessingAction = true;
 
     final isCorrect = currentState.challenge.isCorrectIcon(
       currentState.selectedIcon!,
@@ -358,27 +363,79 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
       }
     } catch (error) {
       emit(PatternHackerError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
     }
   }
 
   Future<void> _handleCorrectAnswer(PatternHackerLoaded currentState) async {
+    if (!currentState.isLastChallengeInLevel) {
+      emit(
+        PatternHackerChallengeResult(
+          isCorrect: true,
+          previousState: currentState,
+        ),
+      );
+      return;
+    }
+
+    await _updateCurrentAttempt(
+      currentState: currentState,
+      completed: true,
+    );
+
+    await _service.postLevelEvent(
+      childId: _childId,
+      sessionId: _sessionId,
+      activitySessionId: _activitySessionId,
+      action: 'COMPLETED',
+    );
+
+    if (currentState.isLastLevel) {
+      await _completeGame(currentState.elapsed);
+      return;
+    }
+
+    emit(
+      PatternHackerLevelComplete(
+        previousState: currentState,
+        message: 'أحسنت! أكملت المستوى ${currentState.currentLevelNumber} 🎉',
+      ),
+    );
+  }
+
+  Future<void> _handleWrongAnswer(PatternHackerLoaded currentState) async {
+    await _updateCurrentAttempt(
+      currentState: currentState,
+      completed: false,
+    );
+
+    await _service.postLevelEvent(
+      childId: _childId,
+      sessionId: _sessionId,
+      activitySessionId: _activitySessionId,
+      action: 'FAILED',
+    );
+
     emit(
       PatternHackerChallengeResult(
-        isCorrect: true,
+        isCorrect: false,
         previousState: currentState,
       ),
     );
+  }
 
-    await Future.delayed(const Duration(milliseconds: 900));
+  Future<void> continueAfterChallengeResult() async {
+    final currentState = state;
 
-    final latestState = state;
-    if (latestState is! PatternHackerChallengeResult) return;
+    if (currentState is! PatternHackerChallengeResult) return;
+    if (!currentState.isCorrect) return;
+    if (_isProcessingAction) return;
 
-    final loadedState = latestState.previousState;
+    _isProcessingAction = true;
 
-    // Not the last challenge in the level -> just move to the next challenge.
-    // The level attempt is only "completed" when the whole level is done.
-    if (!loadedState.isLastChallengeInLevel) {
+    try {
+      final loadedState = currentState.previousState;
       final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
 
       _lastInteractionSeconds = loadedState.elapsed.inSeconds;
@@ -393,101 +450,80 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
           currentChallengeIndex: nextChallengeIndex,
           clearSelectedIcon: true,
           hintLevel: 0,
+          randomPress: false,
         ),
       );
-      return;
+    } catch (error) {
+      emit(PatternHackerError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
     }
-
-    // Last challenge in the level -> mark the attempt completed.
-    await _updateCurrentAttempt(
-      currentState: loadedState,
-      completed: true,
-    );
-
-    await _service.postLevelEvent(
-      childId: _childId,
-      sessionId: _sessionId,
-      activitySessionId: _activitySessionId,
-      action: 'COMPLETED',
-    );
-
-    // Was this the last level? -> finish the whole activity.
-    if (loadedState.isLastLevel) {
-      await _completeGame(loadedState.elapsed);
-      return;
-    }
-
-    // Otherwise show the level-complete animation then load the next level.
-    emit(
-      PatternHackerLevelComplete(
-        previousState: loadedState,
-        message: 'أحسنت! أكملت المستوى ${loadedState.currentLevelNumber} 🎉',
-      ),
-    );
-
-    await Future.delayed(const Duration(milliseconds: 900));
-
-    await _moveToNextLevel(loadedState);
   }
 
-  Future<void> _handleWrongAnswer(PatternHackerLoaded currentState) async {
-    // Close the current attempt as not completed.
-    await _updateCurrentAttempt(
-      currentState: currentState,
-      completed: false,
-    );
+  Future<void> retryCurrentChallenge() async {
+    final currentState = state;
 
-    await _service.postLevelEvent(
-      childId: _childId,
-      sessionId: _sessionId,
-      activitySessionId: _activitySessionId,
-      action: 'FAILED',
-    );
+    if (currentState is! PatternHackerChallengeResult) return;
+    if (currentState.isCorrect) return;
+    if (_isProcessingAction) return;
 
-    // Open a fresh attempt for the same level (retry).
-    final nextAttemptNumber = currentState.attemptNumber + 1;
+    _isProcessingAction = true;
 
-    final nextAttempt = await _createAttemptForLevel(
-      level: currentState.level,
-      attemptNumber: nextAttemptNumber,
-    );
+    try {
+      final loadedState = currentState.previousState;
+      final nextAttemptNumber = loadedState.attemptNumber + 1;
 
-    await _service.postLevelEvent(
-      childId: _childId,
-      sessionId: _sessionId,
-      activitySessionId: _activitySessionId,
-      action: 'RETRIED',
-    );
-
-    await _saveProgress(
-      levelIndex: currentState.currentLevelIndex,
-      challengeIndex: currentState.currentChallengeIndex,
-    );
-
-    emit(
-      PatternHackerChallengeResult(
-        isCorrect: false,
-        previousState: currentState,
-      ),
-    );
-
-    await Future.delayed(const Duration(milliseconds: 900));
-
-    final latestState = state;
-    if (latestState is! PatternHackerChallengeResult) return;
-
-    // Same challenge again, cleared selection, new attempt.
-    _lastInteractionSeconds = currentState.elapsed.inSeconds;
-
-    emit(
-      currentState.copyWith(
-        currentAttemptId: nextAttempt.id,
+      final nextAttempt = await _createAttemptForLevel(
+        level: loadedState.level,
         attemptNumber: nextAttemptNumber,
-        currentAttemptStartedAt: nextAttempt.startedAt,
-        clearSelectedIcon: true,
-        hintLevel: 0,
-      ),
-    );
+      );
+
+      await _service.postLevelEvent(
+        childId: _childId,
+        sessionId: _sessionId,
+        activitySessionId: _activitySessionId,
+        action: 'RETRIED',
+      );
+
+      await _saveProgress(
+        levelIndex: loadedState.currentLevelIndex,
+        challengeIndex: loadedState.currentChallengeIndex,
+      );
+
+      _lastInteractionSeconds = loadedState.elapsed.inSeconds;
+
+      emit(
+        loadedState.copyWith(
+          currentAttemptId: nextAttempt.id,
+          attemptNumber: nextAttemptNumber,
+          currentAttemptStartedAt: nextAttempt.startedAt,
+          clearSelectedIcon: true,
+          hintLevel: 0,
+          randomPress: false,
+        ),
+      );
+    } catch (error) {
+      emit(PatternHackerError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
+    }
+  }
+
+  Future<void> continueAfterLevelComplete() async {
+    final currentState = state;
+
+    if (currentState is! PatternHackerLevelComplete) return;
+    if (_isProcessingAction) return;
+
+    _isProcessingAction = true;
+
+    try {
+      await _moveToNextLevel(currentState.previousState);
+    } catch (error) {
+      emit(PatternHackerError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
+    }
   }
 
   /// Public helper required by the spec — advances to the next challenge in the

@@ -65,6 +65,8 @@ flutter:
     - assets/creature/hair/
     - assets/creature/feeling/
     - assets/creature/face/
+    - assets/images/activity_feedback/feedback_correct_mascot.png
+    - assets/images/activity_feedback/feedback_wrong_mascot.png
 
   fonts:
     - family: ArialRounded

@@ -5,12 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../cubits/activities/bodily_maze/bodily_maze_cubit.dart';
+import '../../cubits/activities/bodily_maze/bodily_maze_state.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
 import '../../cubits/activities/bodily_maze/bodily_maze_cubit.dart';
 import '../../cubits/activities/bodily_maze/bodily_maze_state.dart';
 import '../../services/activities/bodily_maze_service.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'widgets/bodily_maze_game_widget.dart';
 import '../../shared/layout/top_bar.dart';
 
@@ -53,13 +57,17 @@ class BodilyMazeGameScreen extends StatelessWidget {
 }
 
 class _BodilyMazeView extends StatefulWidget {
+  const _BodilyMazeView();
+
   @override
   State<_BodilyMazeView> createState() => _BodilyMazeViewState();
 }
 
 class _BodilyMazeViewState extends State<_BodilyMazeView> {
   final TiltController _tiltController = TiltController();
+
   BodilyMazeGame? _game;
+  BodilyMazeLoaded? _lastLoaded;
   Timer? _timer;
   bool _completedNavigated = false;
 
@@ -71,14 +79,23 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
   }
 
   void _startTimer(BuildContext context) {
-    _timer ??= Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) context.read<BodilyMazeCubit>().onTimerTick();
-    });
+    _timer ??= Timer.periodic(
+      const Duration(seconds: 1),
+          (_) {
+        if (mounted) {
+          context.read<BodilyMazeCubit>().onTimerTick();
+        }
+      },
+    );
   }
 
   Future<bool> _onWillPop(BuildContext context) async {
     await context.read<BodilyMazeCubit>().logExitIfNotCompleted();
     return true;
+  }
+
+  void _returnToRoadmap(BuildContext context) {
+    Navigator.of(context).pop();
   }
 
   @override
@@ -89,40 +106,58 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
         onWillPop: () => _onWillPop(context),
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: AppBackground(
-            child: SafeArea(
-              child: BlocConsumer<BodilyMazeCubit, BodilyMazeState>(
-                listener: (context, state) {
-                  if (state is BodilyMazeLoaded) {
-                    _startTimer(context);
-                  }
-                  if (state is BodilyMazeComplete && !_completedNavigated) {
-                    _completedNavigated = true;
-                    _timer?.cancel();
-                    _showCompleteDialog(context);
-                  }
-                },
-                builder: (context, state) {
-                  if (state is BodilyMazeLoading ||
-                      state is BodilyMazeInitial) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (state is BodilyMazeError) {
-                    return _buildError(context, state.message);
-                  }
+          body: BlocConsumer<BodilyMazeCubit, BodilyMazeState>(
+            listener: (context, state) {
+              if (state is BodilyMazeLoaded) {
+                _lastLoaded = state;
+                _startTimer(context);
+              }
 
-                  // Loaded / Failed both render the playfield.
-                  final loaded = state is BodilyMazeLoaded
-                      ? state
-                      : _lastLoaded;
-                  if (loaded == null) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  _lastLoaded = loaded;
-                  return _buildPlayfield(context, loaded);
-                },
-              ),
-            ),
+              if (state is BodilyMazeComplete) {
+                _timer?.cancel();
+                _tiltController.stop();
+              }
+            },
+            builder: (context, state) {
+              if (state is BodilyMazeLoading ||
+                  state is BodilyMazeInitial) {
+                return const AppBackground(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              if (state is BodilyMazeError) {
+                return _buildError(context, state.message);
+              }
+
+              if (state is BodilyMazeComplete) {
+                return ActivityFeedbackView(
+                  type: ActivityFeedbackType.correct,
+                  onPrimaryPressed: () => _returnToRoadmap(context),
+                );
+              }
+
+              /*
+               * BodilyMazeFailed is intentionally not displayed as a result
+               * screen. The Flame game resets the ball immediately after a
+               * hole collision, while the cubit records FAILED and RETRIED.
+               */
+              final loaded = state is BodilyMazeLoaded
+                  ? state
+                  : _lastLoaded;
+
+              if (loaded == null) {
+                return const AppBackground(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              return _buildPlayfield(context, loaded);
+            },
           ),
         ),
       ),
@@ -283,35 +318,45 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
     );
   }
 
-  Widget _buildError(BuildContext context, String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 52, color: AppColors.hint),
-            const SizedBox(height: 14),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
+  Widget _buildError(
+      BuildContext context,
+      String message,
+      ) {
+    return AppBackground(
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 52,
+                  color: AppColors.hint,
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                  ),
+                  child: const Text('رجوع'),
+                ),
+              ],
             ),
-            const SizedBox(height: 18),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
-              ),
-              child: const Text('رجوع'),
-            ),
-          ],
+          ),
         ),
       ),
     );
