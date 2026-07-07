@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../cubits/child_mode/child_mode_cubit.dart';
+import '../../../cubits/coins/coins_cubit.dart';
 import '../../../services/auth/auth_service.dart';
 import '../../auth/login_screen.dart';
 import '../account_info_page.dart';
@@ -14,6 +15,7 @@ class SettingsSection extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     context.read<ChildModeCubit>().reset();
+    context.read<CoinsCubit>().reset();
 
     await AuthService().logout();
 

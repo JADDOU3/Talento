@@ -12,6 +12,7 @@ import '../home/home_screen.dart';
 import 'signup_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/coins/coins_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,6 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
+
+      // Do not carry the previous account's global coin state into this login.
+      context.read<CoinsCubit>().reset();
 
       await context.read<ChildModeCubit>().checkChildMode();
 

@@ -11,7 +11,7 @@ class CoinsCubit extends Cubit<CoinsState> {
   })  : _coinsService = coinsService ?? CoinsService(),
         super(const CoinsInitial());
 
-  bool _isLoading = false;
+  int _latestRequestId = 0;
 
   int get currentCoins {
     final currentState = state;
@@ -33,16 +33,15 @@ class CoinsCubit extends Cubit<CoinsState> {
 
   /// Loads the coins balance for the child currently selected on the backend.
   ///
-  /// The endpoint does not require childId because the backend reads the
-  /// selected child.
+  /// Every request gets an id. If an older request finishes after a newer
+  /// selected-child request, its result is ignored so it cannot restore the
+  /// previous child's balance.
   Future<void> loadCoins({
     bool showLoading = true,
+    bool clearPreviousCoins = false,
   }) async {
-    if (_isLoading) return;
-
-    _isLoading = true;
-
-    final previousCoins = currentCoins;
+    final requestId = ++_latestRequestId;
+    final previousCoins = clearPreviousCoins ? 0 : currentCoins;
 
     if (showLoading) {
       emit(
@@ -55,46 +54,55 @@ class CoinsCubit extends Cubit<CoinsState> {
     try {
       final coins = await _coinsService.getSelectedChildCoins();
 
+      if (requestId != _latestRequestId || isClosed) return;
+
       emit(
         CoinsLoaded(
           coins: coins,
         ),
       );
     } catch (error) {
+      if (requestId != _latestRequestId || isClosed) return;
+
       emit(
         CoinsError(
           message: _cleanErrorMessage(error),
           previousCoins: previousCoins,
         ),
       );
-    } finally {
-      _isLoading = false;
     }
   }
 
-  /// Refreshes the balance without replacing the current number with a
-  /// loading state. Useful after completing an activity.
+  /// Refreshes the current selected child's balance while keeping the last
+  /// visible value during the request.
   Future<void> refreshCoins() async {
     await loadCoins(showLoading: false);
   }
 
-  /// Updates the number locally when the app already knows the new balance.
-  ///
-  /// This does not send any request to the backend.
+  /// Clears the previous child's balance and loads the balance of the child
+  /// that has just been selected on the backend.
+  Future<void> reloadForSelectedChild() async {
+    await loadCoins(
+      showLoading: true,
+      clearPreviousCoins: true,
+    );
+  }
+
+  /// Clears account-specific coins data, for example during logout/login.
+  void reset() {
+    _latestRequestId++;
+    emit(const CoinsInitial());
+  }
+
+  /// Updates the number locally only when the app already knows the complete
+  /// new balance. This method does not add rewards to the old value.
   void setCoins(int coins) {
+    _latestRequestId++;
     emit(
       CoinsLoaded(
         coins: coins < 0 ? 0 : coins,
       ),
     );
-  }
-
-  /// Clears the old child's balance before loading another selected child.
-  ///
-  /// Call this after changing the selected child, then call [loadCoins].
-  Future<void> reloadForSelectedChild() async {
-    emit(const CoinsInitial());
-    await loadCoins();
   }
 
   String _cleanErrorMessage(Object error) {
