@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/coins/coins_cubit.dart';
 import '../../cubits/home/home_cubit.dart';
+import '../../cubits/home/home_state.dart';
 import '../../cubits/home/home_data.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/app_drawer.dart';
@@ -105,13 +107,25 @@ class OldUserScreen extends StatelessWidget {
                             isSubmitting:
                             data.isSubmittingChallengeAnswer,
                             submittingAnswer: data.submittingAnswer,
-                            onAnswerSelected: (answer) {
-                              context
-                                  .read<HomeCubit>()
-                                  .submitChallengeAnswer(
+                            onAnswerSelected: (answer) async {
+                              final homeCubit = context.read<HomeCubit>();
+
+                              await homeCubit.submitChallengeAnswer(
                                 data.dailyChallenge!.id,
                                 answer,
                               );
+
+                              if (!context.mounted) return;
+
+                              final updatedState = homeCubit.state;
+
+                              if (updatedState is HomeLoaded &&
+                                  updatedState.data.challengeAnswered &&
+                                  updatedState.data.challengeCorrect) {
+                                await context
+                                    .read<CoinsCubit>()
+                                    .refreshCoins();
+                              }
                             },
                           ),
                           const SizedBox(height: 22),

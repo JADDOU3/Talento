@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../cubits/coins/coins_cubit.dart';
 
 enum ActivityFeedbackType {
   correct,
@@ -83,11 +85,10 @@ class ActivityFeedbackView extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: SizedBox.expand(
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned.fill(
-              child: _FeedbackBackground(
-                isCorrect: _isCorrect,
-              ),
+            _FeedbackBackground(
+              isCorrect: _isCorrect,
             ),
             SafeArea(
               child: LayoutBuilder(
@@ -295,37 +296,116 @@ class _FeedbackCard extends StatelessWidget {
           ),
           if (onPrimaryPressed != null) ...[
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: onPrimaryPressed,
-                icon: Icon(
-                  isCorrect
-                      ? Icons.arrow_back_rounded
-                      : Icons.refresh_rounded,
-                ),
-                label: Text(
-                  primaryButtonText,
-                  style: const TextStyle(
-                    fontFamily: 'DGAgnadeen',
-                    fontSize: 23,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accentColor,
-                  foregroundColor: AppColors.white,
-                  elevation: 3,
-                  shadowColor: accentColor.withValues(alpha: 0.28),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
+            _FeedbackPrimaryButton(
+              accentColor: accentColor,
+              label: primaryButtonText,
+              isCorrect: isCorrect,
+              onPressed: onPrimaryPressed!,
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+
+class _FeedbackPrimaryButton extends StatefulWidget {
+  final Color accentColor;
+  final String label;
+  final bool isCorrect;
+  final VoidCallback onPressed;
+
+  const _FeedbackPrimaryButton({
+    required this.accentColor,
+    required this.label,
+    required this.isCorrect,
+    required this.onPressed,
+  });
+
+  @override
+  State<_FeedbackPrimaryButton> createState() =>
+      _FeedbackPrimaryButtonState();
+}
+
+class _FeedbackPrimaryButtonState
+    extends State<_FeedbackPrimaryButton> {
+  bool _isProcessing = false;
+
+  Future<void> _handlePressed() async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    /*
+     * Refresh the selected child's coins before leaving every successful
+     * feedback screen. This ensures the TopBar receives the latest balance
+     * as soon as the child presses "التالي".
+     *
+     * Wrong-answer screens do not refresh the balance.
+     */
+    if (widget.isCorrect) {
+      try {
+        await context.read<CoinsCubit>().refreshCoins();
+      } catch (_) {
+        // Coin refresh must never block continuing the activity.
+      }
+    }
+
+    if (!mounted) return;
+
+    widget.onPressed();
+
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton.icon(
+        onPressed: _isProcessing ? null : _handlePressed,
+        icon: _isProcessing
+            ? const SizedBox(
+          width: 21,
+          height: 21,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.4,
+            color: AppColors.white,
+          ),
+        )
+            : Icon(
+          widget.isCorrect
+              ? Icons.arrow_back_rounded
+              : Icons.refresh_rounded,
+        ),
+        label: Text(
+          widget.label,
+          style: const TextStyle(
+            fontFamily: 'DGAgnadeen',
+            fontSize: 23,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: widget.accentColor,
+          disabledBackgroundColor:
+          widget.accentColor.withValues(alpha: 0.72),
+          foregroundColor: AppColors.white,
+          disabledForegroundColor: AppColors.white,
+          elevation: 3,
+          shadowColor: widget.accentColor.withValues(alpha: 0.28),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
       ),
     );
   }
