@@ -21,7 +21,7 @@ import 'widgets/roadmap_game_board.dart';
 import 'widgets/roadmap_header.dart';
 import 'widgets/roadmap_state_views.dart';
 import '../../activities/bodily_maze/bodily_maze_launcher.dart';
-
+import '../../activities/adventure_maze/adventure_maze_launcher.dart';
 class RoadmapScreen extends StatelessWidget {
   final int kitId;
   final int childId;
@@ -294,6 +294,19 @@ class _RoadmapView extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => BodilyMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+    if (activityName == 'adventure maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdventureMazeLauncher(
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
