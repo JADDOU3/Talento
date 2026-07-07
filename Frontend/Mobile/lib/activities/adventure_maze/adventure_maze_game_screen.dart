@@ -201,6 +201,7 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
             orderedChallengeIds:
             loaded.challenges.map((c) => c.challengeId).toList(),
             collectedChallengeIds: loaded.collectedChallengeIds,
+            starColors: loaded.config.starColors,
           ),
           const SizedBox(height: 10),
           Expanded(

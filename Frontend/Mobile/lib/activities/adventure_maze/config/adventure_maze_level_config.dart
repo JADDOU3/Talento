@@ -28,6 +28,11 @@ class AdventureMazeLevelConfig {
   /// challengeId → position of that star on the image, normalized 0.0–1.0.
   final Map<int, Offset> starPositions;
 
+  /// challengeId → color for that star. Set this per-level, per-star,
+  /// same as MazeStar.color in Cognitive Maze. Falls back to gold if a
+  /// challengeId is missing from this map.
+  final Map<int, Color> starColors;
+
   /// Zone that blocks the path to the end point until every star is
   /// collected. Uses the same collision logic as a wall; simply removed once
   /// all challenges are answered.
@@ -41,6 +46,7 @@ class AdventureMazeLevelConfig {
     required this.wallRects,
     required this.holeRects,
     required this.starPositions,
+    this.starColors = const {},
     required this.endBlockRect,
   });
 }
@@ -274,6 +280,16 @@ const Map<int, AdventureMazeLevelConfig> adventureMazeConfigs = {
       3: Offset(0.7378, 0.2361),
       4: Offset(0.3889, 0.6984),
       5: Offset(0.7978, 0.8621),
+    },
+    // Assign each star's color explicitly, same as Cognitive Maze's
+    // MazeStar(position: ..., color: ...) — change these to whatever you
+    // want per level.
+    starColors: {
+      1: Color(0xFF29B6F6), // blue
+      2: Color(0xFFAB47BC), // purple
+      3: Color(0xFFFF7043), // orange
+      4: Color(0xFF66BB6A), // green
+      5: Color(0xFFFFD600), // gold
     },
     endBlockRect: Rect.fromLTWH(0.8856, 0.7117, 0.0122, 0.0244),
   ),
