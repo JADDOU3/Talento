@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../activities/bodily_maze/config/bodily_maze_level_config.dart';
-import '../../models/activities/bodily_maze/bodily_maze_models.dart';
-import '../../services/activities/bodily_maze_service.dart';
+import '../../../activities/bodily_maze/config/bodily_maze_level_config.dart';
+import '../../../models/activities/bodily_maze/bodily_maze_models.dart';
+import '../../../services/activities/bodily_maze_service.dart';
 import 'bodily_maze_state.dart';
 
 class BodilyMazeCubit extends Cubit<BodilyMazeState> {
@@ -149,8 +149,6 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
     );
   }
 
-  // ─── Ball fell in a hole → failed attempt, reset to start ─────────────────
-
   Future<void> onBallFellInHole() async {
     if (_completed || _level == null) return;
 
@@ -237,8 +235,6 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
     emit(const BodilyMazeComplete());
   }
 
-  // ─── Timer ────────────────────────────────────────────────────────────────
-
   void onTimerTick() {
     if (_completed) return;
 
@@ -254,8 +250,6 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
     }
   }
-
-  // ─── Exit without completing ──────────────────────────────────────────────
 
   Future<void> logExitIfNotCompleted() async {
     if (_completed || _level == null || _attemptId == 0) return;

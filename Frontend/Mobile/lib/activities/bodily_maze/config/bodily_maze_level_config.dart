@@ -306,20 +306,3 @@ const Map<int, MazeLevelConfig> mazeConfigs = {
     ],
   ),
 };
-
-/// All known level configs.
-///
-/// حطيت المفاتيح بطريقتين:
-/// - 1, 2, 3 حسب levelNumber
-/// - 52, 53, 54 حسب backend levelId
-///
-/// عشان سواء الكود بحث بالـ levelNumber أو بالـ levelId يلاقي config.
-const Map<int, MazeLevelConfig> mazeConfigs = {
-  1: bodilyMazeLevel1Config,
-  2: bodilyMazeLevel2Config,
-  3: bodilyMazeLevel3Config,
-
-  52: bodilyMazeLevel1Config,
-  53: bodilyMazeLevel2Config,
-  54: bodilyMazeLevel3Config,
-};
