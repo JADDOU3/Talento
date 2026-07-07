@@ -7,6 +7,7 @@ import '../../cubits/activities/pattern_hacker/pattern_hacker_state.dart';
 import '../../services/tts_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'pattern_hacker_result_screen.dart';
 import 'widgets/pattern_choices_widget.dart';
 import 'widgets/pattern_sequence_widget.dart';
@@ -87,7 +88,7 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
 
   void _onState(BuildContext context, PatternHackerState state) {
     if (state is PatternHackerGameComplete) {
-      _tts.speak('أحسنت! لقد أنهيت كل المستويات');
+      _tts.speak('أحسنت!');
 
       Navigator.pushReplacement(
         context,
@@ -106,14 +107,18 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
     }
 
     if (state is PatternHackerChallengeResult) {
-      _tts.speak(state.isCorrect ? 'إجابة صحيحة' : 'قريب، حاول مرة أخرى');
+      _tts.speak(
+        state.isCorrect
+            ? 'أحسنت! إجابة رائعة.'
+            : 'قريب جدًا! فكر مرة أخرى وحاول من جديد.',
+      );
       _lastHintLevel = 0;
       _lastRandomPress = false;
       return;
     }
 
     if (state is PatternHackerLevelComplete) {
-      _tts.speak(state.message);
+      _tts.speak('أحسنت! إجابة رائعة.');
       return;
     }
 
@@ -137,8 +142,14 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
       child: BlocConsumer<PatternHackerCubit, PatternHackerState>(
         listener: _onState,
         builder: (context, state) {
+          final isUnifiedFeedback =
+              state is PatternHackerChallengeResult ||
+                  state is PatternHackerLevelComplete;
+
           return Scaffold(
-            body: AppBackground(
+            body: isUnifiedFeedback
+                ? _buildBody(context, state)
+                : AppBackground(
               child: _buildBody(context, state),
             ),
           );
@@ -162,14 +173,30 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
     }
 
     if (state is PatternHackerChallengeResult) {
-      return _FeedbackView(
-        isCorrect: state.isCorrect,
+      return ActivityFeedbackView(
+        type: state.isCorrect
+            ? ActivityFeedbackType.correct
+            : ActivityFeedbackType.wrong,
+        onPrimaryPressed: state.isCorrect
+            ? () {
+          context
+              .read<PatternHackerCubit>()
+              .continueAfterChallengeResult();
+        }
+            : () {
+          context
+              .read<PatternHackerCubit>()
+              .retryCurrentChallenge();
+        },
       );
     }
 
     if (state is PatternHackerLevelComplete) {
-      return _LevelCompleteView(
-        message: state.message,
+      return ActivityFeedbackView(
+        type: ActivityFeedbackType.correct,
+        onPrimaryPressed: () {
+          context.read<PatternHackerCubit>().continueAfterLevelComplete();
+        },
       );
     }
 
@@ -315,115 +342,6 @@ class _LevelHeader extends StatelessWidget {
             fontSize: 15,
             fontWeight: FontWeight.w700,
             color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FeedbackView extends StatelessWidget {
-  final bool isCorrect;
-
-  const _FeedbackView({
-    required this.isCorrect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TopBar(
-          leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
-        ),
-        Expanded(
-          child: SafeArea(
-            top: false,
-            child: Center(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 22,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.94),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  isCorrect ? 'إجابة صحيحة 🎉' : 'قريب! جرّب مرة أخرى 💪',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'DGAgnadeen',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: isCorrect ? AppColors.primary : AppColors.red,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LevelCompleteView extends StatelessWidget {
-  final String message;
-
-  const _LevelCompleteView({
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TopBar(
-          leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
-        ),
-        Expanded(
-          child: SafeArea(
-            top: false,
-            child: Center(
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                padding: const EdgeInsets.all(26),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.94),
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.12),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'DGAgnadeen',
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ],

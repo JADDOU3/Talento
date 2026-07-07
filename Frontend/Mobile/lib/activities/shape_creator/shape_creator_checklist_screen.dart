@@ -32,10 +32,7 @@ class _ShapeCreatorChecklistScreenState
   final Set<String> _checkedItemIds = {};
 
   bool _hasSubmitted = false;
-  bool _shouldCloseOnNextLoaded = false;
-  bool _isClosing = false;
-  bool _didShowSuccessMessage = false;
-  List<String> _missingRequiredTexts = [];
+  bool _isLeavingScreen = false;
 
   List<ShapeCreatorChecklistItemModel> get _requiredItems {
     if (widget.checklist.length >= 2) {
@@ -62,21 +59,12 @@ class _ShapeCreatorChecklistScreenState
   void _submitChecklist() {
     if (_hasSubmitted) return;
 
-    final missingRequiredItems = _requiredItems.where(
-          (item) => !_checkedItemIds.contains(item.id),
+    final allRequiredChecked = _requiredItems.every(
+          (item) => _checkedItemIds.contains(item.id),
     );
-
-    final missingTexts = missingRequiredItems
-        .map((item) => item.text.trim())
-        .where((text) => text.isNotEmpty)
-        .toList();
-
-    final allRequiredChecked = missingTexts.isEmpty;
 
     setState(() {
       _hasSubmitted = true;
-      _shouldCloseOnNextLoaded = allRequiredChecked;
-      _missingRequiredTexts = missingTexts;
     });
 
     context.read<ShapeCreatorCubit>().onChecklistSubmitted(
@@ -84,22 +72,15 @@ class _ShapeCreatorChecklistScreenState
     );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          textDirection: TextDirection.rtl,
-        ),
-      ),
-    );
-  }
+  void _closeChecklist() {
+    if (_isLeavingScreen || !mounted) return;
 
-  void _showSuccessMessage() {
-    if (_didShowSuccessMessage) return;
+    _isLeavingScreen = true;
 
-    _didShowSuccessMessage = true;
-    _showSnackBar('أحسنت! تم البناء بنجاح 🎉');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    });
   }
 
   Widget _buildTargetImage() {
@@ -160,26 +141,72 @@ class _ShapeCreatorChecklistScreenState
     );
   }
 
-  Widget _buildTitle() {
-    return Text(
-      'تحقق من البناء',
-      textAlign: TextAlign.center,
-      style: AppTextStyles.headlineMedium.copyWith(
-        fontSize: 24,
-        fontWeight: FontWeight.w800,
-        color: AppColors.primary,
-      ),
-    );
-  }
+  Widget _buildChecklistContent() {
+    return AppBackground(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TopBar(
+            leadingIcon: Icons.arrow_back_ios_new_rounded,
+            onLeadingPressed: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'تحقق من البناء',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.headlineMedium.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTargetImage(),
+                    const SizedBox(height: 20),
+                    Text(
+                      'ضع علامة على كل ما يطابق البناء',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: widget.checklist.length,
+                        separatorBuilder: (context, index) =>
+                        const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final item = widget.checklist[index];
 
-  Widget _buildInstruction() {
-    return Text(
-      'ضع علامة على كل ما يطابق البناء',
-      textAlign: TextAlign.center,
-      style: AppTextStyles.bodyLarge.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-        color: AppColors.primary,
+                          return ChecklistItemWidget(
+                            text: item.text,
+                            isChecked: _checkedItemIds.contains(item.id),
+                            onToggle: () => _toggleItem(item.id),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _hasSubmitted ? null : _submitChecklist,
+                      child: const Text('إرسال'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -189,96 +216,38 @@ class _ShapeCreatorChecklistScreenState
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: AppBackground(
-          child: BlocListener<ShapeCreatorCubit, ShapeCreatorState>(
-            listener: (context, state) {
-              if (_isClosing) return;
+        body: BlocConsumer<ShapeCreatorCubit, ShapeCreatorState>(
+          listener: (context, state) {
+            if (_isLeavingScreen) return;
 
-              if (state is ShapeCreatorLevelComplete) {
-                _isClosing = true;
-                _showSuccessMessage();
-                Navigator.of(context).pop();
-                return;
-              }
+            /*
+             * The shared feedback is displayed by ShapeCreatorBuildScreen.
+             * Close this checklist route as soon as any result is ready.
+             */
+            if (_hasSubmitted &&
+                (state is ShapeCreatorChecklistResult ||
+                    state is ShapeCreatorLevelComplete)) {
+              _closeChecklist();
+              return;
+            }
 
-              if (state is ShapeCreatorChecklistResult && !state.allChecked) {
-                _isClosing = true;
-
-                final missingText = _missingRequiredTexts.isEmpty
-                    ? 'أحد الشروط الأساسية غير مكتمل.'
-                    : 'الشروط الناقصة: ${_missingRequiredTexts.join('، ')}';
-
-                _showSnackBar('$missingText\nحاول مرة أخرى.');
-                Navigator.of(context).pop();
-                return;
-              }
-
-              if (_hasSubmitted &&
-                  _shouldCloseOnNextLoaded &&
-                  state is ShapeCreatorLevelFinished) {
-                _showSuccessMessage();
-                return;
-              }
-
-              if (_hasSubmitted &&
-                  _shouldCloseOnNextLoaded &&
-                  state is ShapeCreatorLoaded) {
-                _isClosing = true;
-                _showSuccessMessage();
-                Navigator.of(context).pop();
-                return;
-              }
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TopBar(
-                  leadingIcon: Icons.arrow_back_ios_new_rounded,
-                  onLeadingPressed: () => Navigator.of(context).pop(),
+            if (state is ShapeCreatorError && mounted) {
+              setState(() {
+                _hasSubmitted = false;
+              });
+            }
+          },
+          builder: (context, state) {
+            if (_hasSubmitted) {
+              return const AppBackground(
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
-                Expanded(
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildTitle(),
-                          const SizedBox(height: 20),
-                          _buildTargetImage(),
-                          const SizedBox(height: 20),
-                          _buildInstruction(),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: ListView.separated(
-                              itemCount: widget.checklist.length,
-                              separatorBuilder: (context, index) =>
-                              const SizedBox(height: 8),
-                              itemBuilder: (context, index) {
-                                final item = widget.checklist[index];
+              );
+            }
 
-                                return ChecklistItemWidget(
-                                  text: item.text,
-                                  isChecked: _checkedItemIds.contains(item.id),
-                                  onToggle: () => _toggleItem(item.id),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _hasSubmitted ? null : _submitChecklist,
-                            child: const Text('إرسال'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+            return _buildChecklistContent();
+          },
         ),
       ),
     );
