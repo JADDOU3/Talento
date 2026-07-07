@@ -49,10 +49,16 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       }
 
       // Pick the level to play: the requested start level, else the first.
+      debugPrint('BODILY MAZE loadGame | requested startLevelId=$startLevelId');
+      debugPrint(
+          'BODILY MAZE available levels=${levels.map((l) => "${l.id}(#${l.levelNumber})").toList()}');
+
       _level = levels.firstWhere(
-        (l) => l.id == startLevelId,
+            (l) => l.id == startLevelId,
         orElse: () => levels.first,
       );
+
+      debugPrint('BODILY MAZE picked levelId=${_level!.id} (#${_level!.levelNumber})');
 
       // Look up the manually-defined coordinate config for this level.
       final config = mazeConfigs[_level!.id];

@@ -154,7 +154,9 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: GestureDetector(
-                    onTapDown: (_) => _game?.handleTap(),
+                    onTapDown: (_) => _game?.startHold(),
+                    onTapUp: (_) => _game?.stopHold(),
+                    onTapCancel: () => _game?.stopHold(),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
