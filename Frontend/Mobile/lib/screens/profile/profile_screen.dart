@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../cubits/child_mode/child_mode_state.dart';
+import '../../cubits/coins/coins_cubit.dart';
 import '../../cubits/profile/profile_cubit.dart';
 import '../../cubits/profile/profile_state.dart';
 import '../../models/kit/kit_model.dart';
@@ -195,21 +196,36 @@ class _ProfileView extends StatelessWidget {
                               children: children,
                               selectedChild: selectedChild,
                               openAddChildDialog: openAddChildDialog,
-                              onChildSelected: (child) {
-                                context
-                                    .read<ProfileCubit>()
-                                    .selectChild(child);
+                              onChildSelected: (child) async {
+                                final profileCubit =
+                                context.read<ProfileCubit>();
 
-                                Future.delayed(
-                                  const Duration(milliseconds: 150),
-                                      () {
-                                    if (context.mounted) {
-                                      context
-                                          .read<ChildModeCubit>()
-                                          .checkChildMode();
-                                    }
-                                  },
-                                );
+                                // Wait until the backend actually changes the
+                                // selected child. The old fixed 150 ms delay
+                                // caused coins and home data to be requested
+                                // for the previous child.
+                                await profileCubit.selectChild(child);
+
+                                if (!context.mounted) return;
+
+                                final profileState = profileCubit.state;
+                                final selectionSucceeded =
+                                    profileState is ProfileLoaded &&
+                                        profileState.selectedChild?.id == child.id;
+
+                                if (!selectionSucceeded) return;
+
+                                // Clear the previous child's number and fetch
+                                // the newly selected child's real balance.
+                                await context
+                                    .read<CoinsCubit>()
+                                    .reloadForSelectedChild();
+
+                                if (!context.mounted) return;
+
+                                await context
+                                    .read<ChildModeCubit>()
+                                    .checkChildMode();
                               },
                             ),
 
