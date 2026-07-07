@@ -9,6 +9,7 @@ import org.example.backend.model.AIReport;
 import org.example.backend.model.Child;
 import org.example.backend.model.Performance;
 import org.example.backend.model.activity.Activity;
+import org.example.backend.model.activity.ActivityProgress;
 import org.example.backend.model.activity.ActivitySession;
 import org.example.backend.model.level.LevelAttempt;
 import org.example.backend.model.event.Event;
@@ -16,6 +17,7 @@ import org.example.backend.model.mindset.ChildMindsetScore;
 import org.example.backend.model.mindset.Mindset;
 import org.example.backend.repo.AIReportRepo;
 import org.example.backend.repo.PerformanceRepo;
+import org.example.backend.repo.activity.ActivityProgressRepo;
 import org.example.backend.repo.activity.ActivitySessionRepo;
 import org.example.backend.repo.level.LevelAttemptRepo;
 import org.example.backend.repo.event.HelpEventRepo;
@@ -29,6 +31,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 @Service
 public class AiAnalysisService {
@@ -41,6 +44,7 @@ public class AiAnalysisService {
     private final PerformanceRepo performanceRepo;
     private final ChildMindsetScoreRepo childMindsetScoreRepo;
     private final MindsetRepo mindsetRepo;
+    private final ActivityProgressRepo activityProgressRepo;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AiAnalysisService(
@@ -51,7 +55,8 @@ public class AiAnalysisService {
             AIReportRepo aiReportRepo,
             PerformanceRepo performanceRepo,
             ChildMindsetScoreRepo childMindsetScoreRepo,
-            MindsetRepo mindsetRepo
+            MindsetRepo mindsetRepo,
+            ActivityProgressRepo activityProgressRepo
     ) {
         this.aiClientService = aiClientService;
         this.activitySessionRepo = activitySessionRepo;
@@ -61,22 +66,16 @@ public class AiAnalysisService {
         this.performanceRepo = performanceRepo;
         this.childMindsetScoreRepo = childMindsetScoreRepo;
         this.mindsetRepo = mindsetRepo;
+        this.activityProgressRepo = activityProgressRepo;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Entry point — called by EventService on COMPLETED event
+    // Entry points
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * NOTE: No longer called automatically on every COMPLETED event.
-     * AI analysis is now triggered only when a milestone-flagged Level
-     * is completed — see LevelAttemptService.onLevelAttemptCompleted().
-     * Kept here for reference / potential reuse, but not wired into EventService anymore.
-     */
     @Async
     public void triggerAnalysisIfCompleted(Event event, String responseLanguage) {
         if (event == null || event.getChild() == null) return;
-
         if (event instanceof org.example.backend.model.event.ActivityEvent ae) {
             if (ae.getAction() != EventAction.COMPLETED) return;
         } else if (event instanceof org.example.backend.model.event.ChallengeEvent ce) {
@@ -84,29 +83,17 @@ public class AiAnalysisService {
         } else {
             return;
         }
-
         runAnalysis(event.getChild(), responseLanguage);
     }
 
-    /**
-     * Async entry point for milestone-triggered analysis.
-     * Called from LevelAttemptService when a milestone Level is completed.
-     * Runs in the background so the level-attempt API response isn't blocked
-     * waiting for the AI call to finish.
-     */
     @Async
     public void runAnalysisAsync(Child child, String responseLanguage) {
         runAnalysis(child, responseLanguage);
     }
 
-    /**
-     * Core analysis method — shared by the real async flow and the dev test endpoint.
-     * Collects all unanalyzed ActivitySessions for this child, builds one holistic
-     * aggregated request, calls the AI, and persists everything.
-     */
     public AiAnalysisResponseDto runAnalysis(Child child, String responseLanguage) {
         // ── 1. Find last report to get the cutoff timestamp ──────────────
-        AIReport lastReport = aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(child.getId());
+        AIReport lastReport = aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(child.getId()).orElse(null);
         LocalDateTime cutoff = lastReport != null ? lastReport.getGeneratedAt() : null;
 
         // ── 2. Collect unanalyzed ActivitySessions ───────────────────────
@@ -120,11 +107,20 @@ public class AiAnalysisService {
         AiAnalysisRequestDto request = buildRequest(child, unanalyzed, lastReport, responseLanguage);
         if (request == null) return null;
 
-        // ── 4. Call AI ───────────────────────────────────────────────────
+        // ── 4. Log request for debugging ─────────────────────────────────
+        try {
+            System.out.println("=== AI REQUEST ===");
+            System.out.println(objectMapper.writeValueAsString(request));
+            System.out.println("=== END AI REQUEST ===");
+        } catch (Exception e) {
+            System.out.println("Could not serialize request: " + e.getMessage());
+        }
+
+        // ── 5. Call AI ───────────────────────────────────────────────────
         AiAnalysisResponseDto response = aiClientService.analyze(request);
         if (response == null || response.getInstantAnalysis() == null) return null;
 
-        // ── 5. Persist ───────────────────────────────────────────────────
+        // ── 6. Persist ───────────────────────────────────────────────────
         saveAiReport(child, response);
         savePerformances(child, unanalyzed, response);
         saveMindsetScores(child, response.getMindsetScores());
@@ -142,7 +138,7 @@ public class AiAnalysisService {
             AIReport lastReport,
             String responseLanguage
     ) {
-        List<ActivitySummaryDto> activitySummaries = buildActivitySummaries(sessions);
+        List<ActivitySummaryDto> activitySummaries = buildActivitySummaries(sessions, child);
         if (activitySummaries.isEmpty()) return null;
 
         SessionAggregateDto aggregate = buildSessionAggregate(sessions, activitySummaries);
@@ -164,20 +160,10 @@ public class AiAnalysisService {
         return request;
     }
 
-    /**
-     * Groups ActivitySessions by activity, then merges each group into one
-     * compact ActivitySummaryDto.
-     *
-     * Uses LevelAttempt as the source of truth for attempts/completion —
-     * this is what the actual gameplay flow writes to (Mirror Mind, Color Lab,
-     * Conflict Resolution Cards, etc. all use Level/LevelAttempt).
-     * ChallengeAttempt is a separate, currently-unused completion model and
-     * is intentionally NOT used here.
-     *
-     * Hints are counted from HelpEvent records scoped to the parent Session
-     * (best available granularity — HelpEvent has no activitySession FK).
-     */
-    private List<ActivitySummaryDto> buildActivitySummaries(List<ActivitySession> sessions) {
+    private List<ActivitySummaryDto> buildActivitySummaries(
+            List<ActivitySession> sessions,
+            Child child
+    ) {
         Map<Integer, List<ActivitySession>> byActivity = sessions.stream()
                 .filter(s -> s.getActivity() != null)
                 .collect(Collectors.groupingBy(s -> s.getActivity().getId()));
@@ -192,40 +178,81 @@ public class AiAnalysisService {
             int totalAttempts = 0;
             int totalHints = 0;
             int totalFails = 0;
-            boolean anyCompleted = false;
+            List<LevelAttempt> allAttempts = new ArrayList<>();
 
             for (ActivitySession as : actSessions) {
-                totalDuration += computeDuration(as);
-
                 List<LevelAttempt> attempts = levelAttemptRepo.findByActivitySessionId(as.getId());
+                allAttempts.addAll(attempts);
 
-                // Every LevelAttempt row is one attempt at a level
-                totalAttempts += attempts.size();
+                totalDuration += computeDuration(as, attempts);
 
-                // A failed attempt is one marked completed=false (the child retried)
-                totalFails += (int) attempts.stream()
-                        .filter(a -> Boolean.FALSE.equals(a.getCompleted()))
-                        .count();
-
-                // Count help events for this session (best available granularity)
                 if (as.getSession() != null) {
                     totalHints += helpEventRepo.findBySessionId(as.getSession().getId()).size();
                 }
-
-                // Completed if at least one LevelAttempt for this ActivitySession succeeded
-                boolean sessionHasCompletedAttempt = attempts.stream()
-                        .anyMatch(a -> Boolean.TRUE.equals(a.getCompleted()));
-                if (sessionHasCompletedAttempt) anyCompleted = true;
             }
 
-            String completionStatus = anyCompleted ? "completed"
-                    : actSessions.stream().anyMatch(s -> s.getEndedAt() != null) ? "incomplete"
-                      : "abandoned";
+            // Count distinct levels attempted across all sessions
+            totalAttempts = (int) allAttempts.stream()
+                    .filter(a -> a.getLevel() != null)
+                    .map(a -> a.getLevel().getId())
+                    .distinct()
+                    .count();
 
-            int avgDuration = actSessions.size() > 0 ? totalDuration / actSessions.size() : 0;
+            // Count fails across ALL sessions combined — one entry per level
+            // using the truly last attempt (by startedAt) across all sessions
+            Map<Integer, List<LevelAttempt>> byLevelAllSessions = allAttempts.stream()
+                    .filter(a -> a.getLevel() != null)
+                    .collect(Collectors.groupingBy(a -> a.getLevel().getId()));
 
-            // Adaptability: if child attempted multiple sessions for same activity,
-            // they kept trying = higher adaptability. If high fail + only 1 session = low.
+            for (List<LevelAttempt> levelAttempts : byLevelAllSessions.values()) {
+                levelAttempts.sort(Comparator.comparing(
+                        a -> a.getStartedAt() != null ? a.getStartedAt() : LocalDateTime.MIN
+                ));
+                LevelAttempt last = levelAttempts.get(levelAttempts.size() - 1);
+                if (Boolean.FALSE.equals(last.getCompleted())) {
+                    totalFails++;
+                }
+            }
+
+            int levelCount = (int) allAttempts.stream()
+                    .map(a -> a.getLevel() != null ? a.getLevel().getId() : 0)
+                    .distinct()
+                    .filter(id -> id != 0)
+                    .count();
+            levelCount = Math.max(1, levelCount);
+
+            int attemptsPerLevel = totalAttempts / levelCount;
+            int failsPerLevel = totalFails / levelCount;
+            int durationPerLevel = totalDuration / levelCount;
+
+            // Single query — no double fetch
+            Optional<ActivityProgress> progressOpt = activityProgressRepo
+                    .findByChildIdAndActivityId(child.getId(), activity.getId());
+
+            String completionStatus;
+            int totalLevels = 1;
+            int completedLevelsCount = 0;
+
+            if (progressOpt.isPresent()) {
+                ActivityProgress progress = progressOpt.get();
+                totalLevels = Math.max(1, progress.getTotalLevels());
+                completedLevelsCount = progress.getCompletedLevels();
+                if (progress.isCompleted()) {
+                    completionStatus = "completed";
+                } else if (completedLevelsCount > 0) {
+                    completionStatus = "partial";
+                } else {
+                    completionStatus = "abandoned";
+                }
+            } else {
+                completionStatus = "abandoned";
+            }
+
+            double completionRate = (double) completedLevelsCount / totalLevels;
+            double successRate = totalAttempts > 0
+                    ? (double) (totalAttempts - totalFails) / totalAttempts
+                    : 1.0;
+
             String adaptability;
             if (actSessions.size() >= 3) {
                 adaptability = "high";
@@ -236,21 +263,28 @@ public class AiAnalysisService {
             }
 
             BehavioralSignalsDto signals = new BehavioralSignalsDto(
-                    levelByThreshold(avgDuration, 120, 300),          // hesitation
-                    levelByThreshold(totalAttempts, 1, 3),             // persistence
-                    adaptability,                                       // computed above
-                    levelByThreshold(totalHints, 1, 3),                // hint_dependency
-                    levelByThreshold(totalFails, 1, 2),                // frustration
-                    levelByThreshold(avgDuration, 90, 240),            // focus
-                    confidenceFrom(totalFails, totalAttempts)           // confidence
+                    levelByThreshold(durationPerLevel, 60, 180),
+                    levelByThreshold(attemptsPerLevel, 2, 4),
+                    adaptability,
+                    levelByThreshold(totalHints, 1, 3),
+                    levelByThreshold(failsPerLevel, 1, 2),
+                    levelByThreshold(durationPerLevel, 45, 150),
+                    confidenceFrom(totalFails, totalAttempts)
             );
 
             List<String> observations = List.of(
                     "sessions_count=" + actSessions.size(),
                     "total_attempts=" + totalAttempts,
+                    "attempts_per_level=" + attemptsPerLevel,
                     "total_hints=" + totalHints,
                     "total_fails=" + totalFails,
-                    "total_duration_seconds=" + totalDuration
+                    "fails_per_level=" + failsPerLevel,
+                    "total_duration_seconds=" + totalDuration,
+                    "duration_per_level_seconds=" + durationPerLevel,
+                    "completion_rate=" + String.format("%.2f", completionRate),
+                    "success_rate=" + String.format("%.2f", successRate),
+                    "levels_completed=" + completedLevelsCount,
+                    "total_levels=" + totalLevels
             );
 
             summaries.add(new ActivitySummaryDto(
@@ -271,6 +305,45 @@ public class AiAnalysisService {
         return summaries;
     }
 
+
+    // ─────────────────────────────────────────────────────────────
+    // Duration with LevelAttempt fallback
+    // ─────────────────────────────────────────────────────────────
+
+    private int computeDuration(ActivitySession s, List<LevelAttempt> attempts) {
+        // Primary: session start/end
+        if (s.getStartedAt() != null && s.getEndedAt() != null) {
+            return (int) Math.max(0,
+                    Duration.between(s.getStartedAt(), s.getEndedAt()).getSeconds());
+        }
+
+        // Fallback 1: sum LevelAttempt durations
+        if (attempts != null && !attempts.isEmpty()) {
+            int total = 0;
+            for (LevelAttempt attempt : attempts) {
+                if (attempt.getStartedAt() != null && attempt.getEndedAt() != null) {
+                    total += (int) Math.max(0,
+                            Duration.between(attempt.getStartedAt(), attempt.getEndedAt()).getSeconds());
+                }
+            }
+            if (total > 0) return total;
+        }
+
+        // Fallback 2: session startedAt to now, capped at 1 hour
+        if (s.getStartedAt() != null) {
+            return (int) Math.min(
+                    Duration.between(s.getStartedAt(), LocalDateTime.now()).getSeconds(),
+                    3600
+            );
+        }
+
+        return 0;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Session aggregate
+    // ─────────────────────────────────────────────────────────────
+
     private SessionAggregateDto buildSessionAggregate(
             List<ActivitySession> sessions,
             List<ActivitySummaryDto> activitySummaries
@@ -279,14 +352,24 @@ public class AiAnalysisService {
                 .map(s -> s.getSession() != null ? s.getSession().getId() : -1)
                 .distinct().count();
 
-        int totalDuration = activitySummaries.stream().mapToInt(ActivitySummaryDto::getDurationSeconds).sum();
-        int totalHints = activitySummaries.stream().mapToInt(ActivitySummaryDto::getHintsUsed).sum();
-        int totalFails = activitySummaries.stream().mapToInt(ActivitySummaryDto::getFailCount).sum();
-        int totalAttempts = activitySummaries.stream().mapToInt(ActivitySummaryDto::getAttemptCount).sum();
+        int totalDuration = activitySummaries.stream()
+                .mapToInt(ActivitySummaryDto::getDurationSeconds).sum();
+        int totalHints = activitySummaries.stream()
+                .mapToInt(ActivitySummaryDto::getHintsUsed).sum();
+        int totalFails = activitySummaries.stream()
+                .mapToInt(ActivitySummaryDto::getFailCount).sum();
+        int totalAttempts = activitySummaries.stream()
+                .mapToInt(ActivitySummaryDto::getAttemptCount).sum();
         long completed = activitySummaries.stream()
                 .filter(a -> "completed".equals(a.getCompletionStatus())).count();
+        long partial = activitySummaries.stream()
+                .filter(a -> "partial".equals(a.getCompletionStatus())).count();
         int total = activitySummaries.size();
-        float completionRate = total > 0 ? (float) completed / total : 0f;
+
+        // partial counts as 0.5 toward completion rate
+        float completionRate = total > 0
+                ? (float) (completed + partial * 0.5) / total
+                : 0f;
         int avgDuration = total > 0 ? totalDuration / total : 0;
 
         return new SessionAggregateDto(
@@ -319,7 +402,7 @@ public class AiAnalysisService {
                 scores,
                 lastReport.getGeneratedAt() != null ? lastReport.getGeneratedAt().toString() : null,
                 lastReport.getAnalysisVersion(),
-                lastReport.getContextSummary()
+                lastReport.getContextSummary() // now properly chained
         );
     }
 
@@ -346,7 +429,8 @@ public class AiAnalysisService {
         aiReportRepo.save(report);
     }
 
-    private void savePerformances(Child child, List<ActivitySession> sessions, AiAnalysisResponseDto response) {
+    private void savePerformances(Child child, List<ActivitySession> sessions,
+                                  AiAnalysisResponseDto response) {
         var instant = response.getInstantAnalysis();
         if (instant == null) return;
 
@@ -393,13 +477,6 @@ public class AiAnalysisService {
     // Helpers
     // ─────────────────────────────────────────────────────────────
 
-    private int computeDuration(ActivitySession s) {
-        if (s.getStartedAt() != null && s.getEndedAt() != null) {
-            return (int) Math.max(0, Duration.between(s.getStartedAt(), s.getEndedAt()).getSeconds());
-        }
-        return 0;
-    }
-
     private String levelByThreshold(int value, int med, int high) {
         if (value >= high) return "high";
         if (value >= med) return "medium";
@@ -409,8 +486,10 @@ public class AiAnalysisService {
     private String confidenceFrom(int failCount, int attemptCount) {
         if (attemptCount == 0) return "medium";
         if (failCount == 0) return "high";
-        if (failCount >= 2) return "low";
-        return "medium";
+        double failRate = (double) failCount / attemptCount;
+        if (failRate >= 0.5) return "low";
+        if (failRate >= 0.25) return "medium";
+        return "high";
     }
 
     private String normalizeLanguage(String lang) {
@@ -420,17 +499,24 @@ public class AiAnalysisService {
 
     private String serializeMindsetScores(List<MindsetScoreDto> scores) {
         if (scores == null || scores.isEmpty()) return null;
-        try { return objectMapper.writeValueAsString(scores); } catch (Exception e) { return null; }
+        try {
+            return objectMapper.writeValueAsString(scores);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private List<MindsetScoreDto> parseMindsetScores(String json) {
         if (json == null || json.isBlank()) return null;
-        try { return objectMapper.readValue(json, new TypeReference<>() {}); } catch (Exception e) { return null; }
+        try {
+            return objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private float avg(float a, float b) { return (a + b) / 2.0f; }
     private float clamp(float v) { return Math.max(0.0f, Math.min(1.0f, v)); }
-
 
     private String nextVersion(AIReport lastReport) {
         if (lastReport == null || lastReport.getAnalysisVersion() == null) return "v1";

@@ -135,7 +135,10 @@ public class RoadmapService {
             previousCompleted = "COMPLETED".equals(status);
         }
 
-        return new RoadmapResponseDto(kit.getId(), kit.getName(), kit.getImageURL(), result);
+        String kitImageUrl = (kit.getImageKey() != null && !kit.getImageKey().isEmpty())
+                ? s3Service.generatePresignedUrl(kit.getImageKey())
+                : null;
+        return new RoadmapResponseDto(kit.getId(), kit.getName(), kitImageUrl, result);
     }
 
     // ─── CREATE ──────────────────────────────────────────────────────────────

@@ -41,6 +41,8 @@ public class Parent {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime privacyPolicyAcceptedAt;
+
     @JsonIgnore
     @OneToMany(mappedBy = "parent")
     private List<Child> children;

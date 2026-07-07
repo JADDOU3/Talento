@@ -12,6 +12,7 @@ import org.example.backend.model.Parent;
 import org.example.backend.repo.CartItemRepo;
 import org.example.backend.repo.CartRepo;
 import org.example.backend.repo.KitRepo;
+import org.example.backend.service.community.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,15 +29,24 @@ public class CartService {
     @Autowired
     private KitRepo kitRepo;
 
+    @Autowired
+    private S3Service s3Service;
+
     private CartItemDTO toItemDto(CartItem item) {
         CartItemDTO dto = new CartItemDTO();
         dto.setId(item.getId());
         dto.setKitId(item.getKit().getId());
         dto.setKitName(item.getKit().getName());
         dto.setKitDescription(item.getKit().getDescription());
-        dto.setKitImageURL(item.getKit().getImageURL());
         dto.setKitPrice(item.getKit().getPrice());
         dto.setQuantity(item.getQuantity());
+
+        String imageKey = item.getKit().getImageKey();
+        dto.setKitImageURL(
+                imageKey != null && !imageKey.isEmpty()
+                        ? s3Service.generatePresignedUrl(imageKey)
+                        : null
+        );
         return dto;
     }
 

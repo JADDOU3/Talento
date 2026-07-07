@@ -8,8 +8,10 @@ import org.example.backend.model.level.LevelAttempt;
 import org.example.backend.repo.activity.ActivitySessionRepo;
 import org.example.backend.repo.level.LevelAttemptRepo;
 import org.example.backend.repo.level.LevelRepo;
+import org.example.backend.service.CoinService;
 import org.example.backend.service.activity.ActivityProgressService;
 import org.example.backend.service.ai.AiAnalysisService;
+import org.example.backend.util.enums.CoinReason;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,24 +20,28 @@ import java.util.List;
 @Service
 public class LevelAttemptService {
 
+
     private final LevelAttemptRepo levelAttemptRepo;
     private final ActivitySessionRepo activitySessionRepo;
     private final LevelRepo levelRepo;
     private final ActivityProgressService activityProgressService;
     private final AiAnalysisService aiAnalysisService;
+    private final CoinService coinService;
 
     public LevelAttemptService(
             LevelAttemptRepo levelAttemptRepo,
             ActivitySessionRepo activitySessionRepo,
             LevelRepo levelRepo,
             ActivityProgressService activityProgressService,
-            AiAnalysisService aiAnalysisService
+            AiAnalysisService aiAnalysisService,
+            CoinService coinService
     ) {
         this.levelAttemptRepo = levelAttemptRepo;
         this.activitySessionRepo = activitySessionRepo;
         this.levelRepo = levelRepo;
         this.activityProgressService = activityProgressService;
         this.aiAnalysisService = aiAnalysisService;
+        this.coinService = coinService;
     }
 
     @Transactional
@@ -108,6 +114,8 @@ public class LevelAttemptService {
 
     private void onLevelAttemptCompleted(ActivitySession session, Level level) {
         activityProgressService.onLevelCompleted(session.getId(), level.getId());
+
+        coinService.awardCoins(session.getSession().getChild(), CoinReason.LEVEL_COMPLETE);
 
         if (level.isMilestone()) {
             aiAnalysisService.runAnalysisAsync(session.getSession().getChild(), "en");

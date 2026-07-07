@@ -15,7 +15,7 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      textAlign: TextAlign.start,
+      textAlign: TextAlign.right,
       style: AppTextStyles.bodyLarge.copyWith(
         fontSize: 17,
         height: 1.2,

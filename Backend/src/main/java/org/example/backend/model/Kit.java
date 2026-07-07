@@ -25,7 +25,7 @@ public class Kit {
     private String description;
     private double price;
     private LocalDateTime createdAt;
-    private String imageURL;
+    private String imageKey;
 
     private int rating;
     private int age;
@@ -34,6 +34,11 @@ public class Kit {
     @CollectionTable(name = "kit_items", joinColumns = @JoinColumn(name = "kit_id"))
     @Column(name = "item")
     private List<String> kitItems;
+
+    @ElementCollection
+    @CollectionTable(name = "kit_images", joinColumns = @JoinColumn(name = "kit_id"))
+    @Column(name = "image_key")
+    private List<String> imageKeys;
 
     @Enumerated(EnumType.STRING)
     private Type type;

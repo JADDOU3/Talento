@@ -61,10 +61,12 @@ public class CommentService {
     public void deleteComment(int id) {
         Comment comment = commentRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
+
         Parent parent = SecurityUtils.getCurrentUser();
-        if (comment.getParent() == null || comment.getParent().getId() != parent.getId()) {
-            throw new RuntimeException("Not authorized to delete this comment");
-        }
+        boolean isOwner = (comment.getParent() != null && comment.getParent().getId() == parent.getId())
+                || (comment.getChild() != null && comment.getChild().getParent().getId() == parent.getId());
+
+        if (!isOwner) throw new RuntimeException("Not authorized to delete this comment");
         commentRepo.deleteById(id);
     }
 }

@@ -95,5 +95,13 @@ class ChildModeService {
     if (response.statusCode == 200) return;
     throw Exception('Failed to set PIN: ${response.body}');
   }
+  Future<bool> verifyPin(String pin) async {
+  try {
+    await disableChildMode(pin);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
 
 }

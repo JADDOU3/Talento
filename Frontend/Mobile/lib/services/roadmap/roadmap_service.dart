@@ -27,8 +27,8 @@ class RoadmapService {
       if (response.body.trim().isEmpty) {
         debugPrint('ROADMAP EMPTY BODY');
 
-        return const RoadmapModel(
-          kitId: 0,
+        return RoadmapModel(
+          kitId: kitId,
           kitName: '',
           kitImageUrl: '',
           activities: [],
@@ -36,6 +36,32 @@ class RoadmapService {
       }
 
       final decoded = jsonDecode(response.body);
+
+      if (decoded is List) {
+        final roadmap = RoadmapModel.fromActivities(
+          kitId: kitId,
+          activities: decoded,
+        );
+
+        for (final activity in roadmap.activities) {
+          debugPrint(
+            'ROADMAP ACTIVITY => '
+                'id=${activity.activityId}, '
+                'name=${activity.activityName}, '
+                'status=${activity.status}, '
+                'currentLevel=${activity.currentLevelNumber}, '
+                'completedLevels=${activity.completedLevels}, '
+                'totalLevels=${activity.totalLevels}, '
+                'isCompleted=${activity.isCompleted}',
+          );
+        }
+
+        debugPrint('ROADMAP KIT ID: ${roadmap.kitId}');
+        debugPrint('ROADMAP KIT NAME: ${roadmap.kitName}');
+        debugPrint('ROADMAP ACTIVITIES COUNT: ${roadmap.activities.length}');
+
+        return roadmap;
+      }
 
       if (decoded is Map<String, dynamic>) {
         final roadmap = RoadmapModel.fromJson(decoded);

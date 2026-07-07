@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../core/config/api_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../shared/layout/bottom_nav_bar.dart';
+import '../../models/roadmap/roadmap_activity_model.dart';
+import '../../models/roadmap/roadmap_model.dart';
+import '../../services/roadmap/roadmap_service.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/bottom_nav_bar.dart';
 import '../roadmap/roadmap_screen.dart';
-
+import 'widgets/active_journey_map_section.dart';
+import 'widgets/curriculum_path_section.dart';
+import 'widgets/owned_kit_header.dart';
 import 'widgets/primary_button.dart';
-import 'widgets/secondary_button.dart';
 
-class OwnedKitScreen extends StatelessWidget {
+class OwnedKitScreen extends StatefulWidget {
   final dynamic kit;
   final int? childId;
 
@@ -19,22 +24,78 @@ class OwnedKitScreen extends StatelessWidget {
     this.childId,
   });
 
-  static const String kitBadge = 'حقيبة مبتدئ';
+  @override
+  State<OwnedKitScreen> createState() => _OwnedKitScreenState();
+}
+
+class _OwnedKitScreenState extends State<OwnedKitScreen> {
+  final RoadmapService _roadmapService = RoadmapService();
+
+  Future<RoadmapModel>? _roadmapFuture;
 
   int? get _kitId {
-    final id = kit.id;
+    final id = _readKitValue('id');
 
     if (id is int) return id;
-    return int.tryParse(id.toString());
+    return int.tryParse(id?.toString() ?? '');
   }
 
-  void _openRoadmap(BuildContext context) {
+  String get _kitName => _readKitText('name');
+
+  String get _kitDescription => _readKitText('description');
+
+  String get _kitImageUrl => _normalizeImageUrl(
+    _readKitText('imageUrl').isNotEmpty
+        ? _readKitText('imageUrl')
+        : _readKitText('imageURL'),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoadmapSections();
+  }
+
+  @override
+  void didUpdateWidget(covariant OwnedKitScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.kit != widget.kit || oldWidget.childId != widget.childId) {
+      _loadRoadmapSections();
+    }
+  }
+
+  void _loadRoadmapSections() {
     final kitId = _kitId;
+    final childId = widget.childId;
+
+    if (kitId == null || childId == null) {
+      _roadmapFuture = null;
+      return;
+    }
+
+    _roadmapFuture = _roadmapService.getRoadmap(
+      kitId: kitId,
+      childId: childId,
+    );
+  }
+
+  void _retryRoadmapSections() {
+    setState(_loadRoadmapSections);
+  }
+
+  void _openRoadmap(
+      BuildContext context, {
+        int? initialActivityId,
+        int? initialActivityIndex,
+      }) {
+    final kitId = _kitId;
+    final childId = widget.childId;
 
     if (kitId == null) {
       _showSnackBar(
         context,
-        'لا يمكن فتح خارطة الرحلة لأن رقم الحقيبة غير متوفر',
+        'لا يمكن فتح خارطة الرحلة لأن رقم الصندوق غير متوفر',
       );
       return;
     }
@@ -52,7 +113,9 @@ class OwnedKitScreen extends StatelessWidget {
       MaterialPageRoute(
         builder: (_) => RoadmapScreen(
           kitId: kitId,
-          childId: childId!,
+          childId: childId,
+          initialActivityId: initialActivityId,
+          initialActivityIndex: initialActivityIndex,
         ),
       ),
     );
@@ -71,6 +134,55 @@ class OwnedKitScreen extends StatelessWidget {
     );
   }
 
+  dynamic _readKitValue(String field) {
+    final kit = widget.kit;
+
+    if (kit is Map) {
+      return kit[field];
+    }
+
+    try {
+      switch (field) {
+        case 'id':
+          return kit.id;
+        case 'name':
+          return kit.name;
+        case 'description':
+          return kit.description;
+        case 'imageUrl':
+          return kit.imageUrl;
+        case 'imageURL':
+          return kit.imageURL;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String _readKitText(String field) {
+    final value = _readKitValue(field);
+    final text = value?.toString().trim() ?? '';
+    return text == 'null' ? '' : text;
+  }
+
+  String _normalizeImageUrl(String value) {
+    final image = value.trim();
+
+    if (image.isEmpty) return '';
+
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+
+    final cleanBaseUrl = ApiConstants.baseUrl
+        .replaceFirst(RegExp(r'/api/?$'), '')
+        .replaceFirst(RegExp(r'/$'), '');
+
+    final cleanImagePath = image.startsWith('/') ? image.substring(1) : image;
+
+    return '$cleanBaseUrl/$cleanImagePath';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -78,241 +190,362 @@ class OwnedKitScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: AppBackground(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(22, 6, 18, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _KitHeader(kit: kit),
-                      const SizedBox(height: 22),
-                      _RoadmapEntryCard(
-                        onTap: () => _openRoadmap(context),
-                      ),
-                      const SizedBox(height: 22),
-                    ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildDetailsTopBar(context),
+                _buildScreenTitle(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(22, 8, 18, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        OwnedKitHeader(
+                          name: _kitName,
+                          description: _kitDescription,
+                          imageUrl: _kitImageUrl,
+                          onResume: () => _openRoadmap(context),
+                        ),
+                        const SizedBox(height: 22),
+                        _buildRoadmapContent(context),
+                        const SizedBox(height: 22),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const BottomNavBar(selectedIndex: 1),
-            ],
+                const BottomNavBar(selectedIndex: 1),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-      child: Row(
+  Widget _buildRoadmapContent(BuildContext context) {
+    if (widget.childId == null || _roadmapFuture == null) {
+      return _buildRoadmapMessage(
+        icon: Icons.child_care_rounded,
+        message: 'اختاري طفلًا أولًا حتى تظهر رحلة التعلّم',
+      );
+    }
+
+    return FutureBuilder<RoadmapModel>(
+      future: _roadmapFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildRoadmapLoading();
+        }
+
+        if (snapshot.hasError) {
+          return _buildRoadmapError(
+            snapshot.error.toString().replaceFirst('Exception: ', ''),
+          );
+        }
+
+        final roadmap = snapshot.data;
+        final activities = roadmap?.activities ?? <RoadmapActivityModel>[];
+
+        if (activities.isEmpty) {
+          return _buildRoadmapMessage(
+            icon: Icons.route_outlined,
+            message: 'لم تبدأ أي نشاط بعد',
+          );
+        }
+
+        final currentActivity = _findCurrentActivity(activities);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ActiveJourneyMapSection(
+              activities: activities,
+              onCurrentActivityTap: (activity, activityIndex) {
+                _openRoadmap(
+                  context,
+                  initialActivityId: activity.activityId,
+                  initialActivityIndex: activityIndex,
+                );
+              },
+            ),
+            if (currentActivity != null) ...[
+              const SizedBox(height: 20),
+              CurriculumPathSection(
+                activity: currentActivity,
+                onOpenRoadmap: () {
+                  final currentIndex = activities.indexWhere(
+                        (activity) => identical(activity, currentActivity),
+                  );
+
+                  _openRoadmap(
+                    context,
+                    initialActivityId: currentActivity.activityId,
+                    initialActivityIndex:
+                    currentIndex == -1 ? null : currentIndex,
+                  );
+                },
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  RoadmapActivityModel? _findCurrentActivity(
+      List<RoadmapActivityModel> activities,
+      ) {
+    for (final activity in activities) {
+      if (activity.isCurrent) return activity;
+    }
+
+    return null;
+  }
+
+  Widget _buildRoadmapLoading() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 18,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: Text(
-                'تفاصيل الحقيبة',
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+          _buildSkeletonLine(width: 170),
+          const SizedBox(height: 18),
+          Row(
+            children: List.generate(5, (index) {
+              return Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: const BoxDecoration(
+                        color: AppColors.inputFill,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildSkeletonLine(width: 34),
+                  ],
                 ),
-              ),
-            ),
+              );
+            }),
           ),
-          const SizedBox(width: 38),
         ],
       ),
     );
   }
-}
 
-class _KitHeader extends StatelessWidget {
-  final dynamic kit;
+  Widget _buildSkeletonLine({required double width}) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        width: width,
+        height: 12,
+        decoration: BoxDecoration(
+          color: AppColors.inputFill,
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+    );
+  }
 
-  const _KitHeader({required this.kit});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
+  Widget _buildRoadmapError(String message) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: AppColors.error.withOpacity(0.25),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.pink.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                OwnedKitScreen.kitBadge,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.pink,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 36,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'صار خطأ أثناء تحميل رحلة الصندوق',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w900,
             ),
           ),
+          if (message.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.45,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
-          Text(
-            kit.name ?? '',
-            textAlign: TextAlign.right,
-            style: AppTextStyles.headlineLarge.copyWith(
+          PrimaryButton(
+            text: 'Retry',
+            height: 44,
+            onPressed: _retryRoadmapSections,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoadmapMessage({
+    required IconData icon,
+    required String message,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
               color: AppColors.primary,
-              fontSize: 30,
-              fontWeight: FontWeight.w900,
+              size: 32,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            kit.description ?? '',
-            textAlign: TextAlign.right,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w900,
             ),
-          ),
-          const SizedBox(height: 22),
-          const Row(
-            children: [
-              Expanded(
-                child: PrimaryButton(
-                  text: 'استكمال النشاط',
-                  height: 48,
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: SecondaryButton(
-                  text: 'عرض سجل المتابعة',
-                  height: 48,
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
-}
 
-class _RoadmapEntryCard extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _RoadmapEntryCard({
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
+  Widget _buildDetailsTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
+          color: AppColors.white.withOpacity(0.78),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.18),
+            color: AppColors.white.withOpacity(0.92),
+            width: 1.1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.04),
-              blurRadius: 14,
+              color: AppColors.black.withOpacity(0.05),
+              blurRadius: 13,
               offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Row(
           children: [
-            Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.route_rounded,
-                color: AppColors.primary,
-                size: 31,
-              ),
+            _topCircleButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icons.arrow_back_ios_rounded,
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'رحلة التعلّم',
-                    textAlign: TextAlign.right,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
+            const Spacer(),
+            Image.asset(
+              'assets/icons/logo1.png',
+              height: 42,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) {
+                return const Text(
+                  'Talento',
+                  style: TextStyle(
+                    fontFamily: 'BerlinSans',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'شاهدي مسار الأنشطة والإنجازات داخل هذه الحقيبة',
-                    textAlign: TextAlign.right,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.45,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.primary,
-                size: 16,
-              ),
+                );
+              },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScreenTitle() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 8),
+      child: Center(
+        child: Text(
+          'تفاصيل الصندوق',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.headlineMedium.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _topCircleButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+  }) {
+    return Material(
+      color: AppColors.white.withOpacity(0.95),
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: AppColors.black.withOpacity(0.08),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 20,
+          ),
         ),
       ),
     );

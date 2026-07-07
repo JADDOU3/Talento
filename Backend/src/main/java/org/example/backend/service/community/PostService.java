@@ -6,13 +6,16 @@ import org.example.backend.Dto.community.MediaResponseDto;
 import org.example.backend.Dto.community.PostResponseDto;
 import org.example.backend.model.Child;
 import org.example.backend.model.Kit;
+import org.example.backend.model.Parent;
 import org.example.backend.model.community.Media;
 import org.example.backend.model.community.Post;
 import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.KitRepo;
 import org.example.backend.repo.community.MediaRepo;
+import org.example.backend.repo.community.PostLikeRepo;
 import org.example.backend.repo.community.PostRepo;
 import org.example.backend.service.ChildService;
+import org.example.backend.util.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class PostService {
     private final MediaRepo mediaRepo;
     private final ChildService childService;
     private final S3Service s3Service;
+    private final PostLikeRepo postLikeRepo;
 
     @Transactional
     public PostResponseDto createPost(CreatePostDto dto) {
@@ -105,17 +109,20 @@ public class PostService {
         Post post = postRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Delete all associated media from S3 before removing DB records
+        Parent parent = SecurityUtils.getCurrentUser();
+        boolean isOwner = post.getChild() != null
+                && post.getChild().getParent().getId() == parent.getId();
+
+        if (!isOwner) throw new RuntimeException("Not authorized to delete this post");
+
         if (post.getMedia() != null) {
             post.getMedia().forEach(media -> s3Service.deleteFile(media.getS3Key()));
         }
-
         postRepo.deleteById(id);
     }
 
     private PostResponseDto toResponseDto(Post post) {
         List<MediaResponseDto> mediaDtos = Collections.emptyList();
-
         if (post.getMedia() != null) {
             mediaDtos = post.getMedia().stream()
                     .map(m -> new MediaResponseDto(
@@ -126,6 +133,14 @@ public class PostService {
                     .collect(Collectors.toList());
         }
 
-        return new PostResponseDto(post, mediaDtos);
+        boolean likedByCurrentUser = false;
+        try {
+            Parent parent = SecurityUtils.getCurrentUser();
+            likedByCurrentUser = postLikeRepo.existsByPostIdAndParentId(post.getId(), parent.getId());
+        } catch (Exception e) {
+            likedByCurrentUser = false;
+        }
+
+        return new PostResponseDto(post, mediaDtos, likedByCurrentUser);
     }
 }

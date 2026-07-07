@@ -47,11 +47,13 @@ class _Placeholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final placeholderText = prompt.trim().isNotEmpty ? prompt : 'صورة البناء';
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Text(
-          prompt,
+          placeholderText,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 18,
