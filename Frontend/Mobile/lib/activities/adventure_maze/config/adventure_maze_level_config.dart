@@ -281,15 +281,12 @@ const Map<int, AdventureMazeLevelConfig> adventureMazeConfigs = {
       4: Offset(0.3889, 0.6984),
       5: Offset(0.7978, 0.8621),
     },
-    // Assign each star's color explicitly, same as Cognitive Maze's
-    // MazeStar(position: ..., color: ...) — change these to whatever you
-    // want per level.
     starColors: {
-      1: Color(0xFF29B6F6), // blue
-      2: Color(0xFFAB47BC), // purple
-      3: Color(0xFFFF7043), // orange
-      4: Color(0xFF66BB6A), // green
-      5: Color(0xFFFFD600), // gold
+      1: Color(0xFF10A896),
+      2: Color(0xFF48C5DC),
+      3: Color(0xFFEC6886),
+      4: Color(0xFFEC342F),
+      5: Color(0xFFF9B919),
     },
     endBlockRect: Rect.fromLTWH(0.8856, 0.7117, 0.0122, 0.0244),
   ),
