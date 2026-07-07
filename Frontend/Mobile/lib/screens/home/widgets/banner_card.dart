@@ -3,79 +3,155 @@ import 'package:flutter/material.dart';
 class BannerCard extends StatelessWidget {
   const BannerCard({super.key});
 
+  static const String _mascotAsset = 'assets/images/mascot_challenge_success.png';
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        width: double.infinity,
+        height: 166,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFFEFFFFD),
+              Color(0xFFF7FFFE),
+              Color(0xFFFFF8ED),
+            ],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: const Color(0xFFBDEDEA),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF10A896).withOpacity(0.10),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -34,
+                right: -26,
+                child: _SoftCircle(
+                  size: 105,
+                  color: const Color(0xFF48C5DC).withOpacity(0.13),
+                ),
+              ),
+              Positioned(
+                bottom: -42,
+                left: -28,
+                child: _SoftCircle(
+                  size: 125,
+                  color: const Color(0xFFFFD36E).withOpacity(0.18),
+                ),
+              ),
+
+              // Mascot on the left
+              Positioned(
+                bottom: 8,
+                left: 10,
+                child: SizedBox(
+                  width: 118,
+                  height: 140,
+                  child: Image.asset(
+                    _mascotAsset,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10A896).withOpacity(0.10),
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+              // Text content
+              Padding(
+                padding: const EdgeInsets.fromLTRB(128, 15, 18, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    const SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        'جاهز تبدأ الرحلة؟',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 21.5,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF086D66),
+                          height: 1.18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    const SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        'أضف بيانات طفلك لتبدأ سلسلة مغامرات لتنمية مهاراته',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          color: Color(0xFF6B728F),
+                          fontWeight: FontWeight.w600,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SoftCircle extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _SoftCircle({
+    required this.size,
+    required this.color,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF10A896), Color(0xFF48C5DC)],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'مستكشف جديد',
-                    style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'هل أنت مستعد\nللاكتشاف؟',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  ' ',
-                  style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.5),
-                ),
-                const SizedBox(height: 14),
-               /* ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF10A896),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    minimumSize: Size.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                  child: const Text('ابدأ الآن'),
-                ),*/
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            width: 90,
-            height: 90,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.child_care_rounded, size: 50, color: Colors.white),
-          ),
-        ],
+        color: color,
+        shape: BoxShape.circle,
       ),
     );
   }

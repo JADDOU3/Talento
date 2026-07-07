@@ -35,6 +35,7 @@ public class Child {
     private LocalDateTime dateOfBirth;
 
     private boolean isSelected;
+    private int coinBalance;
 
     @JsonIgnore
     @ManyToOne

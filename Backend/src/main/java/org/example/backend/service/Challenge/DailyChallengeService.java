@@ -9,6 +9,8 @@ import org.example.backend.model.DailyChallengeAttempt;
 import org.example.backend.repo.challenge.DailyChallengeAttemptRepo;
 import org.example.backend.repo.challenge.DailyChallengeRepo;
 import org.example.backend.service.ChildService;
+import org.example.backend.service.CoinService;
+import org.example.backend.util.enums.CoinReason;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,13 +23,16 @@ public class DailyChallengeService {
     private final DailyChallengeRepo dailyChallengeRepo;
     private final DailyChallengeAttemptRepo attemptRepo;
     private final ChildService childService;
+    private final CoinService coinService;
 
     public DailyChallengeService(DailyChallengeRepo dailyChallengeRepo,
                                  DailyChallengeAttemptRepo attemptRepo,
-                                 ChildService childService) {
+                                 ChildService childService,
+                                 CoinService coinService) {
         this.dailyChallengeRepo = dailyChallengeRepo;
         this.attemptRepo = attemptRepo;
         this.childService = childService;
+        this.coinService = coinService;
     }
 
     public DailyChallengeResponseDto getDailyChallenge() {
@@ -73,6 +78,10 @@ public class DailyChallengeService {
                     0, child.getId(), dto.getChallengeId(),
                     dto.getAnswer(), correct, LocalDate.now()
             ));
+
+            if (correct) {
+                coinService.awardCoins(child, CoinReason.DAILY_CHALLENGE);
+            }
         }
 
         return new DailyChallengeResultDto(correct, challenge.getCorrectAnswer());
