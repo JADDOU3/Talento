@@ -11,4 +11,5 @@ public interface PostLikeRepo extends JpaRepository<PostLike, Integer> {
     Optional<PostLike> findByPostIdAndChildId(int postId, int childId);
     Optional<PostLike> findByPostIdAndParentId(int postId, int parentId);
     long countByPostId(int postId);
+    boolean existsByPostIdAndParentId(int postId, int parentId);
 }

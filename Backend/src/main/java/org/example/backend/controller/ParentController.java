@@ -1,13 +1,14 @@
 package org.example.backend.controller;
 
-import org.example.backend.Dto.ChildModePinDto;
+import org.example.backend.Dto.parent.ChildModePinDto;
+import org.example.backend.Dto.parent.UpdatePasswordDto;
+import org.example.backend.Dto.parent.UpdateProfileDto;
 import org.example.backend.Dto.auth.AuthResponseDto;
 import org.example.backend.Dto.auth.LoginDto;
 import org.example.backend.Dto.auth.RefreshTokenDto;
 import org.example.backend.Dto.auth.RegisterDto;
 import org.example.backend.Dto.auth.ParentProfileDto;
 import org.example.backend.service.AuthService;
-import org.example.backend.service.ChildService;
 import org.example.backend.service.ParentService;
 import org.example.backend.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,5 +99,29 @@ public class ParentController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect PIN");
         }
         return ResponseEntity.ok("PIN correct");
+    }
+
+    @PostMapping("/legal/privacy-policy/accept")
+    public ResponseEntity<String> acceptPrivacyPolicy() {
+        return ResponseEntity.ok(userService.acceptPrivacyPolicy());
+    }
+
+    @GetMapping("/legal/privacy-policy/accepted")
+    public ResponseEntity<Boolean> hasAcceptedPrivacyPolicy() {
+        return ResponseEntity.ok(userService.hasPrivacyPolicyAccepted());
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<String> updateProfile(@RequestBody UpdateProfileDto dto) {
+        return ResponseEntity.ok(userService.updateProfile(dto));
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<String> updatePassword(@RequestBody UpdatePasswordDto dto) {
+        String result = userService.updatePassword(dto);
+        if (result.equals("Password updated successfully")) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.badRequest().body(result);
     }
 }

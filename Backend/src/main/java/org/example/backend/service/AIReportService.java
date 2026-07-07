@@ -1,5 +1,6 @@
 package org.example.backend.service;
 
+import org.example.backend.Dto.aiReport.AIReportResponseDto;
 import org.example.backend.Dto.aiReport.CreateAIReportDto;
 import org.example.backend.Dto.aiReport.UpdateAIReportDto;
 import org.example.backend.model.AIReport;
@@ -21,7 +22,7 @@ public class AIReportService {
     @Autowired
     private ChildRepo childRepo;
 
-    public AIReport createReport(CreateAIReportDto dto) {
+    public AIReportResponseDto createReport(CreateAIReportDto dto) {
         Child child = childRepo.findById(dto.getChildId()).orElse(null);
         if (child == null) return null;
 
@@ -29,29 +30,43 @@ public class AIReportService {
         report.setSummary(dto.getSummary());
         report.setGeneratedAt(dto.getGeneratedAt() != null ? dto.getGeneratedAt() : LocalDateTime.now());
         report.setChild(child);
-        return aiReportRepo.save(report);
+        return AIReportResponseDto.from(aiReportRepo.save(report));
+    }
+    public AIReportResponseDto getLatestReport(int childId) {
+        return aiReportRepo.findTopByChildIdOrderByGeneratedAtDesc(childId)
+                .map(AIReportResponseDto::from)
+                .orElse(null);
     }
 
-    public List<AIReport> getAll() {
-        return aiReportRepo.findAll();
+    public List<AIReportResponseDto> getAll() {
+        return aiReportRepo.findAll().stream()
+                .map(AIReportResponseDto::from)
+                .toList();
+    }
+    public AIReportResponseDto getReportByVersion(int childId, String version) {
+        return aiReportRepo.findByChildIdAndAnalysisVersion(childId, version)
+                .map(AIReportResponseDto::from)
+                .orElse(null);
     }
 
-    public AIReport getById(int id) {
-        return aiReportRepo.findById(id).orElse(null);
+    public AIReportResponseDto getById(int id) {
+        return aiReportRepo.findById(id)
+                .map(AIReportResponseDto::from)
+                .orElse(null);
     }
 
-    public List<AIReport> getReportsByChild(int childId) {
-        return aiReportRepo.findByChildId(childId);
+    public List<AIReportResponseDto> getReportsByChild(int childId) {
+        return aiReportRepo.findByChildId(childId).stream()
+                .map(AIReportResponseDto::from)
+                .toList();
     }
 
-    public AIReport updateReport(int id, UpdateAIReportDto dto) {
-        AIReport report = getById(id);
-        if (report != null) {
-            report.setSummary(dto.getSummary());
-            report.setGeneratedAt(dto.getGeneratedAt() != null ? dto.getGeneratedAt() : LocalDateTime.now());
-            return aiReportRepo.save(report);
-        }
-        return null;
+    public AIReportResponseDto updateReport(int id, UpdateAIReportDto dto) {
+        AIReport report = aiReportRepo.findById(id).orElse(null);
+        if (report == null) return null;
+        report.setSummary(dto.getSummary());
+        report.setGeneratedAt(dto.getGeneratedAt() != null ? dto.getGeneratedAt() : LocalDateTime.now());
+        return AIReportResponseDto.from(aiReportRepo.save(report));
     }
 
     public void deleteReport(int id) {

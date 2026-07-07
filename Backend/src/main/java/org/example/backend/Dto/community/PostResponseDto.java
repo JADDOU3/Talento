@@ -22,8 +22,9 @@ public class PostResponseDto {
     private List<CommentResponseDto> comments;
     private List<PostLikeResponseDto> likes;
     private List<MediaResponseDto> media;
+    private boolean likedByCurrentUser;
 
-    public PostResponseDto(Post post, List<MediaResponseDto> media) {
+    public PostResponseDto(Post post, List<MediaResponseDto> media, boolean likedByCurrentUser) {
         this.id = post.getId();
         this.content = post.getContent();
         this.createdAt = post.getCreatedAt();
@@ -36,5 +37,6 @@ public class PostResponseDto {
                 ? post.getLikes().stream().map(PostLikeResponseDto::from).collect(Collectors.toList())
                 : List.of();
         this.media = media;
+        this.likedByCurrentUser = likedByCurrentUser;
     }
 }
