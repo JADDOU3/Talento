@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../cubits/activities/cognitive_maze/cognitive_maze_cubit.dart';
+import '../../cubits/activities/cognitive_maze/cognitive_maze_state.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
-import '../../cubits/cognitive_maze/cognitive_maze_cubit.dart';
-import '../../cubits/cognitive_maze/cognitive_maze_state.dart';
 import '../../services/activities/cognitive_maze_service.dart';
 import '../../shared/layout/app_background.dart';
-import '../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
+import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'widgets/cognitive_maze_game_widget.dart';
 
 class CognitiveMazeGameScreen extends StatelessWidget {
@@ -29,7 +30,7 @@ class CognitiveMazeGameScreen extends StatelessWidget {
     required this.childId,
     required this.sessionId,
     this.startLevelId,
-    this.startLevelNumber
+    this.startLevelNumber,
   });
 
   @override
@@ -41,23 +42,27 @@ class CognitiveMazeGameScreen extends StatelessWidget {
         activitySessionId: activitySessionId,
         childId: childId,
         sessionId: sessionId,
-      )..loadGame(startLevelId: startLevelId, startLevelNumber: startLevelNumber),
-      child: _CognitiveMazeView(),
+      )..loadGame(
+        startLevelId: startLevelId,
+        startLevelNumber: startLevelNumber,
+      ),
+      child: const _CognitiveMazeView(),
     );
   }
 }
 
 class _CognitiveMazeView extends StatefulWidget {
+  const _CognitiveMazeView();
+
   @override
   State<_CognitiveMazeView> createState() => _CognitiveMazeViewState();
 }
 
 class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
   final TiltController _tiltController = TiltController();
+
   CognitiveMazeGame? _game;
   Timer? _timer;
-  bool _completedNavigated = false;
-  CognitiveMazeLoaded? _lastLoaded;
 
   @override
   void dispose() {
@@ -67,21 +72,37 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
   }
 
   void _startTimer(BuildContext context) {
-    _timer ??= Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) context.read<CognitiveMazeCubit>().onTimerTick();
-    });
-  }
-
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
+    _timer ??= Timer.periodic(
+      const Duration(seconds: 1),
+          (_) {
+        if (mounted) {
+          context.read<CognitiveMazeCubit>().onTimerTick();
+        }
+      },
+    );
   }
 
   Future<bool> _onWillPop(BuildContext context) async {
     await context.read<CognitiveMazeCubit>().logExitIfNotCompleted();
     return true;
   }
+
+  void _retry(BuildContext context) {
+    _tiltController.stop();
+
+    setState(() {
+      // نبني نسخة جديدة من المتاهة حتى ترجع الكرة والنجوم
+      // لنقطة البداية بعد المحاولة الخاطئة.
+      _game = null;
+    });
+
+    context.read<CognitiveMazeCubit>().retryAfterWrongAnswer();
+  }
+
+  void _finish(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -90,65 +111,54 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
         onWillPop: () => _onWillPop(context),
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: AppBackground(
-            child: SafeArea(
-              child: BlocConsumer<CognitiveMazeCubit, CognitiveMazeState>(
-                listener: (context, state) {
-                  if (state is CognitiveMazeLoaded) {
-                    _startTimer(context);
-                  }
+          body: BlocConsumer<CognitiveMazeCubit, CognitiveMazeState>(
+            listener: (context, state) {
+              if (state is CognitiveMazeLoaded) {
+                _startTimer(context);
+              }
 
-                  if (state is CognitiveMazeWrongAnswer) {
-                    _lastLoaded = CognitiveMazeLoaded(
-                      level: state.level,
-                      config: state.config,
-                      elapsed: state.elapsed,
-                      collectedColors: state.collectedColors,
-                    );
+              if (state is CognitiveMazeComplete) {
+                _timer?.cancel();
+              }
+            },
+            builder: (context, state) {
+              if (state is CognitiveMazeLoading ||
+                  state is CognitiveMazeInitial) {
+                return const AppBackground(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
 
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'الجواب غير صحيح، حاول مرة أخرى',
-                            textAlign: TextAlign.right,
-                          ),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                  }
+              if (state is CognitiveMazeError) {
+                return _buildError(state.message);
+              }
 
-                  if (state is CognitiveMazeComplete &&
-                      !_completedNavigated) {
-                    _completedNavigated = true;
-                    _timer?.cancel();
-                    _showCompleteDialog(context);
-                  }
-                },
-                builder: (context, state) {
-                  if (state is CognitiveMazeLoading ||
-                      state is CognitiveMazeInitial) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              if (state is CognitiveMazeWrongAnswer) {
+                return ActivityFeedbackView(
+                  type: ActivityFeedbackType.wrong,
+                  onPrimaryPressed: () => _retry(context),
+                );
+              }
 
-                  if (state is CognitiveMazeError) {
-                    return _buildError(context, state.message);
-                  }
+              if (state is CognitiveMazeComplete) {
+                return ActivityFeedbackView(
+                  type: ActivityFeedbackType.correct,
+                  onPrimaryPressed: () => _finish(context),
+                );
+              }
 
-                  final loaded = state is CognitiveMazeLoaded
-                      ? state
-                      : _lastLoaded;
+              if (state is CognitiveMazeLoaded) {
+                return _buildPlayfield(context, state);
+              }
 
-                  if (loaded == null) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  _lastLoaded = loaded;
-                  return _buildPlayfield(context, loaded);
-                },
-              ),
-            ),
+              return const AppBackground(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -156,121 +166,114 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
   }
 
   Widget _buildPlayfield(
-      BuildContext context, CognitiveMazeLoaded loaded) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      BuildContext context,
+      CognitiveMazeLoaded loaded,
+      ) {
+    return AppBackground(
       child: Column(
         children: [
-          _buildTopBar(context, loaded),
-          const SizedBox(height: 10),
-          _buildQuestionBanner(loaded),
-          const SizedBox(height: 10),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _game ??= CognitiveMazeGame(
-                  config: loaded.config,
-                  correctEndpointIndex:
-                  loaded.config.isStarCollectLevel
-                      ? null
-                      : loaded.level.correctChoiceIndex,
-                  tiltController: _tiltController,
-                  onCorrectAnswer: () => context
-                      .read<CognitiveMazeCubit>()
-                      .onCorrectAnswer(),
-                  onWrongAnswer: (endpointIndex) => context
-                      .read<CognitiveMazeCubit>()
-                      .onWrongAnswer(endpointIndex),
-                  onStarCollected:
-                      (color, isTarget) => context
-                      .read<CognitiveMazeCubit>()
-                      .onStarCollected(color, isTarget),
-                );
-
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        loaded.level.imageUrl,
-                        fit: BoxFit.fill,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.inputFill,
-                          child: const Center(
-                            child: Text('تعذّر تحميل صورة المتاهة'),
-                          ),
-                        ),
-                      ),
-
-                      GameWidget(game: _game!),
-
-                    ],
-                  ),
-                );
-              },
-            ),
+          TopBar(
+            leadingIcon: Icons.arrow_back_ios_new_rounded,
+            onLeadingPressed: () async {
+              if (await _onWillPop(context) && context.mounted) {
+                Navigator.pop(context);
+              }
+            },
           ),
-          const SizedBox(height: 12),
-          TiltCalibrationButton(
-            tiltController: _tiltController,
-            onCalibrated: () => _game?.calibrate(),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  children: [
+                    _buildQuestionBanner(loaded),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          _game ??= CognitiveMazeGame(
+                            config: loaded.config,
+                            correctEndpointIndex:
+                            loaded.config.isStarCollectLevel
+                                ? null
+                                : loaded.level.correctChoiceIndex,
+                            tiltController: _tiltController,
+                            onCorrectAnswer: () {
+                              context
+                                  .read<CognitiveMazeCubit>()
+                                  .onCorrectAnswer();
+                            },
+                            onWrongAnswer: (endpointIndex) {
+                              context
+                                  .read<CognitiveMazeCubit>()
+                                  .onWrongAnswer(endpointIndex);
+                            },
+                            onStarCollected: (color, isTarget) {
+                              context
+                                  .read<CognitiveMazeCubit>()
+                                  .onStarCollected(color, isTarget);
+                            },
+                          );
+
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  loaded.level.imageUrl,
+                                  fit: BoxFit.fill,
+                                  errorBuilder: (_, __, ___) {
+                                    return Container(
+                                      color: AppColors.inputFill,
+                                      child: const Center(
+                                        child: Text(
+                                          'تعذّر تحميل صورة المتاهة',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                GameWidget(game: _game!),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TiltCalibrationButton(
+                      tiltController: _tiltController,
+                      onCalibrated: () => _game?.calibrate(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
-    );
-  }
-  Widget _buildTopBar(BuildContext context, CognitiveMazeLoaded loaded) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () async {
-            if (await _onWillPop(context) && context.mounted) {
-              Navigator.pop(context);
-            }
-          },
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: AppColors.textPrimary,
-        ),
-        const Spacer(),
-        Image.asset('assets/icons/logo1.png', height: 40),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.timer_outlined,
-                  size: 18, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Text(
-                _fmt(loaded.elapsed),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildQuestionBanner(CognitiveMazeLoaded loaded) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 14,
+      ),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         children: [
-          const Icon(Icons.psychology_alt_rounded,
-              color: AppColors.primary),
+          const Icon(
+            Icons.psychology_alt_rounded,
+            color: AppColors.primary,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -287,45 +290,19 @@ class _CognitiveMazeViewState extends State<_CognitiveMazeView> {
     );
   }
 
-  void _showCompleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.emoji_events_rounded,
-                size: 60, color: AppColors.yellow),
-            SizedBox(height: 12),
-            Text(
-              'أحسنت! 🎉',
+  Widget _buildError(String message) {
+    return AppBackground(
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.w900),
-            ),
-          ],
-        ),
-        actions: [
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(dialogCtx);
-                Navigator.pop(context);
-              },
-              child: const Text('تم'),
             ),
           ),
-        ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildError(BuildContext context, String message) {
-    return Center(
-      child: Text(message),
     );
   }
 }

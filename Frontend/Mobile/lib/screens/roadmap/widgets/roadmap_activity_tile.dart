@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../models/roadmap/roadmap_activity_model.dart';
+import '../../../services/activities/story_submission_repository.dart';
 
 class RoadmapActivityTile extends StatelessWidget {
   final RoadmapActivityModel activity;
@@ -90,12 +91,10 @@ class RoadmapActivityTile extends StatelessWidget {
                 activity: activity,
                 childId: childId,
               ),
-              if (activity.hasStoryCount) ...[
-                const SizedBox(height: 5),
-                _StoryCountBadge(
-                  count: activity.storyCount!,
-                ),
-              ],
+              _StoryCountBadgeSection(
+                activity: activity,
+                childId: childId,
+              ),
             ],
           ),
         ),
@@ -135,6 +134,83 @@ class RoadmapActivityTile extends StatelessWidget {
     }
 
     return AppColors.textPrimary;
+  }
+}
+
+class _StoryCountBadgeSection extends StatelessWidget {
+  final RoadmapActivityModel activity;
+  final int? childId;
+
+  const _StoryCountBadgeSection({
+    required this.activity,
+    required this.childId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shouldShowCount = activity.hasStoryCount || _isStoryActivity;
+
+    if (!shouldShowCount) {
+      return const SizedBox.shrink();
+    }
+
+    final initialCount = activity.hasStoryCount ? activity.storyCount : null;
+    final future = _storyCountFuture;
+
+    if (future == null) {
+      if (initialCount == null || initialCount <= 0) {
+        return const SizedBox.shrink();
+      }
+
+      return Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: _StoryCountBadge(count: initialCount),
+      );
+    }
+
+    return FutureBuilder<int>(
+      future: future,
+      initialData: initialCount,
+      builder: (context, snapshot) {
+        final count = snapshot.data ?? initialCount;
+
+        if (count == null || count <= 0) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 5),
+          child: _StoryCountBadge(count: count),
+        );
+      },
+    );
+  }
+
+  Future<int>? get _storyCountFuture {
+    final safeChildId = childId;
+
+    if (safeChildId == null || safeChildId == 0) {
+      return null;
+    }
+
+    if (activity.activityId == 0) {
+      return null;
+    }
+
+    return StorySubmissionRepository().getStoryCount(
+      activity.activityId,
+      safeChildId,
+    );
+  }
+
+  bool get _isStoryActivity {
+    final name = activity.activityName.trim().toLowerCase();
+
+    return name == 'story spinner' ||
+        name == 'story spinner cards' ||
+        name == 'create creature' ||
+        name == 'create creature cards' ||
+        name == 'صمم بطلك';
   }
 }
 

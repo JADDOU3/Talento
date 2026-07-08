@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/child_mode/child_mode_cubit.dart';
 import '../../cubits/child_mode/child_mode_state.dart';
+import '../../cubits/coins/coins_cubit.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../../services/auth/auth_service.dart';
@@ -97,6 +98,7 @@ class AppDrawer extends StatelessWidget {
                       child: _LogoutTile(
                         onTap: () async {
                           context.read<ChildModeCubit>().reset();
+                          context.read<CoinsCubit>().reset();
                           await AuthService().logout();
 
                           if (context.mounted) {

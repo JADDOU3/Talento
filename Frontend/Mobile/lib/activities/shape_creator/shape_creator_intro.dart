@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../shared/layout/app_background.dart';
+import '../../shared/layout/animated_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import '../../cubits/activities/shape_creator/shape_creator_cubit.dart';
 import 'shape_creator_build_screen.dart';
@@ -39,7 +39,7 @@ class ShapeCreatorIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActivityIntroTemplate(
-      background: const AppBackground(
+      background: const AnimatedBackground(
         child: SizedBox.expand(),
       ),
       mascotAssetPath: 'assets/images/template_mascot.png',

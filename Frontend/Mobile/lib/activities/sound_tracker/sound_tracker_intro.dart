@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/layout/animated_background.dart';
 import '../../services/activities/sound_tracker_service.dart';
 import '../../services/roadmap/roadmap_service.dart';
-import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'sound_tracker_voice_screen.dart';
 
@@ -200,7 +200,7 @@ class _SoundTrackerIntroState extends State<SoundTrackerIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
-          background: const AppBackground(
+          background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),
           mascotAssetPath: 'assets/images/template_mascot.png',

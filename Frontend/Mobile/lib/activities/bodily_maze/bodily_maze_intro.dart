@@ -36,6 +36,7 @@ class BodilyMazeIntro extends StatelessWidget {
           childId: childId,
           sessionId: sessionId,
           startLevelId: startLevelId,
+          startLevelNumber: startLevelNumber,
         ),
       ),
     );

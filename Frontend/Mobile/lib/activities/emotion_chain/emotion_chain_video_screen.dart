@@ -9,6 +9,7 @@ import 'emotion_chain_ar.dart';
 import 'emotion_chain_result_screen.dart';
 import 'emotion_chain_step_screen.dart';
 import 'widgets/emotion_chain_video_player.dart';
+import '../../shared/layout/top_bar.dart';
 
 /// Host screen for the whole Emotion Chain run.
 ///
@@ -109,45 +110,58 @@ class _VideoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final challenge = state.videoChallenge;
+    final prompt = EmotionChainAr.prompt(original: challenge.prompt);
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: AppBackground(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  EmotionChainVideoPlayer(
-                    url: challenge.url,
-                    prompt: EmotionChainAr.prompt(original: challenge.prompt),
-                    onFinished: () =>
-                        context.read<EmotionChainCubit>().onVideoFinished(),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    EmotionChainAr.prompt(original: challenge.prompt),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'ArialRounded',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                      height: 1.6,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TopBar(
+                leadingIcon: Icons.arrow_back_ios_new_rounded,
+                onLeadingPressed: () => Navigator.of(context).pop(),
+              ),
+              Expanded(
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        EmotionChainVideoPlayer(
+                          url: challenge.url,
+                          prompt: prompt,
+                          onFinished: () => context
+                              .read<EmotionChainCubit>()
+                              .onVideoFinished(),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          prompt,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: 'ArialRounded',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 }
-
 class _MessageScreen extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -171,68 +185,87 @@ class _MessageScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         body: AppBackground(
-          child: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 88, color: AppColors.primary),
-                    const SizedBox(height: 20),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'DGAgnadeen',
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      subtitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'ArialRounded',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 26),
-                    if (showSpinner) const CircularProgressIndicator(),
-                    if (actionLabel != null && onAction != null)
-                      SizedBox(
-                        width: double.infinity,
-                        child: Material(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(22),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(22),
-                            onTap: onAction,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              child: Text(
-                                actionLabel!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontFamily: 'DGAgnadeen',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TopBar(
+                leadingIcon: Icons.arrow_back_ios_new_rounded,
+                onLeadingPressed: () => Navigator.of(context).pop(),
+              ),
+              Expanded(
+                child: SafeArea(
+                  top: false,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            icon,
+                            size: 88,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'DGAgnadeen',
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            subtitle,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'ArialRounded',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 26),
+                          if (showSpinner)
+                            const CircularProgressIndicator(),
+                          if (actionLabel != null && onAction != null)
+                            SizedBox(
+                              width: double.infinity,
+                              child: Material(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(22),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(22),
+                                  onTap: onAction,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 15,
+                                    ),
+                                    child: Text(
+                                      actionLabel!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'DGAgnadeen',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
+                        ],
                       ),
-                  ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),

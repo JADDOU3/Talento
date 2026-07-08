@@ -265,6 +265,32 @@ class ProfileService {
     );
   }
 
+  Future<void> addKitToChild({
+    required int kitId,
+    required int childId,
+  }) async {
+    final response = await _postWithRefresh(
+      ApiConstants.addKitToChild,
+      {
+        'kitId': kitId,
+        'childId': childId,
+      },
+    );
+
+    debugPrint('addKitToChild: ${response.statusCode} - ${response.body}');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to add kit to child: ${response.statusCode}',
+      ),
+    );
+  }
+
   Future<ChildModel> addChild({
     required String name,
     required String dateOfBirth,

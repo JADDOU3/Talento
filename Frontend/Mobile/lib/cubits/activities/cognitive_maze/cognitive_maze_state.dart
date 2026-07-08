@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/activities/cognitive_maze/cognitive_maze_models.dart';
-import '../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
+import '../../../activities/cognitive_maze/config/cognitive_maze_level_config.dart';
 
 abstract class CognitiveMazeState {
   const CognitiveMazeState();

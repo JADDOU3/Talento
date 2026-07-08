@@ -55,11 +55,13 @@ class _ChildrenSectionState extends State<ChildrenSection> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 90,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             itemCount: widget.children.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, __) => const SizedBox(width: 14),
             itemBuilder: (context, i) {
               if (i == widget.children.length) {
                 return _buildAddButton(context);
@@ -76,95 +78,130 @@ class _ChildrenSectionState extends State<ChildrenSection> {
   Widget _buildChildItem(BuildContext context, ChildModel child) {
     final isSelected = widget.selectedChild?.id == child.id;
 
-    return GestureDetector(
-      onTap: () {
-        if (widget.onChildSelected != null) {
-          widget.onChildSelected!(child);
-        } else {
-          context.read<ProfileCubit>().selectChild(child);
-        }
-      },
-      onLongPress: () => _showChildInfoDialog(context, child),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 2.5,
-              ),
-              boxShadow: isSelected
-                  ? [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 8,
-                  spreadRadius: 1,
+    return SizedBox(
+      width: 68,
+      child: GestureDetector(
+        onTap: () {
+          if (widget.onChildSelected != null) {
+            widget.onChildSelected!(child);
+          } else {
+            context.read<ProfileCubit>().selectChild(child);
+          }
+        },
+        onLongPress: () => _showChildInfoDialog(context, child),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 64,
+              height: 64,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? AppColors.primary.withOpacity(0.12)
+                    : AppColors.white.withOpacity(0.75),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.border.withOpacity(0.65),
+                  width: isSelected ? 2.4 : 1.2,
                 ),
-              ]
-                  : [],
-            ),
-            child: ClipOval(
-              child: Image.network(
-                child.avatarUrl ??
-                    'https://api.dicebear.com/7.x/adventurer/png?seed=${child.name}',
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: AppColors.inputFill,
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: AppColors.hint,
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected
+                        ? AppColors.primary.withOpacity(0.22)
+                        : AppColors.black.withOpacity(0.05),
+                    blurRadius: isSelected ? 10 : 6,
+                    offset: const Offset(0, 3),
                   ),
+                ],
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.white,
+                ),
+                child: ClipOval(
+                  child: _ChildAvatarImage(child: child),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            child.name,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 12,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+            const SizedBox(height: 7),
+            Text(
+              child.name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontSize: 11.5,
+                height: 1,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAddButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showAddChildDialog(context),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.inputFill,
-              border: Border.all(color: AppColors.border),
+    return SizedBox(
+      width: 68,
+      child: GestureDetector(
+        onTap: () => _showAddChildDialog(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.white.withOpacity(0.75),
+                border: Border.all(
+                  color: AppColors.border.withOpacity(0.7),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withOpacity(0.08),
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
+              ),
             ),
-            child: const Icon(
-              Icons.add_rounded,
-              color: AppColors.primary,
-              size: 26,
+            const SizedBox(height: 7),
+            Text(
+              'إضافة',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontSize: 11.5,
+                height: 1,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'إضافة',
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -285,6 +322,39 @@ class _ChildrenSectionState extends State<ChildrenSection> {
             child: const Text('إغلاق'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+class _ChildAvatarImage extends StatelessWidget {
+  final ChildModel child;
+
+  const _ChildAvatarImage({
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = child.avatarUrl?.trim();
+
+    final imageUrl = avatarUrl != null && avatarUrl.isNotEmpty
+        ? avatarUrl
+        : 'https://api.dicebear.com/10.x/avataaars/png?seed=${Uri.encodeComponent(child.name)}&size=128';
+
+    return Image.network(
+      imageUrl,
+      width: 52,
+      height: 52,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: AppColors.inputFill,
+        child: const Icon(
+          Icons.child_care_rounded,
+          color: AppColors.primary,
+          size: 28,
+        ),
       ),
     );
   }

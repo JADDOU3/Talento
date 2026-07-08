@@ -20,9 +20,16 @@ class HomeCubit extends Cubit<HomeState> {
       }
 
       final data = await _homeService.getReturningUserHomeData();
-      emit(HomeReturningUser(data));
+
+      emit(
+        HomeReturningUser(data),
+      );
     } catch (e) {
-      emit(HomeError(_cleanError(e)));
+      emit(
+        HomeError(
+          _cleanError(e),
+        ),
+      );
     }
   }
 
@@ -31,9 +38,16 @@ class HomeCubit extends Cubit<HomeState> {
 
     try {
       final data = await _homeService.getReturningUserHomeData();
-      emit(HomeReturningUser(data));
+
+      emit(
+        HomeReturningUser(data),
+      );
     } catch (e) {
-      emit(HomeError(_cleanError(e)));
+      emit(
+        HomeError(
+          _cleanError(e),
+        ),
+      );
     }
   }
 
@@ -41,21 +55,21 @@ class HomeCubit extends Cubit<HomeState> {
     await loadHome();
   }
 
-  Future<void> submitChallengeAnswer(
+  Future<bool> submitChallengeAnswer(
       int challengeId,
       String answer,
       ) async {
     final currentState = state;
 
     if (currentState is! HomeLoaded) {
-      return;
+      return false;
     }
 
     final currentData = currentState.data;
 
     if (currentData.challengeAnswered ||
         currentData.isSubmittingChallengeAnswer) {
-      return;
+      return false;
     }
 
     emit(
@@ -85,6 +99,8 @@ class HomeCubit extends Cubit<HomeState> {
           ),
         ),
       );
+
+      return result.correct;
     } catch (e) {
       emit(
         HomeReturningUser(
@@ -95,11 +111,19 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       );
 
-      emit(HomeError(_cleanError(e)));
+      emit(
+        HomeError(
+          _cleanError(e),
+        ),
+      );
+
+      return false;
     }
   }
 
   String _cleanError(Object error) {
-    return error.toString().replaceFirst('Exception: ', '');
+    return error
+        .toString()
+        .replaceFirst('Exception: ', '');
   }
 }

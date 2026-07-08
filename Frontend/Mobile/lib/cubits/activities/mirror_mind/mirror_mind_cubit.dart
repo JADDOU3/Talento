@@ -28,6 +28,7 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
 
   bool _activityCompleted = false;
   bool _gameLoaded = false;
+  bool _isProcessingAction = false;
 
   Future<void> loadGame({
     required int activityId,
@@ -142,6 +143,9 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     if (currentState is! MirrorMindLoaded) return;
     if (!currentState.canSubmit) return;
     if (!currentState.hasValidSelectedChoice) return;
+    if (_isProcessingAction) return;
+
+    _isProcessingAction = true;
 
     final selectedChoiceIndex = currentState.selectedChoiceIndex!;
 
@@ -157,6 +161,8 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       }
     } catch (error) {
       emit(MirrorMindError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
     }
   }
 
@@ -166,6 +172,9 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
     final currentState = state;
 
     if (currentState is! MirrorMindLoaded) return;
+    if (_isProcessingAction) return;
+
+    _isProcessingAction = true;
 
     try {
       if (isCorrect) {
@@ -175,44 +184,24 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       }
     } catch (error) {
       emit(MirrorMindError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
     }
   }
 
   Future<void> _handleCorrectAnswer(MirrorMindLoaded currentState) async {
-    emit(
-      MirrorMindChallengeResult(
-        isCorrect: true,
-        previousState: currentState,
-      ),
-    );
-
-    await Future.delayed(const Duration(milliseconds: 900));
-
-    final latestState = state;
-
-    if (latestState is! MirrorMindChallengeResult) return;
-
-    final loadedState = latestState.previousState;
-
-    if (!loadedState.isLastChallengeInLevel) {
-      final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
-
-      await _saveProgress(
-        levelIndex: loadedState.currentLevelIndex,
-        challengeIndex: nextChallengeIndex,
-      );
-
+    if (!currentState.isLastChallengeInLevel) {
       emit(
-        loadedState.copyWith(
-          currentChallengeIndex: nextChallengeIndex,
-          clearSelectedChoice: true,
+        MirrorMindChallengeResult(
+          isCorrect: true,
+          previousState: currentState,
         ),
       );
       return;
     }
 
     await _updateCurrentAttempt(
-      currentState: loadedState,
+      currentState: currentState,
       completed: true,
     );
 
@@ -223,21 +212,17 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       action: 'COMPLETED',
     );
 
-    if (loadedState.isLastLevel) {
-      await _completeActivity(loadedState.elapsed);
+    if (currentState.isLastLevel) {
+      await _completeActivity(currentState.elapsed);
       return;
     }
 
     emit(
       MirrorMindLevelComplete(
-        previousState: loadedState,
-        message: _levelCompleteMessage(loadedState.currentLevelNumber),
+        previousState: currentState,
+        message: _levelCompleteMessage(currentState.currentLevelNumber),
       ),
     );
-
-    await Future.delayed(const Duration(milliseconds: 900));
-
-    await _moveToNextLevel(loadedState);
   }
 
   Future<void> _handleWrongAnswer(MirrorMindLoaded currentState) async {
@@ -253,46 +238,133 @@ class MirrorMindCubit extends Cubit<MirrorMindState> {
       action: 'FAILED',
     );
 
-    final nextAttemptNumber = currentState.attemptNumber + 1;
-
-    final nextAttempt = await _createAttemptForLevel(
-      level: currentState.level,
-      attemptNumber: nextAttemptNumber,
-    );
-
-    await _mirrorMindService.postLevelEvent(
-      childId: _childId,
-      sessionId: _sessionId,
-      activitySessionId: _activitySessionId,
-      action: 'RETRIED',
-    );
-
     emit(
       MirrorMindChallengeResult(
         isCorrect: false,
         previousState: currentState,
       ),
     );
+  }
 
-    await Future.delayed(const Duration(milliseconds: 900));
+  Future<void> continueAfterChallengeResult() async {
+    final currentState = state;
 
-    final latestState = state;
+    if (currentState is! MirrorMindChallengeResult) return;
+    if (!currentState.isCorrect) return;
+    if (_isProcessingAction) return;
 
-    if (latestState is! MirrorMindChallengeResult) return;
+    _isProcessingAction = true;
 
-    await _saveProgress(
-      levelIndex: currentState.currentLevelIndex,
-      challengeIndex: currentState.currentChallengeIndex,
-    );
+    try {
+      final loadedState = currentState.previousState;
 
-    emit(
-      currentState.copyWith(
-        currentAttemptId: nextAttempt.id,
+      if (!loadedState.isLastChallengeInLevel) {
+        final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
+
+        await _saveProgress(
+          levelIndex: loadedState.currentLevelIndex,
+          challengeIndex: nextChallengeIndex,
+        );
+
+        emit(
+          loadedState.copyWith(
+            currentChallengeIndex: nextChallengeIndex,
+            clearSelectedChoice: true,
+          ),
+        );
+        return;
+      }
+
+      await _updateCurrentAttempt(
+        currentState: loadedState,
+        completed: true,
+      );
+
+      await _mirrorMindService.postLevelEvent(
+        childId: _childId,
+        sessionId: _sessionId,
+        activitySessionId: _activitySessionId,
+        action: 'COMPLETED',
+      );
+
+      if (loadedState.isLastLevel) {
+        await _completeActivity(loadedState.elapsed);
+        return;
+      }
+
+      emit(
+        MirrorMindLevelComplete(
+          previousState: loadedState,
+          message: _levelCompleteMessage(loadedState.currentLevelNumber),
+        ),
+      );
+    } catch (error) {
+      emit(MirrorMindError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
+    }
+  }
+
+  Future<void> retryCurrentChallenge() async {
+    final currentState = state;
+
+    if (currentState is! MirrorMindChallengeResult) return;
+    if (currentState.isCorrect) return;
+    if (_isProcessingAction) return;
+
+    _isProcessingAction = true;
+
+    try {
+      final loadedState = currentState.previousState;
+      final nextAttemptNumber = loadedState.attemptNumber + 1;
+
+      final nextAttempt = await _createAttemptForLevel(
+        level: loadedState.level,
         attemptNumber: nextAttemptNumber,
-        currentAttemptStartedAt: nextAttempt.startedAt,
-        clearSelectedChoice: true,
-      ),
-    );
+      );
+
+      await _mirrorMindService.postLevelEvent(
+        childId: _childId,
+        sessionId: _sessionId,
+        activitySessionId: _activitySessionId,
+        action: 'RETRIED',
+      );
+
+      await _saveProgress(
+        levelIndex: loadedState.currentLevelIndex,
+        challengeIndex: loadedState.currentChallengeIndex,
+      );
+
+      emit(
+        loadedState.copyWith(
+          currentAttemptId: nextAttempt.id,
+          attemptNumber: nextAttemptNumber,
+          currentAttemptStartedAt: nextAttempt.startedAt,
+          clearSelectedChoice: true,
+        ),
+      );
+    } catch (error) {
+      emit(MirrorMindError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
+    }
+  }
+
+  Future<void> continueAfterLevelComplete() async {
+    final currentState = state;
+
+    if (currentState is! MirrorMindLevelComplete) return;
+    if (_isProcessingAction) return;
+
+    _isProcessingAction = true;
+
+    try {
+      await _moveToNextLevel(currentState.previousState);
+    } catch (error) {
+      emit(MirrorMindError(error.toString()));
+    } finally {
+      _isProcessingAction = false;
+    }
   }
 
   Future<void> _moveToNextLevel(MirrorMindLoaded previousState) async {

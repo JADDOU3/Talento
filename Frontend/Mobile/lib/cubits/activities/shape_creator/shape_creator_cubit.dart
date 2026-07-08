@@ -1,9 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../models/activities/shape_creator/shape_creator_level_model.dart';
 import '../../../services/activities/shape_creator_service.dart';
 import 'shape_creator_state.dart';
-import 'dart:async';
 
 class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
   final ShapeCreatorService _service;
@@ -14,6 +15,7 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
         super(const ShapeCreatorInitial());
 
   bool _isCompleted = false;
+  bool _isContinuingResult = false;
 
   int? _activityId;
   int? _activitySessionId;
@@ -28,8 +30,12 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
   int _attemptNumber = 1;
   int _currentAttemptId = 0;
   String? _currentAttemptStartedAt;
+
   Timer? _timer;
-Duration _elapsed = Duration.zero;
+  Duration _elapsed = Duration.zero;
+
+  _ShapeCreatorPendingAction _pendingAction =
+      _ShapeCreatorPendingAction.none;
 
   bool get _isLastLevel {
     return _currentLevelIndex >= _levels.length - 1;
@@ -47,6 +53,11 @@ Duration _elapsed = Duration.zero;
     _activitySessionId = activitySessionId;
     _childId = childId;
     _sessionId = sessionId;
+
+    _isCompleted = false;
+    _isContinuingResult = false;
+    _pendingAction = _ShapeCreatorPendingAction.none;
+    _elapsed = Duration.zero;
 
     try {
       _levels = await _service.getLevels(activityId);
@@ -73,17 +84,9 @@ Duration _elapsed = Duration.zero;
 
       await _logActivityStarted();
       await _logLevelStarted();
-      _startTimer();
 
-      emit(
-        ShapeCreatorLoaded(
-          level: level,
-          currentAttemptId: _currentAttemptId,
-          attemptNumber: _attemptNumber,
-          elapsed: _elapsed,
-          currentChallengeIndex: _currentChallengeIndex,
-        ),
-      );
+      _startTimer();
+      _emitLoaded();
     } catch (error) {
       emit(
         ShapeCreatorError(
@@ -96,7 +99,6 @@ Duration _elapsed = Duration.zero;
   void onHintPressed() {
     // Part 2 placeholder.
   }
-  
 
   Future<void> onChecklistSubmitted({
     required bool allChecked,
@@ -109,6 +111,10 @@ Duration _elapsed = Duration.zero;
           message: 'No active level attempt found.',
         ),
       );
+      return;
+    }
+
+    if (state is ShapeCreatorChecklistResult || _isContinuingResult) {
       return;
     }
 
@@ -131,78 +137,42 @@ Duration _elapsed = Duration.zero;
     await _completeCurrentAttempt();
     await _logLevelCompleted();
 
-if (_currentLevel != null &&
-    _currentChallengeIndex <
-        _currentLevel!.challengeImages.length - 1) {
-  _currentChallengeIndex++;
+    final currentLevel = _currentLevel!;
+    final hasAnotherChallenge =
+        _currentChallengeIndex < currentLevel.challengeImages.length - 1;
 
-  emit(
-    ShapeCreatorLoaded(
-      level: _currentLevel!,
-      currentAttemptId: _currentAttemptId,
-      attemptNumber: _attemptNumber,
-      elapsed: _elapsed,
-      currentChallengeIndex: _currentChallengeIndex,
-    ),
-  );
+    if (hasAnotherChallenge) {
+      _pendingAction = _ShapeCreatorPendingAction.nextChallenge;
 
-  return;
-}
+      emit(
+        const ShapeCreatorChecklistResult(
+          allChecked: true,
+        ),
+      );
+      return;
+    }
 
-if (_isLastLevel) {
-  _isCompleted = true;
+    if (_isLastLevel) {
+      _isCompleted = true;
+      _timer?.cancel();
 
-  await _logActivityCompleted();
-  await _completeActivitySession();
+      await _logActivityCompleted();
+      await _completeActivitySession();
 
-  emit(const ShapeCreatorLevelComplete());
-  return;
-}
+      _pendingAction = _ShapeCreatorPendingAction.none;
+      emit(const ShapeCreatorLevelComplete());
+      return;
+    }
 
-// هنا انتهى مستوى لكن ما زال يوجد مستويات أخرى
-print("BEFORE LEVEL FINISHED");
+    _pendingAction = _ShapeCreatorPendingAction.nextLevel;
 
-emit(
-  ShapeCreatorLevelFinished(
-    levelNumber: _currentLevel!.levelNumber,
-  ),
-);
+    emit(
+      const ShapeCreatorChecklistResult(
+        allChecked: true,
+      ),
+    );
+  }
 
-print("AFTER LEVEL FINISHED");
-
-await Future.delayed(
-  const Duration(seconds: 2),
-);
-
-_currentLevelIndex++;
-_currentChallengeIndex = 0;
-_attemptNumber = 1;
-
-final nextLevel = _levels[_currentLevelIndex];
-
-final nextAttemptInfo = await _service.createLevelAttempt(
-  attemptNumber: _attemptNumber,
-  activitySessionId: _activitySessionId!,
-  levelId: nextLevel.id,
-);
-
-_currentLevel = nextLevel;
-_currentAttemptId = nextAttemptInfo.id;
-_currentAttemptStartedAt = nextAttemptInfo.startedAt;
-
-await _logLevelStarted();
-_startTimer();
-
-emit(
-  ShapeCreatorLoaded(
-    level: nextLevel,
-    currentAttemptId: _currentAttemptId,
-    attemptNumber: _attemptNumber,
-    elapsed: _elapsed,
-    currentChallengeIndex: _currentChallengeIndex,
-  ),
-);
-}
   Future<void> _handleFailedAttempt() async {
     await _failCurrentAttempt();
     await _logLevelFailed();
@@ -219,17 +189,88 @@ emit(
     _currentAttemptStartedAt = newAttemptInfo.startedAt;
 
     await _logLevelRetried();
-    _startTimer();
+
+    _pendingAction = _ShapeCreatorPendingAction.retryCurrentChallenge;
 
     emit(
       const ShapeCreatorChecklistResult(
         allChecked: false,
       ),
     );
+  }
+
+  /// Continues only after the child presses the button on the shared
+  /// feedback screen. There is no automatic transition from result states.
+  Future<void> continueAfterChecklistResult() async {
+    if (state is! ShapeCreatorChecklistResult) return;
+    if (_isContinuingResult) return;
+
+    _isContinuingResult = true;
+
+    final pendingAction = _pendingAction;
+    _pendingAction = _ShapeCreatorPendingAction.none;
+
+    try {
+      switch (pendingAction) {
+        case _ShapeCreatorPendingAction.retryCurrentChallenge:
+          _startTimer();
+          _emitLoaded();
+          break;
+
+        case _ShapeCreatorPendingAction.nextChallenge:
+          _currentChallengeIndex++;
+          _emitLoaded();
+          break;
+
+        case _ShapeCreatorPendingAction.nextLevel:
+          await _moveToNextLevel();
+          break;
+
+        case _ShapeCreatorPendingAction.none:
+          break;
+      }
+    } catch (error) {
+      emit(
+        ShapeCreatorError(
+          message: error.toString(),
+        ),
+      );
+    } finally {
+      _isContinuingResult = false;
+    }
+  }
+
+  Future<void> _moveToNextLevel() async {
+    _currentLevelIndex++;
+    _currentChallengeIndex = 0;
+    _attemptNumber = 1;
+
+    final nextLevel = _levels[_currentLevelIndex];
+
+    final nextAttemptInfo = await _service.createLevelAttempt(
+      attemptNumber: _attemptNumber,
+      activitySessionId: _activitySessionId!,
+      levelId: nextLevel.id,
+    );
+
+    _currentLevel = nextLevel;
+    _currentAttemptId = nextAttemptInfo.id;
+    _currentAttemptStartedAt = nextAttemptInfo.startedAt;
+
+    await _logLevelStarted();
+
+    _startTimer();
+    _emitLoaded();
+  }
+
+  void _emitLoaded() {
+    final currentLevel = _currentLevel;
+
+    if (currentLevel == null) return;
 
     emit(
       ShapeCreatorLoaded(
-        level: _currentLevel!,
+        level: currentLevel,
         currentAttemptId: _currentAttemptId,
         attemptNumber: _attemptNumber,
         elapsed: _elapsed,
@@ -330,6 +371,32 @@ emit(
     await _service.completeActivitySession(_activitySessionId!);
   }
 
+  void _startTimer() {
+    _timer?.cancel();
+    _elapsed = Duration.zero;
+
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+          (_) {
+        if (state is! ShapeCreatorLoaded) return;
+
+        _elapsed += const Duration(seconds: 1);
+
+        final currentState = state as ShapeCreatorLoaded;
+
+        emit(
+          ShapeCreatorLoaded(
+            level: currentState.level,
+            currentAttemptId: currentState.currentAttemptId,
+            attemptNumber: currentState.attemptNumber,
+            elapsed: _elapsed,
+            currentChallengeIndex: currentState.currentChallengeIndex,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Future<void> close() async {
     if (!_isCompleted &&
@@ -343,38 +410,15 @@ emit(
         // Avoid crashing while disposing the cubit.
       }
     }
+
     _timer?.cancel();
     return super.close();
   }
-  void _startTimer() {
-  _timer?.cancel();
-
-  _elapsed = Duration.zero;
-
-  _timer = Timer.periodic(
-    const Duration(seconds: 1),
-    (_) {
-      if (state is ShapeCreatorLoaded) {
-        final currentState = state as ShapeCreatorLoaded;
-
-        emit(
-          ShapeCreatorLoaded(
-            level: currentState.level,
-            currentAttemptId: currentState.currentAttemptId,
-            attemptNumber: currentState.attemptNumber,
-            elapsed: Duration(
-              seconds: _elapsed.inSeconds + 1,
-            ),
-            currentChallengeIndex:
-                currentState.currentChallengeIndex,
-          ),
-        );
-
-        _elapsed = Duration(
-          seconds: _elapsed.inSeconds + 1,
-        );
-      }
-    },
-  );
 }
+
+enum _ShapeCreatorPendingAction {
+  none,
+  retryCurrentChallenge,
+  nextChallenge,
+  nextLevel,
 }

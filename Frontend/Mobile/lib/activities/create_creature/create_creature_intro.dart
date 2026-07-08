@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/layout/animated_background.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../services/activities/create_creature_service.dart';
-import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'create_creature_gender_hair_screen.dart';
 import 'create_creature_stories_screen.dart';
@@ -210,7 +210,7 @@ class _CreateCreatureIntroState extends State<CreateCreatureIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
-          background: const AppBackground(
+          background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),
           mascotAssetPath: 'assets/images/template_mascot.png',

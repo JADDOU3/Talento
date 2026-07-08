@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubits/activities/create_creature/create_creature_cubit.dart';
 import '../../cubits/activities/create_creature/create_creature_state.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
 import 'create_creature_story_screen.dart';
-import 'widgets/create_creature_app_bar.dart';
 import 'widgets/option_picker_widget.dart';
 
 class CreateCreatureAbilityHomeScreen extends StatelessWidget {
@@ -81,10 +81,11 @@ class _CreateCreatureAbilityHomeViewState
     );
   }
 
-  CreateCreatureLoaded? _extractLoaded(CreateCreatureState s) {
-    if (s is CreateCreatureLoaded) return s;
-    if (s is CreateCreatureStepCompleted) return s.previousState;
-    if (s is CreateCreatureVoiceCheckFailed) return s.previousState;
+  CreateCreatureLoaded? _extractLoaded(CreateCreatureState state) {
+    if (state is CreateCreatureLoaded) return state;
+    if (state is CreateCreatureStepCompleted) return state.previousState;
+    if (state is CreateCreatureVoiceCheckFailed) return state.previousState;
+
     return null;
   }
 
@@ -92,8 +93,13 @@ class _CreateCreatureAbilityHomeViewState
   Widget build(BuildContext context) {
     return BlocConsumer<CreateCreatureCubit, CreateCreatureState>(
       listenWhen: (previous, current) {
-        if (current is! CreateCreatureStepCompleted || current.step != 'abilityHome') return false;
-        return previous is! CreateCreatureStepCompleted || previous.step != 'abilityHome';
+        if (current is! CreateCreatureStepCompleted ||
+            current.step != 'abilityHome') {
+          return false;
+        }
+
+        return previous is! CreateCreatureStepCompleted ||
+            previous.step != 'abilityHome';
       },
       listener: (context, state) {
         if (state is CreateCreatureStepCompleted &&
@@ -106,6 +112,7 @@ class _CreateCreatureAbilityHomeViewState
 
         final prevLoaded = _extractLoaded(previous);
         final currLoaded = _extractLoaded(current);
+
         if (prevLoaded == null || currLoaded == null) return true;
 
         return prevLoaded.abilitySelection != currLoaded.abilitySelection ||
@@ -115,7 +122,9 @@ class _CreateCreatureAbilityHomeViewState
       builder: (context, state) {
         if (state is CreateCreatureError) {
           return Scaffold(
-            body: Center(child: Text(state.message)),
+            body: Center(
+              child: Text(state.message),
+            ),
           );
         }
 
@@ -123,84 +132,93 @@ class _CreateCreatureAbilityHomeViewState
 
         if (loaded == null) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
         final abilityChallenge = loaded.level.challenges
-            .where((c) => c.step == 'ability')
+            .where((challenge) => challenge.step == 'ability')
             .firstOrNull;
+
         final homeChallenge = loaded.level.challenges
-            .where((c) => c.step == 'home')
+            .where((challenge) => challenge.step == 'home')
             .firstOrNull;
 
         final cubit = context.read<CreateCreatureCubit>();
 
         return Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: const CreateCreatureAppBar(title: 'قوة بطلك الخارقة ومكان سكته!'),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              const AppBackground(child: SizedBox.expand()),
-              SafeArea(
-                child: ListView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  children: [
-                    if (abilityChallenge != null) ...[
-                      OptionPickerWidget(
-                        label: 'ماذا يستطيع أن يفعل؟',
-                        icons: abilityChallenge.choices
-                            .map((c) => c.icon)
-                            .toList(),
-                        selectedIcon: loaded.abilitySelection,
-                        onSelected: cubit.onAbilitySelected,
-                        showArabicLabels: true,
-                        assetFolder: 'assets/images/cards/ability',
+          body: AppBackground(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TopBar(
+                  leadingIcon: Icons.arrow_back_ios_new_rounded,
+                  onLeadingPressed: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: SafeArea(
+                    top: false,
+                    child: ListView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                    if (homeChallenge != null) ...[
-                      OptionPickerWidget(
-                        label: 'أين يعيش؟',
-                        icons: homeChallenge.choices
-                            .map((c) => c.icon )
-                            .where((icon) => icon != 'underwater_city')
-                            .toList(),
-                        selectedIcon: loaded.homeSelection,
-                        onSelected: cubit.onHomeSelected,
-                        showArabicLabels: true,
-                        assetFolder: 'assets/images/cards/home',
-                      ),
-                      const SizedBox(height: 40),
-                    ],
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: loaded.abilityHomeComplete
-                            ? () => cubit.onAbilityHomeConfirmed()
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
+                      children: [
+                        if (abilityChallenge != null) ...[
+                          OptionPickerWidget(
+                            label: 'ماذا يستطيع أن يفعل؟',
+                            icons: abilityChallenge.choices
+                                .map((choice) => choice.icon)
+                                .toList(),
+                            selectedIcon: loaded.abilitySelection,
+                            onSelected: cubit.onAbilitySelected,
+                            showArabicLabels: true,
+                            assetFolder: 'assets/images/cards/ability',
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                        if (homeChallenge != null) ...[
+                          OptionPickerWidget(
+                            label: 'أين يعيش؟',
+                            icons: homeChallenge.choices
+                                .map((choice) => choice.icon)
+                                .where((icon) => icon != 'underwater_city')
+                                .toList(),
+                            selectedIcon: loaded.homeSelection,
+                            onSelected: cubit.onHomeSelected,
+                            showArabicLabels: true,
+                            assetFolder: 'assets/images/cards/home',
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: loaded.abilityHomeComplete
+                                ? () => cubit.onAbilityHomeConfirmed()
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                            ),
+                            child: const Text(
+                              'التالي',
+                              style: TextStyle(fontSize: 18),
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          'التالي',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

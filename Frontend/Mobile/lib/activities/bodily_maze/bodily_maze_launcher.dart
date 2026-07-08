@@ -16,12 +16,14 @@ class BodilyMazeLauncher extends StatefulWidget {
   final int activityId;
   final int kitId;
   final int childId;
+  final int? initialLevelNumber;
 
   const BodilyMazeLauncher({
     super.key,
     required this.activityId,
     required this.kitId,
     required this.childId,
+    this.initialLevelNumber,
   });
 
   @override
@@ -53,6 +55,14 @@ class _BodilyMazeLauncherState extends State<BodilyMazeLauncher> {
         childId: widget.childId,
       );
 
+      final requestedLevelNumber = widget.initialLevelNumber;
+
+      final effectiveStartLevelNumber =
+          requestedLevelNumber ?? ctx.startLevelNumber;
+
+      final effectiveStartLevelId =
+      requestedLevelNumber == null ? ctx.startLevelId : null;
+
       if (!mounted) return;
 
       Navigator.pushReplacement(
@@ -63,13 +73,15 @@ class _BodilyMazeLauncherState extends State<BodilyMazeLauncher> {
             activitySessionId: ctx.activitySessionId,
             childId: ctx.childId,
             sessionId: ctx.sessionId,
-            startLevelId: ctx.startLevelId,
-            startLevelNumber: ctx.startLevelNumber,
+            startLevelId: effectiveStartLevelId,
+            startLevelNumber:
+            effectiveStartLevelNumber <= 0 ? 1 : effectiveStartLevelNumber,
           ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
         _loading = false;
         _error = e.toString().replaceFirst('Exception: ', '');
@@ -100,8 +112,11 @@ class _BodilyMazeLauncherState extends State<BodilyMazeLauncher> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 52, color: AppColors.hint),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 52,
+            color: AppColors.hint,
+          ),
           const SizedBox(height: 14),
           Text(
             _error ?? 'حدث خطأ',
