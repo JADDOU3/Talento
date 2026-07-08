@@ -9,6 +9,8 @@ import '../../cubits/activities/mirror_mind/mirror_mind_state.dart';
 import '../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'mirror_mind_result_screen.dart';
 import 'widgets/connect_dots_drawing_widget.dart';
 import 'widgets/mirror_choices_widget.dart';
@@ -98,11 +100,15 @@ class MirrorMindGameView extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          final isUnifiedFeedback =
+              state is MirrorMindChallengeResult ||
+                  state is MirrorMindLevelComplete;
+
           return Scaffold(
-            body: AppBackground(
-              child: SafeArea(
-                child: _buildBody(context, state),
-              ),
+            body: isUnifiedFeedback
+                ? _buildBody(context, state)
+                : AppBackground(
+              child: _buildBody(context, state),
             ),
           );
         },
@@ -112,7 +118,9 @@ class MirrorMindGameView extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, MirrorMindState state) {
     if (state is MirrorMindLoading || state is MirrorMindInitial) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     }
 
     if (state is MirrorMindError) {
@@ -120,11 +128,31 @@ class MirrorMindGameView extends StatelessWidget {
     }
 
     if (state is MirrorMindChallengeResult) {
-      return _FeedbackView(isCorrect: state.isCorrect);
+      return ActivityFeedbackView(
+        type: state.isCorrect
+            ? ActivityFeedbackType.correct
+            : ActivityFeedbackType.wrong,
+        onPrimaryPressed: state.isCorrect
+            ? () {
+          context
+              .read<MirrorMindCubit>()
+              .continueAfterChallengeResult();
+        }
+            : () {
+          context
+              .read<MirrorMindCubit>()
+              .retryCurrentChallenge();
+        },
+      );
     }
 
     if (state is MirrorMindLevelComplete) {
-      return _LevelCompleteView(message: state.message);
+      return ActivityFeedbackView(
+        type: ActivityFeedbackType.correct,
+        onPrimaryPressed: () {
+          context.read<MirrorMindCubit>().continueAfterLevelComplete();
+        },
+      );
     }
 
     if (state is MirrorMindLoaded) {
@@ -153,8 +181,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
   final GlobalKey<ConnectDotsDrawingWidgetState> _connectDotsDrawingKey =
   GlobalKey<ConnectDotsDrawingWidgetState>();
 
-  SymmetryDrawingResult _symmetryDrawingResult =
-  const SymmetryDrawingResult(
+  SymmetryDrawingResult _symmetryDrawingResult = const SymmetryDrawingResult(
     hasDrawing: false,
     score: 0,
     isCorrect: false,
@@ -214,93 +241,108 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
       shouldHideChoices: shouldHideChoices,
     );
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _TopInfoBar(elapsed: state.elapsed),
-        const SizedBox(height: 12),
-        _LevelHeader(state: state),
-        const SizedBox(height: 14),
-        MirrorTargetWidget(
-          challenge: challenge,
-          selectedChoice: selectedChoice,
-          showMemorySequence: _showMemorySequence,
-          symmetryDrawingKey:
-          isSymmetryDrawingLevel ? _symmetryDrawingKey : null,
-          onSymmetryDrawingResultChanged: isSymmetryDrawingLevel
-              ? (result) {
-            setState(() {
-              _symmetryDrawingResult = result;
-            });
-          }
-              : null,
-          connectDotsDrawingKey:
-          isConnectDotsDrawingLevel ? _connectDotsDrawingKey : null,
-          onConnectDotsDrawingResultChanged: isConnectDotsDrawingLevel
-              ? (result) {
-            setState(() {
-              _connectDotsDrawingResult = result;
-            });
-          }
-              : null,
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.of(context).pop(),
         ),
-        const SizedBox(height: 18),
-        _TonkyHint(
-          text: _hintTextForChallenge(challenge),
-        ),
-        const SizedBox(height: 14),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: isSymmetryDrawingLevel || isConnectDotsDrawingLevel
-              ? const SizedBox.shrink()
-              : shouldHideChoices
-              ? const _MemoryWaitMessage()
-              : MirrorChoicesWidget(
-            key: ValueKey(
-              '${state.currentLevelIndex}-${state.currentChallengeIndex}',
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+              children: [
+                _LevelHeader(state: state),
+                const SizedBox(height: 14),
+                MirrorTargetWidget(
+                  challenge: challenge,
+                  selectedChoice: selectedChoice,
+                  showMemorySequence: _showMemorySequence,
+                  symmetryDrawingKey:
+                  isSymmetryDrawingLevel ? _symmetryDrawingKey : null,
+                  onSymmetryDrawingResultChanged: isSymmetryDrawingLevel
+                      ? (result) {
+                    setState(() {
+                      _symmetryDrawingResult = result;
+                    });
+                  }
+                      : null,
+                  connectDotsDrawingKey:
+                  isConnectDotsDrawingLevel ? _connectDotsDrawingKey : null,
+                  onConnectDotsDrawingResultChanged: isConnectDotsDrawingLevel
+                      ? (result) {
+                    setState(() {
+                      _connectDotsDrawingResult = result;
+                    });
+                  }
+                      : null,
+                ),
+                const SizedBox(height: 18),
+                _TonkyHint(
+                  text: _hintTextForChallenge(challenge),
+                ),
+                const SizedBox(height: 14),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: isSymmetryDrawingLevel || isConnectDotsDrawingLevel
+                      ? const SizedBox.shrink()
+                      : shouldHideChoices
+                      ? const _MemoryWaitMessage()
+                      : MirrorChoicesWidget(
+                    key: ValueKey(
+                      '${state.currentLevelIndex}-${state.currentChallengeIndex}',
+                    ),
+                    choices: challenge.choices,
+                    selectedChoiceIndex: state.selectedChoiceIndex,
+                    onChoiceSelected: (index) {
+                      context
+                          .read<MirrorMindCubit>()
+                          .selectChoice(index);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: canSubmit
+                        ? () => _submitCurrentChallenge(
+                      context: context,
+                      isSymmetryDrawingLevel: isSymmetryDrawingLevel,
+                      isConnectDotsDrawingLevel:
+                      isConnectDotsDrawingLevel,
+                    )
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.border,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: canSubmit ? 4 : 0,
+                    ),
+                    child: Text(
+                      isSymmetryDrawingLevel || isConnectDotsDrawingLevel
+                          ? 'تحقق من الرسم'
+                          : 'تأكيد الإجابة',
+                      style: const TextStyle(
+                        fontFamily: 'DGAgnadeen',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
             ),
-            choices: challenge.choices,
-            selectedChoiceIndex: state.selectedChoiceIndex,
-            onChoiceSelected: (index) {
-              context.read<MirrorMindCubit>().selectChoice(index);
-            },
           ),
         ),
-        const SizedBox(height: 18),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: canSubmit
-                ? () => _submitCurrentChallenge(
-              context: context,
-              isSymmetryDrawingLevel: isSymmetryDrawingLevel,
-              isConnectDotsDrawingLevel: isConnectDotsDrawingLevel,
-            )
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              disabledBackgroundColor: AppColors.border,
-              foregroundColor: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              elevation: canSubmit ? 4 : 0,
-            ),
-            child: Text(
-              isSymmetryDrawingLevel || isConnectDotsDrawingLevel
-                  ? 'تحقق من الرسم'
-                  : 'تأكيد الإجابة',
-              style: const TextStyle(
-                fontFamily: 'DGAgnadeen',
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
       ],
     );
   }
@@ -382,8 +424,9 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
     required bool isConnectDotsDrawingLevel,
   }) {
     if (isSymmetryDrawingLevel) {
-      final result = _symmetryDrawingKey.currentState?.evaluateDrawing() ??
-          _symmetryDrawingResult;
+      final result =
+          _symmetryDrawingKey.currentState?.evaluateDrawing() ??
+              _symmetryDrawingResult;
 
       context.read<MirrorMindCubit>().submitDrawingAnswer(
         isCorrect: result.isCorrect,
@@ -393,8 +436,9 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
     }
 
     if (isConnectDotsDrawingLevel) {
-      final result = _connectDotsDrawingKey.currentState?.evaluateDrawing() ??
-          _connectDotsDrawingResult;
+      final result =
+          _connectDotsDrawingKey.currentState?.evaluateDrawing() ??
+              _connectDotsDrawingResult;
 
       context.read<MirrorMindCubit>().submitDrawingAnswer(
         isCorrect: result.isCorrect,
@@ -462,148 +506,6 @@ class _MemoryWaitMessage extends StatelessWidget {
           fontWeight: FontWeight.w900,
           color: AppColors.textSecondary,
         ),
-      ),
-    );
-  }
-}
-
-class _TopInfoBar extends StatelessWidget {
-  final Duration elapsed;
-
-  const _TopInfoBar({
-    required this.elapsed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.10),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _TopCircleButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icons.arrow_back_ios_new_rounded,
-          ),
-          const SizedBox(width: 8),
-          _InfoPill(
-            icon: Icons.timer_rounded,
-            text: _formatDuration(elapsed),
-          ),
-          const Spacer(),
-          Image.asset(
-            'assets/icons/logo1.png',
-            height: 50,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
-              return const Text(
-                'Talento',
-                style: TextStyle(
-                  fontFamily: 'BerlinSans',
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-
-  const _TopCircleButton({
-    required this.onPressed,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withOpacity(0.95),
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: AppColors.black.withOpacity(0.08),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 21,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoPill extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final Color color;
-
-  const _InfoPill({
-    required this.icon,
-    required this.text,
-    this.color = AppColors.primary,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.96),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withOpacity(0.10),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(
-              fontFamily: 'ArialRounded',
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -723,84 +625,6 @@ class _TonkyHint extends StatelessWidget {
   }
 }
 
-class _FeedbackView extends StatelessWidget {
-  final bool isCorrect;
-
-  const _FeedbackView({
-    required this.isCorrect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
-        decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.94),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Text(
-          isCorrect ? 'إجابة صحيحة 🎉' : 'قريب! جرّب مرة أخرى ',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'DGAgnadeen',
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-            color: isCorrect ? AppColors.primary : AppColors.red,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LevelCompleteView extends StatelessWidget {
-  final String message;
-
-  const _LevelCompleteView({
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(26),
-        decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.94),
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.12),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontFamily: 'DGAgnadeen',
-            fontSize: 30,
-            fontWeight: FontWeight.w900,
-            color: AppColors.primary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ErrorView extends StatelessWidget {
   final String message;
 
@@ -810,32 +634,39 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.94),
-          borderRadius: BorderRadius.circular(24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.of(context).pop(),
         ),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontFamily: 'ArialRounded',
-            fontSize: 15,
-            color: AppColors.red,
-            fontWeight: FontWeight.w700,
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Center(
+              child: Container(
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.94),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'ArialRounded',
+                    fontSize: 15,
+                    color: AppColors.red,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
-}
-
-String _formatDuration(Duration duration) {
-  final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-  final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-
-  return '$minutes:$seconds';
 }

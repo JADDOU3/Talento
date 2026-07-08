@@ -1,5 +1,5 @@
-import '../../activities/bodily_maze/config/bodily_maze_level_config.dart';
-import '../../models/activities/bodily_maze/bodily_maze_models.dart';
+import '../../../activities/bodily_maze/config/bodily_maze_level_config.dart';
+import '../../../models/activities/bodily_maze/bodily_maze_models.dart';
 
 abstract class BodilyMazeState {
   const BodilyMazeState();

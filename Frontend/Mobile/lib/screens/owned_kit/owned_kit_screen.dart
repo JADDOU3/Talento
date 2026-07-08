@@ -13,6 +13,7 @@ import 'widgets/active_journey_map_section.dart';
 import 'widgets/curriculum_path_section.dart';
 import 'widgets/owned_kit_header.dart';
 import 'widgets/primary_button.dart';
+import '../../shared/layout/top_bar.dart';
 
 class OwnedKitScreen extends StatefulWidget {
   final dynamic kit;
@@ -84,6 +85,63 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
     setState(_loadRoadmapSections);
   }
 
+  Future<void> _openRoadmapAtCurrentActivity(BuildContext context) async {
+    final kitId = _kitId;
+    final childId = widget.childId;
+
+    if (kitId == null) {
+      _showSnackBar(
+        context,
+        'لا يمكن فتح خارطة الرحلة لأن رقم الصندوق غير متوفر',
+      );
+      return;
+    }
+
+    if (childId == null) {
+      _showSnackBar(
+        context,
+        'اختاري طفلًا أولًا حتى تظهر رحلة التعلّم',
+      );
+      return;
+    }
+
+    try {
+      _roadmapFuture ??= _roadmapService.getRoadmap(
+        kitId: kitId,
+        childId: childId,
+      );
+
+      final roadmap = await _roadmapFuture;
+      final activities = roadmap?.activities ?? <RoadmapActivityModel>[];
+
+      final currentIndex = activities.indexWhere(
+            (activity) => activity.isCurrent,
+      );
+
+      if (!mounted) return;
+
+      if (currentIndex == -1) {
+        _openRoadmap(context);
+        return;
+      }
+
+      final currentActivity = activities[currentIndex];
+
+      _openRoadmap(
+        context,
+        initialActivityId: currentActivity.activityId,
+        initialActivityIndex: currentIndex,
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      _showSnackBar(
+        context,
+        'تعذر فتح النشاط الحالي، جرّبي مرة ثانية',
+      );
+    }
+  }
+
   void _openRoadmap(
       BuildContext context, {
         int? initialActivityId,
@@ -111,6 +169,7 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: RoadmapScreen.routeName),
         builder: (_) => RoadmapScreen(
           kitId: kitId,
           childId: childId,
@@ -193,7 +252,10 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                _buildDetailsTopBar(context),
+                TopBar(
+                  leadingIcon: Icons.arrow_back_ios_rounded,
+                  onLeadingPressed: () => Navigator.pop(context),
+                ),
                 _buildScreenTitle(),
                 Expanded(
                   child: SingleChildScrollView(
@@ -206,7 +268,7 @@ class _OwnedKitScreenState extends State<OwnedKitScreen> {
                           name: _kitName,
                           description: _kitDescription,
                           imageUrl: _kitImageUrl,
-                          onResume: () => _openRoadmap(context),
+                          onResume: () => _openRoadmapAtCurrentActivity(context),
                         ),
                         const SizedBox(height: 22),
                         _buildRoadmapContent(context),

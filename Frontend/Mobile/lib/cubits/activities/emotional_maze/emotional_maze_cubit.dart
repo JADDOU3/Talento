@@ -1,9 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../activities/emotional_maze/config/emotional_maze_level_config.dart';
 import '../../../models/activities/emotional_maze/emotional_maze_models.dart';
-import '../../activities/emotional_maze/config/emotional_maze_level_config.dart';
 import '../../../services/activities/emotional_maze_service.dart';
 import 'emotional_maze_state.dart';
 
@@ -24,7 +25,11 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
 
   EmotionalMazeLevel? _level;
   MazeLevelConfig? _config;
+
   int? _attemptId;
+  int _attemptNumber = 1;
+  String? _attemptStartedAt;
+
   Duration _elapsed = Duration.zero;
   bool _completed = false;
 
@@ -37,6 +42,15 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
     try {
       final levels = await service.getLevels(activityId);
 
+      debugPrint('EMOTIONAL MAZE requested startLevelId = $startLevelId');
+      debugPrint('EMOTIONAL MAZE requested startLevelNumber = $startLevelNumber');
+
+      for (final level in levels) {
+        debugPrint(
+          'EMOTIONAL MAZE LEVEL => id=${level.id}, number=${level.levelNumber}',
+        );
+      }
+
       if (levels.isEmpty) {
         emit(const EmotionalMazeError('لا توجد مستويات لهذا النشاط'));
         return;
@@ -44,24 +58,34 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
 
       EmotionalMazeLevel level;
 
-      if (startLevelNumber != null) {
+      if (startLevelNumber != null && startLevelNumber > 0) {
         level = levels.firstWhere(
-              (l) => l.levelNumber == startLevelNumber,
+              (item) => item.levelNumber == startLevelNumber,
           orElse: () => levels.first,
         );
-      } else if (startLevelId != null) {
+      } else if (startLevelId != null && startLevelId > 0) {
         level = levels.firstWhere(
-              (l) => l.id == startLevelId,
+              (item) => item.id == startLevelId,
           orElse: () => levels.first,
         );
       } else {
         level = levels.first;
       }
 
-      final config = emotionalMazeConfigs[level.id];
+      debugPrint(
+        'EMOTIONAL MAZE SELECTED => id=${level.id}, number=${level.levelNumber}',
+      );
+
+      final config =
+          emotionalMazeConfigs[level.levelNumber] ?? emotionalMazeConfigs[level.id];
 
       if (config == null) {
-        emit(const EmotionalMazeError('لم يتم إعداد إحداثيات هذا المستوى بعد'));
+        emit(
+          EmotionalMazeError(
+            'لم يتم إعداد إحداثيات المستوى ${level.levelNumber}. '
+                'levelId=${level.id}',
+          ),
+        );
         return;
       }
 
@@ -69,36 +93,46 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
       _config = config;
       _completed = false;
       _elapsed = Duration.zero;
+      _attemptNumber = 1;
+      _attemptStartedAt = DateTime.now().toIso8601String();
 
       _attemptId = await service.createLevelAttempt(
-        attemptNumber: 1,
+        attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
         levelId: level.id,
       );
 
-      unawaited(service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'STARTED',
-      ));
+      unawaited(
+        service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'STARTED',
+        ),
+      );
 
-      unawaited(service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'STARTED',
-      ));
+      unawaited(
+        service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'STARTED',
+        ),
+      );
 
-      emit(EmotionalMazeLoaded(
-        level: level,
-        config: config,
-        elapsed: _elapsed,
-      ));
+      emit(
+        EmotionalMazeLoaded(
+          level: level,
+          config: config,
+          elapsed: _elapsed,
+        ),
+      );
     } catch (e) {
-      emit(EmotionalMazeError(
-        e.toString().replaceFirst('Exception: ', ''),
-      ));
+      emit(
+        EmotionalMazeError(
+          e.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
     }
   }
 
@@ -110,16 +144,15 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
 
     _elapsed += const Duration(seconds: 1);
 
-    emit(EmotionalMazeLoaded(
-      level: level,
-      config: config,
-      elapsed: _elapsed,
-    ));
+    emit(
+      EmotionalMazeLoaded(
+        level: level,
+        config: config,
+        elapsed: _elapsed,
+      ),
+    );
   }
 
-  /// Called the instant the ball reaches ANY endpoint — every endpoint is
-  /// a valid, correct outcome for this activity, so there's no
-  /// wrong-answer / retry branch here at all.
   Future<void> onFinished() async {
     final level = _level;
 
@@ -131,6 +164,10 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
       if (_attemptId != null) {
         await service.updateLevelAttempt(
           attemptId: _attemptId!,
+          attemptNumber: _attemptNumber,
+          startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+          activitySessionId: activitySessionId,
+          levelId: level.id,
           completed: true,
         );
       }
@@ -150,22 +187,30 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
       );
 
       await service.completeActivitySession(activitySessionId);
-    } catch (_) {
-      // Completion feedback still shows even if a background log call fails.
+    } catch (e) {
+      debugPrint('EMOTIONAL MAZE COMPLETE ERROR: $e');
     }
 
-    emit(EmotionalMazeComplete(
-      level: level,
-      elapsed: _elapsed,
-    ));
+    emit(
+      EmotionalMazeComplete(
+        level: level,
+        elapsed: _elapsed,
+      ),
+    );
   }
 
   Future<void> logExitIfNotCompleted() async {
-    if (_completed || _attemptId == null) return;
+    final level = _level;
+
+    if (_completed || _attemptId == null || level == null) return;
 
     try {
       await service.updateLevelAttempt(
         attemptId: _attemptId!,
+        attemptNumber: _attemptNumber,
+        startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+        activitySessionId: activitySessionId,
+        levelId: level.id,
         completed: false,
       );
 
@@ -175,6 +220,8 @@ class EmotionalMazeCubit extends Cubit<EmotionalMazeState> {
         activityId: activityId,
         action: 'ENDED',
       );
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('EMOTIONAL MAZE EXIT ERROR: $e');
+    }
   }
 }

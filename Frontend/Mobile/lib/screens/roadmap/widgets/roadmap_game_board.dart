@@ -34,6 +34,7 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   final Map<int, GlobalKey> _activityKeysByIndex = {};
 
   bool _didAutoScroll = false;
+  bool _didConsumeInitialTarget = false;
 
   @override
   void initState() {
@@ -49,11 +50,19 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
   void didUpdateWidget(covariant RoadmapGameBoard oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    final initialTargetChanged =
+        oldWidget.initialActivityId != widget.initialActivityId ||
+            oldWidget.initialActivityIndex != widget.initialActivityIndex;
+
     if (oldWidget.activities != widget.activities ||
         oldWidget.childId != widget.childId ||
-        oldWidget.initialActivityId != widget.initialActivityId ||
-        oldWidget.initialActivityIndex != widget.initialActivityIndex) {
+        initialTargetChanged) {
       _didAutoScroll = false;
+
+      if (initialTargetChanged) {
+        _didConsumeInitialTarget = false;
+      }
+
       _removeStaleIndexKeys();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -77,6 +86,10 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
 
     final targetIndex = _resolveTargetIndex();
 
+    if (_hasInitialTarget && !_didConsumeInitialTarget) {
+      _didConsumeInitialTarget = true;
+    }
+
     if (targetIndex != null) {
       await _scrollToActivityIndex(targetIndex);
       _didAutoScroll = true;
@@ -87,34 +100,47 @@ class _RoadmapGameBoardState extends State<RoadmapGameBoard> {
     _didAutoScroll = true;
   }
 
+  bool get _hasInitialTarget {
+    return widget.initialActivityIndex != null ||
+        widget.initialActivityId != null;
+  }
+
   int? _resolveTargetIndex() {
-    final directIndex = widget.initialActivityIndex;
+    if (!_didConsumeInitialTarget) {
+      final directIndex = widget.initialActivityIndex;
 
-    if (directIndex != null &&
-        directIndex >= 0 &&
-        directIndex < widget.activities.length) {
-      return directIndex;
-    }
+      if (directIndex != null &&
+          directIndex >= 0 &&
+          directIndex < widget.activities.length) {
+        return directIndex;
+      }
 
-    final activityId = widget.initialActivityId;
+      final activityId = widget.initialActivityId;
 
-    if (activityId == null) {
-      return null;
+      if (activityId != null) {
+        final currentIndex = widget.activities.indexWhere(
+              (activity) => activity.activityId == activityId && activity.isCurrent,
+        );
+
+        if (currentIndex != -1) {
+          return currentIndex;
+        }
+
+        final firstIndex = widget.activities.indexWhere(
+              (activity) => activity.activityId == activityId,
+        );
+
+        if (firstIndex != -1) {
+          return firstIndex;
+        }
+      }
     }
 
     final currentIndex = widget.activities.indexWhere(
-          (activity) => activity.activityId == activityId && activity.isCurrent,
+          (activity) => activity.isCurrent,
     );
 
-    if (currentIndex != -1) {
-      return currentIndex;
-    }
-
-    final firstIndex = widget.activities.indexWhere(
-          (activity) => activity.activityId == activityId,
-    );
-
-    return firstIndex == -1 ? null : firstIndex;
+    return currentIndex == -1 ? null : currentIndex;
   }
 
   Future<void> _scrollToActivityIndex(int targetIndex) async {

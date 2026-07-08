@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../cubits/coins/coins_cubit.dart';
 import '../../cubits/home/home_cubit.dart';
 import '../../cubits/home/home_data.dart';
 import '../../shared/layout/app_background.dart';
@@ -105,13 +106,22 @@ class OldUserScreen extends StatelessWidget {
                             isSubmitting:
                             data.isSubmittingChallengeAnswer,
                             submittingAnswer: data.submittingAnswer,
-                            onAnswerSelected: (answer) {
-                              context
+                            onAnswerSelected: (answer) async {
+                              final wasCorrect = await context
                                   .read<HomeCubit>()
                                   .submitChallengeAnswer(
                                 data.dailyChallenge!.id,
                                 answer,
                               );
+
+                              if (!context.mounted || !wasCorrect) return;
+
+                              // The answer request has completed successfully,
+                              // so request the selected child's complete balance
+                              // again. We never add a fixed reward locally.
+                              await context
+                                  .read<CoinsCubit>()
+                                  .refreshCoins();
                             },
                           ),
                           const SizedBox(height: 22),

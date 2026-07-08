@@ -10,6 +10,7 @@ import '../../shared/layout/app_background.dart';
 import 'conflict_resolution_result_screen.dart';
 import 'widgets/timer_bar_widget.dart';
 import 'widgets/video_player_widget.dart';
+import '../../shared/layout/top_bar.dart';
 
 TextDirection _smartTextDirection(String value) {
   final arabicCount = RegExp(r'[\u0600-\u06FF]').allMatches(value).length;
@@ -189,6 +190,7 @@ class _ConflictResolutionVideoViewState
   }
 }
 
+
 class _LoadedConflictView extends StatelessWidget {
   final ConflictResolutionLoaded state;
   final int replayToken;
@@ -213,47 +215,48 @@ class _LoadedConflictView extends StatelessWidget {
             child: _SoftBackgroundDecorations(),
           ),
         ),
-        ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+        Column(
           children: [
-            const _TopHeader(),
-            const SizedBox(height: 12),
-            _LevelHeader(state: state),
-            const SizedBox(height: 12),
-            if (state.timerSeconds != null && state.timerRemaining != null) ...[
-              TimerBarWidget(
-                totalSeconds: state.timerSeconds!,
-                remainingSeconds: state.timerRemaining!,
+            TopBar(
+              leadingIcon: Icons.arrow_back_ios_new_rounded,
+              onLeadingPressed: () => Navigator.pop(context),
+            ),
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+                children: [
+                  _LevelHeader(state: state),
+                  const SizedBox(height: 12),
+                  VideoPlayerWidget(
+                    key: ValueKey(
+                      '${state.currentLevelIndex}-${state.currentChallengeIndex}',
+                    ),
+                    videoUrl: challenge.videoUrl,
+                    placeholderText: challenge.prompt,
+                    replayToken: replayToken,
+                    onVideoStarted: () {
+                      context.read<ConflictResolutionCubit>().onVideoStarted();
+                    },
+                    onVideoEnd: () {
+                      context.read<ConflictResolutionCubit>().onVideoFinished();
+                    },
+                  ),
+                  const SizedBox(height: 18),
+                  _TonkyQuestionCard(
+                    question: challenge.question,
+                    fallback: challenge.prompt,
+                  ),
+                  const SizedBox(height: 18),
+                  _ActionButtonsCard(
+                    canContinue: state.canContinue,
+                    onReplay: onReplay,
+                    onOpenScanner: onOpenScanner,
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
-              const SizedBox(height: 12),
-            ],
-            VideoPlayerWidget(
-              key: ValueKey(
-                '${state.currentLevelIndex}-${state.currentChallengeIndex}',
-              ),
-              videoUrl: challenge.videoUrl,
-              placeholderText: challenge.prompt,
-              replayToken: replayToken,
-              onVideoStarted: () {
-                context.read<ConflictResolutionCubit>().onVideoStarted();
-              },
-              onVideoEnd: () {
-                context.read<ConflictResolutionCubit>().onVideoFinished();
-              },
             ),
-            const SizedBox(height: 18),
-            _TonkyQuestionCard(
-              question: challenge.question,
-              fallback: challenge.prompt,
-            ),
-            const SizedBox(height: 18),
-            _ActionButtonsCard(
-              canContinue: state.canContinue,
-              onReplay: onReplay,
-              onOpenScanner: onOpenScanner,
-            ),
-            const SizedBox(height: 8),
           ],
         ),
       ],
@@ -261,90 +264,6 @@ class _LoadedConflictView extends StatelessWidget {
   }
 }
 
-class _TopHeader extends StatelessWidget {
-  const _TopHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.white.withValues(alpha: 0.92),
-          width: 1.1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
-            blurRadius: 13,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _TopCircleButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icons.arrow_back_ios_new_rounded,
-          ),
-          const Spacer(),
-          Image.asset(
-            'assets/icons/logo1.png',
-            height: 42,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
-              return const Text(
-                'Talento',
-                style: TextStyle(
-                  fontFamily: 'BerlinSans',
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-
-  const _TopCircleButton({
-    required this.onPressed,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withValues(alpha: 0.95),
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.08),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _LevelHeader extends StatelessWidget {
   final ConflictResolutionLoaded state;

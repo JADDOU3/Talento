@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../models/kit/kit_model.dart';
 
-
 class AvailableKitsSection extends StatelessWidget {
-  final List<KitModel>? kits;
+  final List<KitModel> kits;
+  final VoidCallback? onAddKitTap;
 
-  const AvailableKitsSection({super.key, this.kits});
+  const AvailableKitsSection({
+    super.key,
+    this.kits = const [],
+    this.onAddKitTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final hasRealKits = kits != null && kits!.isNotEmpty;
-
     final colors = [
       AppColors.primary,
       AppColors.secondary,
@@ -27,53 +30,87 @@ class AvailableKitsSection extends StatelessWidget {
       Icons.pets_rounded,
     ];
 
-    final mockKits = [
-      {'name': 'مستكشف الفضاء', 'status': 'جديد'},
-      {'name': 'اكتشاف الطبيعة', 'status': '8 أنشطة متبقية'},
-      {'name': 'الفنون الإبداعية', 'status': 'قيد البدء'},
-      {'name': 'مملكة الحيوان', 'status': 'مكتمل 50%'},
-    ];
+    final itemCount = kits.length + (onAddKitTap == null ? 0 : 1);
 
-    final itemCount = hasRealKits ? kits!.length : mockKits.length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.5,
+    if (itemCount == 0) {
+      return Center(
+        child: Text(
+          'لا توجد حقائب لهذا الطفل',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
           ),
-          itemCount: itemCount,
-          itemBuilder: (context, i) {
-            final color = colors[i % colors.length];
-            final icon = icons[i % icons.length];
-
-            if (hasRealKits) {
-              final kit = kits![i];
-              return _buildKitCard(
-                name: kit.name,
-                status: kit.type.isNotEmpty ? kit.type : 'نشط',
-                color: color,
-                icon: icon,
-              );
-            } else {
-              return _buildKitCard(
-                name: mockKits[i]['name']!,
-                status: mockKits[i]['status']!,
-                color: color,
-                icon: icon,
-              );
-            }
-          },
         ),
-      ],
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.5,
+      ),
+      itemCount: itemCount,
+      itemBuilder: (context, i) {
+        if (onAddKitTap != null && i == kits.length) {
+          return _buildAddKitCard();
+        }
+
+        final kit = kits[i];
+        final color = colors[i % colors.length];
+        final icon = icons[i % icons.length];
+
+        return _buildKitCard(
+          name: kit.name,
+          status: kit.type.isNotEmpty ? kit.type : 'نشط',
+          color: color,
+          icon: icon,
+        );
+      },
+    );
+  }
+
+  Widget _buildAddKitCard() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onAddKitTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.25),
+              width: 1.4,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.035),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: AppColors.primary,
+                size: 30,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -125,6 +162,8 @@ class AvailableKitsSection extends StatelessWidget {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

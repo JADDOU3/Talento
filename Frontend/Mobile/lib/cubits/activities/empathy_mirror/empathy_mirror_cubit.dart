@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/empathy_mirror/empathy_mirror_models.dart';
-import '../../services/activities/empathy_mirror_service.dart';
+import '../../../models/empathy_mirror/empathy_mirror_models.dart';
+import '../../../services/activities/empathy_mirror_service.dart';
 import 'empathy_mirror_state.dart';
 
 class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {

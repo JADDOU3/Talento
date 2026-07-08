@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../cubits/child_mode/child_mode_cubit.dart';
+import '../../../cubits/coins/coins_cubit.dart';
 import '../../../services/auth/auth_service.dart';
 import '../../auth/login_screen.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../cubits/child_mode/child_mode_cubit.dart';
-
-
+import '../account_info_page.dart';
+import '../general_settings_page.dart';
 
 class SettingsSection extends StatelessWidget {
   const SettingsSection({super.key});
 
   Future<void> _logout(BuildContext context) async {
     context.read<ChildModeCubit>().reset();
+    context.read<CoinsCubit>().reset();
 
     await AuthService().logout();
 
@@ -22,6 +25,24 @@ class SettingsSection extends StatelessWidget {
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
           (route) => false,
+    );
+  }
+
+  void _openAccountInfo(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AccountInfoPage(),
+      ),
+    );
+  }
+
+  void _openGeneralSettings(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const GeneralSettingsPage(),
+      ),
     );
   }
 
@@ -35,14 +56,14 @@ class SettingsSection extends StatelessWidget {
             title: 'معلومات الحساب',
             icon: Icons.person_outline_rounded,
             color: AppColors.primary,
-            onTap: () {},
+            onTap: () => _openAccountInfo(context),
           ),
           const _SettingsDivider(),
           _SettingsTile(
             title: 'الإعدادات العامة',
             icon: Icons.settings_outlined,
             color: AppColors.textSecondary,
-            onTap: () {},
+            onTap: () => _openGeneralSettings(context),
           ),
           const _SettingsDivider(),
           _SettingsTile(

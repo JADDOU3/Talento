@@ -72,6 +72,35 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
+  Future<void> addKitToSelectedChild(int kitId) async {
+    if (state is! ProfileLoaded) {
+      throw Exception('البيانات لسا عم تتحمل، جربي بعد لحظات');
+    }
+
+    final current = state as ProfileLoaded;
+    final selectedChild = current.selectedChild;
+
+    if (selectedChild == null) {
+      throw Exception('اختاري طفل أولًا');
+    }
+
+    await _service.addKitToChild(
+      kitId: kitId,
+      childId: selectedChild.id,
+    );
+
+    final updatedKits = await _service.getKitsByChild(selectedChild.id);
+
+    emit(
+      ProfileLoaded(
+        user: current.user,
+        children: current.children,
+        selectedChild: selectedChild,
+        kits: updatedKits,
+      ),
+    );
+  }
+
   Future<void> addChild({
     required String name,
     required String dateOfBirth,
