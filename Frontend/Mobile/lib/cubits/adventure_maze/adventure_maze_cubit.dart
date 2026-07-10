@@ -18,12 +18,18 @@ class AdventureMazeCubit extends Cubit<AdventureMazeState> {
 
   AdventureMazeLevel? _level;
   AdventureMazeLevelConfig? _config;
+
   int _attemptId = 0;
   int _attemptNumber = 1;
+  String? _attemptStartedAt;
+
   Duration _elapsed = Duration.zero;
+
   final Set<int> _collected = <int>{};
+
   bool _completed = false;
   bool _isLoading = false;
+  bool _isCompleting = false;
 
   AdventureMazeCubit({
     required AdventureMazeService service,
@@ -34,111 +40,145 @@ class AdventureMazeCubit extends Cubit<AdventureMazeState> {
   })  : _service = service,
         super(const AdventureMazeInitial());
 
-  // ─── Load ────────────────────────────────────────────────────────────────
-
   Future<void> loadGame({int? startLevelId}) async {
     if (_isLoading) return;
+
     _isLoading = true;
     emit(const AdventureMazeLoading());
 
     try {
       final levels = await _service.getLevels(activityId);
+
       if (levels.isEmpty) {
         emit(const AdventureMazeError('لا توجد مستويات لهذا النشاط'));
-        _isLoading = false;
         return;
       }
 
       debugPrint(
-          'ADVENTURE MAZE loadGame | requested startLevelId=$startLevelId');
+        'ADVENTURE MAZE loadGame | '
+            'requested startLevelId=$startLevelId',
+      );
+
       debugPrint(
-          'ADVENTURE MAZE available levels=${levels.map((l) => "${l.id}(#${l.levelNumber})").toList()}');
+        'ADVENTURE MAZE available levels='
+            '${levels.map((level) => '${level.id}(#${level.levelNumber})').toList()}',
+      );
 
       _level = levels.firstWhere(
-        (l) => l.id == startLevelId,
+            (level) => level.id == startLevelId,
         orElse: () => levels.first,
       );
 
       debugPrint(
-          'ADVENTURE MAZE picked levelId=${_level!.id} (#${_level!.levelNumber})');
+        'ADVENTURE MAZE picked '
+            'levelId=${_level!.id} (#${_level!.levelNumber})',
+      );
+
       debugPrint(
-          'ADVENTURE MAZE challenges=${_level!.challenges.map((c) => "${c.challengeId}:${c.type}").toList()}');
+        'ADVENTURE MAZE challenges='
+            '${_level!.challenges.map((challenge) => '${challenge.challengeId}:${challenge.type}').toList()}',
+      );
 
       final config = adventureMazeConfigs[_level!.id];
+
       if (config == null) {
-        emit(AdventureMazeError(
-            'لا توجد إعدادات إحداثيات للمستوى ${_level!.id}. يجب على المطوّر تعريفها.'));
-        _isLoading = false;
+        emit(
+          AdventureMazeError(
+            'لا توجد إعدادات إحداثيات للمستوى ${_level!.id}. '
+                'يجب على المطوّر تعريفها.',
+          ),
+        );
         return;
       }
+
       _config = config;
 
       _attemptNumber = 1;
       _elapsed = Duration.zero;
       _collected.clear();
       _completed = false;
+      _isCompleting = false;
+
+      _attemptStartedAt = DateTime.now().toUtc().toIso8601String();
 
       _attemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
+        startedAt: _attemptStartedAt!,
         activitySessionId: activitySessionId,
         levelId: _level!.id,
       );
 
-      await _service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'STARTED',
-      );
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'STARTED',
+      await _runSafely(
+        label: 'ADVENTURE MAZE START ACTIVITY EVENT ERROR',
+        action: () => _service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'STARTED',
+        ),
       );
 
-      _isLoading = false;
+      await _runSafely(
+        label: 'ADVENTURE MAZE START LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'STARTED',
+        ),
+      );
+
       _emitLoaded();
-    } catch (e) {
+    } catch (error) {
+      emit(
+        AdventureMazeError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
+    } finally {
       _isLoading = false;
-      emit(AdventureMazeError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
 
-  void _emitLoaded({int? activeChallengeId, bool clearActive = false}) {
+  void _emitLoaded({
+    int? activeChallengeId,
+    bool clearActive = false,
+  }) {
     if (_level == null || _config == null) return;
-    emit(AdventureMazeLoaded(
-      level: _level!,
-      config: _config!,
-      challenges: _level!.challenges,
-      collectedChallengeIds: Set<int>.from(_collected),
-      currentAttemptId: _attemptId,
-      attemptNumber: _attemptNumber,
-      elapsed: _elapsed,
-      activeChallengeId:
-          clearActive ? null : activeChallengeId,
-    ));
+
+    emit(
+      AdventureMazeLoaded(
+        level: _level!,
+        config: _config!,
+        challenges: _level!.challenges,
+        collectedChallengeIds: Set<int>.from(_collected),
+        currentAttemptId: _attemptId,
+        attemptNumber: _attemptNumber,
+        elapsed: _elapsed,
+        activeChallengeId: clearActive ? null : activeChallengeId,
+      ),
+    );
   }
 
-  // ─── Star collision → open popup, pause game ────────────────────────────
-
-  /// Called by the Flame game when the ball touches an uncollected star.
-  /// Only opens a popup if no other popup is currently open.
   void onStarTouched(int challengeId) {
-    if (_completed || _level == null) return;
+    if (_completed || _isCompleting || _level == null) return;
     if (_collected.contains(challengeId)) return;
-    final s = state;
-    if (s is AdventureMazeLoaded && s.activeChallengeId != null) return;
+
+    final currentState = state;
+
+    if (currentState is AdventureMazeLoaded &&
+        currentState.activeChallengeId != null) {
+      return;
+    }
+
     _emitLoaded(activeChallengeId: challengeId);
   }
 
-  /// Called when the child taps a choice inside the popup.
-  /// Returns true if the answer counted as valid and the star was collected.
   bool onChoiceSelected(int challengeId, StarChoice choice) {
-    if (_completed || _level == null) return false;
+    if (_completed || _isCompleting || _level == null) return false;
 
     final challenge = _level!.challenges.firstWhere(
-      (c) => c.challengeId == challengeId,
+          (item) => item.challengeId == challengeId,
       orElse: () => const StarChallenge(
         challengeId: -1,
         type: '',
@@ -146,131 +186,220 @@ class AdventureMazeCubit extends Cubit<AdventureMazeState> {
         choices: [],
       ),
     );
+
     if (challenge.challengeId == -1) return false;
 
-    // Validation rule per §6 of the spec.
-    // cognitive → only the choice marked isCorrect=true counts.
-    // emotional → every choice counts (spec: "all choices have isCorrect:true").
     final isValid = challenge.isEmotional ? true : choice.isCorrect;
+
     if (!isValid) {
-      // Wrong on a cognitive question: keep popup open, no penalty.
       return false;
     }
 
     _collected.add(challengeId);
     _emitLoaded(clearActive: true);
+
     return true;
   }
 
-  /// Manually close the popup without answering (e.g. back button pressed).
   void dismissPopup() {
     _emitLoaded(clearActive: true);
   }
 
-  // ─── Ball fell in a hole → failed attempt, reset to start ─────────────────
-
   Future<void> onBallFellInHole() async {
-    if (_completed || _level == null) return;
+    if (_completed ||
+        _isCompleting ||
+        _level == null ||
+        _attemptId <= 0) {
+      return;
+    }
 
     try {
       await _service.updateLevelAttempt(
         attemptId: _attemptId,
+        attemptNumber: _attemptNumber,
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toUtc().toIso8601String(),
+        activitySessionId: activitySessionId,
+        levelId: _level!.id,
         completed: false,
       );
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'FAILED',
+
+      await _runSafely(
+        label: 'ADVENTURE MAZE FAILED LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'FAILED',
+        ),
       );
 
       _attemptNumber += 1;
+      _attemptStartedAt = DateTime.now().toUtc().toIso8601String();
+
       _attemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
+        startedAt: _attemptStartedAt!,
         activitySessionId: activitySessionId,
         levelId: _level!.id,
       );
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'RETRIED',
+
+      await _runSafely(
+        label: 'ADVENTURE MAZE RETRIED LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'RETRIED',
+        ),
       );
-    } catch (e) {
-      debugPrint('ADVENTURE MAZE FAIL ERROR: $e');
+
+      emit(
+        AdventureMazeFailed(
+          currentAttemptId: _attemptId,
+          attemptNumber: _attemptNumber,
+        ),
+      );
+
+      _emitLoaded();
+    } catch (error) {
+      debugPrint('ADVENTURE MAZE FAIL ERROR: $error');
+
+      emit(
+        AdventureMazeError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
     }
-
-    emit(AdventureMazeFailed(
-      currentAttemptId: _attemptId,
-      attemptNumber: _attemptNumber,
-    ));
-
-    // Collected stars persist — only ball position resets.
-    _emitLoaded();
   }
 
-  // ─── Ball reached end → complete ─────────────────────────────────────────
-
   Future<void> onBallReachedEnd() async {
-    if (_completed || _level == null) return;
+    if (_completed || _isCompleting || _level == null) return;
 
-    // Guard: only complete if every star has been collected.
     if (_collected.length < _level!.challenges.length) {
       debugPrint(
-          'ADVENTURE MAZE reached end but stars incomplete: ${_collected.length}/${_level!.challenges.length}');
+        'ADVENTURE MAZE reached end but stars incomplete: '
+            '${_collected.length}/${_level!.challenges.length}',
+      );
       return;
     }
-    _completed = true;
+
+    if (_attemptId <= 0) {
+      emit(
+        const AdventureMazeError(
+          'تعذر العثور على محاولة المستوى الحالية',
+        ),
+      );
+      return;
+    }
+
+    _isCompleting = true;
 
     try {
       await _service.updateLevelAttempt(
         attemptId: _attemptId,
+        attemptNumber: _attemptNumber,
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toUtc().toIso8601String(),
+        activitySessionId: activitySessionId,
+        levelId: _level!.id,
         completed: true,
       );
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'COMPLETED',
-      );
-      await _service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'COMPLETED',
-      );
+
+      // حفظ إكمال الـActivity Session أساسي، لذلك يتم قبل الـEvents.
       await _service.completeActivitySession(activitySessionId);
-    } catch (e) {
-      debugPrint('ADVENTURE MAZE COMPLETE ERROR: $e');
+
+      _completed = true;
+
+      // فشل تسجيل الـEvents لا يجب أن يلغي حفظ التقدم.
+      await _runSafely(
+        label: 'ADVENTURE MAZE COMPLETED LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'COMPLETED',
+        ),
+      );
+
+      await _runSafely(
+        label: 'ADVENTURE MAZE COMPLETED ACTIVITY EVENT ERROR',
+        action: () => _service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'COMPLETED',
+        ),
+      );
+
+      emit(const AdventureMazeComplete());
+    } catch (error) {
+      _completed = false;
+
+      debugPrint('ADVENTURE MAZE COMPLETE ERROR: $error');
+
+      emit(
+        const AdventureMazeError(
+          'تعذر حفظ تقدم النشاط، حاول مرة أخرى',
+        ),
+      );
+    } finally {
+      _isCompleting = false;
     }
-
-    emit(const AdventureMazeComplete());
   }
-
-  // ─── Timer ────────────────────────────────────────────────────────────────
 
   void onTimerTick() {
-    if (_completed) return;
+    if (_completed || _isCompleting) return;
+
     _elapsed += const Duration(seconds: 1);
-    final s = state;
-    if (s is AdventureMazeLoaded) {
-      emit(s.copyWith(elapsed: _elapsed));
+
+    final currentState = state;
+
+    if (currentState is AdventureMazeLoaded) {
+      emit(
+        currentState.copyWith(
+          elapsed: _elapsed,
+        ),
+      );
     }
   }
 
-  // ─── Exit without completing ──────────────────────────────────────────────
-
   Future<void> logExitIfNotCompleted() async {
-    if (_completed) return;
+    if (_completed || _level == null || _attemptId <= 0) return;
+
     try {
-      await _service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'ENDED',
+      await _service.updateLevelAttempt(
+        attemptId: _attemptId,
+        attemptNumber: _attemptNumber,
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toUtc().toIso8601String(),
+        activitySessionId: activitySessionId,
+        levelId: _level!.id,
+        completed: false,
       );
-    } catch (e) {
-      debugPrint('ADVENTURE MAZE EXIT ERROR: $e');
+
+      await _runSafely(
+        label: 'ADVENTURE MAZE EXIT EVENT ERROR',
+        action: () => _service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'ENDED',
+        ),
+      );
+    } catch (error) {
+      debugPrint('ADVENTURE MAZE EXIT ERROR: $error');
+    }
+  }
+
+  Future<void> _runSafely({
+    required String label,
+    required Future<void> Function() action,
+  }) async {
+    try {
+      await action();
+    } catch (error) {
+      debugPrint('$label: $error');
     }
   }
 }

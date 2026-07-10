@@ -24,8 +24,10 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
   String? _attemptStartedAt;
 
   Duration _elapsed = Duration.zero;
+
   bool _completed = false;
   bool _isLoading = false;
+  bool _isCompleting = false;
 
   BodilyMazeCubit({
     required BodilyMazeService service,
@@ -49,17 +51,19 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       final levels = await _service.getLevels(activityId);
 
       debugPrint('BODILY MAZE requested startLevelId = $startLevelId');
-      debugPrint('BODILY MAZE requested startLevelNumber = $startLevelNumber');
+      debugPrint(
+        'BODILY MAZE requested startLevelNumber = $startLevelNumber',
+      );
 
       for (final level in levels) {
         debugPrint(
-          'BODILY MAZE LEVEL => id=${level.id}, number=${level.levelNumber}',
+          'BODILY MAZE LEVEL => '
+              'id=${level.id}, number=${level.levelNumber}',
         );
       }
 
       if (levels.isEmpty) {
         emit(const BodilyMazeError('لا توجد مستويات لهذا النشاط'));
-        _isLoading = false;
         return;
       }
 
@@ -82,62 +86,74 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       _level = selectedLevel;
 
       debugPrint(
-        'BODILY MAZE SELECTED => id=${_level!.id}, number=${_level!.levelNumber}',
+        'BODILY MAZE SELECTED => '
+            'id=${_level!.id}, number=${_level!.levelNumber}',
       );
 
-      final config = mazeConfigs[_level!.levelNumber] ?? mazeConfigs[_level!.id];
+      final config =
+          mazeConfigs[_level!.levelNumber] ?? mazeConfigs[_level!.id];
 
       if (config == null) {
         emit(
           BodilyMazeError(
-            'لا توجد إعدادات إحداثيات للمستوى ${_level!.levelNumber}. '
-                'levelId=${_level!.id}',
+            'لا توجد إعدادات إحداثيات للمستوى '
+                '${_level!.levelNumber}. levelId=${_level!.id}',
           ),
         );
-        _isLoading = false;
         return;
       }
 
       _config = config;
 
       _completed = false;
+      _isCompleting = false;
       _elapsed = Duration.zero;
       _attemptNumber = 1;
-      _attemptStartedAt = DateTime.now().toIso8601String();
+
+      _attemptStartedAt = DateTime.now().toUtc().toIso8601String();
 
       _attemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
+        startedAt: _attemptStartedAt!,
         activitySessionId: activitySessionId,
         levelId: _level!.id,
       );
 
-      await _service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'STARTED',
-      );
-
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'STARTED',
-      );
-
-      _isLoading = false;
-      _emitLoaded();
-    } catch (e) {
-      _isLoading = false;
-      emit(
-        BodilyMazeError(
-          e.toString().replaceFirst('Exception: ', ''),
+      await _runSafely(
+        label: 'BODILY MAZE START ACTIVITY EVENT ERROR',
+        action: () => _service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'STARTED',
         ),
       );
+
+      await _runSafely(
+        label: 'BODILY MAZE START LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'STARTED',
+        ),
+      );
+
+      _emitLoaded();
+    } catch (error) {
+      emit(
+        BodilyMazeError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
+    } finally {
+      _isLoading = false;
     }
   }
 
   void _emitLoaded() {
+    if (_level == null || _config == null) return;
+
     emit(
       BodilyMazeLoaded(
         level: _level!,
@@ -150,93 +166,142 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
   }
 
   Future<void> onBallFellInHole() async {
-    if (_completed || _level == null) return;
+    if (_completed ||
+        _isCompleting ||
+        _level == null ||
+        _attemptId <= 0) {
+      return;
+    }
 
     try {
       await _service.updateLevelAttempt(
         attemptId: _attemptId,
         attemptNumber: _attemptNumber,
-        startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toUtc().toIso8601String(),
         activitySessionId: activitySessionId,
         levelId: _level!.id,
         completed: false,
       );
 
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'FAILED',
+      await _runSafely(
+        label: 'BODILY MAZE FAILED LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'FAILED',
+        ),
       );
 
       _attemptNumber += 1;
-      _attemptStartedAt = DateTime.now().toIso8601String();
+      _attemptStartedAt = DateTime.now().toUtc().toIso8601String();
 
       _attemptId = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
+        startedAt: _attemptStartedAt!,
         activitySessionId: activitySessionId,
         levelId: _level!.id,
       );
 
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'RETRIED',
+      await _runSafely(
+        label: 'BODILY MAZE RETRIED LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'RETRIED',
+        ),
       );
-    } catch (e) {
-      debugPrint('BODILY MAZE FAIL ERROR: $e');
+
+      emit(
+        BodilyMazeFailed(
+          currentAttemptId: _attemptId,
+          attemptNumber: _attemptNumber,
+        ),
+      );
+
+      _emitLoaded();
+    } catch (error) {
+      debugPrint('BODILY MAZE FAIL ERROR: $error');
+
+      emit(
+        BodilyMazeError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
     }
-
-    emit(
-      BodilyMazeFailed(
-        currentAttemptId: _attemptId,
-        attemptNumber: _attemptNumber,
-      ),
-    );
-
-    _emitLoaded();
   }
 
   Future<void> onBallReachedEnd() async {
-    if (_completed || _level == null) return;
+    if (_completed || _isCompleting || _level == null) return;
 
-    _completed = true;
+    if (_attemptId <= 0) {
+      emit(
+        const BodilyMazeError(
+          'تعذر العثور على محاولة المستوى الحالية',
+        ),
+      );
+      return;
+    }
+
+    _isCompleting = true;
 
     try {
       await _service.updateLevelAttempt(
         attemptId: _attemptId,
         attemptNumber: _attemptNumber,
-        startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toUtc().toIso8601String(),
         activitySessionId: activitySessionId,
         levelId: _level!.id,
         completed: true,
       );
 
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: 'COMPLETED',
-      );
-
-      await _service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'COMPLETED',
-      );
-
+      // حفظ إكمال الـActivity Session أساسي، لذلك يتم قبل الـEvents.
       await _service.completeActivitySession(activitySessionId);
-    } catch (e) {
-      debugPrint('BODILY MAZE COMPLETE ERROR: $e');
-    }
 
-    emit(const BodilyMazeComplete());
+      _completed = true;
+
+      // فشل تسجيل الـEvents لا يجب أن يمنع حفظ التقدم.
+      await _runSafely(
+        label: 'BODILY MAZE COMPLETED LEVEL EVENT ERROR',
+        action: () => _service.logLevelEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activitySessionId: activitySessionId,
+          action: 'COMPLETED',
+        ),
+      );
+
+      await _runSafely(
+        label: 'BODILY MAZE COMPLETED ACTIVITY EVENT ERROR',
+        action: () => _service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'COMPLETED',
+        ),
+      );
+
+      emit(const BodilyMazeComplete());
+    } catch (error) {
+      _completed = false;
+
+      debugPrint('BODILY MAZE COMPLETE ERROR: $error');
+
+      emit(
+        const BodilyMazeError(
+          'تعذر حفظ تقدم النشاط، حاول مرة أخرى',
+        ),
+      );
+    } finally {
+      _isCompleting = false;
+    }
   }
 
   void onTimerTick() {
-    if (_completed) return;
+    if (_completed || _isCompleting) return;
 
     _elapsed += const Duration(seconds: 1);
 
@@ -252,26 +317,41 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
   }
 
   Future<void> logExitIfNotCompleted() async {
-    if (_completed || _level == null || _attemptId == 0) return;
+    if (_completed || _level == null || _attemptId <= 0) return;
 
     try {
       await _service.updateLevelAttempt(
         attemptId: _attemptId,
         attemptNumber: _attemptNumber,
-        startedAt: _attemptStartedAt ?? DateTime.now().toIso8601String(),
+        startedAt:
+        _attemptStartedAt ?? DateTime.now().toUtc().toIso8601String(),
         activitySessionId: activitySessionId,
         levelId: _level!.id,
         completed: false,
       );
 
-      await _service.logActivityEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activityId: activityId,
-        action: 'ENDED',
+      await _runSafely(
+        label: 'BODILY MAZE EXIT EVENT ERROR',
+        action: () => _service.logActivityEvent(
+          childId: childId,
+          sessionId: sessionId,
+          activityId: activityId,
+          action: 'ENDED',
+        ),
       );
-    } catch (e) {
-      debugPrint('BODILY MAZE EXIT ERROR: $e');
+    } catch (error) {
+      debugPrint('BODILY MAZE EXIT ERROR: $error');
+    }
+  }
+
+  Future<void> _runSafely({
+    required String label,
+    required Future<void> Function() action,
+  }) async {
+    try {
+      await action();
+    } catch (error) {
+      debugPrint('$label: $error');
     }
   }
 }
