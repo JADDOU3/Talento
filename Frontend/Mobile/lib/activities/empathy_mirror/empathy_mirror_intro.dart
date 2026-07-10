@@ -9,6 +9,8 @@ class EmpathyMirrorIntro extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const EmpathyMirrorIntro({
     super.key,
@@ -16,6 +18,8 @@ class EmpathyMirrorIntro extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   void _openGame(BuildContext context) {
@@ -27,6 +31,8 @@ class EmpathyMirrorIntro extends StatelessWidget {
           activitySessionId: activitySessionId,
           childId: childId,
           sessionId: sessionId,
+          startLevelId: startLevelId,
+          startLevelNumber: startLevelNumber,
         ),
       ),
     );
