@@ -62,6 +62,8 @@ class _ShapeCreatorLauncherState extends State<ShapeCreatorLauncher> {
             activitySessionId: ctx.activitySessionId,
             childId: ctx.childId,
             sessionId: ctx.sessionId,
+            startLevelId: ctx.startLevelId,
+            startLevelNumber: ctx.startLevelNumber,
           ),
         ),
       );

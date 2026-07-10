@@ -11,6 +11,8 @@ class ShapeCreatorIntro extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const ShapeCreatorIntro({
     super.key,
@@ -18,6 +20,8 @@ class ShapeCreatorIntro extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   void _openBuildScreen(BuildContext context) {
@@ -30,6 +34,8 @@ class ShapeCreatorIntro extends StatelessWidget {
             activitySessionId: activitySessionId,
             childId: childId,
             sessionId: sessionId,
+            startLevelId: startLevelId,
+            initialLevelNumber: startLevelNumber,
           ),
         ),
       ),

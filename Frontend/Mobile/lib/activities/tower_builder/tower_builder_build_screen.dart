@@ -45,6 +45,7 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
       childId: widget.childId,
       sessionId: widget.sessionId,
       startLevelId: widget.startLevelId,
+      initialLevelNumber: widget.startLevelNumber,
     );
   }
 
@@ -71,6 +72,19 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> _onWillPop() async {
+    await context.read<TowerBuilderCubit>().logExitIfNotCompleted();
+    return true;
+  }
+
+  Future<void> _exitActivity() async {
+    await context.read<TowerBuilderCubit>().logExitIfNotCompleted();
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _finishActivity() {
@@ -193,7 +207,7 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
           children: [
             TopBar(
               leadingIcon: Icons.arrow_back_ios_new_rounded,
-              onLeadingPressed: () => Navigator.of(context).pop(),
+              onLeadingPressed: _exitActivity,
             ),
             Expanded(
               child: SafeArea(
@@ -257,36 +271,39 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<TowerBuilderCubit, TowerBuilderState>(
-        builder: (context, state) {
-          if (state is TowerBuilderLoading) {
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        body: BlocBuilder<TowerBuilderCubit, TowerBuilderState>(
+          builder: (context, state) {
+            if (state is TowerBuilderLoading) {
+              return const AppBackground(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+
+            if (state is TowerBuilderError) {
+              return _buildError(state.message);
+            }
+
+            if (state is TowerBuilderLevelComplete) {
+              return ActivityFeedbackView(
+                type: ActivityFeedbackType.correct,
+                onPrimaryPressed: _finishActivity,
+              );
+            }
+
+            if (state is TowerBuilderLoaded) {
+              return _buildLoadedContent(state);
+            }
+
             return const AppBackground(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: SizedBox.expand(),
             );
-          }
-
-          if (state is TowerBuilderError) {
-            return _buildError(state.message);
-          }
-
-          if (state is TowerBuilderLevelComplete) {
-            return ActivityFeedbackView(
-              type: ActivityFeedbackType.correct,
-              onPrimaryPressed: _finishActivity,
-            );
-          }
-
-          if (state is TowerBuilderLoaded) {
-            return _buildLoadedContent(state);
-          }
-
-          return const AppBackground(
-            child: SizedBox.expand(),
-          );
-        },
+          },
+        ),
       ),
     );
   }
