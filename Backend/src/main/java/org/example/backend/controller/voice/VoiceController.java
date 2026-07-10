@@ -1,4 +1,4 @@
-package org.example.backend.controller;
+package org.example.backend.controller.voice;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
