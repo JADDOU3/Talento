@@ -109,14 +109,14 @@ class HomeService {
     final results = await Future.wait<dynamic>([
       getLastReachedActivity(),
       getCompletedActivitiesCount(),
-      getRoadmapActivitiesByKitAndChild(kitId, selectedChild.id),
+      _kitService.getActivitiesCountByKitId(kitId),
       getDailyChallenge(),
       _safeGetKitById(kitId),
     ]);
 
     final lastReachedActivity = results[0] as LastReachedActivityModel?;
     final completedActivities = results[1] as int;
-    final roadmapActivities = results[2] as List<Map<String, dynamic>>;
+    final totalActivities = results[2] as int;
     final dailyChallenge = results[3] as DailyChallengeModel?;
     final lastUsedKit = results[4] as KitModel?;
 
@@ -131,7 +131,7 @@ class HomeService {
       selectedChild: selectedChild,
       lastUsedKit: lastUsedKit,
       activitiesDoneCount: completedActivities,
-      totalActivitiesCount: roadmapActivities.length,
+      totalActivitiesCount: totalActivities,
       currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
       latestActivitySessionId: latestActivitySessionId,
       lastReachedActivity: lastReachedActivity,
