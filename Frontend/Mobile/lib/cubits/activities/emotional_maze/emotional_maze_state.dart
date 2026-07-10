@@ -1,5 +1,5 @@
 import '../../../models/activities/emotional_maze/emotional_maze_models.dart';
-import '../../activities/emotional_maze/config/emotional_maze_level_config.dart';
+import '../../../activities/emotional_maze/config/emotional_maze_level_config.dart';
 
 abstract class EmotionalMazeState {
   const EmotionalMazeState();

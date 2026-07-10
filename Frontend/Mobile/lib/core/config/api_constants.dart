@@ -13,6 +13,7 @@ class ApiConstants {
   static const String kitsByType = '$baseUrl/kits/type';
   static const String kitsByMindset = '$baseUrl/kits/mindset';
   static const String kitsSearch = '$baseUrl/kits/search';
+  static const String addKitToChild = '$baseUrl/kits/child/';
 
   static String kitsByChild(int childId) => '$baseUrl/kits/child/$childId';
 
@@ -116,11 +117,14 @@ class ApiConstants {
   static const String comments = '$baseUrl/comments';
   static const String commentsByPost = '$baseUrl/comments/post';
 
-  // Profile / Children
+// Profile / Children
   static const String currentUser = '$baseUrl/currentUser';
   static const String children = '$baseUrl/children';
   static const String addChild = '$baseUrl/children/';
   static const String selectedChild = '$baseUrl/children/selected';
+
+// Coins
+  static const String coins = '$baseUrl/coins';
 
   static String setSelectedChild(int childId) =>
       '$baseUrl/children/selected/$childId';

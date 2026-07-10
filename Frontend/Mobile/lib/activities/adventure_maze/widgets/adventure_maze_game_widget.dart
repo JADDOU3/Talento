@@ -1,11 +1,11 @@
 import 'dart:collection';
-import 'dart:math' as math;
 
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 
 import '../../../maze_engine/physics/maze_ball_component.dart';
+import '../../../maze_engine/physics/maze_star_component.dart';
 import '../../../maze_engine/physics/maze_wall_component.dart';
 import '../../../maze_engine/physics/tilt_gravity_behavior.dart';
 import '../../../maze_engine/tilt/tilt_controller.dart';
@@ -15,8 +15,9 @@ import '../config/adventure_maze_level_config.dart';
 typedef StarTouchedCallback = void Function(int challengeId);
 
 /// Adventure Maze game — reuses the shared tilt engine directly. Adds:
-///  - StarComponents at configured positions (collision → callback →
-///    cubit opens popup and pauses the game).
+///  - MazeStarComponents (same visual as Cognitive Maze) at configured
+///    positions (collision → callback → cubit opens popup and pauses the
+///    game).
 ///  - An EndBlockComponent that blocks the path to the end point until
 ///    every star is collected.
 class AdventureMazeGame extends Forge2DGame {
@@ -43,7 +44,9 @@ class AdventureMazeGame extends Forge2DGame {
   TiltGravityBehavior? _tiltBehavior;
   Vector2 _startPixel = Vector2.zero();
 
-  final List<_StarComponent> _stars = [];
+  final Map<int, MazeStarComponent> _starComponents = {};
+  static const double _starRadiusNormalized = 0.035;
+
   _EndBlockComponent? _endBlock;
 
   bool _worldBuilt = false;
@@ -127,17 +130,21 @@ class AdventureMazeGame extends Forge2DGame {
     _ball = ball;
     add(ball);
 
-    // Stars — draw only, no physics body (collision detected via distance).
+    // Stars — same visual component as Cognitive Maze, draw only, no
+    // physics body (collision detected via distance). Color comes straight
+    // from config.starColors, same as Cognitive Maze's MazeStar.color.
     for (final cid in starChallengeIds) {
       final pos = config.starPositions[cid];
       if (pos == null) continue;
       final starPos = Vector2(pos.dx * s.x, pos.dy * s.y);
-      final star = _StarComponent(
-        challengeId: cid,
+      final radiusPx = _starRadiusNormalized * s.x;
+      final comp = MazeStarComponent(
         position: starPos,
+        radius: radiusPx,
+        color: config.starColors[cid] ?? const Color(0xFFFFD600),
       );
-      _stars.add(star);
-      add(star);
+      _starComponents[cid] = comp;
+      add(comp);
     }
   }
 
@@ -185,11 +192,7 @@ class AdventureMazeGame extends Forge2DGame {
 
   /// Called by the screen when the cubit says a star was collected.
   void markStarCollected(int challengeId) {
-    for (final s in _stars) {
-      if (s.challengeId == challengeId) {
-        s.markCollected();
-      }
-    }
+    _starComponents[challengeId]?.collected = true;
   }
 
   /// Called when all stars are collected → the end block dissolves.
@@ -234,11 +237,12 @@ class AdventureMazeGame extends Forge2DGame {
 
     // Star pickup detection — distance-based (simpler than physics contacts).
     final ballPos = _ball!.body.position;
-    for (final star in _stars) {
-      if (star.isCollected) continue;
-      final d = (star.position - ballPos).length;
-      if (d <= _StarComponent.pickupRadius + 5) {
-        onStarTouched(star.challengeId);
+    for (final entry in _starComponents.entries) {
+      final comp = entry.value;
+      if (comp.collected) continue;
+      final d = (comp.position - ballPos).length;
+      if (d <= (comp.size.x / 2) + 5) {
+        onStarTouched(entry.key);
         break;
       }
     }
@@ -329,116 +333,6 @@ class AdventureMazeGame extends Forge2DGame {
     _trail.clear();
     _trailTimer = 0;
     _tiltBehavior?.resetGravity();
-  }
-}
-
-// ─────────────────────────── StarComponent ──────────────────────────────
-// New component — the existing StarComponent in Cognitive Maze only marks
-// itself collected on touch (no popup, no pause). Building fresh here to
-// support the pause-and-popup flow described in the spec.
-
-class _StarComponent extends PositionComponent {
-  _StarComponent({
-    required this.challengeId,
-    required Vector2 position,
-  }) : super(
-    position: position,
-    anchor: Anchor.center,
-    size: Vector2.all(36),
-  );
-
-  final int challengeId;
-  bool isCollected = false;
-  double _collectAnim = 0;
-  double _pulseTime = 0;
-
-  static const double pickupRadius = 18;
-
-  void markCollected() {
-    if (isCollected) return;
-    isCollected = true;
-    _collectAnim = 1.0;
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    _pulseTime += dt;
-    if (isCollected && _collectAnim > 0) {
-      _collectAnim -= dt * 1.5;
-      if (_collectAnim < 0) _collectAnim = 0;
-    }
-  }
-
-  @override
-  void render(Canvas canvas) {
-    if (isCollected && _collectAnim <= 0) return;
-
-    final r = size.x / 2;
-    final centerOffset = Offset(r, r);
-    final baseAlpha = isCollected ? _collectAnim : 1.0;
-
-    // نبضة خفيفة (النجمة تكبر وتصغر شوي وهي واقفة)
-    final pulse = isCollected ? 1.0 : (1.0 + 0.08 * _pulse());
-
-    // هالة صفرا واسعة
-    final outerHalo = Paint()
-      ..color = const Color(0xFFFFD54F).withValues(alpha: 0.35 * baseAlpha);
-    canvas.drawCircle(centerOffset, (r + 8) * pulse, outerHalo);
-
-    final innerHalo = Paint()
-      ..color = const Color(0xFFFFC107).withValues(alpha: 0.55 * baseAlpha);
-    canvas.drawCircle(centerOffset, (r + 3) * pulse, innerHalo);
-
-    // النجمة نفسها — لون أصفر أفتح وأوضح
-    final path = _starPath(centerOffset, r * pulse);
-    canvas.drawPath(
-      path,
-      Paint()..color = const Color(0xFFFFD600).withValues(alpha: baseAlpha),
-    );
-
-    // حافة برتقالية غامقة
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFFE65100).withValues(alpha: baseAlpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8,
-    );
-
-    // بريق أبيض داخل النجمة
-    final shinePath = _starPath(
-      Offset(centerOffset.dx - r * 0.15, centerOffset.dy - r * 0.15),
-      r * 0.35 * pulse,
-    );
-    canvas.drawPath(
-      shinePath,
-      Paint()..color = Colors.white.withValues(alpha: 0.6 * baseAlpha),
-    );
-  }
-
-  double _pulse() {
-    // Sine wave 0..1..0..-1..0 → normalized to 0..1
-    return math.sin(_pulseTime * 3) * 0.5 + 0.5;
-  }
-
-  Path _starPath(Offset c, double outerR) {
-    final innerR = outerR * 0.45;
-    final path = Path();
-    const points = 5;
-    for (int i = 0; i < points * 2; i++) {
-      final r = i.isEven ? outerR : innerR;
-      final angle = (i * math.pi / points) - math.pi / 2;
-      final x = c.dx + r * math.cos(angle);
-      final y = c.dy + r * math.sin(angle);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    return path;
   }
 }
 

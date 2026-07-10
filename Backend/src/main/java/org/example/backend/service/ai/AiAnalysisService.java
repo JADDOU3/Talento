@@ -240,7 +240,7 @@ public class AiAnalysisService {
                 if (progress.isCompleted()) {
                     completionStatus = "completed";
                 } else if (completedLevelsCount > 0) {
-                    completionStatus = "partial";
+                    completionStatus = "incomplete";
                 } else {
                     completionStatus = "abandoned";
                 }
@@ -363,10 +363,10 @@ public class AiAnalysisService {
         long completed = activitySummaries.stream()
                 .filter(a -> "completed".equals(a.getCompletionStatus())).count();
         long partial = activitySummaries.stream()
-                .filter(a -> "partial".equals(a.getCompletionStatus())).count();
+                .filter(a -> "incomplete".equals(a.getCompletionStatus())).count();
         int total = activitySummaries.size();
 
-        // partial counts as 0.5 toward completion rate
+        // incomplete counts as 0.5 toward completion rate
         float completionRate = total > 0
                 ? (float) (completed + partial * 0.5) / total
                 : 0f;

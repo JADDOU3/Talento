@@ -283,6 +283,8 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
       final response = await _createCreatureService.transcribeWithKeywords(
         file: File(loaded.recordedFilePath!),
         activityId: _activityId,
+        activitySessionId: _activitySessionId,
+        levelId: loaded.level.id,
         keywords: keywords,
       );
 

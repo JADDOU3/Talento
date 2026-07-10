@@ -6,6 +6,8 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/tower_builder/tower_builder_cubit.dart';
 import '../../cubits/activities/tower_builder/tower_builder_state.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'tower_builder_pin_screen.dart';
 import 'widgets/target_image_widget.dart';
 
@@ -75,52 +77,6 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Talento',
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const Spacer(),
-          InkWell(
-            onTap: () => Navigator.of(context).pop(),
-            borderRadius: BorderRadius.circular(18),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: AppColors.inputFill,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.primary,
-                size: 28,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLevelTitle(TowerBuilderLoaded state) {
     return Column(
       children: [
@@ -172,6 +128,26 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
     );
   }
 
+  Widget _buildAttemptPill(int attemptNumber) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 8,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.inputFill,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        'المحاولة $attemptNumber',
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButtons(TowerBuilderLoaded state) {
     return Row(
       children: [
@@ -209,81 +185,68 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
   Widget _buildLoadedContent(TowerBuilderLoaded state) {
     final level = state.level;
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTopBar(),
-              const SizedBox(height: 18),
-              _buildLevelTitle(state),
-              const SizedBox(height: 18),
-              _buildPromptCard(level.prompt),
-              const SizedBox(height: 18),
-              Expanded(
-                child: Center(
-                  child: TargetImageWidget(
-                    imageUrl: level.imageUrl,
-                    prompt: level.prompt,
+    return AppBackground(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TopBar(
+              leadingIcon: Icons.arrow_back_ios_new_rounded,
+              onLeadingPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildLevelTitle(state),
+                      const SizedBox(height: 18),
+                      _buildPromptCard(level.prompt),
+                      const SizedBox(height: 18),
+                      Expanded(
+                        child: Center(
+                          child: TargetImageWidget(
+                            imageUrl: level.imageUrl,
+                            prompt: level.prompt,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: _buildAttemptPill(state.attemptNumber),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildActionButtons(state),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              _buildActionButtons(state),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLevelComplete() {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'أحسنت! اكتمل المستوى',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _finishActivity,
-                child: const Text('إنهاء'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildError(String message) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.w800,
+    return AppBackground(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -295,30 +258,35 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
-        child: BlocBuilder<TowerBuilderCubit, TowerBuilderState>(
-          builder: (context, state) {
-            if (state is TowerBuilderLoading) {
-              return const Center(
+      body: BlocBuilder<TowerBuilderCubit, TowerBuilderState>(
+        builder: (context, state) {
+          if (state is TowerBuilderLoading) {
+            return const AppBackground(
+              child: Center(
                 child: CircularProgressIndicator(),
-              );
-            }
+              ),
+            );
+          }
 
-            if (state is TowerBuilderError) {
-              return _buildError(state.message);
-            }
+          if (state is TowerBuilderError) {
+            return _buildError(state.message);
+          }
 
-            if (state is TowerBuilderLevelComplete) {
-              return _buildLevelComplete();
-            }
+          if (state is TowerBuilderLevelComplete) {
+            return ActivityFeedbackView(
+              type: ActivityFeedbackType.correct,
+              onPrimaryPressed: _finishActivity,
+            );
+          }
 
-            if (state is TowerBuilderLoaded) {
-              return _buildLoadedContent(state);
-            }
+          if (state is TowerBuilderLoaded) {
+            return _buildLoadedContent(state);
+          }
 
-            return const SizedBox.shrink();
-          },
-        ),
+          return const AppBackground(
+            child: SizedBox.expand(),
+          );
+        },
       ),
     );
   }

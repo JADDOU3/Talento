@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/activities/mirror_mind_service.dart';
 import '../../services/roadmap/roadmap_service.dart';
-import '../../shared/layout/app_background.dart';
+import '../../shared/layout/animated_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'mirror_mind_game_screen.dart';
 
@@ -193,7 +193,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
-          background: const AppBackground(
+          background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),
           mascotAssetPath: 'assets/images/template_mascot.png',

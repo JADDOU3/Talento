@@ -62,6 +62,14 @@ class _CognitiveMazeLauncherState extends State<CognitiveMazeLauncher> {
             'ctx level = ${ctx.startLevelNumber}',
       );
 
+      final requestedLevelNumber = widget.initialLevelNumber;
+
+      final effectiveStartLevelNumber =
+          requestedLevelNumber ?? ctx.startLevelNumber;
+
+      final effectiveStartLevelId =
+      requestedLevelNumber == null ? ctx.startLevelId : null;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -70,8 +78,9 @@ class _CognitiveMazeLauncherState extends State<CognitiveMazeLauncher> {
             activitySessionId: ctx.activitySessionId,
             childId: ctx.childId,
             sessionId: ctx.sessionId,
-            startLevelId: ctx.startLevelId,
-            startLevelNumber: widget.initialLevelNumber ?? ctx.startLevelNumber,
+            startLevelId: effectiveStartLevelId,
+            startLevelNumber:
+            effectiveStartLevelNumber <= 0 ? 1 : effectiveStartLevelNumber,
           ),
         ),
       );

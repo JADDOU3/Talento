@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../services/activities/emotion_chain_service.dart';
-import '../../shared/layout/app_background.dart';
 import '../../shared/widgets/activity_template/activity_intro_template.dart';
 import 'emotion_chain_video_screen.dart';
+import '../../shared/layout/animated_background.dart';
 
 /// Entry point for the Emotion Chain activity.
 /// Resolves the child/session context, opens an activity session, then
@@ -115,7 +115,7 @@ class _EmotionChainIntroState extends State<EmotionChainIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
-          background: const AppBackground(child: SizedBox.expand()),
+          background: const AnimatedBackground(child: SizedBox.expand()),
           mascotAssetPath: 'assets/images/template_mascot.png',
           startButtonText: 'ابدأ القصة',
           onStartPressed: _start,

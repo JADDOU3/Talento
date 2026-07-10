@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/activities/adventure_maze/adventure_maze_launcher.dart' show AdventureMazeLauncher;
 import 'package:mobile/activities/emotional_maze/emotional_maze_launcher.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
@@ -9,7 +8,7 @@ import '../../activities/empathy_mirror/empathy_mirror_launcher.dart';
 import '../../activities/maze_engine_test/maze_engine_test_screen.dart';
 import '../../activities/conflict_resolution/conflict_resolution_intro.dart';
 import '../../activities/emotion_chain/emotion_chain_intro.dart';
-import '../../activities/creative_maze/creative_maze_intro.dart';
+import '../../activities/creative_maze/creative_maze_launcher.dart';
 import '../../activities/mirror_mind/mirror_mind_intro.dart';
 import '../../activities/pattern_hacker/pattern_hacker_intro.dart';
 import '../../activities/sound_tracker/sound_tracker_intro.dart';
@@ -30,11 +29,16 @@ import '../../activities/emotion_chain/emotion_chain_intro.dart';
 import '../../activities/shape_creator/shape_creator_launcher.dart';
 
 import '../../activities/bodily_maze/bodily_maze_launcher.dart';
+
+import '../../activities/adventure_maze/adventure_maze_launcher.dart';
+
 import '../../activities/cognitive_maze/cognitive_maze_launcher.dart';
 
 
 
 class RoadmapScreen extends StatelessWidget {
+  static const String routeName = '/roadmap';
+
   final int kitId;
   final int childId;
   final int? initialActivityId;
@@ -330,11 +334,11 @@ class _RoadmapView extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => CreativeMazeIntro(
+          builder: (_) => CreativeMazeLauncher(
             activityId: activity.activityId,
-            initialLevelNumber: activity.currentLevelNumber <= 0
-                ? 1
-                : activity.currentLevelNumber,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.launchLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
@@ -346,6 +350,20 @@ class _RoadmapView extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => BodilyMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+            initialLevelNumber: activity.launchLevelNumber,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
+    if (activityName == 'adventure maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdventureMazeLauncher(
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
@@ -405,19 +423,6 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
-    if (activityName == 'adventure maze') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AdventureMazeLauncher(
-            activityId: activity.activityId,
-            kitId: kitId,
-            childId: childId,
-          ),
-        ),
-      ).then((_) => _refreshRoadmapIfMounted(context));
-      return;
-    }
 
     _showMessage(
       context,

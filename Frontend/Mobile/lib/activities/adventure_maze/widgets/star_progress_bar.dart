@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../maze_engine/physics/star_painter.dart';
 
 /// Row of stars above the maze — one per challenge, in the order the
-/// backend returned. Grey by default; each star fills with Talento's brand
-/// gold when its challengeId is added to [collectedChallengeIds].
+/// backend returned. Uses the exact same star shape as in-game (via
+/// [StarPainter]). Pass [starColors] straight from the level config
+/// (config.starColors) so the bar always matches the in-game star colors.
+/// Muted grey by default; fills in with its real color + glow once its
+/// challengeId is added to [collectedChallengeIds].
 class StarProgressBar extends StatelessWidget {
   final List<int> orderedChallengeIds;
   final Set<int> collectedChallengeIds;
+  final Map<int, Color> starColors;
 
   const StarProgressBar({
     super.key,
     required this.orderedChallengeIds,
     required this.collectedChallengeIds,
+    required this.starColors,
   });
 
   @override
@@ -34,7 +40,8 @@ class StarProgressBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: orderedChallengeIds.map((cid) {
           final collected = collectedChallengeIds.contains(cid);
-          return _AnimatedStar(collected: collected);
+          final color = starColors[cid] ?? const Color(0xFFFFD600);
+          return _AnimatedStar(collected: collected, color: color);
         }).toList(),
       ),
     );
@@ -43,7 +50,9 @@ class StarProgressBar extends StatelessWidget {
 
 class _AnimatedStar extends StatelessWidget {
   final bool collected;
-  const _AnimatedStar({required this.collected});
+  final Color color;
+
+  const _AnimatedStar({required this.collected, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -52,30 +61,34 @@ class _AnimatedStar extends StatelessWidget {
       curve: Curves.easeOutBack,
       width: collected ? 34 : 28,
       height: collected ? 34 : 28,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (collected)
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.yellow.withValues(alpha: 0.4),
-                    AppColors.yellow.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
-          Icon(
-            collected ? Icons.star_rounded : Icons.star_outline_rounded,
-            size: collected ? 30 : 26,
-            color: collected
-                ? AppColors.yellow
-                : AppColors.border,
-          ),
-        ],
+      child: CustomPaint(
+        painter: _StarIconPainter(collected: collected, color: color),
       ),
     );
+  }
+}
+
+class _StarIconPainter extends CustomPainter {
+  final bool collected;
+  final Color color;
+
+  _StarIconPainter({required this.collected, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final outerR = size.width / 2;
+    StarPainter.paintStar(
+      canvas,
+      center,
+      outerR,
+      collected ? color : AppColors.border,
+      withGlow: collected,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _StarIconPainter oldDelegate) {
+    return oldDelegate.collected != collected || oldDelegate.color != color;
   }
 }

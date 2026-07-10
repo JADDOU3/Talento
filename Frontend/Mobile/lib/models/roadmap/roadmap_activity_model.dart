@@ -5,6 +5,7 @@ enum RoadmapActivityStatus {
 }
 
 class RoadmapActivityModel {
+  final int cardId;
   final int activityId;
   final String activityName;
   final String coverImageKey;
@@ -13,10 +14,13 @@ class RoadmapActivityModel {
   final int currentLevelNumber;
   final int totalLevels;
   final int completedLevels;
+  final int? levelFrom;
+  final int? levelTo;
   final bool voiceEnabled;
   final int? storyCount;
 
   const RoadmapActivityModel({
+    required this.cardId,
     required this.activityId,
     required this.activityName,
     required this.coverImageKey,
@@ -25,6 +29,8 @@ class RoadmapActivityModel {
     required this.currentLevelNumber,
     required this.totalLevels,
     required this.completedLevels,
+    this.levelFrom,
+    this.levelTo,
     this.voiceEnabled = false,
     this.storyCount,
   });
@@ -52,6 +58,9 @@ class RoadmapActivityModel {
         .toString();
 
     return RoadmapActivityModel(
+      cardId: _parseInt(
+        json['cardId'] ?? json['card_id'],
+      ),
       activityId: _parseInt(
         json['activityId'] ?? json['id'] ?? json['activity_id'],
       ),
@@ -77,6 +86,12 @@ class RoadmapActivityModel {
       currentLevelNumber: currentLevelNumber,
       totalLevels: totalLevels,
       completedLevels: completedLevels,
+      levelFrom: _parseNullableInt(
+        json['levelFrom'] ?? json['level_from'],
+      ),
+      levelTo: _parseNullableInt(
+        json['levelTo'] ?? json['level_to'],
+      ),
       voiceEnabled: _parseVoiceEnabled(
         activityName: activityName,
         value: json['voiceEnabled'] ??
@@ -93,6 +108,7 @@ class RoadmapActivityModel {
   }
 
   RoadmapActivityModel copyWith({
+    int? cardId,
     int? activityId,
     String? activityName,
     String? coverImageKey,
@@ -101,11 +117,16 @@ class RoadmapActivityModel {
     int? currentLevelNumber,
     int? totalLevels,
     int? completedLevels,
+    int? levelFrom,
+    int? levelTo,
+    bool clearLevelFrom = false,
+    bool clearLevelTo = false,
     bool? voiceEnabled,
     int? storyCount,
     bool clearStoryCount = false,
   }) {
     return RoadmapActivityModel(
+      cardId: cardId ?? this.cardId,
       activityId: activityId ?? this.activityId,
       activityName: activityName ?? this.activityName,
       coverImageKey: coverImageKey ?? this.coverImageKey,
@@ -114,6 +135,8 @@ class RoadmapActivityModel {
       currentLevelNumber: currentLevelNumber ?? this.currentLevelNumber,
       totalLevels: totalLevels ?? this.totalLevels,
       completedLevels: completedLevels ?? this.completedLevels,
+      levelFrom: clearLevelFrom ? null : levelFrom ?? this.levelFrom,
+      levelTo: clearLevelTo ? null : levelTo ?? this.levelTo,
       voiceEnabled: voiceEnabled ?? this.voiceEnabled,
       storyCount: clearStoryCount ? null : storyCount ?? this.storyCount,
     );
@@ -129,18 +152,43 @@ class RoadmapActivityModel {
 
   bool get hasStoryCount => storyCount != null && storyCount! > 0;
 
+  bool get hasLevelSlice {
+    return levelFrom != null &&
+        levelTo != null &&
+        levelFrom! > 0 &&
+        levelTo! > 0;
+  }
+
+  int get safeCurrentLevelNumber {
+    return currentLevelNumber <= 0 ? 1 : currentLevelNumber;
+  }
+
+  int get launchLevelNumber {
+    if (levelFrom != null && levelFrom! > 0) {
+      return levelFrom!;
+    }
+
+    return safeCurrentLevelNumber;
+  }
+
   String get levelText {
     if (isCompleted) {
       return 'تم إنجازها';
+    }
+
+    if (hasLevelSlice) {
+      if (levelFrom == levelTo) {
+        return 'المستوى $levelFrom';
+      }
+
+      return 'المستويات $levelFrom - $levelTo';
     }
 
     if (totalLevels <= 0) {
       return '';
     }
 
-    final safeCurrentLevel = currentLevelNumber <= 0 ? 1 : currentLevelNumber;
-
-    return 'المستوى $safeCurrentLevel من $totalLevels';
+    return 'المستوى $safeCurrentLevelNumber من $totalLevels';
   }
 
   static RoadmapActivityStatus _parseStatus(
@@ -183,6 +231,7 @@ class RoadmapActivityModel {
     if (value != null) return _parseBool(value);
 
     final normalizedName = activityName.trim().toLowerCase();
+
     return normalizedName == 'story spinner' ||
         normalizedName == 'story spinner cards';
   }
@@ -208,6 +257,7 @@ class RoadmapActivityModel {
     if (value == null) return 0;
     if (value is int) return value;
     if (value is num) return value.toInt();
+
     return int.tryParse(value.toString()) ?? 0;
   }
 
@@ -215,6 +265,7 @@ class RoadmapActivityModel {
     if (value == null) return null;
     if (value is int) return value;
     if (value is num) return value.toInt();
+
     return int.tryParse(value.toString());
   }
 }

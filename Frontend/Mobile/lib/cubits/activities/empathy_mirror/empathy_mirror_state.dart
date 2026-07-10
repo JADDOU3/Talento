@@ -1,4 +1,4 @@
-import '../../models/empathy_mirror/empathy_mirror_models.dart';
+import '../../../models/empathy_mirror/empathy_mirror_models.dart';
 
 abstract class EmpathyMirrorState {
   const EmpathyMirrorState();

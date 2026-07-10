@@ -181,7 +181,8 @@ class _EmojiFallback extends StatelessWidget {
   const _EmojiFallback({required this.icon, required this.label});
 
   /// Map of keywords → emoji. Checked in order (English icon slug first,
-  /// then label word — supports both English and Arabic labels).
+  /// then full label, then label word — supports both English and Arabic
+  /// labels).
   static const Map<String, String> _emojiMap = {
     // — English —
     'happy': '😊', 'joy': '😊', 'joyful': '😊', 'smile': '😊', 'good': '😊',
@@ -212,6 +213,22 @@ class _EmojiFallback extends StatelessWidget {
     'mom': '👩', 'dad': '👨', 'baby': '👶',
     'question': '❓', 'idea': '💡', 'think': '🤔',
 
+    // — Adventure Maze icon slugs (from backend `choices[].icon`) —
+    'key': '🔑',
+    'hooked_stick': '🪝',
+    'feather': '🪶',
+    'axe': '🪓',
+    'brush': '🖌️',
+    'children_story': '📖',
+    'knights': '⚔️',
+    'scientists': '🔬',
+    'treasure_room': '💰',
+    'friends_room': '🧑\u200d🤝\u200d🧑',
+    'invention_room': '⚙️',
+    'go_home': '🏠',
+    'celebrate': '🎉',
+    'new_adventure': '🗺️',
+
     // — عربي (كلمات مفتاحية) —
     'سعيد': '😊', 'فرحان': '😊', 'مبسوط': '😊', 'مسرور': '😊', 'فرح': '😊',
     'حزين': '😢', 'زعلان': '😢', 'حزن': '😢', 'يبكي': '😢', 'بكاء': '😢',
@@ -241,17 +258,38 @@ class _EmojiFallback extends StatelessWidget {
     'بيت': '🏠', 'منزل': '🏠', 'مدرسة': '🏫', 'مستشفى': '🏥',
     'أم': '👩', 'ماما': '👩', 'أب': '👨', 'بابا': '👨', 'طفل': '👶', 'رضيع': '👶',
     'سؤال': '❓', 'فكرة': '💡', 'يفكر': '🤔', 'تفكير': '🤔',
+
+    // — Adventure Maze exact Arabic labels (from this level's data) —
+    'مفتاح': '🔑',
+    'عصا بخطاف': '🪝',
+    'ريشة': '🪶',
+    'فأس': '🪓',
+    'فرشاة': '🖌️',
+    'أطفال يستمعون إلى قصة': '📖',
+    'فرسان يستعدون للانطلاق في مهمة': '⚔️',
+    'علماء يعملون في ورشة اختراعات': '🔬',
+    'غرفة المغامرات والكنوز': '💰',
+    'غرفة الأصدقاء والأنشطة': '🧑\u200d🤝\u200d🧑',
+    'غرفة الاختراعات والتجارب': '⚙️',
+    'العودة إلى المنزل': '🏠',
+    'الاحتفال': '🎉',
+    'البدء بمغامرة جديدة': '🗺️',
   };
 
   @override
   Widget build(BuildContext context) {
-    // Try both the icon slug and each word in the label.
+    // 1. Try the icon slug as-is (covers all backend icon values directly).
     final iconKey = icon.toLowerCase().trim();
     if (_emojiMap.containsKey(iconKey)) {
       return _emojiWidget(_emojiMap[iconKey]!);
     }
-    // Break label into words and try each one.
-    final words = label.trim().split(RegExp(r'\s+'));
+    // 2. Try the full label verbatim (covers multi-word Arabic labels).
+    final labelKey = label.trim();
+    if (_emojiMap.containsKey(labelKey)) {
+      return _emojiWidget(_emojiMap[labelKey]!);
+    }
+    // 3. Break label into words and try each one.
+    final words = labelKey.split(RegExp(r'\s+'));
     for (final w in words) {
       final wLow = w.toLowerCase().replaceAll(RegExp(r'[.,!?()]'), '');
       if (_emojiMap.containsKey(wLow)) {

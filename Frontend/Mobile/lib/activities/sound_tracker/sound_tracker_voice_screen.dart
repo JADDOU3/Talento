@@ -6,11 +6,12 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/sound_tracker/sound_tracker_cubit.dart';
 import '../../cubits/activities/sound_tracker/sound_tracker_state.dart';
 import '../../screens/qr_scanner/qr_scanner_screen.dart';
+import '../../services/activities/sound_tracker_service.dart';
 import '../../shared/layout/app_background.dart';
+import '../../shared/layout/top_bar.dart';
 import 'sound_tracker_result_screen.dart';
 import 'widgets/multi_section_scan_widget.dart';
 import 'widgets/voice_player_widget.dart';
-import '../../services/activities/sound_tracker_service.dart';
 
 class SoundTrackerVoiceScreen extends StatelessWidget {
   final int activityId;
@@ -195,9 +196,7 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
         builder: (context, state) {
           return Scaffold(
             body: AppBackground(
-              child: SafeArea(
-                child: _buildBody(context, state),
-              ),
+              child: _buildBody(context, state),
             ),
           );
         },
@@ -275,135 +274,63 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
       ) {
     _syncLevelUi(state);
 
-    return ListView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 30),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _TopHeader(),
-        const SizedBox(height: 18),
-        _MascotInstructionCard(state: state),
-        const SizedBox(height: 20),
-        VoicePlayerWidget(
-          key: ValueKey('sound_tracker_audio_${state.level.id}'),
-          audioUrl: state.level.audioUrl,
-          audioFinished: state.audioFinished,
-          onAudioFinished: () {
-            context.read<SoundTrackerCubit>().onAudioFinished();
-          },
-          onNext: () {
-            if (state.isMultiSection) {
-              _unlockMultiScanSections();
-            } else {
-              _openSingleQrScanner(context);
-            }
-          },
-          title: state.sectionCount == 1 ? 'المقطع الصوتي' : 'استمع للمقطع',
-          subtitle: state.sectionCount == 1
-              ? 'استمع للصوت ثم امسح البطاقة المناسبة.'
-              : 'استمع للأصوات ثم امسح البطاقات بالترتيب.',
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.of(context).pop(),
         ),
-        if (state.isMultiSection && _showMultiScanSections) ...[
-          const SizedBox(height: 20),
-          MultiSectionScanWidget(
-            sectionCount: state.sectionCount,
-            expectedSequence: state.level.expectedSequence,
-            sectionAnswered: state.sectionAnswered,
-            sectionCorrect: state.sectionCorrect,
-            onSectionScanned: (sectionIndex, scannedValue) {
-              return context.read<SoundTrackerCubit>().onSectionScanned(
-                sectionIndex: sectionIndex,
-                result: scannedValue,
-              );
-            },
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _TopHeader extends StatelessWidget {
-  const _TopHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.78),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.white.withOpacity(0.92),
-          width: 1.1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 13,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _TopCircleButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icons.arrow_back_ios_new_rounded,
-          ),
-          const Spacer(),
-          Image.asset(
-            'assets/icons/logo1.png',
-            height: 42,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) {
-              return const Text(
-                'Talento',
-                style: TextStyle(
-                  fontFamily: 'BerlinSans',
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: ListView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 30),
+              children: [
+                _MascotInstructionCard(state: state),
+                const SizedBox(height: 20),
+                VoicePlayerWidget(
+                  key: ValueKey('sound_tracker_audio_${state.level.id}'),
+                  audioUrl: state.level.audioUrl,
+                  audioFinished: state.audioFinished,
+                  onAudioFinished: () {
+                    context.read<SoundTrackerCubit>().onAudioFinished();
+                  },
+                  onNext: () {
+                    if (state.isMultiSection) {
+                      _unlockMultiScanSections();
+                    } else {
+                      _openSingleQrScanner(context);
+                    }
+                  },
+                  title:
+                  state.sectionCount == 1 ? 'المقطع الصوتي' : 'استمع للمقطع',
+                  subtitle: state.sectionCount == 1
+                      ? 'استمع للصوت ثم امسح البطاقة المناسبة.'
+                      : 'استمع للأصوات ثم امسح البطاقات بالترتيب.',
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-
-  const _TopCircleButton({
-    required this.onPressed,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white.withOpacity(0.95),
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: AppColors.black.withOpacity(0.08),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 20,
+                if (state.isMultiSection && _showMultiScanSections) ...[
+                  const SizedBox(height: 20),
+                  MultiSectionScanWidget(
+                    sectionCount: state.sectionCount,
+                    expectedSequence: state.level.expectedSequence,
+                    sectionAnswered: state.sectionAnswered,
+                    sectionCorrect: state.sectionCorrect,
+                    onSectionScanned: (sectionIndex, scannedValue) {
+                      return context.read<SoundTrackerCubit>().onSectionScanned(
+                        sectionIndex: sectionIndex,
+                        result: scannedValue,
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -554,62 +481,76 @@ class _LevelCompleteView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(26),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground.withOpacity(0.96),
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.10),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 92,
-                height: 92,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.14),
-                  shape: BoxShape.circle,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: () => Navigator.of(context).pop(),
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(26),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground.withOpacity(0.96),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.10),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 92,
+                        height: 92,
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.14),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.success,
+                          size: 58,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.headlineMedium.copyWith(
+                          fontSize: 27,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'جاري فتح المستوى التالي...',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontSize: 15,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.success,
-                  size: 58,
-                ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontSize: 27,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'جاري فتح المستوى التالي...',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 15,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -625,71 +566,85 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground.withOpacity(0.96),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: AppColors.error.withOpacity(0.15),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TopBar(
+          leadingIcon: Icons.arrow_back_ios_new_rounded,
+          onLeadingPressed: onRetry,
+        ),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(22),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground.withOpacity(0.96),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: AppColors.error.withOpacity(0.15),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.error,
+                        size: 58,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'حدث خطأ',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.headlineMedium.copyWith(
+                          fontSize: 26,
+                          color: AppColors.error,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontSize: 14,
+                          height: 1.4,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: onRetry,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            'رجوع',
+                            style: AppTextStyles.button.copyWith(
+                              fontSize: 17,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                color: AppColors.error,
-                size: 58,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'حدث خطأ',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontSize: 26,
-                  color: AppColors.error,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 14,
-                  height: 1.4,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: onRetry,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text(
-                    'رجوع',
-                    style: AppTextStyles.button.copyWith(
-                      fontSize: 17,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
-      ),
+      ],
     );
   }
 }
