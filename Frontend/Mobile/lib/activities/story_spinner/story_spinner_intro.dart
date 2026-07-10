@@ -49,7 +49,7 @@ class _StorySpinnerIntroState extends State<StorySpinnerIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => StorySpinnerWheelScreen(

@@ -243,7 +243,16 @@ class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {
       }
 
       await _completeActivity();
-      emit(const EmpathyMirrorLevelComplete());
+
+      // The final split-screen challenge must also show the unified
+      // correct-answer screen before returning to the roadmap.
+      emit(
+        EmpathyMirrorChallengeResult(
+          isCorrect: true,
+          isSplitScreen: true,
+          snapshot: newState,
+        ),
+      );
       return;
     }
 

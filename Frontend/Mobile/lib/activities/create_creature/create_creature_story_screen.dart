@@ -10,6 +10,7 @@ import '../../cubits/activities/create_creature/create_creature_state.dart';
 import '../../screens/roadmap/roadmap_screen.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'icon_arabic_labels.dart';
 import 'widgets/story_elements_card.dart';
 import 'widgets/voice_recorder_widget.dart';
@@ -149,14 +150,6 @@ class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
   Widget build(BuildContext context) {
     return BlocConsumer<CreateCreatureCubit, CreateCreatureState>(
       listener: (context, state) {
-        if (state is CreateCreatureActivityComplete) {
-          Navigator.of(context).popUntil(
-                (route) =>
-            route.settings.name == RoadmapScreen.routeName ||
-                route.isFirst,
-          );
-        }
-
         if (state is CreateCreatureError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -199,6 +192,19 @@ class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
         );
       },
       builder: (context, state) {
+        if (state is CreateCreatureActivityComplete) {
+          return ActivityFeedbackView(
+            type: ActivityFeedbackType.correct,
+            onPrimaryPressed: () {
+              Navigator.of(context).popUntil(
+                    (route) =>
+                route.settings.name == RoadmapScreen.routeName ||
+                    route.isFirst,
+              );
+            },
+          );
+        }
+
         if (state is CreateCreatureError) {
           return Scaffold(
             body: Center(

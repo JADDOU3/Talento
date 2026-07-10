@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../cubits/adventure_maze/adventure_maze_cubit.dart';
-import '../../cubits/adventure_maze/adventure_maze_state.dart';
+import '../../cubits/activities/adventure_maze/adventure_maze_cubit.dart';
+import '../../cubits/activities/adventure_maze/adventure_maze_state.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
 import '../../services/activities/adventure_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'widgets/adventure_maze_game_widget.dart';
 import 'widgets/star_progress_bar.dart';
 import 'widgets/star_question_popup.dart';
@@ -56,7 +57,6 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
   final TiltController _tiltController = TiltController();
   AdventureMazeGame? _game;
   Timer? _timer;
-  bool _completedNavigated = false;
   bool _popupOpen = false;
   int? _lastCollectedCount;
   bool _endBlockRemoved = false;
@@ -149,14 +149,20 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
                 _openPopupIfNeeded(context, state);
               }
 
-              if (state is AdventureMazeComplete &&
-                  !_completedNavigated) {
-                _completedNavigated = true;
+              if (state is AdventureMazeComplete) {
                 _timer?.cancel();
-                _showCompleteDialog(context);
               }
             },
             builder: (context, state) {
+              if (state is AdventureMazeComplete) {
+                return ActivityFeedbackView(
+                  type: ActivityFeedbackType.correct,
+                  onPrimaryPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                );
+              }
+
               if (state is AdventureMazeLoading ||
                   state is AdventureMazeInitial) {
                 return const AppBackground(
@@ -290,52 +296,6 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
   }
 
 
-  void _showCompleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.emoji_events_rounded,
-                  size: 64, color: AppColors.yellow),
-              const SizedBox(height: 12),
-              const Text(
-                'أحسنت! جمعت كل النجوم ووصلت للنهاية 🎉',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(dialogCtx);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                ),
-                child: const Text('تم'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildError(BuildContext context, String message) {
     return Center(

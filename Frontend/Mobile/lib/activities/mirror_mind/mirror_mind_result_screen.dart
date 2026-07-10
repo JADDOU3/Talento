@@ -22,10 +22,7 @@ class MirrorMindResultScreen extends StatelessWidget {
   });
 
   void _goToRoadmap(BuildContext context) {
-    Navigator.popUntil(
-      context,
-          (route) => route.isFirst,
-    );
+    Navigator.of(context).pop();
   }
 
   void _replayActivity(BuildContext context) {

@@ -12,6 +12,7 @@ import '../../cubits/activities/bodily_maze/bodily_maze_state.dart';
 import '../../services/activities/bodily_maze_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'widgets/bodily_maze_game_widget.dart';
 
 /// The Bodily Maze play screen: maze image + transparent Flame ball overlay,
@@ -61,7 +62,6 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
   final TiltController _tiltController = TiltController();
   BodilyMazeGame? _game;
   Timer? _timer;
-  bool _completedNavigated = false;
 
   @override
   void dispose() {
@@ -95,13 +95,20 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
                 _startTimer(context);
               }
 
-              if (state is BodilyMazeComplete && !_completedNavigated) {
-                _completedNavigated = true;
+              if (state is BodilyMazeComplete) {
                 _timer?.cancel();
-                _showCompleteDialog(context);
               }
             },
             builder: (context, state) {
+              if (state is BodilyMazeComplete) {
+                return ActivityFeedbackView(
+                  type: ActivityFeedbackType.correct,
+                  onPrimaryPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                );
+              }
+
               if (state is BodilyMazeLoading ||
                   state is BodilyMazeInitial) {
                 return const AppBackground(
@@ -219,52 +226,6 @@ class _BodilyMazeViewState extends State<_BodilyMazeView> {
   }
 
 
-  void _showCompleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.emoji_events_rounded,
-                  size: 64, color: AppColors.yellow),
-              const SizedBox(height: 12),
-              const Text(
-                'أحسنت! وصلت للنهاية 🎉',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(dialogCtx); // close dialog
-                  Navigator.pop(context); // leave game
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                ),
-                child: const Text('تم'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildError(BuildContext context, String message) {
     return Center(

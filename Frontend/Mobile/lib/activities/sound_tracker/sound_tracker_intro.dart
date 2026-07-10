@@ -97,7 +97,7 @@ class _SoundTrackerIntroState extends State<SoundTrackerIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => SoundTrackerVoiceScreen(

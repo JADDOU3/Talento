@@ -75,7 +75,7 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
 
   // Level 4 (free coloring) — read the result on submit via this key.
   final GlobalKey<FreeColoringWidgetState> _coloringKey =
-      GlobalKey<FreeColoringWidgetState>();
+  GlobalKey<FreeColoringWidgetState>();
   bool _hasColoring = false;
 
   void _startTimer(BuildContext context) {
@@ -126,13 +126,8 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
         if (state is ColorLabLevelComplete) {
           _timer?.cancel();
 
-          // Show a final celebration then pop back to roadmap
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const _LevelCompleteDialog(),
-          );
-
+          // The last challenge already showed the unified correct-answer screen.
+          // After pressing "التالي", return directly to the roadmap.
           if (context.mounted) {
             Navigator.of(context).pop();
           }
@@ -268,11 +263,11 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
     final eval = _coloringKey.currentState?.evaluateColoring();
     if (eval == null || !eval.hasColoring) return;
     context.read<ColorLabCubit>().submitColoring(
-          hasColoring: eval.hasColoring,
-          insideRatio: eval.insideRatio,
-          dominantRgb: eval.dominantRgb,
-          maskReliable: eval.maskReliable,
-        );
+      hasColoring: eval.hasColoring,
+      insideRatio: eval.insideRatio,
+      dominantRgb: eval.dominantRgb,
+      maskReliable: eval.maskReliable,
+    );
   }
 
   Widget _buildError(BuildContext context, String message) {
@@ -347,57 +342,6 @@ class _SubmitButton extends StatelessWidget {
               color: AppColors.white,
               fontWeight: FontWeight.w900,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LevelCompleteDialog extends StatelessWidget {
-  const _LevelCompleteDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🎉', style: TextStyle(fontSize: 56)),
-              const SizedBox(height: 12),
-              Text(
-                'لقد اكتشفت أسرار الألوان!',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.primary,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text('رائع!'),
-                ),
-              ),
-            ],
           ),
         ),
       ),

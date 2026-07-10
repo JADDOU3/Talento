@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../activities/adventure_maze/config/adventure_maze_level_config.dart';
-import '../../models/activities/adventure_maze/adventure_maze_models.dart';
-import '../../services/activities/adventure_maze_service.dart';
+import '../../../activities/adventure_maze/config/adventure_maze_level_config.dart';
+import '../../../models/activities/adventure_maze/adventure_maze_models.dart';
+import '../../../services/activities/adventure_maze_service.dart';
 import 'adventure_maze_state.dart';
 
 class AdventureMazeCubit extends Cubit<AdventureMazeState> {

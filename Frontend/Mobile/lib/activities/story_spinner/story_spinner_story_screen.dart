@@ -8,8 +8,8 @@ import '../../cubits/activities/story_spinner/story_spinner_state.dart';
 import '../../models/activities/story_spinner/icon_arabic_labels.dart';
 import '../../shared/layout/app_background.dart';
 import 'widgets/voice_recorder_widget.dart';
-import '../../screens/roadmap/roadmap_screen.dart';
 import '../../shared/layout/top_bar.dart';
+import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 
 String _cleanStoryIconName(String icon) {
   var clean = icon.trim();
@@ -60,24 +60,6 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
       textDirection: TextDirection.rtl,
       child: BlocConsumer<StorySpinnerCubit, StorySpinnerState>(
         listener: (context, state) {
-          if (state is StorySpinnerActivityComplete) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'أحسنتِ! تم إنهاء النشاط بنجاح 🎉',
-                  textDirection: TextDirection.rtl,
-                ),
-                duration: Duration(seconds: 2),
-              ),
-            );
-
-            Navigator.of(context).popUntil(
-                  (route) =>
-              route.settings.name == RoadmapScreen.routeName || route.isFirst,
-            );
-            return;
-          }
-
           if (state is StorySpinnerError) {
             setState(() {
               _isCompleting = false;
@@ -106,6 +88,13 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
   }
 
   Widget _buildBody(BuildContext context, StorySpinnerState state) {
+    if (state is StorySpinnerActivityComplete) {
+      return ActivityFeedbackView(
+        type: ActivityFeedbackType.correct,
+        onPrimaryPressed: _returnToRoadmap,
+      );
+    }
+
     if (state is StorySpinnerLoaded) {
       return _LoadedStoryView(
         state: state,
@@ -131,6 +120,15 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
         color: AppColors.primary,
       ),
     );
+  }
+
+  void _returnToRoadmap() {
+    final navigator = Navigator.of(context);
+
+    // Current stack after starting the activity:
+    // Roadmap -> StorySpinnerWheelScreen -> StorySpinnerStoryScreen.
+    navigator.pop();
+    navigator.pop();
   }
 
   void _toggleRecording() {

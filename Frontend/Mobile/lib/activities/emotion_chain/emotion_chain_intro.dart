@@ -44,7 +44,7 @@ class _EmotionChainIntroState extends State<EmotionChainIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => EmotionChainVideoScreen(

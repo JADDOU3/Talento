@@ -154,43 +154,9 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
           }
 
           if (state is SoundTrackerActivityComplete) {
-            final activityId = widget.activityId;
-            final childId = widget.childId;
-            final sessionId = widget.sessionId;
-
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => SoundTrackerActivityCompleteScreen(
-                  onReplayPressed: (completeContext) async {
-                    final newActivitySessionId =
-                    await SoundTrackerService().createActivitySession(
-                      activityId: activityId,
-                      sessionId: sessionId,
-                    );
-
-                    if (!completeContext.mounted) return;
-
-                    Navigator.of(completeContext).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => SoundTrackerVoiceScreen(
-                          activityId: activityId,
-                          activitySessionId: newActivitySessionId,
-                          childId: childId,
-                          sessionId: sessionId,
-                          startLevelId: null,
-                          startLevelNumber: 1,
-                        ),
-                      ),
-                    );
-                  },
-                  onBackToRoadmapPressed: () {
-                    Navigator.of(context).popUntil(
-                          (route) => route.isFirst,
-                    );
-                  },
-                ),
-              ),
-            );
+            // Completion has already been shown through the unified
+            // correct-answer screen. Return directly to the roadmap.
+            Navigator.of(context).pop();
           }
         },
         builder: (context, state) {
@@ -225,6 +191,12 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
             },
             onContinuePressed: () {
               Navigator.of(resultContext).pop();
+
+              if (previousState.isLastLevel) {
+                Navigator.of(context).pop();
+                return;
+              }
+
               context.read<SoundTrackerCubit>().goToNextLevel();
             },
           );

@@ -95,7 +95,7 @@ class _PatternHackerIntroState extends State<PatternHackerIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => PatternHackerGameScreen(

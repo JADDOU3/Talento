@@ -218,6 +218,14 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
       action: 'COMPLETED',
     );
 
+    if (currentState.isLastLevel) {
+      // Save the full activity completion first, then keep the unified
+      // correct-answer screen visible until the child presses "التالي".
+      await _completeActivity(
+        emitCompletionState: false,
+      );
+    }
+
     emit(
       SoundTrackerResult(
         isCorrect: true,
@@ -358,7 +366,13 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
     );
   }
 
-  Future<void> _completeActivity() async {
+  Future<void> _completeActivity({
+    bool emitCompletionState = true,
+  }) async {
+    if (_activityCompleted) {
+      return;
+    }
+
     _activityCompleted = true;
 
     await _soundTrackerService.postActivityEvent(
@@ -370,7 +384,9 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
 
     await _soundTrackerService.completeActivitySession(_activitySessionId);
 
-    emit(const SoundTrackerActivityComplete());
+    if (emitCompletionState) {
+      emit(const SoundTrackerActivityComplete());
+    }
   }
 
   SoundTrackerLoaded _buildLoadedState({

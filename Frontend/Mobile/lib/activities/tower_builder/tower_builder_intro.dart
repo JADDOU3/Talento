@@ -25,7 +25,7 @@ class TowerBuilderIntro extends StatelessWidget {
   });
 
   void _openBuildScreen(BuildContext context) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => BlocProvider(
           create: (_) => TowerBuilderCubit(),
@@ -43,7 +43,7 @@ class TowerBuilderIntro extends StatelessWidget {
   }
 
   void _openReplay(BuildContext context) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => BlocProvider(
           create: (_) => TowerBuilderCubit(),
