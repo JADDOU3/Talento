@@ -32,12 +32,6 @@ class PatternHackerLoaded extends PatternHackerState {
   final String currentAttemptStartedAt;
   final Duration elapsed;
 
-  /// Hint stage (0 = none, up to 4) driven by inactivity.
-  final int hintLevel;
-
-  /// True briefly when rapid random tapping is detected.
-  final bool randomPress;
-
   const PatternHackerLoaded({
     required this.levels,
     required this.currentLevelIndex,
@@ -47,8 +41,6 @@ class PatternHackerLoaded extends PatternHackerState {
     required this.attemptNumber,
     required this.currentAttemptStartedAt,
     required this.elapsed,
-    this.hintLevel = 0,
-    this.randomPress = false,
   });
 
   PatternHackerLevelModel get level => levels[currentLevelIndex];
@@ -84,28 +76,24 @@ class PatternHackerLoaded extends PatternHackerState {
     int? attemptNumber,
     String? currentAttemptStartedAt,
     Duration? elapsed,
-    int? hintLevel,
-    bool? randomPress,
   }) {
     return PatternHackerLoaded(
       levels: levels ?? this.levels,
       currentLevelIndex: currentLevelIndex ?? this.currentLevelIndex,
       currentChallengeIndex:
-          currentChallengeIndex ?? this.currentChallengeIndex,
+      currentChallengeIndex ?? this.currentChallengeIndex,
       selectedIcon:
-          clearSelectedIcon ? null : selectedIcon ?? this.selectedIcon,
+      clearSelectedIcon ? null : selectedIcon ?? this.selectedIcon,
       currentAttemptId: currentAttemptId ?? this.currentAttemptId,
       attemptNumber: attemptNumber ?? this.attemptNumber,
       currentAttemptStartedAt:
-          currentAttemptStartedAt ?? this.currentAttemptStartedAt,
+      currentAttemptStartedAt ?? this.currentAttemptStartedAt,
       elapsed: elapsed ?? this.elapsed,
-      hintLevel: hintLevel ?? this.hintLevel,
-      randomPress: randomPress ?? this.randomPress,
     );
   }
 }
 
-/// Brief feedback shown after submitting (correct / wrong) before auto-advance.
+/// Unified feedback shown after submitting a correct or wrong answer.
 class PatternHackerChallengeResult extends PatternHackerState {
   final bool isCorrect;
   final PatternHackerLoaded previousState;

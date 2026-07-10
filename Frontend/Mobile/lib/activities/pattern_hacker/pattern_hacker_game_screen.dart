@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/activities/pattern_hacker/pattern_hacker_cubit.dart';
 import '../../cubits/activities/pattern_hacker/pattern_hacker_state.dart';
-import '../../services/tts_service.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
@@ -70,69 +69,23 @@ class _PatternHackerGameView extends StatefulWidget {
 }
 
 class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
-  final TtsService _tts = TtsService();
-  int _lastHintLevel = 0;
-  bool _lastRandomPress = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _tts.init();
-  }
-
-  @override
-  void dispose() {
-    _tts.stop();
-    super.dispose();
-  }
-
   void _onState(BuildContext context, PatternHackerState state) {
-    if (state is PatternHackerGameComplete) {
-      _tts.speak('أحسنت!');
+    if (state is! PatternHackerGameComplete) {
+      return;
+    }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PatternHackerResultScreen(
-            elapsed: state.elapsed,
-            activityId: widget.activityId,
-            activitySessionId: widget.activitySessionId,
-            childId: widget.childId,
-            sessionId: widget.sessionId,
-          ),
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatternHackerResultScreen(
+          elapsed: state.elapsed,
+          activityId: widget.activityId,
+          activitySessionId: widget.activitySessionId,
+          childId: widget.childId,
+          sessionId: widget.sessionId,
         ),
-      );
-
-      return;
-    }
-
-    if (state is PatternHackerChallengeResult) {
-      _tts.speak(
-        state.isCorrect
-            ? 'أحسنت! إجابة رائعة.'
-            : 'قريب جدًا! فكر مرة أخرى وحاول من جديد.',
-      );
-      _lastHintLevel = 0;
-      _lastRandomPress = false;
-      return;
-    }
-
-    if (state is PatternHackerLevelComplete) {
-      _tts.speak('أحسنت! إجابة رائعة.');
-      return;
-    }
-
-    if (state is PatternHackerLoaded) {
-      if (state.randomPress && !_lastRandomPress) {
-        _tts.speak(mascotHintText(state.hintLevel, true));
-      } else if (state.hintLevel != _lastHintLevel && state.hintLevel >= 1) {
-        _tts.speak(mascotHintText(state.hintLevel, false));
-      }
-
-      _lastHintLevel = state.hintLevel;
-      _lastRandomPress = state.randomPress;
-      return;
-    }
+      ),
+    );
   }
 
   @override
@@ -248,12 +201,10 @@ class _LoadedGameView extends StatelessWidget {
                           PatternSequenceWidget(
                             sequence: challenge.sequence,
                             selectedIcon: state.selectedIcon,
-                            hintLevel: state.hintLevel,
                           ),
                           const SizedBox(height: 16),
-                          _MascotHint(
-                            hintLevel: state.hintLevel,
-                            randomPress: state.randomPress,
+                          _TonkyLevelDescription(
+                            levelNumber: state.currentLevelNumber,
                           ),
                           const SizedBox(height: 16),
                           PatternChoicesWidget(
@@ -349,6 +300,85 @@ class _LevelHeader extends StatelessWidget {
   }
 }
 
+
+class _TonkyLevelDescription extends StatelessWidget {
+  final int levelNumber;
+
+  const _TonkyLevelDescription({
+    required this.levelNumber,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Transform.translate(
+          offset: const Offset(8, 0),
+          child: Image.asset(
+            'assets/images/template_mascot.png',
+            width: 126,
+            height: 126,
+            fit: BoxFit.contain,
+          ),
+        ),
+        Expanded(
+          child: Container(
+            transform: Matrix4.translationValues(6, 0, 0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 15,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.pink.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppColors.pink.withOpacity(0.22),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.pink.withOpacity(0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Text(
+              _descriptionForLevel(levelNumber),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'ArialRounded',
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _descriptionForLevel(int levelNumber) {
+    switch (levelNumber) {
+      case 1:
+        return 'راقب تكرار الأشكال، ثم اختر الشكل الذي يُكمل النمط.';
+      case 2:
+        return 'انتبه لترتيب الأشكال جيدًا، وابحث عن القاعدة المتكررة.';
+      case 3:
+        return 'تابع النمط من اليمين إلى اليسار، ثم اختر الشكل التالي.';
+      case 4:
+        return 'بعض الأنماط تتغيّر خطوة بعد خطوة، ركّز في كل شكل.';
+      case 5:
+        return 'اجمع كل ما تعلّمته واكتشف الشكل الناقص في النمط.';
+      default:
+        return 'راقب ترتيب الأشكال، ثم اختر الشكل المناسب لإكمال النمط.';
+    }
+  }
+}
+
+
 class _ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -409,93 +439,4 @@ class _ErrorView extends StatelessWidget {
       ],
     );
   }
-}
-
-/// The mascot (Tonky) with a reactive speech bubble. The text escalates with
-/// the hint level and reacts to random pressing.
-class _MascotHint extends StatelessWidget {
-  final int hintLevel;
-  final bool randomPress;
-
-  const _MascotHint({
-    required this.hintLevel,
-    required this.randomPress,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isActiveHint = randomPress || hintLevel >= 1;
-    final bubbleColor = isActiveHint ? AppColors.pink : AppColors.secondary;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Image.asset(
-          'assets/images/template_mascot.png',
-          width: 110,
-          height: 110,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const SizedBox(width: 0),
-        ),
-        Expanded(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            transform: Matrix4.translationValues(6, 0, 0),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            decoration: BoxDecoration(
-              color: bubbleColor.withOpacity(0.14),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: bubbleColor.withOpacity(0.28),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: bubbleColor.withOpacity(0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Text(
-              _hintText(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'ArialRounded',
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-                height: 1.35,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _hintText() => mascotHintText(hintLevel, randomPress);
-}
-
-/// Shared mascot line so the speech bubble and the TTS voice stay in sync.
-String mascotHintText(int hintLevel, bool randomPress) {
-  if (randomPress) {
-    return 'فكرة مثيرة! 🤔 لكن لننظر إلى النمط مرة أخرى';
-  }
-
-  if (hintLevel >= 4) {
-    return 'انظر إلى الجزء المميّز… النمط يعيد نفسه، فما الذي يأتي بعده؟ ✨';
-  }
-
-  if (hintLevel >= 3) {
-    return 'أعتقد أن هذا الجزء يعيد نفسه… 🔁';
-  }
-
-  if (hintLevel >= 1) {
-    return 'انتبه جيدًا… الأشكال تتكرر بترتيب معيّن 👀';
-  }
-
-  return 'هل ترى شيئًا يتكرر؟';
 }

@@ -167,7 +167,7 @@ class _BackButton extends StatelessWidget {
             ],
           ),
           child: const Icon(
-            Icons.arrow_forward_ios_rounded,
+            Icons.arrow_back_ios_new_rounded,
             color: AppColors.primary,
             size: 18,
           ),
