@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/activities/adventure_maze/adventure_maze_launcher.dart' show AdventureMazeLauncher;
 import 'package:mobile/activities/emotional_maze/emotional_maze_launcher.dart';
 
 import '../../activities/color_lab/color_lab_launcher.dart';
@@ -404,6 +405,19 @@ class _RoadmapView extends StatelessWidget {
       return;
     }
 
+    if (activityName == 'adventure maze') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdventureMazeLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
+      return;
+    }
 
     _showMessage(
       context,
