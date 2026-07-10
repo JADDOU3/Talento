@@ -5,9 +5,11 @@ import 'package:http/http.dart' as http;
 import '../../core/config/api_constants.dart';
 import '../../models/journal/journal_models.dart';
 import '../auth/auth_api_client.dart';
+import '../kit/kit_service.dart';
 
 class JournalService {
   final AuthApiClient _client = AuthApiClient();
+  final KitService _kitService = KitService();
 
   Future<int?> getSelectedChildId() async {
     final response = await _client.get(
@@ -38,6 +40,86 @@ class JournalService {
 
     throw Exception(
       _extractErrorMessage(response.body, 'Failed to load selected child'),
+    );
+  }
+
+  Future<JournalActivitiesProgressModel> getActivitiesProgress(
+      int childId,
+      ) async {
+    final sessionsResponse = await _client.get(
+      Uri.parse(ApiConstants.sessionsByChild(childId)),
+    );
+
+    final sessions = _parseListResponse(
+      sessionsResponse,
+      fallbackError: 'Failed to load child sessions',
+      listKeys: [
+        'data',
+        'sessions',
+        'items',
+        'content',
+        'result',
+      ],
+    );
+
+    if (sessions.isEmpty) {
+      return const JournalActivitiesProgressModel.empty();
+    }
+
+    final latestSession = _findLatestSession(sessions);
+    final kitId = _extractKitId(latestSession);
+
+    if (kitId == null || kitId <= 0) {
+      return const JournalActivitiesProgressModel.empty();
+    }
+
+    final results = await Future.wait<dynamic>([
+      _getCompletedActivitiesCount(),
+      _kitService.getActivitiesCountByKitId(kitId),
+    ]);
+
+    return JournalActivitiesProgressModel(
+      completedActivities: results[0] as int,
+      totalActivities: results[1] as int,
+    );
+  }
+
+  Future<int> _getCompletedActivitiesCount() async {
+    final response = await _client.get(
+      Uri.parse(ApiConstants.roadmapCompletedCount),
+    );
+
+    if (response.statusCode == 404 || response.body.trim().isEmpty) {
+      return 0;
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = _decodeJson(response);
+
+      if (decoded == null) return 0;
+      if (decoded is int) return decoded;
+      if (decoded is num) return decoded.toInt();
+
+      if (decoded is Map<String, dynamic>) {
+        return _parseInt(
+          decoded['completedActivities'] ??
+              decoded['completed_activities'] ??
+              decoded['completedCount'] ??
+              decoded['count'] ??
+              decoded['data'] ??
+              decoded['result'],
+        ) ??
+            0;
+      }
+
+      return int.tryParse(decoded.toString()) ?? 0;
+    }
+
+    throw Exception(
+      _extractErrorMessage(
+        response.body,
+        'Failed to load completed activities count',
+      ),
     );
   }
 
@@ -227,6 +309,86 @@ class JournalService {
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList();
+  }
+
+  Map<String, dynamic> _findLatestSession(
+      List<Map<String, dynamic>> sessions,
+      ) {
+    if (sessions.isEmpty) return <String, dynamic>{};
+
+    final sorted = List<Map<String, dynamic>>.from(sessions);
+
+    sorted.sort((a, b) {
+      final aDate = _extractSessionDate(a);
+      final bDate = _extractSessionDate(b);
+
+      if (aDate != null && bDate != null) {
+        return bDate.compareTo(aDate);
+      }
+
+      final aId = _parseInt(a['id'] ?? a['sessionId']) ?? 0;
+      final bId = _parseInt(b['id'] ?? b['sessionId']) ?? 0;
+      return bId.compareTo(aId);
+    });
+
+    return sorted.first;
+  }
+
+  DateTime? _extractSessionDate(Map<String, dynamic> session) {
+    final value = session['updatedAt'] ??
+        session['createdAt'] ??
+        session['startedAt'] ??
+        session['startTime'] ??
+        session['endedAt'] ??
+        session['completedAt'];
+
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
+  }
+
+  int? _extractKitId(Map<String, dynamic> session) {
+    final directKitId = _parseInt(
+      session['kitId'] ??
+          session['kit_id'] ??
+          session['usedKitId'] ??
+          session['lastUsedKitId'],
+    );
+
+    if (directKitId != null && directKitId > 0) {
+      return directKitId;
+    }
+
+    final kit = session['kit'];
+    if (kit is Map) {
+      final nestedKitId = _parseInt(kit['id'] ?? kit['kitId']);
+      if (nestedKitId != null && nestedKitId > 0) {
+        return nestedKitId;
+      }
+    }
+
+    final activity = session['activity'];
+    if (activity is Map) {
+      final activityKitId = _parseInt(
+        activity['kitId'] ?? activity['kit_id'],
+      );
+
+      if (activityKitId != null && activityKitId > 0) {
+        return activityKitId;
+      }
+
+      final activityKit = activity['kit'];
+      if (activityKit is Map) {
+        final nestedActivityKitId = _parseInt(
+          activityKit['id'] ?? activityKit['kitId'],
+        );
+
+        if (nestedActivityKitId != null && nestedActivityKitId > 0) {
+          return nestedActivityKitId;
+        }
+      }
+    }
+
+    return null;
   }
 
   dynamic _decodeJson(http.Response response) {
