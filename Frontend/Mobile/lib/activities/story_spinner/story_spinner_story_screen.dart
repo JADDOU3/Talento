@@ -104,8 +104,11 @@ class _StorySpinnerStoryScreenState extends State<StorySpinnerStoryScreen> {
         isRecording: _isRecording,
         isCompleting: _isCompleting,
         onToggleRecording: _toggleRecording,
-        onRecordingComplete: (filePath) {
-          context.read<StorySpinnerCubit>().onRecordingComplete(filePath);
+        onRecordingComplete: (filePath, recordingDuration) {
+          context.read<StorySpinnerCubit>().onRecordingComplete(
+            filePath,
+            recordingDuration,
+          );
         },
         onDone: _done,
       );
@@ -168,7 +171,10 @@ class _LoadedStoryView extends StatelessWidget {
   final bool isRecording;
   final bool isCompleting;
   final VoidCallback onToggleRecording;
-  final void Function(String filePath) onRecordingComplete;
+  final void Function(
+      String filePath,
+      Duration recordingDuration,
+      ) onRecordingComplete;
   final VoidCallback onDone;
 
   const _LoadedStoryView({

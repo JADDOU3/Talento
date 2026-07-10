@@ -29,7 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String? selectedRelation;
   bool _isLoading = false;
 
-  final List<String> relations = ['الأم', 'الأب', 'أخرى'];
+  final List<String> relations = ['الأم', 'الأب'];
 
   @override
   void dispose() {
@@ -45,8 +45,6 @@ class _SignupScreenState extends State<SignupScreen> {
       case 'الأم':
         return 'FEMALE';
       case 'الأب':
-        return 'MALE';
-      case 'أخرى':
         return 'MALE';
       default:
         return 'MALE';

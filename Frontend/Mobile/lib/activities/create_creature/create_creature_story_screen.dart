@@ -44,17 +44,23 @@ class _CreateCreatureStoryView extends StatefulWidget {
 }
 
 class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
+  static const Duration _maximumRecordingDuration = Duration(minutes: 3);
+
   final AudioRecorder _audioRecorder = AudioRecorder();
   final ScrollController _scrollController = ScrollController();
 
   bool _isRecording = false;
   bool _isSubmitting = false;
+  bool _isStartingRecording = false;
+  bool _isStoppingRecording = false;
+  DateTime? _recordingStartedAt;
   Duration _recordingDuration = Duration.zero;
   Timer? _durationTimer;
+  Timer? _maximumDurationTimer;
 
   @override
   void dispose() {
-    _durationTimer?.cancel();
+    _cancelRecordingTimers();
     _audioRecorder.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -86,50 +92,177 @@ class _CreateCreatureStoryViewState extends State<_CreateCreatureStoryView> {
   }
 
   Future<void> _toggleRecording() async {
-    final cubit = context.read<CreateCreatureCubit>();
-
-    if (_isRecording) {
-      final path = await _audioRecorder.stop();
-      _durationTimer?.cancel();
-
-      setState(() {
-        _isRecording = false;
-        _recordingDuration = Duration.zero;
-      });
-
-      if (path != null && path.isNotEmpty) {
-        cubit.onRecordingComplete(path);
-      }
-
+    if (_isSubmitting ||
+        _isStartingRecording ||
+        _isStoppingRecording) {
       return;
     }
 
-    final hasPermission = await _audioRecorder.hasPermission();
-    if (!hasPermission) return;
+    if (_isRecording) {
+      await _stopRecording();
+      return;
+    }
 
-    cubit.onRecordingCleared();
+    final cubit = context.read<CreateCreatureCubit>();
+    _isStartingRecording = true;
 
-    final path =
-        '${Directory.systemTemp.path}/creature_story_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    try {
+      final hasPermission = await _audioRecorder.hasPermission();
 
-    await _audioRecorder.start(
-      const RecordConfig(),
-      path: path,
-    );
+      if (!hasPermission) {
+        if (!mounted) return;
 
-    setState(() {
-      _isRecording = true;
-      _recordingDuration = Duration.zero;
-    });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'لازم نسمح باستخدام المايكروفون حتى نقدر نسجل القصة.',
+              textDirection: TextDirection.rtl,
+            ),
+          ),
+        );
+        return;
+      }
 
-    _durationTimer?.cancel();
+      cubit.onRecordingCleared();
+
+      final path =
+          '${Directory.systemTemp.path}/creature_story_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+      await _audioRecorder.start(
+        const RecordConfig(),
+        path: path,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isRecording = true;
+        _recordingStartedAt = DateTime.now();
+        _recordingDuration = Duration.zero;
+      });
+
+      _startRecordingTimers();
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تعذر بدء التسجيل: $error',
+            textDirection: TextDirection.rtl,
+          ),
+        ),
+      );
+    } finally {
+      _isStartingRecording = false;
+    }
+  }
+
+  Future<void> _stopRecording({
+    bool reachedMaximumDuration = false,
+  }) async {
+    if (!_isRecording || _isStoppingRecording) return;
+
+    _isStoppingRecording = true;
+    _cancelRecordingTimers();
+
+    try {
+      final completedDuration = reachedMaximumDuration
+          ? _maximumRecordingDuration
+          : _currentRecordingDuration();
+
+      final path = await _audioRecorder.stop();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isRecording = false;
+        _recordingStartedAt = null;
+        _recordingDuration = completedDuration;
+      });
+
+      if (path != null && path.trim().isNotEmpty) {
+        context.read<CreateCreatureCubit>().onRecordingComplete(
+          path,
+          completedDuration,
+        );
+      }
+
+      if (reachedMaximumDuration) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'تم إيقاف التسجيل تلقائيًا، لا يمكن أن تزيد مدته عن 3 دقائق.',
+                textDirection: TextDirection.rtl,
+              ),
+              duration: Duration(seconds: 4),
+            ),
+          );
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isRecording = false;
+        _recordingStartedAt = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تعذر حفظ التسجيل: $error',
+            textDirection: TextDirection.rtl,
+          ),
+        ),
+      );
+    } finally {
+      _isStoppingRecording = false;
+    }
+  }
+
+  void _startRecordingTimers() {
+    _cancelRecordingTimers();
+
     _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || !_isRecording) return;
 
       setState(() {
-        _recordingDuration += const Duration(seconds: 1);
+        _recordingDuration = _currentRecordingDuration();
       });
     });
+
+    _maximumDurationTimer = Timer(
+      _maximumRecordingDuration,
+          () => unawaited(
+        _stopRecording(reachedMaximumDuration: true),
+      ),
+    );
+  }
+
+  Duration _currentRecordingDuration() {
+    final startedAt = _recordingStartedAt;
+
+    if (startedAt == null) {
+      return _recordingDuration;
+    }
+
+    final elapsed = DateTime.now().difference(startedAt);
+
+    if (elapsed >= _maximumRecordingDuration) {
+      return _maximumRecordingDuration;
+    }
+
+    return elapsed;
+  }
+
+  void _cancelRecordingTimers() {
+    _durationTimer?.cancel();
+    _durationTimer = null;
+
+    _maximumDurationTimer?.cancel();
+    _maximumDurationTimer = null;
   }
 
   Future<void> _onStoryDone(CreateCreatureCubit cubit) async {

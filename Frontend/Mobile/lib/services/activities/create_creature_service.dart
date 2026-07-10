@@ -385,7 +385,14 @@ class CreateCreatureService {
     required int activitySessionId,
     required int levelId,
     required List<String> keywords,
+    required Duration recordingDuration,
   }) async {
+    const maximumRecordingDuration = Duration(minutes: 3);
+
+    if (recordingDuration > maximumRecordingDuration) {
+      throw Exception('لا يمكن رفع تسجيل تزيد مدته عن 3 دقائق.');
+    }
+
     if (!await file.exists()) {
       throw Exception('Recorded audio file was not found.');
     }

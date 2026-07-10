@@ -9,7 +9,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
 class VoiceRecorderWidget extends StatefulWidget {
-  final void Function(String filePath) onRecordingComplete;
+  final void Function(
+      String filePath,
+      Duration recordingDuration,
+      ) onRecordingComplete;
   final bool isRecording;
   final VoidCallback onToggleRecording;
 
@@ -28,9 +31,13 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
 
+  static const Duration _maximumRecordingDuration = Duration(minutes: 3);
+
   Timer? _timer;
+  Timer? _maximumDurationTimer;
   StreamSubscription<void>? _playerCompleteSubscription;
 
+  DateTime? _recordingStartedAt;
   Duration _recordingDuration = Duration.zero;
   String? _lastRecordingPath;
   bool _isPreviewPlaying = false;
@@ -77,6 +84,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
 
     setState(() {
       _isStartingOrStopping = true;
+      _recordingStartedAt = null;
       _recordingDuration = Duration.zero;
       _isPreviewPlaying = false;
     });
@@ -98,7 +106,9 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
           );
         }
 
-        widget.onToggleRecording();
+        if (widget.isRecording) {
+          widget.onToggleRecording();
+        }
         return;
       }
 
@@ -114,6 +124,12 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
         path: filePath,
       );
 
+      if (!widget.isRecording) {
+        await _recorder.stop();
+        return;
+      }
+
+      _recordingStartedAt = DateTime.now();
       _startTimer();
     } catch (error) {
       if (mounted) {
@@ -127,7 +143,9 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
         );
       }
 
-      widget.onToggleRecording();
+      if (widget.isRecording) {
+        widget.onToggleRecording();
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -148,10 +166,19 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
       _stopTimer();
 
       final path = await _recorder.stop();
+      final completedDuration = _currentRecordingDuration();
+
+      _recordingStartedAt = null;
+
+      if (mounted) {
+        setState(() {
+          _recordingDuration = completedDuration;
+        });
+      }
 
       if (path != null && path.trim().isNotEmpty) {
         _lastRecordingPath = path;
-        widget.onRecordingComplete(path);
+        widget.onRecordingComplete(path, completedDuration);
       }
     } catch (error) {
       if (mounted) {
@@ -203,17 +230,67 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget> {
     _stopTimer();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
+      if (!mounted || !widget.isRecording) return;
 
       setState(() {
-        _recordingDuration += const Duration(seconds: 1);
+        _recordingDuration = _currentRecordingDuration();
       });
     });
+
+    _maximumDurationTimer = Timer(
+      _maximumRecordingDuration,
+      _stopAutomaticallyAtMaximumDuration,
+    );
+  }
+
+  void _stopAutomaticallyAtMaximumDuration() {
+    if (!mounted || !widget.isRecording) return;
+
+    _stopTimer();
+
+    setState(() {
+      _recordingDuration = _maximumRecordingDuration;
+    });
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text(
+            'تم إيقاف التسجيل تلقائيًا، لا يمكن أن تزيد مدته عن 3 دقائق.',
+            textDirection: TextDirection.rtl,
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
+
+    // The parent changes isRecording to false. didUpdateWidget then calls
+    // _stopRecording(), which saves the file normally.
+    widget.onToggleRecording();
+  }
+
+  Duration _currentRecordingDuration() {
+    final startedAt = _recordingStartedAt;
+
+    if (startedAt == null) {
+      return _recordingDuration;
+    }
+
+    final elapsed = DateTime.now().difference(startedAt);
+
+    if (elapsed >= _maximumRecordingDuration) {
+      return _maximumRecordingDuration;
+    }
+
+    return elapsed;
   }
 
   void _stopTimer() {
     _timer?.cancel();
     _timer = null;
+
+    _maximumDurationTimer?.cancel();
+    _maximumDurationTimer = null;
   }
 
   String _formatDuration(Duration duration) {
