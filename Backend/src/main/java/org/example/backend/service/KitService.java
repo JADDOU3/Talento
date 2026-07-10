@@ -11,6 +11,8 @@ import org.example.backend.repo.ChildRepo;
 import org.example.backend.repo.KitRepo;
 import org.example.backend.model.mindset.Mindset;
 import org.example.backend.repo.mindset.MindsetRepo;
+import org.example.backend.service.community.S3Service;
+import org.example.backend.util.enums.CoinReason;
 import org.example.backend.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,12 @@ public class KitService {
     @Autowired
     private MindsetRepo mindsetRepo;
 
+    @Autowired
+    private S3Service s3Service;
+
+    @Autowired
+    private CoinService coinService;
+
     public Kit createKit(CreateKitDto createKitDto) {
         Kit kit = new Kit();
         kit.setName(createKitDto.getName());
@@ -49,8 +57,9 @@ public class KitService {
             kit.setMindset(mindset);
         }
 
-        kit.setImageURL(createKitDto.getImageURL());
+        kit.setImageKey(createKitDto.getImageKey());
         kit.setKitItems(createKitDto.getKitItems());
+        kit.setImageKeys(createKitDto.getImageKeys());
         kit.setRating(createKitDto.getRating() != null ? createKitDto.getRating() : 0);
         kit.setAge(createKitDto.getAge() != null ? createKitDto.getAge() : 1);
         return kitRepo.save(kit);
@@ -73,8 +82,9 @@ public class KitService {
         }
 
         if (updateKitDto.getPrice() != null) kit.setPrice(updateKitDto.getPrice());
-        if (updateKitDto.getImageURL() != null) kit.setImageURL(updateKitDto.getImageURL());
+        if (updateKitDto.getImageKey() != null) kit.setImageKey(updateKitDto.getImageKey());
         if (updateKitDto.getKitItems() != null) kit.setKitItems(updateKitDto.getKitItems());
+        if (updateKitDto.getImageKeys() != null) kit.setImageKeys(updateKitDto.getImageKeys());
         if (updateKitDto.getRating() != null) kit.setRating(updateKitDto.getRating());
         if (updateKitDto.getAge() != null) kit.setAge(updateKitDto.getAge());
         return kitRepo.save(kit);
@@ -111,8 +121,13 @@ public class KitService {
         childKit.setChild(child);
         childKit.setAcquiredAt(LocalDateTime.now());
         childKit.setIsSelected(false);
-        return childKitRepo.save(childKit);
+        ChildKit saved = childKitRepo.save(childKit);
+
+        coinService.awardCoins(child, CoinReason.KIT_ADDED);
+
+        return saved;
     }
+
 
     @Transactional
     public String removeFromChildsCollection(int childId, int kitId) {

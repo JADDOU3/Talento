@@ -21,9 +21,10 @@ public class UpdateKitDto {
     private Integer mindsetId;
     private String description;
     private Double price;
-    private String imageURL;
+    private String imageKey;
     private List<String> kitItems;
     private Integer rating;
     private Integer age;
+    private List<String> imageKeys;
 }
 

@@ -21,4 +21,9 @@ public class PostLikeController {
     public ResponseEntity<Long> getLikeCount(@PathVariable int postId) {
         return ResponseEntity.ok(postLikeService.getLikeCount(postId));
     }
+
+    @GetMapping("/post/{postId}/liked")
+    public ResponseEntity<Boolean> isLiked(@PathVariable int postId) {
+        return ResponseEntity.ok(postLikeService.isLikedByCurrentParent(postId));
+    }
 }

@@ -11,6 +11,8 @@ class TowerBuilderIntro extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const TowerBuilderIntro({
     super.key,
@@ -18,6 +20,8 @@ class TowerBuilderIntro extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   void _openBuildScreen(BuildContext context) {
@@ -30,6 +34,26 @@ class TowerBuilderIntro extends StatelessWidget {
             activitySessionId: activitySessionId,
             childId: childId,
             sessionId: sessionId,
+            startLevelId: startLevelId,
+            startLevelNumber: startLevelNumber,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openReplay(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => TowerBuilderCubit(),
+          child: TowerBuilderBuildScreen(
+            activityId: activityId,
+            activitySessionId: activitySessionId,
+            childId: childId,
+            sessionId: sessionId,
+            startLevelId: null,
+            startLevelNumber: 1,
           ),
         ),
       ),
@@ -47,7 +71,7 @@ class TowerBuilderIntro extends StatelessWidget {
         _openBuildScreen(context);
       },
       onReplayPressed: () {
-        _openBuildScreen(context);
+        _openReplay(context);
       },
     );
   }
