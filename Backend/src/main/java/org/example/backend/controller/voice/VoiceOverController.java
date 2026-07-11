@@ -8,8 +8,8 @@ import org.example.backend.util.enums.VoiceType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.Map;
 
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/voice-over")
@@ -30,6 +30,13 @@ public class VoiceOverController {
             @PathVariable int id,
             @RequestParam(required = false) Integer level) {
         return ResponseEntity.ok(voiceService.getActivityVoice(id, level));
+    }
+
+    @GetMapping("/maze-question/{levelId}/{challengeId}")
+    public ResponseEntity<VoiceUrlResponse> getMazeQuestionVoice(
+            @PathVariable int levelId,
+            @PathVariable int challengeId) {
+        return ResponseEntity.ok(voiceService.getMazeQuestionVoice(levelId, challengeId));
     }
 
     // ---- Upload endpoints ----
@@ -54,6 +61,18 @@ public class VoiceOverController {
             return ResponseEntity.badRequest().body(Map.of("error", "File must not be empty"));
         }
         String key = voiceService.uploadActivityVoice(id, level, file);
+        return ResponseEntity.ok(Map.of("s3Key", key));
+    }
+
+    @PostMapping("/upload/maze-question/{levelId}/{challengeId}")
+    public ResponseEntity<Map<String, String>> uploadMazeQuestionVoice(
+            @PathVariable int levelId,
+            @PathVariable int challengeId,
+            @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File must not be empty"));
+        }
+        String key = voiceService.uploadMazeQuestionVoice(levelId, challengeId, file);
         return ResponseEntity.ok(Map.of("s3Key", key));
     }
 }
