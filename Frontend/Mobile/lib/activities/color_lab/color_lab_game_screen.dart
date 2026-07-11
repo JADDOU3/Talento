@@ -8,6 +8,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/color_lab/color_lab_cubit.dart';
 import '../../cubits/activities/color_lab/color_lab_state.dart';
 import '../../services/activities/color_lab_service.dart';
+import '../../shared/audio/voice_over_controller.dart';
 import '../../shared/layout/app_background.dart';
 import 'color_lab_result_screen.dart';
 import 'widgets/color_palette_widget.dart';
@@ -70,13 +71,30 @@ class _ColorLabGameView extends StatefulWidget {
 }
 
 class _ColorLabGameViewState extends State<_ColorLabGameView> {
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
+
   Timer? _timer;
   bool _timerStarted = false;
+  int? _lastPlayedLevelId;
 
   // Level 4 (free coloring) — read the result on submit via this key.
   final GlobalKey<FreeColoringWidgetState> _coloringKey =
   GlobalKey<FreeColoringWidgetState>();
   bool _hasColoring = false;
+
+  Future<void> _playLevelVoiceOver(int levelId) async {
+    if (levelId <= 0 || _lastPlayedLevelId == levelId) {
+      return;
+    }
+
+    _lastPlayedLevelId = levelId;
+
+    await _voiceOverController.playLevel(
+      activityId: context.read<ColorLabCubit>().activityId,
+      levelId: levelId,
+    );
+  }
 
   void _startTimer(BuildContext context) {
     if (_timerStarted) return;
@@ -91,10 +109,13 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
   @override
   void dispose() {
     _timer?.cancel();
+    _voiceOverController.dispose();
     super.dispose();
   }
 
   Future<bool> _onWillPop(BuildContext context) async {
+    await _voiceOverController.stop();
+
     // Step D — log ENDED if not completed
     await context.read<ColorLabCubit>().logExitIfNotCompleted();
     return true;
@@ -106,10 +127,14 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
       listener: (context, state) async {
         if (state is ColorLabLoaded) {
           _startTimer(context);
+          await _playLevelVoiceOver(state.level.id);
         }
 
         if (state is ColorLabChallengeResult) {
-          // Show feedback screen, then advance
+          // Stop the level explanation before the global SUCCESS / FAIL audio.
+          await _voiceOverController.stop();
+
+          // Show feedback screen, then advance.
           await Navigator.push(
             context,
             MaterialPageRoute(
@@ -125,6 +150,7 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
 
         if (state is ColorLabLevelComplete) {
           _timer?.cancel();
+          await _voiceOverController.stop();
 
           // The last challenge already showed the unified correct-answer screen.
           // After pressing "التالي", return directly to the roadmap.
@@ -292,9 +318,13 @@ class _ColorLabGameViewState extends State<_ColorLabGameView> {
             ),
             const SizedBox(height: 14),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 _timer?.cancel();
                 _timerStarted = false;
+                _lastPlayedLevelId = null;
+                await _voiceOverController.stop();
+
+                if (!context.mounted) return;
 
                 context.read<ColorLabCubit>().loadGame(
                   startLevelId: widget.startLevelId,

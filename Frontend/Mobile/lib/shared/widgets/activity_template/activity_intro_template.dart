@@ -87,6 +87,17 @@ class _ActivityIntroTemplateState extends State<ActivityIntroTemplate> {
     widget.onStartPressed();
   }
 
+  Future<void> _handleReplayPressed() async {
+    final activityId = widget.activityId;
+
+    if (activityId == null || activityId <= 0) {
+      widget.onReplayPressed();
+      return;
+    }
+
+    await _playIntroVoiceOver();
+  }
+
   Future<void> _handleBackPressed() async {
     await _voiceOverController.stop();
 
@@ -151,6 +162,29 @@ class _ActivityIntroTemplateState extends State<ActivityIntroTemplate> {
                                 fontFamily: 'DGAgnadeen',
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.035),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.07,
+                              ),
+                              child: ActivityTemplateButton(
+                                text: widget.replayButtonText,
+                                onPressed: _handleReplayPressed,
+                                backgroundColor:
+                                widget.replayButtonColor ??
+                                    AppColors.pink,
+                                height: 62,
+                                borderRadius: 28,
+                                fontSize: screenWidth * 0.042,
+                                textStyle:
+                                AppTextStyles.button.copyWith(
+                                  color: AppColors.white,
+                                  fontFamily: 'DGAgnadeen',
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0,
+                                ),
                               ),
                             ),
                           ],

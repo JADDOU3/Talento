@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_colors.dart';
 import '../../cubits/activities/pattern_hacker/pattern_hacker_cubit.dart';
 import '../../cubits/activities/pattern_hacker/pattern_hacker_state.dart';
+import '../../shared/audio/voice_over_controller.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
@@ -69,23 +70,67 @@ class _PatternHackerGameView extends StatefulWidget {
 }
 
 class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
+
+  int? _lastPlayedLevelId;
+
   void _onState(BuildContext context, PatternHackerState state) {
-    if (state is! PatternHackerGameComplete) {
+    if (state is PatternHackerLoaded) {
+      _playLevelVoiceOver(state.level.id);
       return;
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PatternHackerResultScreen(
-          elapsed: state.elapsed,
-          activityId: widget.activityId,
-          activitySessionId: widget.activitySessionId,
-          childId: widget.childId,
-          sessionId: widget.sessionId,
+    if (state is PatternHackerChallengeResult ||
+        state is PatternHackerLevelComplete) {
+      // Stop the level explanation before the global SUCCESS / FAIL audio.
+      _voiceOverController.stop();
+      return;
+    }
+
+    if (state is PatternHackerGameComplete) {
+      _voiceOverController.stop();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatternHackerResultScreen(
+            elapsed: state.elapsed,
+            activityId: widget.activityId,
+            activitySessionId: widget.activitySessionId,
+            childId: widget.childId,
+            sessionId: widget.sessionId,
+          ),
         ),
-      ),
+      );
+    }
+  }
+
+  Future<void> _playLevelVoiceOver(int levelId) async {
+    if (levelId <= 0 || _lastPlayedLevelId == levelId) {
+      return;
+    }
+
+    _lastPlayedLevelId = levelId;
+
+    await _voiceOverController.playLevel(
+      activityId: widget.activityId,
+      levelId: levelId,
     );
+  }
+
+  Future<void> _exitActivity() async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    _voiceOverController.dispose();
+    super.dispose();
   }
 
   @override
@@ -156,6 +201,7 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
     if (state is PatternHackerLoaded) {
       return _LoadedGameView(
         state: state,
+        onExit: _exitActivity,
       );
     }
 
@@ -165,9 +211,11 @@ class _PatternHackerGameViewState extends State<_PatternHackerGameView> {
 
 class _LoadedGameView extends StatelessWidget {
   final PatternHackerLoaded state;
+  final VoidCallback onExit;
 
   const _LoadedGameView({
     required this.state,
+    required this.onExit,
   });
 
   @override
@@ -179,7 +227,7 @@ class _LoadedGameView extends StatelessWidget {
       children: [
         TopBar(
           leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
+          onLeadingPressed: onExit,
         ),
         Expanded(
           child: SafeArea(

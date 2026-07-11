@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/tower_builder/tower_builder_cubit.dart';
 import '../../cubits/activities/tower_builder/tower_builder_state.dart';
+import '../../shared/audio/voice_over_controller.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
@@ -35,6 +36,11 @@ class TowerBuilderBuildScreen extends StatefulWidget {
 }
 
 class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
+
+  int? _lastPlayedLevelId;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +55,19 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
     );
   }
 
+  Future<void> _playLevelVoiceOver(int levelId) async {
+    if (levelId <= 0 || _lastPlayedLevelId == levelId) {
+      return;
+    }
+
+    _lastPlayedLevelId = levelId;
+
+    await _voiceOverController.playLevel(
+      activityId: widget.activityId,
+      levelId: levelId,
+    );
+  }
+
   void _showHintComingSoon() {
     context.read<TowerBuilderCubit>().onHintPressed();
 
@@ -59,7 +78,13 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
     );
   }
 
-  void _goToPinScreen(TowerBuilderLoaded state) {
+  Future<void> _goToPinScreen(
+      TowerBuilderLoaded state,
+      ) async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
@@ -75,11 +100,13 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
   }
 
   Future<bool> _onWillPop() async {
+    await _voiceOverController.stop();
     await context.read<TowerBuilderCubit>().logExitIfNotCompleted();
     return true;
   }
 
   Future<void> _exitActivity() async {
+    await _voiceOverController.stop();
     await context.read<TowerBuilderCubit>().logExitIfNotCompleted();
 
     if (mounted) {
@@ -89,6 +116,12 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
 
   void _finishActivity() {
     Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    _voiceOverController.dispose();
+    super.dispose();
   }
 
   Widget _buildLevelTitle(TowerBuilderLoaded state) {
@@ -274,7 +307,20 @@ class _TowerBuilderBuildScreenState extends State<TowerBuilderBuildScreen> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        body: BlocBuilder<TowerBuilderCubit, TowerBuilderState>(
+        body: BlocConsumer<TowerBuilderCubit, TowerBuilderState>(
+          listener: (context, state) {
+            if (state is TowerBuilderLoaded) {
+              _playLevelVoiceOver(state.level.id);
+              return;
+            }
+
+            if (state is TowerBuilderChecklistResult ||
+                state is TowerBuilderLevelComplete) {
+              // Stop the level explanation before the shared
+              // SUCCESS / FAIL voice-over starts.
+              _voiceOverController.stop();
+            }
+          },
           builder: (context, state) {
             if (state is TowerBuilderLoading) {
               return const AppBackground(
