@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../audio/voice_over_controller.dart';
 import 'button.dart';
 import 'mascot.dart';
 
-class ActivityIntroTemplate extends StatelessWidget {
+class ActivityIntroTemplate extends StatefulWidget {
   final Widget background;
   final String mascotAssetPath;
+  final int? activityId;
 
   final String startButtonText;
   final String replayButtonText;
 
   final VoidCallback onStartPressed;
+
+  /// Kept as a fallback for examples or screens that do not have an activityId.
   final VoidCallback onReplayPressed;
 
   final Color? startButtonColor;
@@ -27,6 +31,7 @@ class ActivityIntroTemplate extends StatelessWidget {
     required this.mascotAssetPath,
     required this.onStartPressed,
     required this.onReplayPressed,
+    this.activityId,
     this.startButtonText = 'ابدأ التجربة',
     this.replayButtonText = 'اسمع الشرح مرة أخرى',
     this.startButtonColor,
@@ -34,6 +39,67 @@ class ActivityIntroTemplate extends StatelessWidget {
     this.mascotAlignment = Alignment.bottomRight,
     this.mascotWidthFactor = 0.75,
   });
+
+  @override
+  State<ActivityIntroTemplate> createState() =>
+      _ActivityIntroTemplateState();
+}
+
+class _ActivityIntroTemplateState extends State<ActivityIntroTemplate> {
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _playIntroVoiceOver();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ActivityIntroTemplate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.activityId != widget.activityId) {
+      _playIntroVoiceOver();
+    }
+  }
+
+  Future<void> _playIntroVoiceOver() async {
+    final activityId = widget.activityId;
+
+    if (activityId == null || activityId <= 0) {
+      return;
+    }
+
+    await _voiceOverController.playIntro(
+      activityId: activityId,
+    );
+  }
+
+  Future<void> _handleStartPressed() async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
+    widget.onStartPressed();
+  }
+
+  Future<void> _handleBackPressed() async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
+    Navigator.pop(context);
+  }
+
+  @override
+  void dispose() {
+    _voiceOverController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +113,7 @@ class ActivityIntroTemplate extends StatelessWidget {
         body: Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned.fill(child: background),
-
+            Positioned.fill(child: widget.background),
             SafeArea(
               child: SizedBox(
                 width: double.infinity,
@@ -62,10 +127,9 @@ class ActivityIntroTemplate extends StatelessWidget {
                         top: 12,
                         right: 0,
                         child: _BackButton(
-                          onTap: () => Navigator.pop(context),
+                          onTap: _handleBackPressed,
                         ),
                       ),
-
                       Positioned(
                         top: screenHeight * 0.25,
                         left: 0,
@@ -73,52 +137,33 @@ class ActivityIntroTemplate extends StatelessWidget {
                         child: Column(
                           children: [
                             ActivityTemplateButton(
-                              text: startButtonText,
-                              onPressed: onStartPressed,
+                              text: widget.startButtonText,
+                              onPressed: _handleStartPressed,
                               backgroundColor:
-                              startButtonColor ?? AppColors.primary,
+                              widget.startButtonColor ??
+                                  AppColors.primary,
                               height: 82,
                               borderRadius: 30,
                               fontSize: screenWidth * 0.09,
-                              textStyle: AppTextStyles.headlineLarge.copyWith(
+                              textStyle:
+                              AppTextStyles.headlineLarge.copyWith(
                                 color: AppColors.white,
                                 fontFamily: 'DGAgnadeen',
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0,
                               ),
                             ),
-                            SizedBox(height: screenHeight * 0.035),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: screenWidth * 0.07,
-                              ),
-                              child: ActivityTemplateButton(
-                                text: replayButtonText,
-                                onPressed: onReplayPressed,
-                                backgroundColor:
-                                replayButtonColor ?? AppColors.pink,
-                                height: 62,
-                                borderRadius: 28,
-                                fontSize: screenWidth * 0.042,
-                                textStyle: AppTextStyles.button.copyWith(
-                                  color: AppColors.white,
-                                  fontFamily: 'DGAgnadeen',
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
-
                       Align(
-                        alignment: mascotAlignment,
+                        alignment: widget.mascotAlignment,
                         child: Transform.translate(
                           offset: const Offset(45, 15),
                           child: ActivityMascot(
-                            assetPath: mascotAssetPath,
-                            width: screenWidth * mascotWidthFactor,
+                            assetPath: widget.mascotAssetPath,
+                            width:
+                            screenWidth * widget.mascotWidthFactor,
                             animateFloat: true,
                           ),
                         ),

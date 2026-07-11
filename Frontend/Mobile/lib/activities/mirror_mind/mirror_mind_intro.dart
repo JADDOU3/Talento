@@ -193,6 +193,7 @@ class _MirrorMindIntroState extends State<MirrorMindIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),

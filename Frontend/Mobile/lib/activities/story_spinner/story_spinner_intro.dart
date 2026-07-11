@@ -182,6 +182,7 @@ class _StorySpinnerIntroState extends State<StorySpinnerIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),

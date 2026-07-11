@@ -200,6 +200,7 @@ class _SoundTrackerIntroState extends State<SoundTrackerIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),

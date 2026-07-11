@@ -210,6 +210,7 @@ class _CreateCreatureIntroState extends State<CreateCreatureIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),

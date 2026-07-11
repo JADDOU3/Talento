@@ -115,6 +115,7 @@ class _EmotionChainIntroState extends State<EmotionChainIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(child: SizedBox.expand()),
           mascotAssetPath: 'assets/images/template_mascot.png',
           startButtonText: 'ابدأ القصة',

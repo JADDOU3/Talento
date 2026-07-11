@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../cubits/coins/coins_cubit.dart';
+import '../../../models/voice_over/voice_over_model.dart';
+import '../../audio/automatic_voice_over.dart';
 import '../../layout/app_background.dart';
 import '../../layout/animated_background.dart';
 
@@ -57,34 +59,41 @@ class ActivityFeedbackView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SizedBox.expand(
-        child: _isCorrect
-            ? AnimatedBackground(
-          child: _CorrectFeedbackLayout(
-            title: _resolvedTitle,
-            cardTitle: _resolvedCardTitle,
-            mascotAssetPath: _mascotAssetPath,
-            primaryButtonText: _resolvedPrimaryButtonText,
-            onPrimaryPressed: onPrimaryPressed,
-            onHomePressed: onHomePressed,
-            onSecondaryPressed: onSecondaryPressed,
-            secondaryButtonText: secondaryButtonText,
-            secondaryButtonIcon: secondaryButtonIcon,
-          ),
-        )
-            : AppBackground(
-          child: _WrongFeedbackLayout(
-            title: _resolvedTitle,
-            cardTitle: _resolvedCardTitle,
-            mascotAssetPath: _mascotAssetPath,
-            primaryButtonText: _resolvedPrimaryButtonText,
-            onPrimaryPressed: onPrimaryPressed,
-            onHomePressed: onHomePressed,
-            onSecondaryPressed: onSecondaryPressed,
-            secondaryButtonText: secondaryButtonText,
-            secondaryButtonIcon: secondaryButtonIcon,
+    return AutomaticVoiceOver(
+      request: AutomaticVoiceOverRequest.global(
+        type: _isCorrect
+            ? GlobalVoiceOverType.success
+            : GlobalVoiceOverType.fail,
+      ),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: SizedBox.expand(
+          child: _isCorrect
+              ? AnimatedBackground(
+            child: _CorrectFeedbackLayout(
+              title: _resolvedTitle,
+              cardTitle: _resolvedCardTitle,
+              mascotAssetPath: _mascotAssetPath,
+              primaryButtonText: _resolvedPrimaryButtonText,
+              onPrimaryPressed: onPrimaryPressed,
+              onHomePressed: onHomePressed,
+              onSecondaryPressed: onSecondaryPressed,
+              secondaryButtonText: secondaryButtonText,
+              secondaryButtonIcon: secondaryButtonIcon,
+            ),
+          )
+              : AppBackground(
+            child: _WrongFeedbackLayout(
+              title: _resolvedTitle,
+              cardTitle: _resolvedCardTitle,
+              mascotAssetPath: _mascotAssetPath,
+              primaryButtonText: _resolvedPrimaryButtonText,
+              onPrimaryPressed: onPrimaryPressed,
+              onHomePressed: onHomePressed,
+              onSecondaryPressed: onSecondaryPressed,
+              secondaryButtonText: secondaryButtonText,
+              secondaryButtonIcon: secondaryButtonIcon,
+            ),
           ),
         ),
       ),
