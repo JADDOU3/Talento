@@ -37,8 +37,7 @@ public class VoiceService {
     private final ActivityRepo activityRepository;
     private final LevelRepo levelRepository;
     private final LevelImageRepo levelImageRepository;
-    private final ObjectMapper objectMapper;
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
     // ---- Uploads ----
 
     public String uploadGlobalVoice(VoiceType type, MultipartFile file) {
