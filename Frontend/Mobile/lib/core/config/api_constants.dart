@@ -123,11 +123,18 @@ class ApiConstants {
   static const String addChild = '$baseUrl/children/';
   static const String selectedChild = '$baseUrl/children/selected';
 
+  static String setSelectedChild(int childId) =>
+      '$baseUrl/children/selected/$childId';
+
 // Coins
   static const String coins = '$baseUrl/coins';
 
-  static String setSelectedChild(int childId) =>
-      '$baseUrl/children/selected/$childId';
+  // POST /api/coins/maze-collect?count={count}
+
+  static String coinsMazeCollect(int count) =>
+      Uri.parse('$baseUrl/coins/maze-collect')
+          .replace(queryParameters: {'count': '$count'})
+          .toString();
 
   // Child Mode
   static const String isChildMode = '$baseUrl/isChildMode';

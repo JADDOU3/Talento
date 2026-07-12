@@ -137,6 +137,7 @@ class _RoadmapView extends StatelessWidget {
                             _handleActivityTap(
                               context,
                               activity,
+                              state.activities,
                             );
                           },
                         );
@@ -157,11 +158,12 @@ class _RoadmapView extends StatelessWidget {
   void _handleActivityTap(
       BuildContext context,
       RoadmapActivityModel activity,
+      List<RoadmapActivityModel> activities,
       ) {
     if (activity.isLocked) {
       _showMessage(context, 'أكمل الأنشطة السابقة أولًا');
       return;
-      
+
     }
 
     final activityName = activity.activityName.trim().toLowerCase();
@@ -282,21 +284,21 @@ class _RoadmapView extends StatelessWidget {
     }
 
 
-   if (activityName == 'shape builder'||
-    activityName == 'shape creator') {
-    Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ShapeCreatorLauncher(
-        activityId: activity.activityId,
-        kitId: kitId,
-        childId: childId,
-      ),
-    ),
-  ).then((_) => _refreshRoadmapIfMounted(context));
+    if (activityName == 'shape builder'||
+        activityName == 'shape creator') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ShapeCreatorLauncher(
+            activityId: activity.activityId,
+            kitId: kitId,
+            childId: childId,
+          ),
+        ),
+      ).then((_) => _refreshRoadmapIfMounted(context));
 
-  return;
-}
+      return;
+    }
 
     if (activityName == 'story spinner' ||
         activityName == 'story spinner cards') {
@@ -331,6 +333,15 @@ class _RoadmapView extends StatelessWidget {
     }
 
     if (activityName == 'creative maze') {
+      // الكروت الـ3 من Creative Maze كلها بتوصل بنفس currentLevelNumber=1 من
+      // الباك إند، فما بنقدر نعتمد عليه. بدلاً منه نحسب ترتيب الكرت بين كروت
+      // Creative Maze (أول كرت → level 1، ثاني → 2، ثالث → 3) ونمرّره كـ
+      // startLevelNumber. هيك كل كرت بيفتح متاهته الصح.
+      final startLevelNumber = _creativeMazeStartLevelNumber(
+        activities,
+        activity,
+      );
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -338,7 +349,7 @@ class _RoadmapView extends StatelessWidget {
             activityId: activity.activityId,
             kitId: kitId,
             childId: childId,
-            initialLevelNumber: activity.launchLevelNumber,
+            initialLevelNumber: startLevelNumber,
           ),
         ),
       ).then((_) => _refreshRoadmapIfMounted(context));
@@ -428,6 +439,40 @@ class _RoadmapView extends StatelessWidget {
       context,
       'النشاط "${activity.activityName}" غير جاهز بعد',
     );
+  }
+
+  /// يحسب رقم المستوى الذي يجب أن يفتحه كرت Creative Maze بناءً على ترتيبه
+  /// بين كروت Creative Maze الأخرى في الرودماب (وليس على الرقم الجاي من
+  /// الباك إند، لأنه يوصل = 1 لكل الكروت).
+  ///
+  /// أول كرت → 1، ثاني → 2، ثالث → 3 ... وهكذا.
+  /// الترتيب المفترض أنه نفس ترتيب levelNumber التصاعدي (id 55/56/57).
+  int _creativeMazeStartLevelNumber(
+      List<RoadmapActivityModel> activities,
+      RoadmapActivityModel activity,
+      ) {
+    final mazeCards = activities
+        .where(
+          (a) => a.activityName.trim().toLowerCase() == 'creative maze',
+    )
+        .toList();
+
+    if (mazeCards.isEmpty) return 1;
+
+    // 1) مطابقة بالمرجع (نفس الكائن الذي رجّعه اللوح).
+    var index = mazeCards.indexWhere((a) => identical(a, activity));
+
+    // 2) fallback: مطابقة بالـ cardId إذا كان مميّزًا.
+    if (index == -1 && activity.cardId != 0) {
+      index = mazeCards.indexWhere((a) => a.cardId == activity.cardId);
+    }
+
+    // 3) fallback أخير: مطابقة بالـ activityId.
+    if (index == -1) {
+      index = mazeCards.indexWhere((a) => a.activityId == activity.activityId);
+    }
+
+    return index == -1 ? 1 : index + 1;
   }
 
   void _refreshRoadmapIfMounted(BuildContext context) {

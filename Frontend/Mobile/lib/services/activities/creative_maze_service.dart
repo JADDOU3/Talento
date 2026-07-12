@@ -11,12 +11,12 @@ class CreativeMazeService {
   final AuthApiClient _apiClient = AuthApiClient();
 
   Map<String, String> get _jsonHeaders => {
-        'Content-Type': 'application/json',
-      };
+    'Content-Type': 'application/json',
+  };
 
   Future<List<CreativeMazeLevelModel>> getLevelsByActivity(
-    int activityId,
-  ) async {
+      int activityId,
+      ) async {
     final uri = Uri.parse(ApiConstants.levelsByActivity(activityId)).replace(
       queryParameters: {
         'page': '0',
@@ -31,7 +31,7 @@ class CreativeMazeService {
 
     print(
       'CREATIVE MAZE: get levels response = '
-      '${response.statusCode} - ${_shortBody(response.body)}',
+          '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(response.statusCode, response.body, 'get levels');
@@ -72,7 +72,7 @@ class CreativeMazeService {
 
     print(
       'CREATIVE MAZE: create level attempt response = '
-      '${response.statusCode} - ${_shortBody(response.body)}',
+          '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(
@@ -118,7 +118,7 @@ class CreativeMazeService {
 
     print(
       'CREATIVE MAZE: update level attempt response = '
-      '${response.statusCode} - ${_shortBody(response.body)}',
+          '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(
@@ -152,7 +152,7 @@ class CreativeMazeService {
 
     print(
       'CREATIVE MAZE: post activity event response = '
-      '${response.statusCode} - ${_shortBody(response.body)}',
+          '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(
@@ -185,7 +185,7 @@ class CreativeMazeService {
 
     print(
       'CREATIVE MAZE: post level event response = '
-      '${response.statusCode} - ${_shortBody(response.body)}',
+          '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(
@@ -203,7 +203,7 @@ class CreativeMazeService {
 
     print(
       'CREATIVE MAZE: complete activity session response = '
-      '${response.statusCode} - ${_shortBody(response.body)}',
+          '${response.statusCode} - ${_shortBody(response.body)}',
     );
 
     _ensureSuccess(
@@ -310,6 +310,21 @@ class CreativeMazeService {
     final kit = session['kit'];
     if (kit is Map) return _readInt(kit, ['id', 'kitId']);
     return 0;
+  }
+
+  // ── Coins ──────────────────────────────────────────────────────────
+  // POST /api/coins/maze-collect?count={count}
+  //
+  Future<void> submitCoinsCollected(int count) async {
+    final uri = Uri.parse(ApiConstants.coinsMazeCollect(count));
+    final response = await _apiClient.post(uri);
+
+    print(
+      'CREATIVE MAZE: submit coins response = '
+          '${response.statusCode} - ${_shortBody(response.body)}',
+    );
+
+    _ensureSuccess(response.statusCode, response.body, 'submit coins');
   }
 
 }
