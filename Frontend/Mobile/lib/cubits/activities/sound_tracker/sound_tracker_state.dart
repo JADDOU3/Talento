@@ -162,15 +162,6 @@ class SoundTrackerResult extends SoundTrackerState {
   });
 }
 
-class SoundTrackerLevelComplete extends SoundTrackerState {
-  final SoundTrackerLoaded previousState;
-  final String message;
-
-  const SoundTrackerLevelComplete({
-    required this.previousState,
-    required this.message,
-  });
-}
 
 class SoundTrackerActivityComplete extends SoundTrackerState {
   const SoundTrackerActivityComplete();

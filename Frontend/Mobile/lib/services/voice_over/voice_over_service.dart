@@ -12,8 +12,8 @@ class VoiceOverService {
   }) : _client = client ?? AuthApiClient();
 
   Future<VoiceOverModel> getGlobalVoiceOver(
-    GlobalVoiceOverType type,
-  ) async {
+      GlobalVoiceOverType type,
+      ) async {
     final response = await _client.get(
       Uri.parse(
         ApiConstants.globalVoiceOver(type.apiValue),
@@ -28,8 +28,8 @@ class VoiceOverService {
   }
 
   Future<VoiceOverModel> getActivityIntroVoiceOver(
-    int activityId,
-  ) async {
+      int activityId,
+      ) async {
     final response = await _client.get(
       Uri.parse(
         ApiConstants.activityVoiceOver(activityId),
@@ -64,6 +64,26 @@ class VoiceOverService {
     );
   }
 
+  Future<VoiceOverModel> getMazeQuestionVoiceOver({
+    required int levelId,
+    required int challengeId,
+  }) async {
+    final response = await _client.get(
+      Uri.parse(
+        ApiConstants.mazeQuestionVoiceOver(
+          levelId: levelId,
+          challengeId: challengeId,
+        ),
+      ),
+    );
+
+    return _parseResponse(
+      statusCode: response.statusCode,
+      body: response.body,
+      requestName: 'maze level $levelId challenge $challengeId',
+    );
+  }
+
   VoiceOverModel _parseResponse({
     required int statusCode,
     required String body,
@@ -72,7 +92,7 @@ class VoiceOverService {
     if (statusCode < 200 || statusCode >= 300) {
       throw Exception(
         'Voice-over request failed for $requestName '
-        'with status $statusCode.',
+            'with status $statusCode.',
       );
     }
 

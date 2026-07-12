@@ -10,6 +10,7 @@ import '../../cubits/activities/adventure_maze/adventure_maze_state.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
 import '../../services/activities/adventure_maze_service.dart';
+import '../../shared/audio/voice_over_controller.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
@@ -55,6 +56,9 @@ class _AdventureMazeView extends StatefulWidget {
 
 class _AdventureMazeViewState extends State<_AdventureMazeView> {
   final TiltController _tiltController = TiltController();
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
+
   AdventureMazeGame? _game;
   Timer? _timer;
   bool _popupOpen = false;
@@ -65,6 +69,7 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
   void dispose() {
     _timer?.cancel();
     _tiltController.stop();
+    _voiceOverController.dispose();
     super.dispose();
   }
 
@@ -75,41 +80,61 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
   }
 
   Future<bool> _onWillPop(BuildContext context) async {
+    await _voiceOverController.stop();
     await context.read<AdventureMazeCubit>().logExitIfNotCompleted();
     return true;
   }
 
-  void _openPopupIfNeeded(BuildContext context, AdventureMazeLoaded loaded) {
+  Future<void> _openPopupIfNeeded(
+      BuildContext context,
+      AdventureMazeLoaded loaded,
+      ) async {
     if (_popupOpen) return;
-    final cid = loaded.activeChallengeId;
-    if (cid == null) return;
+
+    final challengeId = loaded.activeChallengeId;
+    if (challengeId == null) return;
 
     final challenge = loaded.challenges.firstWhere(
-          (c) => c.challengeId == cid,
+          (item) => item.challengeId == challengeId,
     );
 
     _popupOpen = true;
     _game?.pauseForPopup();
 
-    showDialog(
+    // Each star question has its own voice-over.
+    // Failure to load or play the audio never blocks the popup.
+    _voiceOverController.playMazeQuestion(
+      levelId: loaded.level.id,
+      challengeId: challengeId,
+    );
+
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogCtx) => StarQuestionPopup(
+      builder: (dialogContext) => StarQuestionPopup(
         challenge: challenge,
         onChoiceSelected: (choice) {
-          final valid = context
+          final isValid = context
               .read<AdventureMazeCubit>()
-              .onChoiceSelected(cid, choice);
-          if (valid) {
-            Navigator.of(dialogCtx).pop();
+              .onChoiceSelected(
+            challengeId,
+            choice,
+          );
+
+          if (isValid) {
+            _voiceOverController.stop();
+            Navigator.of(dialogContext).pop();
           }
-          return valid;
+
+          return isValid;
         },
       ),
-    ).then((_) {
-      _popupOpen = false;
-      _game?.resumeFromPopup();
-    });
+    );
+
+    await _voiceOverController.stop();
+
+    _popupOpen = false;
+    _game?.resumeFromPopup();
   }
 
   @override
@@ -151,6 +176,7 @@ class _AdventureMazeViewState extends State<_AdventureMazeView> {
 
               if (state is AdventureMazeComplete) {
                 _timer?.cancel();
+                _voiceOverController.stop();
               }
             },
             builder: (context, state) {

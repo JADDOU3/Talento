@@ -21,7 +21,7 @@ class VoiceOverController {
     required int activityId,
   }) async {
     await _play(
-      () => _service.getActivityIntroVoiceOver(activityId),
+          () => _service.getActivityIntroVoiceOver(activityId),
     );
   }
 
@@ -30,7 +30,7 @@ class VoiceOverController {
     required int levelId,
   }) async {
     await _play(
-      () => _service.getActivityLevelVoiceOver(
+          () => _service.getActivityLevelVoiceOver(
         activityId: activityId,
         levelId: levelId,
       ),
@@ -38,16 +38,28 @@ class VoiceOverController {
   }
 
   Future<void> playGlobal(
-    GlobalVoiceOverType type,
-  ) async {
+      GlobalVoiceOverType type,
+      ) async {
     await _play(
-      () => _service.getGlobalVoiceOver(type),
+          () => _service.getGlobalVoiceOver(type),
+    );
+  }
+
+  Future<void> playMazeQuestion({
+    required int levelId,
+    required int challengeId,
+  }) async {
+    await _play(
+          () => _service.getMazeQuestionVoiceOver(
+        levelId: levelId,
+        challengeId: challengeId,
+      ),
     );
   }
 
   Future<void> _play(
-    Future<VoiceOverModel> Function() loadVoiceOver,
-  ) async {
+      Future<VoiceOverModel> Function() loadVoiceOver,
+      ) async {
     final requestVersion = ++_requestVersion;
 
     try {

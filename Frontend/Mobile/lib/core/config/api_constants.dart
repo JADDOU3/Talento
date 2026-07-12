@@ -107,6 +107,12 @@ class ApiConstants {
   static String activityVoiceOver(int activityId) =>
       '$baseUrl/voice-over/activity/$activityId';
 
+  static String mazeQuestionVoiceOver({
+    required int levelId,
+    required int challengeId,
+  }) =>
+      '$baseUrl/voice-over/maze-question/$levelId/$challengeId';
+
   // Media
   static const String mediaUpload = '$baseUrl/media/upload';
 
