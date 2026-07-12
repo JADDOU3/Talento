@@ -36,6 +36,10 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
 
+  // ── Coin tracking ────────────────────────────────────────────────────
+  int _coinsCollected = 0;
+  final Set<int> _collectedCoinIndexes = <int>{};
+
   Future<void> loadGame({
     required int activityId,
     required int activitySessionId,
@@ -54,6 +58,8 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
     _gameLoaded = false;
     _reachedEnd = false;
     _elapsed = Duration.zero;
+    _coinsCollected = 0;
+    _collectedCoinIndexes.clear();
 
     try {
       final levels = await _service.getLevelsByActivity(activityId);
@@ -69,7 +75,7 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
       print('CREATIVE MAZE PICK => levelNumber=${level.levelNumber} id=${level.id} configKeys=${creativeMazeConfigs.keys.toList()}');
 
 // نجرّب نلاقي config بالـ id، بعدها بالـ levelNumber، وإلا أول متاهة متوفّرة.
-    final config = creativeMazeConfigs[level.levelNumber] ??
+      final config = creativeMazeConfigs[level.levelNumber] ??
           creativeMazeConfigs[level.id] ??
           (creativeMazeConfigs.isNotEmpty
               ? creativeMazeConfigs.values.first
@@ -78,11 +84,11 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
         emit(
           const CreativeMazeError(
             'No maze layouts are configured. Add at least one to '
-            'creativeMazeConfigs.',
+                'creativeMazeConfigs.',
           ),
         );
         return;
-      } 
+      }
 
       final startedAt = DateTime.now().toIso8601String();
       final attemptId = await _service.createLevelAttempt(
@@ -138,6 +144,24 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
   }
 
   /// Called by the game when the ball reaches the end-point zone.
+  /// Called by the game when the ball touches an uncollected coin.
+  /// Increments the counter and marks the coin as collected so it won't
+  /// respawn on retry. The API call happens once at the end of the maze.
+  void onCoinCollected(int coinIndex) {
+    if (_reachedEnd) return;
+    if (_collectedCoinIndexes.contains(coinIndex)) return;
+    final current = state;
+    if (current is! CreativeMazeLoaded) return;
+
+    _collectedCoinIndexes.add(coinIndex);
+    _coinsCollected += 1;
+
+    emit(current.copyWith(
+      collectedCoins: _coinsCollected,
+      collectedCoinIndexes: Set<int>.from(_collectedCoinIndexes),
+    ));
+  }
+
   Future<void> onBallReachedEnd() async {
     if (_reachedEnd) return; // guard against multiple triggers
     final current = state;
@@ -172,9 +196,24 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
 
       await _service.completeActivitySession(_activitySessionId);
 
+      // ── Report coins collected — one shot at maze end ────────────────
+      // POST /api/coins/maze-collect?count={collected}
+      if (_coinsCollected > 0) {
+        try {
+          await _service.submitCoinsCollected(_coinsCollected);
+        } catch (e) {
+          // Don't block the completion flow if this call fails.
+          // ignore: avoid_print
+          print('CREATIVE MAZE COINS SUBMIT ERROR: $e');
+        }
+      }
+
       _activityCompleted = true;
 
-      emit(CreativeMazeComplete(completionTime: _elapsed));
+      emit(CreativeMazeComplete(
+        completionTime: _elapsed,
+        coinsCollected: _coinsCollected,
+      ));
     } catch (error) {
       emit(CreativeMazeError(error.toString()));
     }
@@ -194,7 +233,7 @@ class CreativeMazeCubit extends Cubit<CreativeMazeState> {
 
     if (startLevelNumber != null && startLevelNumber > 0) {
       final byNumber =
-          levels.indexWhere((l) => l.levelNumber == startLevelNumber);
+      levels.indexWhere((l) => l.levelNumber == startLevelNumber);
       if (byNumber != -1) return byNumber;
     }
 
