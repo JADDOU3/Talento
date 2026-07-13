@@ -117,7 +117,6 @@ class BottomNavBar extends StatelessWidget {
     final isChildMode =
         childModeState is ChildModeStatus && childModeState.isChildMode;
 
-    // دروس - حاليًا بدون شاشة جاهزة
     if (index == 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -132,7 +131,7 @@ class BottomNavBar extends StatelessWidget {
     if (isChildMode && index == 4) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const NewUser()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
       return;
     }

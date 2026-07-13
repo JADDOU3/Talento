@@ -96,6 +96,8 @@ class _JournalScreenState extends State<JournalScreen> {
                           final weeklySessions =
                           _weeklySessionsFromState(state);
                           final performances = _performancesFromState(state);
+                          final activitiesProgress =
+                          _activitiesProgressFromState(state);
 
                           return SingleChildScrollView(
                             padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
@@ -114,13 +116,23 @@ class _JournalScreenState extends State<JournalScreen> {
                                   ),
                                 ],
                                 const SizedBox(height: 18),
+                                if (!activitiesProgress
+                                    .allActivitiesCompleted) ...[
+                                  PendingMindsetScoresCard(
+                                    completedActivities: activitiesProgress
+                                        .completedActivities,
+                                    totalActivities:
+                                    activitiesProgress.totalActivities,
+                                  ),
+                                  const SizedBox(height: 18),
+                                ] else if (state is JournalLoaded &&
+                                    state.mindsetScores.isNotEmpty) ...[
+                                  MindsetScoresCard(
+                                    scores: state.mindsetScores,
+                                  ),
+                                  const SizedBox(height: 18),
+                                ],
                                 if (state is JournalLoaded) ...[
-                                  if (state.mindsetScores.isNotEmpty) ...[
-                                    MindsetScoresCard(
-                                      scores: state.mindsetScores,
-                                    ),
-                                    const SizedBox(height: 18),
-                                  ],
                                   AhaMomentsCard(report: state.report),
                                   const SizedBox(height: 18),
                                 ],
@@ -249,7 +261,9 @@ class _JournalScreenState extends State<JournalScreen> {
         textDirection: TextDirection.ltr,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          AchievementRateCard(report: loadedState.report),
+          AchievementRateCard(
+            activitiesProgress: loadedState.activitiesProgress,
+          ),
           const SizedBox(width: 16),
           Container(
             width: 1.2,
@@ -721,4 +735,12 @@ List<PerformanceModel> _performancesFromState(JournalState state) {
   if (state is JournalLoaded) return state.performances;
   if (state is JournalNoReport) return state.performances;
   return [];
+}
+
+JournalActivitiesProgressModel _activitiesProgressFromState(
+    JournalState state,
+    ) {
+  if (state is JournalLoaded) return state.activitiesProgress;
+  if (state is JournalNoReport) return state.activitiesProgress;
+  return const JournalActivitiesProgressModel.empty();
 }

@@ -165,10 +165,7 @@ class _ConflictResolutionVideoViewState
         isFinalComplete: true,
         elapsed: state.elapsed,
         onDone: () {
-          Navigator.popUntil(
-            context,
-                (route) => route.isFirst,
-          );
+          Navigator.of(context).pop();
         },
       );
     }

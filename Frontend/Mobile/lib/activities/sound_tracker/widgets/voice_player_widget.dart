@@ -9,6 +9,7 @@ import '../../../core/theme/app_text_styles.dart';
 class VoicePlayerWidget extends StatefulWidget {
   final String audioUrl;
   final bool audioFinished;
+  final Future<void> Function()? onPlaybackStarted;
   final VoidCallback onAudioFinished;
   final VoidCallback onNext;
   final String title;
@@ -18,6 +19,7 @@ class VoicePlayerWidget extends StatefulWidget {
     super.key,
     required this.audioUrl,
     required this.audioFinished,
+    this.onPlaybackStarted,
     required this.onAudioFinished,
     required this.onNext,
     this.title = 'استمع للصوت',
@@ -135,6 +137,8 @@ class _VoicePlayerWidgetState extends State<VoicePlayerWidget> {
       setState(() {
         _isLoading = true;
       });
+
+      await widget.onPlaybackStarted?.call();
 
       if (_isCompleted) {
         await _player.stop();

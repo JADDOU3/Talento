@@ -5,6 +5,11 @@ import 'widgets/custom_button.dart';
 import 'widgets/custom_text_field.dart';
 import 'widgets/auth_switch_text.dart';
 import '../../shared/layout/animated_background.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../cubits/child_mode/child_mode_cubit.dart';
+import '../../cubits/coins/coins_cubit.dart';
+import '../../screens/home/home_screen.dart';
 import '../../services/auth/auth_service.dart';
 import 'login_screen.dart';
 
@@ -29,7 +34,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String? selectedRelation;
   bool _isLoading = false;
 
-  final List<String> relations = ['الأم', 'الأب', 'أخرى'];
+  final List<String> relations = ['الأم', 'الأب'];
 
   @override
   void dispose() {
@@ -45,8 +50,6 @@ class _SignupScreenState extends State<SignupScreen> {
       case 'الأم':
         return 'FEMALE';
       case 'الأب':
-        return 'MALE';
-      case 'أخرى':
         return 'MALE';
       default:
         return 'MALE';
@@ -108,31 +111,44 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      final response = await _authService.register(
+      final email = emailController.text.trim();
+      final password = passwordController.text.trim();
+
+      // Any successful 2xx registration response is enough.
+      // Do not depend on one exact response text from the backend.
+      await _authService.register(
         name: fullNameController.text.trim(),
-        email: emailController.text.trim(),
+        email: email,
         gender: _mapRelationToGender(selectedRelation!),
-        password: passwordController.text.trim(),
+        password: password,
+      );
+
+      // Log the newly created account in immediately and store its tokens.
+      await _authService.login(
+        email: email,
+        password: password,
       );
 
       if (!mounted) return;
 
-      if (response.trim() == 'User registered successfully') {
-        _showMessage('تم إنشاء الحساب بنجاح');
+      // Clear any global state that may belong to a previous account.
+      context.read<CoinsCubit>().reset();
+      await context.read<ChildModeCubit>().checkChildMode();
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const LoginScreen(),
-          ),
-        );
-      } else {
-        _showMessage(_cleanErrorMessage(response), isError: true);      }
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+            (route) => false,
+      );
     }  catch (e) {
-  print(e.toString());
-  if (!mounted) return;
-  _showMessage(_cleanErrorMessage(e), isError: true);
-  } finally {
+      print(e.toString());
+      if (!mounted) return;
+      _showMessage(_cleanErrorMessage(e), isError: true);
+    } finally {
       if (!mounted) return;
       setState(() {
         _isLoading = false;

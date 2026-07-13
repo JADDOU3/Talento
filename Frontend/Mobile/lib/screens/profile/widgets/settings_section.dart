@@ -28,46 +28,58 @@ class SettingsSection extends StatelessWidget {
     );
   }
 
-  void _openAccountInfo(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AccountInfoPage(),
-      ),
-    );
-  }
-
-  void _openGeneralSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const GeneralSettingsPage(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _ProfileSection(
-      title: 'الإعدادات',
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.10),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           _SettingsTile(
             title: 'معلومات الحساب',
+            subtitle: 'بياناتك ومعلومات التواصل',
             icon: Icons.person_outline_rounded,
             color: AppColors.primary,
-            onTap: () => _openAccountInfo(context),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AccountInfoPage(),
+                ),
+              );
+            },
           ),
           const _SettingsDivider(),
           _SettingsTile(
             title: 'الإعدادات العامة',
-            icon: Icons.settings_outlined,
-            color: AppColors.textSecondary,
-            onTap: () => _openGeneralSettings(context),
+            subtitle: 'تفضيلات التطبيق والإشعارات',
+            icon: Icons.tune_rounded,
+            color: AppColors.secondary,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const GeneralSettingsPage(),
+                ),
+              );
+            },
           ),
           const _SettingsDivider(),
           _SettingsTile(
             title: 'تسجيل الخروج',
+            subtitle: 'الخروج من الحساب الحالي',
             icon: Icons.logout_rounded,
             color: AppColors.red,
             isLogout: true,
@@ -79,43 +91,9 @@ class SettingsSection extends StatelessWidget {
   }
 }
 
-class _ProfileSection extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _ProfileSection({
-    required this.title,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: AppTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: child,
-        ),
-      ],
-    );
-  }
-}
-
 class _SettingsTile extends StatelessWidget {
   final String title;
+  final String subtitle;
   final IconData icon;
   final Color color;
   final bool isLogout;
@@ -123,6 +101,7 @@ class _SettingsTile extends StatelessWidget {
 
   const _SettingsTile({
     required this.title,
+    required this.subtitle,
     required this.icon,
     required this.color,
     required this.onTap,
@@ -133,60 +112,55 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(24),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
+          textDirection: TextDirection.rtl,
           children: [
-            _SettingsIcon(icon: icon, color: color),
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                title,
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: isLogout ? AppColors.red : AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: isLogout ? FontWeight.w700 : FontWeight.w500,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: isLogout ? AppColors.red : AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
             Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 14,
-              color: isLogout ? AppColors.red : AppColors.textSecondary,
+              Icons.arrow_back_ios_new_rounded,
+              size: 15,
+              color: isLogout
+                  ? AppColors.red.withValues(alpha: 0.70)
+                  : AppColors.textSecondary.withValues(alpha: 0.60),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SettingsIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _SettingsIcon({
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(
-        icon,
-        color: color,
-        size: 20,
       ),
     );
   }
@@ -197,10 +171,11 @@ class _SettingsDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
+    return Divider(
       height: 1,
-      indent: 66,
-      color: AppColors.border,
+      indent: 16,
+      endIndent: 70,
+      color: AppColors.border.withValues(alpha: 0.85),
     );
   }
 }

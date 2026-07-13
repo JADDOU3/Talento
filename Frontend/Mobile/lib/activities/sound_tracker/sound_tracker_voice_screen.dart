@@ -6,7 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../cubits/activities/sound_tracker/sound_tracker_cubit.dart';
 import '../../cubits/activities/sound_tracker/sound_tracker_state.dart';
 import '../../screens/qr_scanner/qr_scanner_screen.dart';
-import '../../services/activities/sound_tracker_service.dart';
+import '../../shared/audio/voice_over_controller.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import 'sound_tracker_result_screen.dart';
@@ -70,14 +70,44 @@ class SoundTrackerVoiceView extends StatefulWidget {
 
 class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
   final ScrollController _scrollController = ScrollController();
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
 
   int? _activeLevelId;
+  int? _lastPlayedLevelId;
   bool _showMultiScanSections = false;
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _voiceOverController.dispose();
     super.dispose();
+  }
+
+  Future<void> _playLevelVoiceOver(int levelId) async {
+    if (levelId <= 0 || _lastPlayedLevelId == levelId) {
+      return;
+    }
+
+    _lastPlayedLevelId = levelId;
+
+    await _voiceOverController.playLevel(
+      activityId: widget.activityId,
+      levelId: levelId,
+    );
+  }
+
+  Future<void> _exitActivity() async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop();
+  }
+
+  Future<bool> _onWillPop() async {
+    await _voiceOverController.stop();
+    return true;
   }
 
   void _syncLevelUi(SoundTrackerLoaded state) {
@@ -88,6 +118,10 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
   }
 
   Future<void> _openSingleQrScanner(BuildContext context) async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
     final String? scannedValue = await Navigator.of(context).push<String>(
       MaterialPageRoute(
         builder: (_) => const QrScannerScreen(
@@ -133,73 +167,56 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: BlocConsumer<SoundTrackerCubit, SoundTrackerState>(
-        listener: (context, state) {
-          if (state is SoundTrackerError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.message,
-                  textDirection: TextDirection.rtl,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: BlocConsumer<SoundTrackerCubit, SoundTrackerState>(
+          listener: (context, state) async {
+            if (state is SoundTrackerLoaded) {
+              await _playLevelVoiceOver(state.level.id);
+              return;
+            }
+
+            if (state is SoundTrackerError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.message,
+                    textDirection: TextDirection.rtl,
+                  ),
+                  duration: const Duration(seconds: 5),
                 ),
-                duration: const Duration(seconds: 5),
+              );
+            }
+
+            if (state is SoundTrackerResult) {
+              // Stop the level explanation before SUCCESS / FAIL audio.
+              await _voiceOverController.stop();
+
+              if (!context.mounted) return;
+
+              _openResultScreen(context, state);
+            }
+
+            if (state is SoundTrackerActivityComplete) {
+              await _voiceOverController.stop();
+
+              if (!context.mounted) return;
+
+              // Completion has already been shown through the unified
+              // correct-answer screen. Return directly to the roadmap.
+              Navigator.of(context).pop();
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              body: AppBackground(
+                child: _buildBody(context, state),
               ),
             );
-          }
-
-          if (state is SoundTrackerResult) {
-            _openResultScreen(context, state);
-          }
-
-          if (state is SoundTrackerActivityComplete) {
-            final activityId = widget.activityId;
-            final childId = widget.childId;
-            final sessionId = widget.sessionId;
-
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => SoundTrackerActivityCompleteScreen(
-                  onReplayPressed: (completeContext) async {
-                    final newActivitySessionId =
-                    await SoundTrackerService().createActivitySession(
-                      activityId: activityId,
-                      sessionId: sessionId,
-                    );
-
-                    if (!completeContext.mounted) return;
-
-                    Navigator.of(completeContext).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => SoundTrackerVoiceScreen(
-                          activityId: activityId,
-                          activitySessionId: newActivitySessionId,
-                          childId: childId,
-                          sessionId: sessionId,
-                          startLevelId: null,
-                          startLevelNumber: 1,
-                        ),
-                      ),
-                    );
-                  },
-                  onBackToRoadmapPressed: () {
-                    Navigator.of(context).popUntil(
-                          (route) => route.isFirst,
-                    );
-                  },
-                ),
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Scaffold(
-            body: AppBackground(
-              child: _buildBody(context, state),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -225,6 +242,12 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
             },
             onContinuePressed: () {
               Navigator.of(resultContext).pop();
+
+              if (previousState.isLastLevel) {
+                Navigator.of(context).pop();
+                return;
+              }
+
               context.read<SoundTrackerCubit>().goToNextLevel();
             },
           );
@@ -251,12 +274,6 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
       );
     }
 
-    if (state is SoundTrackerLevelComplete) {
-      return _LevelCompleteView(
-        message: state.message,
-      );
-    }
-
     if (state is SoundTrackerResult) {
       return _buildLoadedView(context, state.previousState);
     }
@@ -279,7 +296,7 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
       children: [
         TopBar(
           leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
+          onLeadingPressed: _exitActivity,
         ),
         Expanded(
           child: SafeArea(
@@ -295,6 +312,7 @@ class _SoundTrackerVoiceViewState extends State<SoundTrackerVoiceView> {
                   key: ValueKey('sound_tracker_audio_${state.level.id}'),
                   audioUrl: state.level.audioUrl,
                   audioFinished: state.audioFinished,
+                  onPlaybackStarted: _voiceOverController.stop,
                   onAudioFinished: () {
                     context.read<SoundTrackerCubit>().onAudioFinished();
                   },
@@ -468,89 +486,6 @@ class _SmallChip extends StatelessWidget {
           height: 1.0,
         ),
       ),
-    );
-  }
-}
-
-class _LevelCompleteView extends StatelessWidget {
-  final String message;
-
-  const _LevelCompleteView({
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TopBar(
-          leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
-        ),
-        Expanded(
-          child: SafeArea(
-            top: false,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(26),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground.withOpacity(0.96),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.10),
-                        blurRadius: 24,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 92,
-                        height: 92,
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.14),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.success,
-                          size: 58,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.headlineMedium.copyWith(
-                          fontSize: 27,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'جاري فتح المستوى التالي...',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          fontSize: 15,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

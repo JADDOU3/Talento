@@ -44,7 +44,7 @@ class _EmotionChainIntroState extends State<EmotionChainIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => EmotionChainVideoScreen(
@@ -115,6 +115,7 @@ class _EmotionChainIntroState extends State<EmotionChainIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(child: SizedBox.expand()),
           mascotAssetPath: 'assets/images/template_mascot.png',
           startButtonText: 'ابدأ القصة',

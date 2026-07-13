@@ -12,10 +12,11 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
 
   final SoundTrackerService _soundTrackerService;
 
-  // TEMPORARY FOR TESTING:
-  // true  => أي QR رح يعتبر صح عشان نجرب كل الليفلز
-  // false => يرجع يفحص حسب expectedSequence الحقيقي
-  static const bool _debugAlwaysPassQr = true;
+  // Production QR validation:
+  // The scanned QR contains only the card label, for example:
+  // BIRD, DOG, AMBULANCE, WIND.
+  // Validation is case-insensitive and ignores spaces, "_" and "-".
+  static const bool _debugAlwaysPassQr = false;
 
   late int _activityId;
   late int _activitySessionId;
@@ -218,6 +219,14 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
       action: 'COMPLETED',
     );
 
+    if (currentState.isLastLevel) {
+      // Save the full activity completion first, then keep the unified
+      // correct-answer screen visible until the child presses "التالي".
+      await _completeActivity(
+        emitCompletionState: false,
+      );
+    }
+
     emit(
       SoundTrackerResult(
         isCorrect: true,
@@ -277,8 +286,6 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
       loadedState = currentState;
     } else if (currentState is SoundTrackerResult) {
       loadedState = currentState.previousState;
-    } else if (currentState is SoundTrackerLevelComplete) {
-      loadedState = currentState.previousState;
     }
 
     if (loadedState == null) return;
@@ -289,15 +296,9 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
         return;
       }
 
-      emit(
-        SoundTrackerLevelComplete(
-          previousState: loadedState,
-          message: _levelCompleteMessage(loadedState.currentLevelNumber),
-        ),
-      );
-
-      await Future.delayed(const Duration(milliseconds: 700));
-
+      // The current level attempt was already saved as completed before
+      // the unified success screen appeared. Move directly to the next
+      // level when the child presses "التالي".
       await _moveToNextLevel(loadedState);
     } catch (error) {
       emit(SoundTrackerError(error.toString()));
@@ -358,8 +359,12 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
     );
   }
 
-  Future<void> _completeActivity() async {
-    _activityCompleted = true;
+  Future<void> _completeActivity({
+    bool emitCompletionState = true,
+  }) async {
+    if (_activityCompleted) {
+      return;
+    }
 
     await _soundTrackerService.postActivityEvent(
       childId: _childId,
@@ -370,7 +375,11 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
 
     await _soundTrackerService.completeActivitySession(_activitySessionId);
 
-    emit(const SoundTrackerActivityComplete());
+    _activityCompleted = true;
+
+    if (emitCompletionState) {
+      emit(const SoundTrackerActivityComplete());
+    }
   }
 
   SoundTrackerLoaded _buildLoadedState({
@@ -456,18 +465,6 @@ class SoundTrackerCubit extends Cubit<SoundTrackerState> {
     return 0;
   }
 
-  String _levelCompleteMessage(int levelNumber) {
-    switch (levelNumber) {
-      case 1:
-        return 'رائع! تعرفت على الصوت الأول.';
-      case 2:
-        return 'ممتاز! رتبت صوتين بالطريقة الصحيحة.';
-      case 3:
-        return 'مذهل! تابعت ثلاثة أصوات بالترتيب.';
-      default:
-        return 'أحسنت! أنهيت هذا المستوى.';
-    }
-  }
 
   Future<void> endActivityIfNotCompleted() async {
     if (_activityCompleted) return;

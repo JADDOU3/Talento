@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../models/activities/tower_builder/tower_builder_level_model.dart';
 import '../../../services/activities/tower_builder_service.dart';
@@ -7,6 +11,9 @@ import 'tower_builder_state.dart';
 class TowerBuilderCubit extends Cubit<TowerBuilderState> {
   final TowerBuilderService _service;
 
+  static const FlutterSecureStorage _progressStorage =
+  FlutterSecureStorage();
+
   TowerBuilderCubit({
     TowerBuilderService? service,
   })  : _service = service ?? TowerBuilderService(),
@@ -14,6 +21,8 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
   bool _isCompleted = false;
   bool _isContinuingResult = false;
+  bool _isLoading = false;
+  bool _exitLogged = false;
 
   int? _activityId;
   int? _activitySessionId;
@@ -48,13 +57,86 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     return _currentLevel!.withActiveChallenge(_currentChallengeIndex);
   }
 
+  String? get _progressStorageKey {
+    final childId = _childId;
+    final activityId = _activityId;
+
+    if (childId == null || activityId == null) return null;
+
+    return 'tower_builder_progress_child_${childId}_activity_$activityId';
+  }
+
+  // ===================== LOCAL PROGRESS BACKUP =====================
+
+  Future<_TowerBuilderSavedProgress?> _readSavedProgress() async {
+    final key = _progressStorageKey;
+    if (key == null) return null;
+
+    final raw = await _progressStorage.read(key: key);
+
+    if (raw == null || raw.trim().isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+
+      if (decoded is! Map) return null;
+
+      final levelIndex = _readInt(decoded['levelIndex']);
+      final challengeIndex = _readInt(decoded['challengeIndex']);
+
+      if (levelIndex == null || levelIndex < 0) return null;
+
+      return _TowerBuilderSavedProgress(
+        levelIndex: levelIndex,
+        challengeIndex: challengeIndex ?? 0,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _saveProgress({
+    required int levelIndex,
+    required int challengeIndex,
+  }) async {
+    final key = _progressStorageKey;
+    if (key == null) return;
+
+    await _progressStorage.write(
+      key: key,
+      value: jsonEncode({
+        'levelIndex': levelIndex,
+        'challengeIndex': challengeIndex,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
+  }
+
+  Future<void> _clearSavedProgress() async {
+    final key = _progressStorageKey;
+    if (key == null) return;
+
+    await _progressStorage.delete(key: key);
+  }
+
+  // ===================== LOAD =====================
+
   Future<void> loadGame({
     required int activityId,
     required int activitySessionId,
     required int childId,
     required int sessionId,
     int? startLevelId,
+    int initialLevelNumber = 1,
   }) async {
+    if (_isLoading) return;
+    _isLoading = true;
+
     emit(const TowerBuilderLoading());
 
     _activityId = activityId;
@@ -64,56 +146,156 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
     _isCompleted = false;
     _isContinuingResult = false;
+    _exitLogged = false;
     _pendingAction = _TowerBuilderPendingAction.none;
 
     try {
       _levels = await _service.getLevels(activityId);
 
+      _levels = _levels
+          .where((level) => level.challenges.isNotEmpty)
+          .toList();
+
       if (_levels.isEmpty) {
-        throw Exception('No Tower Builder levels found.');
+        throw Exception('لا توجد مستويات أو تحديات لنشاط بناء البرج.');
       }
 
-      if (startLevelId != null) {
-        final foundIndex = _levels.indexWhere(
-              (level) => level.id == startLevelId,
-        );
+      final startPosition = await _resolveStartPosition(
+        levels: _levels,
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      );
 
-        _currentLevelIndex = foundIndex == -1 ? 0 : foundIndex;
-      } else {
-        _currentLevelIndex = 0;
-      }
+      _currentLevelIndex = startPosition.levelIndex;
+      _currentChallengeIndex = startPosition.challengeIndex;
+      _currentLevel = _levels[_currentLevelIndex];
 
-      _currentChallengeIndex = 0;
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
+
       _attemptNumber = 1;
 
-      final level = _levels[_currentLevelIndex];
+      debugPrint(
+        'TOWER BUILDER: starting from '
+            'levelIndex=$_currentLevelIndex, '
+            'challengeIndex=$_currentChallengeIndex, '
+            'levelId=${_currentLevel!.id}',
+      );
 
       final attemptInfo = await _service.createLevelAttempt(
         attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
-        levelId: level.id,
+        levelId: _currentLevel!.id,
       );
 
-      _currentLevel = level;
       _currentAttemptId = attemptInfo.id;
       _currentAttemptStartedAt = attemptInfo.startedAt;
 
       await _logActivityStarted();
       await _logLevelStarted();
 
+      _isLoading = false;
       _emitLoaded();
     } catch (error) {
+      _isLoading = false;
+
       emit(
         TowerBuilderError(
-          message: error.toString(),
+          message: error.toString().replaceFirst('Exception: ', ''),
         ),
       );
     }
   }
 
+  Future<_TowerBuilderStartPosition> _resolveStartPosition({
+    required List<TowerBuilderLevelModel> levels,
+    required int? startLevelId,
+    required int initialLevelNumber,
+  }) async {
+    if (levels.isEmpty) {
+      return const _TowerBuilderStartPosition(
+        levelIndex: 0,
+        challengeIndex: 0,
+      );
+    }
+
+    int backendLevelIndex;
+
+    if (startLevelId != null && startLevelId > 0) {
+      final indexFromId = levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      backendLevelIndex = indexFromId == -1
+          ? _levelIndexFromNumber(
+        initialLevelNumber: initialLevelNumber,
+        levelsLength: levels.length,
+      )
+          : indexFromId;
+    } else {
+      backendLevelIndex = _levelIndexFromNumber(
+        initialLevelNumber: initialLevelNumber,
+        levelsLength: levels.length,
+      );
+    }
+
+    final savedProgress = await _readSavedProgress();
+
+    if (savedProgress != null &&
+        savedProgress.levelIndex >= 0 &&
+        savedProgress.levelIndex < levels.length &&
+        savedProgress.levelIndex >= backendLevelIndex) {
+      final maxChallengeIndex =
+          levels[savedProgress.levelIndex].challenges.length - 1;
+
+      return _TowerBuilderStartPosition(
+        levelIndex: savedProgress.levelIndex,
+        challengeIndex: _clampInt(
+          savedProgress.challengeIndex,
+          0,
+          maxChallengeIndex,
+        ),
+      );
+    }
+
+    return _TowerBuilderStartPosition(
+      levelIndex: backendLevelIndex,
+      challengeIndex: 0,
+    );
+  }
+
+  int _levelIndexFromNumber({
+    required int initialLevelNumber,
+    required int levelsLength,
+  }) {
+    if (levelsLength <= 0) return 0;
+
+    if (initialLevelNumber <= 0 ||
+        initialLevelNumber > levelsLength) {
+      return 0;
+    }
+
+    return _clampInt(
+      initialLevelNumber - 1,
+      0,
+      levelsLength - 1,
+    );
+  }
+
+  int _clampInt(int value, int min, int max) {
+    if (max < min) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+  }
+
   void onHintPressed() {
     // Part 2 placeholder.
   }
+
+  // ===================== CHECKLIST RESULT =====================
 
   Future<void> onChecklistSubmitted({
     required bool allChecked,
@@ -123,13 +305,15 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
         _currentAttemptStartedAt == null) {
       emit(
         const TowerBuilderError(
-          message: 'No active level attempt found.',
+          message: 'لا توجد محاولة مستوى فعّالة.',
         ),
       );
       return;
     }
 
-    if (state is TowerBuilderChecklistResult || _isContinuingResult) {
+    if (state is TowerBuilderChecklistResult ||
+        state is TowerBuilderLevelComplete ||
+        _isContinuingResult) {
       return;
     }
 
@@ -142,13 +326,16 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     } catch (error) {
       emit(
         TowerBuilderError(
-          message: error.toString(),
+          message: error.toString().replaceFirst('Exception: ', ''),
         ),
       );
     }
   }
 
   Future<void> _handleSuccessfulAttempt() async {
+    // Tower Builder may contain several challenges inside one backend level.
+    // Keep the same level attempt active between those challenges, and only
+    // mark the backend level as completed after its final challenge.
     if (!_isLastChallenge) {
       _pendingAction = _TowerBuilderPendingAction.nextChallenge;
 
@@ -164,10 +351,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     await _logLevelCompleted();
 
     if (_isLastLevel) {
-      _isCompleted = true;
-
-      await _logActivityCompleted();
-      await _completeActivitySession();
+      await _completeActivity();
 
       _pendingAction = _TowerBuilderPendingAction.none;
       emit(const TowerBuilderLevelComplete());
@@ -200,6 +384,11 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
     await _logLevelRetried();
 
+    await _saveProgress(
+      levelIndex: _currentLevelIndex,
+      challengeIndex: _currentChallengeIndex,
+    );
+
     _pendingAction = _TowerBuilderPendingAction.retryCurrentChallenge;
 
     emit(
@@ -209,8 +398,8 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     );
   }
 
-  /// Continues only after the child presses the button on the shared
-  /// feedback screen. There is no automatic transition from result states.
+  /// Continues only after the child presses the button on the unified
+  /// feedback screen. There is no automatic transition.
   Future<void> continueAfterChecklistResult() async {
     if (state is! TowerBuilderChecklistResult) return;
     if (_isContinuingResult) return;
@@ -227,8 +416,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
           break;
 
         case _TowerBuilderPendingAction.nextChallenge:
-          _currentChallengeIndex++;
-          _emitLoaded();
+          await _moveToNextChallenge();
           break;
 
         case _TowerBuilderPendingAction.nextLevel:
@@ -241,7 +429,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     } catch (error) {
       emit(
         TowerBuilderError(
-          message: error.toString(),
+          message: error.toString().replaceFirst('Exception: ', ''),
         ),
       );
     } finally {
@@ -249,20 +437,36 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     }
   }
 
+  Future<void> _moveToNextChallenge() async {
+    _currentChallengeIndex++;
+
+    await _saveProgress(
+      levelIndex: _currentLevelIndex,
+      challengeIndex: _currentChallengeIndex,
+    );
+
+    // The backend attempt belongs to the whole level, so the same attempt
+    // remains active while moving between challenges in that level.
+    _emitLoaded();
+  }
+
   Future<void> _moveToNextLevel() async {
     _currentLevelIndex++;
     _currentChallengeIndex = 0;
     _attemptNumber = 1;
+    _currentLevel = _levels[_currentLevelIndex];
 
-    final nextLevel = _levels[_currentLevelIndex];
+    await _saveProgress(
+      levelIndex: _currentLevelIndex,
+      challengeIndex: _currentChallengeIndex,
+    );
 
     final nextAttemptInfo = await _service.createLevelAttempt(
       attemptNumber: _attemptNumber,
       activitySessionId: _activitySessionId!,
-      levelId: nextLevel.id,
+      levelId: _currentLevel!.id,
     );
 
-    _currentLevel = nextLevel;
     _currentAttemptId = nextAttemptInfo.id;
     _currentAttemptStartedAt = nextAttemptInfo.startedAt;
 
@@ -271,18 +475,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
     _emitLoaded();
   }
 
-  void _emitLoaded() {
-    if (_currentLevel == null) return;
-
-    emit(
-      TowerBuilderLoaded(
-        level: _activeLevel,
-        currentAttemptId: _currentAttemptId,
-        attemptNumber: _attemptNumber,
-        elapsed: Duration.zero,
-      ),
-    );
-  }
+  // ===================== ATTEMPTS =====================
 
   Future<void> _completeCurrentAttempt() async {
     await _service.updateLevelAttempt(
@@ -305,6 +498,54 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
       completed: false,
     );
   }
+
+  // ===================== ACTIVITY COMPLETION =====================
+
+  Future<void> _completeActivity() async {
+    if (_isCompleted) return;
+
+    await _logActivityCompleted();
+    await _completeActivitySession();
+
+    _isCompleted = true;
+    await _clearSavedProgress();
+  }
+
+  // ===================== EXIT =====================
+
+  Future<void> logExitIfNotCompleted() async {
+    if (_isCompleted || _exitLogged) return;
+
+    _exitLogged = true;
+
+    try {
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
+
+      await _logActivityEnded();
+    } catch (error) {
+      debugPrint('TOWER BUILDER EXIT ERROR: $error');
+    }
+  }
+
+  // ===================== STATE =====================
+
+  void _emitLoaded() {
+    if (_currentLevel == null) return;
+
+    emit(
+      TowerBuilderLoaded(
+        level: _activeLevel,
+        currentAttemptId: _currentAttemptId,
+        attemptNumber: _attemptNumber,
+        elapsed: Duration.zero,
+      ),
+    );
+  }
+
+  // ===================== EVENTS =====================
 
   Future<void> _logActivityStarted() async {
     await _service.logActivityEvent(
@@ -332,7 +573,7 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
       sessionId: _sessionId!,
       activityId: _activityId!,
       action: 'ENDED',
-      responseLanguage: 'en',
+      responseLanguage: 'ar',
     );
   }
 
@@ -378,20 +619,29 @@ class TowerBuilderCubit extends Cubit<TowerBuilderState> {
 
   @override
   Future<void> close() async {
-    if (!_isCompleted &&
-        _activityId != null &&
-        _activitySessionId != null &&
-        _childId != null &&
-        _sessionId != null) {
-      try {
-        await _logActivityEnded();
-      } catch (_) {
-        // Avoid crashing while disposing the cubit.
-      }
-    }
-
+    await logExitIfNotCompleted();
     return super.close();
   }
+}
+
+class _TowerBuilderSavedProgress {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _TowerBuilderSavedProgress({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
+}
+
+class _TowerBuilderStartPosition {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _TowerBuilderStartPosition({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
 }
 
 enum _TowerBuilderPendingAction {

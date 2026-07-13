@@ -16,31 +16,10 @@ class AvailableKitsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = [
-      AppColors.primary,
-      AppColors.secondary,
-      AppColors.pink,
-      AppColors.yellow,
-    ];
-
-    final icons = [
-      Icons.rocket_launch_rounded,
-      Icons.eco_rounded,
-      Icons.palette_rounded,
-      Icons.pets_rounded,
-    ];
-
     final itemCount = kits.length + (onAddKitTap == null ? 0 : 1);
 
     if (itemCount == 0) {
-      return Center(
-        child: Text(
-          'لا توجد حقائب لهذا الطفل',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-      );
+      return _EmptyKitsCard(onAddKitTap: onAddKitTap);
     }
 
     return GridView.builder(
@@ -50,124 +29,210 @@ class AvailableKitsSection extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1.5,
+        childAspectRatio: 0.92,
       ),
       itemCount: itemCount,
-      itemBuilder: (context, i) {
-        if (onAddKitTap != null && i == kits.length) {
-          return _buildAddKitCard();
+      itemBuilder: (context, index) {
+        if (onAddKitTap != null && index == kits.length) {
+          return _AddKitCard(onTap: onAddKitTap!);
         }
 
-        final kit = kits[i];
-        final color = colors[i % colors.length];
-        final icon = icons[i % icons.length];
+        final kit = kits[index];
+        final colors = [
+          AppColors.primary,
+          AppColors.secondary,
+          AppColors.pink,
+          AppColors.yellow,
+        ];
+        final color = colors[index % colors.length];
 
-        return _buildKitCard(
+        return _KitCard(
           name: kit.name,
-          status: kit.type.isNotEmpty ? kit.type : 'نشط',
+          imageUrl: kit.imageUrl,
           color: color,
-          icon: icon,
         );
       },
     );
   }
+}
 
-  Widget _buildAddKitCard() {
+class _KitCard extends StatelessWidget {
+  final String name;
+  final String imageUrl;
+  final Color color;
+
+  const _KitCard({
+    required this.name,
+    required this.imageUrl,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            color.withValues(alpha: 0.14),
+            AppColors.white.withValues(alpha: 0.94),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: color.withValues(alpha: 0.24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: imageUrl.trim().isNotEmpty
+                  ? Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.inventory_2_rounded,
+                  color: color,
+                  size: 48,
+                ),
+              )
+                  : Icon(
+                Icons.inventory_2_rounded,
+                color: color,
+                size: 48,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              height: 1.2,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddKitCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddKitCard({
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onAddKitTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.cardBackground.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(16),
+            color: AppColors.white.withValues(alpha: 0.82),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.25),
-              width: 1.4,
+              color: AppColors.primary.withValues(alpha: 0.24),
+              width: 1.3,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.035),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'إضافة حقيبة',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ],
-          ),
-          child: Center(
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: AppColors.primary,
-                size: 30,
-              ),
-            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildKitCard({
-    required String name,
-    required String status,
-    required Color color,
-    required IconData icon,
-  }) {
+class _EmptyKitsCard extends StatelessWidget {
+  final VoidCallback? onAddKitTap;
+
+  const _EmptyKitsCard({
+    this.onAddKitTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        color: AppColors.white.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
+          const Icon(
+            Icons.inventory_2_outlined,
+            color: AppColors.primary,
+            size: 38,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  name,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  status,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          const SizedBox(height: 10),
+          Text(
+            'لا توجد حقائب نشطة بعد',
+            style: AppTextStyles.bodyLarge.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
+          if (onAddKitTap != null) ...[
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: onAddKitTap,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('إضافة حقيبة'),
+            ),
+          ],
         ],
       ),
     );

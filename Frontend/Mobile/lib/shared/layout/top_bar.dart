@@ -163,7 +163,7 @@ class _ChildModeCoinsBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = Container(
       height: 38,
-      padding: const EdgeInsetsDirectional.fromSTEB(1, 3, 1, 3),
+      padding: const EdgeInsetsDirectional.fromSTEB(1, 3, 5, 3),
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.68),
         borderRadius: BorderRadius.circular(999),
@@ -214,33 +214,43 @@ class _ChildModeCoinsBadge extends StatelessWidget {
           ),
           Transform.translate(
             offset: const Offset(-10, 0),
-            child: SizedBox(
-              width: 28,
-              child: isLoading && count == 0
-                  ? const SizedBox(
-                width: 17,
-                height: 17,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: Color(0xFFD99500),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: 28,
+              ),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  start: 2,
+                  end: 8,
                 ),
-              )
-                  : Text(
-                count.toString(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFFD99500),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                  letterSpacing: 0.1,
-                  shadows: [
-                    Shadow(
-                      color: Color(0x22A86700),
-                      blurRadius: 1.5,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
+                child: isLoading && count == 0
+                    ? const SizedBox(
+                  width: 17,
+                  height: 17,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Color(0xFFD99500),
+                  ),
+                )
+                    : Text(
+                  count.toString(),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Color(0xFFD99500),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                    letterSpacing: 0.1,
+                    shadows: [
+                      Shadow(
+                        color: Color(0x22A86700),
+                        blurRadius: 1.5,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -21,6 +21,8 @@ class EmpathyMirrorVideoScreen extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const EmpathyMirrorVideoScreen({
     super.key,
@@ -28,6 +30,8 @@ class EmpathyMirrorVideoScreen extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   @override
@@ -39,6 +43,8 @@ class EmpathyMirrorVideoScreen extends StatelessWidget {
         activitySessionId: activitySessionId,
         childId: childId,
         sessionId: sessionId,
+        startLevelId: startLevelId,
+        initialLevelNumber: startLevelNumber,
       )..loadGame(),
       child: const _EmpathyMirrorView(),
     );
@@ -99,8 +105,11 @@ class _EmpathyMirrorView extends StatelessWidget {
         }
 
         if (state is EmpathyMirrorLevelComplete) {
-          await _showCompleteDialog(context);
-          if (context.mounted) Navigator.of(context).pop();
+          // The final correct-answer screen was already shown.
+          // Pressing "التالي" now returns directly to the roadmap.
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       builder: (context, state) {
@@ -111,7 +120,7 @@ class _EmpathyMirrorView extends StatelessWidget {
             child: Scaffold(
               backgroundColor: AppColors.background,
               body: AppBackground(
-                  child: _buildBody(context, state),
+                child: _buildBody(context, state),
               ),
             ),
           ),
@@ -631,53 +640,7 @@ class _EmpathyMirrorView extends StatelessWidget {
       ],
     );
   }
-  Future<void> _showCompleteDialog(BuildContext context) async {
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: Dialog(
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('🎉', style: TextStyle(fontSize: 56)),
-                const SizedBox(height: 12),
-                Text(
-                  'أنت تفهم مشاعر الآخرين!',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.headlineMedium.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primary,
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                    ),
-                    child: const Text('رائع!'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+
 }
 
 /// Level 2 body — tracks the selected card and shows a Submit button.

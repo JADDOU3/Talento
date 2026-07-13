@@ -19,8 +19,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
   static const FlutterSecureStorage _progressStorage =
   FlutterSecureStorage();
 
-  Timer? _timer;
-
   late int _activityId;
   late int _activitySessionId;
   late int _childId;
@@ -29,12 +27,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
   bool _activityCompleted = false;
   bool _gameLoaded = false;
   bool _isProcessingAction = false;
-
-  /// Seconds (of elapsed) at the last child interaction — drives hint timing.
-  int _lastInteractionSeconds = 0;
-
-  /// Timestamps of recent choice taps — used to detect random pressing.
-  final List<DateTime> _recentTaps = <DateTime>[];
 
   String get _progressStorageKey {
     return 'pattern_hacker_progress_child_${_childId}_activity_$_activityId';
@@ -116,8 +108,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     _activityCompleted = false;
     _gameLoaded = false;
     _isProcessingAction = false;
-    _lastInteractionSeconds = 0;
-    _recentTaps.clear();
 
     try {
       final levels = await _service.getLevelsByActivity(activityId);
@@ -177,8 +167,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
           elapsed: Duration.zero,
         ),
       );
-
-      _startTimer();
     } catch (error) {
       emit(PatternHackerError(error.toString()));
     }
@@ -275,66 +263,30 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
     final currentState = state;
     if (currentState is! PatternHackerLoaded) return;
 
-    _lastInteractionSeconds = currentState.elapsed.inSeconds;
-    final isRandom = _detectRandomPress();
-
-    // Tapping the already-selected choice clears it.
+    // Tapping the selected choice again clears it.
     if (currentState.selectedIcon == iconName) {
       emit(
         currentState.copyWith(
           clearSelectedIcon: true,
-          hintLevel: 0,
-          randomPress: isRandom,
         ),
       );
-    } else {
-      emit(
-        currentState.copyWith(
-          selectedIcon: iconName,
-          hintLevel: 0,
-          randomPress: isRandom,
-        ),
-      );
+      return;
     }
 
-    if (isRandom) _scheduleRandomPressClear();
-  }
-
-  /// Returns true if 5+ taps happened within the last 3 seconds.
-  bool _detectRandomPress() {
-    final now = DateTime.now();
-
-    _recentTaps.add(now);
-
-    _recentTaps.removeWhere(
-          (t) => now.difference(t) > const Duration(seconds: 3),
+    emit(
+      currentState.copyWith(
+        selectedIcon: iconName,
+      ),
     );
-
-    return _recentTaps.length >= 5;
-  }
-
-  void _scheduleRandomPressClear() {
-    _recentTaps.clear();
-
-    Future.delayed(const Duration(seconds: 3), () {
-      final s = state;
-
-      if (s is PatternHackerLoaded && s.randomPress) {
-        emit(s.copyWith(randomPress: false));
-      }
-    });
   }
 
   void clearSelection() {
     final currentState = state;
     if (currentState is! PatternHackerLoaded) return;
 
-    _lastInteractionSeconds = currentState.elapsed.inSeconds;
-
     emit(
       currentState.copyWith(
         clearSelectedIcon: true,
-        hintLevel: 0,
       ),
     );
   }
@@ -438,8 +390,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
       final loadedState = currentState.previousState;
       final nextChallengeIndex = loadedState.currentChallengeIndex + 1;
 
-      _lastInteractionSeconds = loadedState.elapsed.inSeconds;
-
       await _saveProgress(
         levelIndex: loadedState.currentLevelIndex,
         challengeIndex: nextChallengeIndex,
@@ -449,8 +399,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
         loadedState.copyWith(
           currentChallengeIndex: nextChallengeIndex,
           clearSelectedIcon: true,
-          hintLevel: 0,
-          randomPress: false,
         ),
       );
     } catch (error) {
@@ -490,16 +438,12 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
         challengeIndex: loadedState.currentChallengeIndex,
       );
 
-      _lastInteractionSeconds = loadedState.elapsed.inSeconds;
-
       emit(
         loadedState.copyWith(
           currentAttemptId: nextAttempt.id,
           attemptNumber: nextAttemptNumber,
           currentAttemptStartedAt: nextAttempt.startedAt,
           clearSelectedIcon: true,
-          hintLevel: 0,
-          randomPress: false,
         ),
       );
     } catch (error) {
@@ -566,8 +510,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
       action: 'STARTED',
     );
 
-    _lastInteractionSeconds = previousState.elapsed.inSeconds;
-
     await _saveProgress(
       levelIndex: nextLevelIndex,
       challengeIndex: 0,
@@ -581,14 +523,12 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
         currentAttemptId: nextAttempt.id,
         attemptNumber: 1,
         currentAttemptStartedAt: nextAttempt.startedAt,
-        hintLevel: 0,
       ),
     );
   }
 
   Future<void> _completeGame(Duration elapsed) async {
     _activityCompleted = true;
-    _timer?.cancel();
 
     await _service.postActivityEvent(
       childId: _childId,
@@ -641,37 +581,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
   }
 
   // ---------------------------------------------------------------------------
-  // Timer (UI only — backend does not store duration)
-  // ---------------------------------------------------------------------------
-
-  void onTimerTick() {
-    final currentState = state;
-    if (currentState is! PatternHackerLoaded) return;
-
-    final newElapsed = currentState.elapsed + const Duration(seconds: 1);
-
-    // Every 20 seconds of inactivity raises the hint level (capped at 4).
-    final inactivity = newElapsed.inSeconds - _lastInteractionSeconds;
-    final newHintLevel = (inactivity ~/ 20).clamp(0, 4);
-
-    emit(
-      currentState.copyWith(
-        elapsed: newElapsed,
-        hintLevel: newHintLevel,
-      ),
-    );
-  }
-
-  void _startTimer() {
-    _timer?.cancel();
-
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-          (_) => onTimerTick(),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
 
@@ -702,7 +611,6 @@ class PatternHackerCubit extends Cubit<PatternHackerState> {
 
   @override
   Future<void> close() async {
-    _timer?.cancel();
     await endActivityIfNotCompleted();
     return super.close();
   }

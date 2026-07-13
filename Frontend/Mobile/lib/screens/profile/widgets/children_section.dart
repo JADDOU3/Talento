@@ -339,21 +339,33 @@ class _ChildAvatarImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatarUrl = child.avatarUrl?.trim();
 
-    final imageUrl = avatarUrl != null && avatarUrl.isNotEmpty
-        ? avatarUrl
-        : 'https://api.dicebear.com/10.x/avataaars/png?seed=${Uri.encodeComponent(child.name)}&size=128';
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return _buildInitialAvatar();
+    }
 
     return Image.network(
-      imageUrl,
+      avatarUrl,
       width: 52,
       height: 52,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: AppColors.inputFill,
-        child: const Icon(
-          Icons.child_care_rounded,
+      errorBuilder: (_, __, ___) => _buildInitialAvatar(),
+    );
+  }
+
+  Widget _buildInitialAvatar() {
+    final trimmedName = child.name.trim();
+    final firstLetter = trimmedName.isNotEmpty ? trimmedName[0] : '؟';
+
+    return Container(
+      width: 52,
+      height: 52,
+      alignment: Alignment.center,
+      color: AppColors.primary.withOpacity(0.10),
+      child: Text(
+        firstLetter,
+        style: AppTextStyles.headlineMedium.copyWith(
           color: AppColors.primary,
-          size: 28,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );

@@ -13,9 +13,12 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
   })  : _service = storySpinnerService ?? StorySpinnerService(),
         super(const StorySpinnerInitial());
 
+  static const Duration _maximumRecordingDuration = Duration(minutes: 3);
+
   final StorySpinnerService _service;
 
   Timer? _timer;
+  Duration _recordingDuration = Duration.zero;
 
   late int _activityId;
   late int _activitySessionId;
@@ -48,6 +51,7 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
     _voiceCheckFailedOnce = false;
     _currentAttemptStartedAt = '';
     _currentLevelId = 0;
+    _recordingDuration = Duration.zero;
 
     try {
       final levels = await _service.getLevelsByActivity(activityId);
@@ -196,10 +200,24 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
     }
   }
 
-  void onRecordingComplete(String filePath) {
+  void onRecordingComplete(
+      String filePath,
+      Duration recordingDuration,
+      ) {
     final currentState = state;
 
     if (currentState is! StorySpinnerLoaded) return;
+
+    if (recordingDuration > _maximumRecordingDuration) {
+      emit(
+        const StorySpinnerError(
+          'لا يمكن أن تزيد مدة التسجيل عن 3 دقائق.',
+        ),
+      );
+      return;
+    }
+
+    _recordingDuration = recordingDuration;
 
     emit(
       currentState.copyWith(
@@ -243,6 +261,7 @@ class StorySpinnerCubit extends Cubit<StorySpinnerState> {
         activitySessionId: _activitySessionId,
         levelId: _currentLevelId,
         keywords: keywords,
+        recordingDuration: _recordingDuration,
       );
 
       if (!voiceCheckResult.success) {

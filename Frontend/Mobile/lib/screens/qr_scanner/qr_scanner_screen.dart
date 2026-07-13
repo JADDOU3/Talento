@@ -8,7 +8,6 @@ import '../../shared/layout/app_background.dart';
 import 'widgets/camera_viewfinder.dart';
 import 'widgets/pro_tip_card.dart';
 import 'widgets/scanner_action_button.dart';
-import 'widgets/scanner_badge.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({
@@ -327,11 +326,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
               child: Column(
                 children: [
-                  ScannerBadge(
-                    currentScans: _scannedValues.length,
-                    maxScans: _maxScans,
-                    isComplete: isComplete,
-                  ),
                   const SizedBox(height: 26),
                   CameraViewfinder(
                     scannerController: _scannerController,

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../models/activities/shape_creator/shape_creator_level_model.dart';
 import '../../../services/activities/shape_creator_service.dart';
@@ -8,6 +10,9 @@ import 'shape_creator_state.dart';
 
 class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
   final ShapeCreatorService _service;
+
+  static const FlutterSecureStorage _progressStorage =
+  FlutterSecureStorage();
 
   ShapeCreatorCubit({
     ShapeCreatorService? service,
@@ -41,11 +46,68 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
     return _currentLevelIndex >= _levels.length - 1;
   }
 
+  String get _progressStorageKey {
+    return 'shape_creator_progress_child_${_childId}_activity_${_activityId}';
+  }
+
+  Future<_ShapeCreatorSavedProgress?> _readSavedProgress() async {
+    final raw = await _progressStorage.read(
+      key: _progressStorageKey,
+    );
+
+    if (raw == null || raw.trim().isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+
+      if (decoded is! Map) return null;
+
+      final levelIndex = _readInt(decoded['levelIndex']);
+      final challengeIndex = _readInt(decoded['challengeIndex']);
+
+      if (levelIndex == null || levelIndex < 0) return null;
+
+      return _ShapeCreatorSavedProgress(
+        levelIndex: levelIndex,
+        challengeIndex: challengeIndex ?? 0,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _saveProgress({
+    required int levelIndex,
+    required int challengeIndex,
+  }) async {
+    await _progressStorage.write(
+      key: _progressStorageKey,
+      value: jsonEncode({
+        'levelIndex': levelIndex,
+        'challengeIndex': challengeIndex,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
+  }
+
+  Future<void> _clearSavedProgress() async {
+    await _progressStorage.delete(
+      key: _progressStorageKey,
+    );
+  }
+
   Future<void> loadGame({
     required int activityId,
     required int activitySessionId,
     required int childId,
     required int sessionId,
+    int? startLevelId,
+    int initialLevelNumber = 1,
   }) async {
     emit(const ShapeCreatorLoading());
 
@@ -66,9 +128,28 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
         throw Exception('No Shape Creator levels found.');
       }
 
-      _currentLevelIndex = 0;
-      _currentChallengeIndex = 0;
+      _levels = _levels
+          .where((level) => level.challengeImages.isNotEmpty)
+          .toList();
+
+      if (_levels.isEmpty) {
+        throw Exception('No Shape Creator challenges found.');
+      }
+
+      final startPosition = await _resolveStartPosition(
+        levels: _levels,
+        startLevelId: startLevelId,
+        initialLevelNumber: initialLevelNumber,
+      );
+
+      _currentLevelIndex = startPosition.levelIndex;
+      _currentChallengeIndex = startPosition.challengeIndex;
       _attemptNumber = 1;
+
+      await _saveProgress(
+        levelIndex: _currentLevelIndex,
+        challengeIndex: _currentChallengeIndex,
+      );
 
       final level = _levels[_currentLevelIndex];
 
@@ -94,6 +175,88 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
         ),
       );
     }
+  }
+
+  Future<_ShapeCreatorStartPosition> _resolveStartPosition({
+    required List<ShapeCreatorLevelModel> levels,
+    required int? startLevelId,
+    required int initialLevelNumber,
+  }) async {
+    if (levels.isEmpty) {
+      return const _ShapeCreatorStartPosition(
+        levelIndex: 0,
+        challengeIndex: 0,
+      );
+    }
+
+    int backendLevelIndex = 0;
+
+    if (startLevelId != null && startLevelId > 0) {
+      final indexFromProgress = levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      if (indexFromProgress != -1) {
+        backendLevelIndex = indexFromProgress;
+      } else {
+        backendLevelIndex = _levelIndexFromNumber(
+          initialLevelNumber: initialLevelNumber,
+          levelsLength: levels.length,
+        );
+      }
+    } else {
+      backendLevelIndex = _levelIndexFromNumber(
+        initialLevelNumber: initialLevelNumber,
+        levelsLength: levels.length,
+      );
+    }
+
+    final savedProgress = await _readSavedProgress();
+
+    if (savedProgress != null &&
+        savedProgress.levelIndex >= 0 &&
+        savedProgress.levelIndex < levels.length) {
+      final maxChallengeIndex =
+          levels[savedProgress.levelIndex].challengeImages.length - 1;
+
+      final savedChallengeIndex = _clampInt(
+        savedProgress.challengeIndex,
+        0,
+        maxChallengeIndex,
+      );
+
+      if (savedProgress.levelIndex >= backendLevelIndex) {
+        return _ShapeCreatorStartPosition(
+          levelIndex: savedProgress.levelIndex,
+          challengeIndex: savedChallengeIndex,
+        );
+      }
+    }
+
+    return _ShapeCreatorStartPosition(
+      levelIndex: backendLevelIndex,
+      challengeIndex: 0,
+    );
+  }
+
+  int _levelIndexFromNumber({
+    required int initialLevelNumber,
+    required int levelsLength,
+  }) {
+    if (levelsLength <= 0) return 0;
+
+    if (initialLevelNumber <= 0 || initialLevelNumber > levelsLength) {
+      return 0;
+    }
+
+    return _clampInt(initialLevelNumber - 1, 0, levelsLength - 1);
+  }
+
+  int _clampInt(int value, int min, int max) {
+    if (max < min) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
   }
 
   void onHintPressed() {
@@ -158,6 +321,7 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
 
       await _logActivityCompleted();
       await _completeActivitySession();
+      await _clearSavedProgress();
 
       _pendingAction = _ShapeCreatorPendingAction.none;
       emit(const ShapeCreatorLevelComplete());
@@ -213,12 +377,32 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
     try {
       switch (pendingAction) {
         case _ShapeCreatorPendingAction.retryCurrentChallenge:
+          await _saveProgress(
+            levelIndex: _currentLevelIndex,
+            challengeIndex: _currentChallengeIndex,
+          );
           _startTimer();
           _emitLoaded();
           break;
 
         case _ShapeCreatorPendingAction.nextChallenge:
           _currentChallengeIndex++;
+          _attemptNumber = 1;
+
+          await _saveProgress(
+            levelIndex: _currentLevelIndex,
+            challengeIndex: _currentChallengeIndex,
+          );
+
+          final nextAttemptInfo = await _service.createLevelAttempt(
+            attemptNumber: _attemptNumber,
+            activitySessionId: _activitySessionId!,
+            levelId: _currentLevel!.id,
+          );
+
+          _currentAttemptId = nextAttemptInfo.id;
+          _currentAttemptStartedAt = nextAttemptInfo.startedAt;
+
           _emitLoaded();
           break;
 
@@ -246,6 +430,11 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
     _attemptNumber = 1;
 
     final nextLevel = _levels[_currentLevelIndex];
+
+    await _saveProgress(
+      levelIndex: _currentLevelIndex,
+      challengeIndex: _currentChallengeIndex,
+    );
 
     final nextAttemptInfo = await _service.createLevelAttempt(
       attemptNumber: _attemptNumber,
@@ -405,6 +594,10 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
         _childId != null &&
         _sessionId != null) {
       try {
+        await _saveProgress(
+          levelIndex: _currentLevelIndex,
+          challengeIndex: _currentChallengeIndex,
+        );
         await _logActivityEnded();
       } catch (_) {
         // Avoid crashing while disposing the cubit.
@@ -414,6 +607,26 @@ class ShapeCreatorCubit extends Cubit<ShapeCreatorState> {
     _timer?.cancel();
     return super.close();
   }
+}
+
+class _ShapeCreatorSavedProgress {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _ShapeCreatorSavedProgress({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
+}
+
+class _ShapeCreatorStartPosition {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _ShapeCreatorStartPosition({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
 }
 
 enum _ShapeCreatorPendingAction {

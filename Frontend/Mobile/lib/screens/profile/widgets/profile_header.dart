@@ -17,32 +17,25 @@ class ProfileHeader extends StatelessWidget {
     this.isChildMode = false,
   });
 
-  static const String _defaultChildAvatarAsset =
-      'assets/images/default_child_avatar.png';
-
   @override
   Widget build(BuildContext context) {
-    if (isChildMode) {
-      return _ChildModeHeader(
-        name: name,
-        avatarUrl: avatarUrl,
-        defaultAssetPath: _defaultChildAvatarAsset,
-      );
-    }
-
-    return _ParentHeader(
+    return isChildMode
+        ? _ChildProfileCard(
+      name: name,
+      avatarUrl: avatarUrl,
+    )
+        : _ParentProfileCard(
       name: name,
       email: email,
     );
   }
 }
 
-
-class _ParentHeader extends StatelessWidget {
+class _ParentProfileCard extends StatelessWidget {
   final String name;
   final String email;
 
-  const _ParentHeader({
+  const _ParentProfileCard({
     required this.name,
     required this.email,
   });
@@ -52,86 +45,42 @@ class _ParentHeader extends StatelessWidget {
     final displayName = name.trim().isNotEmpty ? name.trim() : email.trim();
     final displayEmail = email.trim();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.16),
-          width: 1.3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.055),
-            blurRadius: 16,
-            offset: const Offset(0, 7),
-          ),
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.025),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return _ProfileShell(
+      accentColor: AppColors.primary,
       child: Row(
-        textDirection: TextDirection.ltr,
+        textDirection: TextDirection.rtl,
         children: [
-          const _ParentIconBadge(),
-          const SizedBox(width: 16),
-          Container(
-            width: 1.2,
-            height: 58,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
+          const _ParentAvatar(),
           const SizedBox(width: 16),
           Expanded(
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'حساب ولي الأمر',
-                    textAlign: TextAlign.right,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 9),
+                Text(
+                  displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
                   ),
-                  const SizedBox(height: 6),
+                ),
+                if (displayEmail.isNotEmpty) ...[
+                  const SizedBox(height: 5),
                   Text(
-                    displayName,
-                    textAlign: TextAlign.right,
-                    style: AppTextStyles.headlineMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    displayEmail,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                  if (displayEmail.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      displayEmail,
-                      textAlign: TextAlign.right,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
         ],
@@ -140,61 +89,57 @@ class _ParentHeader extends StatelessWidget {
   }
 }
 
-class _ParentIconBadge extends StatelessWidget {
-  const _ParentIconBadge();
+class _ChildProfileCard extends StatelessWidget {
+  final String name;
+  final String? avatarUrl;
+
+  const _ChildProfileCard({
+    required this.name,
+    required this.avatarUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 85,
-      height: 85,
-      child: Stack(
-        clipBehavior: Clip.none,
+    return _ProfileShell(
+      accentColor: AppColors.secondary,
+      child: Row(
+        textDirection: TextDirection.rtl,
         children: [
-          Positioned(
-            top: 6,
-            left: 6,
-            child: Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.16),
-                    AppColors.primary.withValues(alpha: 0.04),
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-            ),
+          _ChildAvatar(
+            name: name,
+            avatarUrl: avatarUrl,
           ),
-          Positioned(
-            top: 14,
-            left: 14,
-            child: Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.92),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ProfileLabel(
+                  icon: Icons.auto_awesome_rounded,
+                  text: 'ملف الطفل',
+                  color: AppColors.primary,
                 ),
-              ),
-              child: const Icon(
-                Icons.escalator_warning_rounded,
-                color: AppColors.primary,
-                size: 35,
-              ),
+                const SizedBox(height: 9),
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'مستكشف صغير في تالينتو',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -203,15 +148,13 @@ class _ParentIconBadge extends StatelessWidget {
   }
 }
 
-class _ChildModeHeader extends StatelessWidget {
-  final String name;
-  final String? avatarUrl;
-  final String defaultAssetPath;
+class _ProfileShell extends StatelessWidget {
+  final Color accentColor;
+  final Widget child;
 
-  const _ChildModeHeader({
-    required this.name,
-    required this.avatarUrl,
-    required this.defaultAssetPath,
+  const _ProfileShell({
+    required this.accentColor,
+    required this.child,
   });
 
   @override
@@ -220,17 +163,17 @@ class _ChildModeHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(24),
+        color: AppColors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.18),
-          width: 1.4,
+          color: accentColor.withValues(alpha: 0.18),
+          width: 1.3,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.07),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: accentColor.withValues(alpha: 0.08),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.035),
@@ -239,58 +182,41 @@ class _ChildModeHeader extends StatelessWidget {
           ),
         ],
       ),
+      child: child,
+    );
+  }
+}
+
+class _ProfileLabel extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  const _ProfileLabel({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _ChildAvatar(
-            avatarUrl: avatarUrl,
-            defaultAssetPath: defaultAssetPath,
-          ),
-          const SizedBox(width: 16),
-          Container(
-            width: 1.2,
-            height: 58,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ملف الطفل',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    name,
-                    style: AppTextStyles.headlineMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'مستكشف صغير في تالينتو',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: color,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -299,80 +225,117 @@ class _ChildModeHeader extends StatelessWidget {
   }
 }
 
-class _ChildAvatar extends StatelessWidget {
-  final String? avatarUrl;
-  final String defaultAssetPath;
-
-  const _ChildAvatar({
-    required this.avatarUrl,
-    required this.defaultAssetPath,
-  });
-
-  bool get _hasNetworkAvatar =>
-      avatarUrl != null && avatarUrl!.trim().isNotEmpty;
+class _ParentAvatar extends StatelessWidget {
+  const _ParentAvatar();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 82,
       height: 82,
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(7),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.22),
-          width: 1.5,
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.18),
+            AppColors.secondary.withValues(alpha: 0.08),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.10),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.20),
+        ),
       ),
-      child: ClipOval(
-        child: _hasNetworkAvatar
-            ? Image.network(
-          avatarUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _DefaultChildAvatar(
-            assetPath: defaultAssetPath,
-          ),
-        )
-            : _DefaultChildAvatar(
-          assetPath: defaultAssetPath,
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.white,
+        ),
+        child: const Icon(
+          Icons.family_restroom_rounded,
+          color: AppColors.primary,
+          size: 39,
         ),
       ),
     );
   }
 }
 
-class _DefaultChildAvatar extends StatelessWidget {
-  final String assetPath;
+class _ChildAvatar extends StatelessWidget {
+  final String name;
+  final String? avatarUrl;
 
-  const _DefaultChildAvatar({
-    required this.assetPath,
+  const _ChildAvatar({
+    required this.name,
+    required this.avatarUrl,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      assetPath,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: AppColors.inputFill,
-        child: const Icon(
-          Icons.child_care_rounded,
-          color: AppColors.primary,
-          size: 38,
+    final trimmedAvatar = avatarUrl?.trim();
+    final hasAvatar =
+        trimmedAvatar != null && trimmedAvatar.isNotEmpty;
+
+    return Container(
+      width: 84,
+      height: 84,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.18),
+            AppColors.secondary.withValues(alpha: 0.10),
+          ],
         ),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.22),
+          width: 1.5,
+        ),
+      ),
+      child: ClipOval(
+        child: hasAvatar
+            ? Image.network(
+          trimmedAvatar,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              _InitialAvatar(name: name),
+        )
+            : _InitialAvatar(name: name),
       ),
     );
   }
 }
 
+class _InitialAvatar extends StatelessWidget {
+  final String name;
 
+  const _InitialAvatar({
+    required this.name,
+  });
 
+  @override
+  Widget build(BuildContext context) {
+    final trimmedName = name.trim();
+    final initial = trimmedName.isEmpty
+        ? 'ط'
+        : trimmedName.characters.first.toUpperCase();
 
+    return Container(
+      color: AppColors.white,
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: AppTextStyles.headlineLarge.copyWith(
+          color: AppColors.primary,
+          fontSize: 34,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}

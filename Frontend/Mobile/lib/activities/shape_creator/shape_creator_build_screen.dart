@@ -16,6 +16,8 @@ class ShapeCreatorBuildScreen extends StatefulWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int initialLevelNumber;
 
   const ShapeCreatorBuildScreen({
     super.key,
@@ -23,6 +25,8 @@ class ShapeCreatorBuildScreen extends StatefulWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.initialLevelNumber = 1,
   });
 
   @override
@@ -42,6 +46,8 @@ class _ShapeCreatorBuildScreenState extends State<ShapeCreatorBuildScreen> {
       activitySessionId: widget.activitySessionId,
       childId: widget.childId,
       sessionId: widget.sessionId,
+      startLevelId: widget.startLevelId,
+      initialLevelNumber: widget.initialLevelNumber,
     );
   }
 

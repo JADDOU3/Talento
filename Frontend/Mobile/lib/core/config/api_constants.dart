@@ -100,6 +100,19 @@ class ApiConstants {
   static const String postsByMindset = '$baseUrl/posts/mindset';
   static const String postsByKit = '$baseUrl/posts/kit';
 
+  // Voice-over
+  static String globalVoiceOver(String result) =>
+      '$baseUrl/voice-over/global/$result';
+
+  static String activityVoiceOver(int activityId) =>
+      '$baseUrl/voice-over/activity/$activityId';
+
+  static String mazeQuestionVoiceOver({
+    required int levelId,
+    required int challengeId,
+  }) =>
+      '$baseUrl/voice-over/maze-question/$levelId/$challengeId';
+
   // Media
   static const String mediaUpload = '$baseUrl/media/upload';
 

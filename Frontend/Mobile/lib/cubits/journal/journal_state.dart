@@ -21,10 +21,12 @@ class JournalError extends JournalState {
 class JournalNoReport extends JournalState {
   final List<DailySessionModel> weeklySessions;
   final List<PerformanceModel> performances;
+  final JournalActivitiesProgressModel activitiesProgress;
 
   const JournalNoReport({
     required this.weeklySessions,
     required this.performances,
+    required this.activitiesProgress,
   });
 }
 
@@ -33,6 +35,7 @@ class JournalLoaded extends JournalState {
   final List<MindsetScoreModel> mindsetScores;
   final List<DailySessionModel> weeklySessions;
   final List<PerformanceModel> performances;
+  final JournalActivitiesProgressModel activitiesProgress;
   final int childId;
 
   const JournalLoaded({
@@ -40,6 +43,7 @@ class JournalLoaded extends JournalState {
     required this.mindsetScores,
     required this.weeklySessions,
     required this.performances,
+    required this.activitiesProgress,
     required this.childId,
   });
 }

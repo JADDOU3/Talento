@@ -9,16 +9,16 @@ import 'journal_card.dart';
 import 'journal_ui_helpers.dart';
 
 class AchievementRateCard extends StatelessWidget {
-  final AIReportModel report;
+  final JournalActivitiesProgressModel activitiesProgress;
 
   const AchievementRateCard({
     super.key,
-    required this.report,
+    required this.activitiesProgress,
   });
 
   @override
   Widget build(BuildContext context) {
-    final value = normalizeScore(report.analysisConfidence);
+    final value = activitiesProgress.progress;
     final percent = (value * 100).round();
 
     return SizedBox(
@@ -87,7 +87,7 @@ class AchievementRateCard extends StatelessWidget {
           ),
           const SizedBox(height: 7),
           Text(
-            'معدل الإنجاز العام',
+            'معدل الانجاز العام',
             textAlign: TextAlign.center,
             maxLines: 2,
             style: AppTextStyles.bodyMedium.copyWith(
@@ -179,6 +179,263 @@ class _AchievementRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _AchievementRingPainter oldDelegate) {
     return oldDelegate.progress != progress;
+  }
+}
+
+class PendingMindsetScoresCard extends StatelessWidget {
+  final int completedActivities;
+  final int totalActivities;
+
+  const PendingMindsetScoresCard({
+    super.key,
+    required this.completedActivities,
+    required this.totalActivities,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasKnownTotal = totalActivities > 0;
+    final safeCompleted = hasKnownTotal
+        ? completedActivities.clamp(0, totalActivities)
+        : 0;
+    final progress = hasKnownTotal
+        ? (safeCompleted / totalActivities).clamp(0.0, 1.0).toDouble()
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 17),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFFFFAFB),
+            Color(0xFFFFF7FC),
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: AppColors.pink.withValues(alpha: 0.10),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.pink.withValues(alpha: 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Directionality(
+            textDirection: TextDirection.rtl,
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppColors.yellow.withValues(alpha: 0.17),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.auto_graph_rounded,
+                    color: AppColors.yellow,
+                    size: 19,
+                  ),
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    'بطاقة أداء المهارات',
+                    textAlign: TextAlign.right,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.09),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.primary,
+                    size: 17,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          Center(
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 82,
+                  height: 82,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.10),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.10),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.insights_rounded,
+                    color: AppColors.primary,
+                    size: 30,
+                  ),
+                ),
+                Positioned(
+                  top: 2,
+                  left: -7,
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: AppColors.pink.withValues(alpha: 0.80),
+                    size: 17,
+                  ),
+                ),
+                Positioned(
+                  bottom: 5,
+                  right: -5,
+                  child: Icon(
+                    Icons.star_rounded,
+                    color: AppColors.yellow.withValues(alpha: 0.90),
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 15),
+          Text(
+            'ستظهر مهارات طفلك بعد إكمال الرحلة',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            'عندما يُكمل طفلك جميع الألعاب، سنعرض هنا تطوّر مهاراته وأداءه.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.55,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.88),
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Column(
+              children: [
+                Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.extension_rounded,
+                        color: AppColors.primary.withValues(alpha: 0.85),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          hasKnownTotal
+                              ? '$safeCompleted من أصل $totalActivities لعبة مكتملة'
+                              : 'أكملوا رحلة الألعاب لتظهر تفاصيل التقدّم هنا',
+                          textAlign: TextAlign.right,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textPrimary,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (hasKnownTotal)
+                        Text(
+                          '${(progress * 100).round()}%',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 9),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: 8,
+                        color: AppColors.primary.withValues(alpha: 0.11),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FractionallySizedBox(
+                          widthFactor: progress,
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.secondary,
+                                  AppColors.primary,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

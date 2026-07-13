@@ -45,6 +45,7 @@ class CognitiveMazeIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActivityIntroTemplate(
+      activityId: activityId,
       background: const AnimatedBackground(child: SizedBox.expand()),
       mascotAssetPath: 'assets/images/template_mascot.png',
       startButtonText: 'ابدأ المغامرة',

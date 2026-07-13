@@ -6,94 +6,180 @@ import '../../core/config/api_constants.dart';
 import '../../models/empathy_mirror/empathy_mirror_models.dart';
 import '../auth/auth_api_client.dart';
 
+class EmpathyMirrorAttemptInfo {
+  final int id;
+  final String startedAt;
+
+  const EmpathyMirrorAttemptInfo({
+    required this.id,
+    required this.startedAt,
+  });
+}
+
 class EmpathyMirrorService {
   final AuthApiClient _client = AuthApiClient();
 
-  String _now() => DateTime.now().toUtc().toIso8601String();
+  String _nowIso() {
+    return DateTime.now().toUtc().toIso8601String().replaceFirst('Z', '');
+  }
 
-  // ─── Levels ───────────────────────────────────────────────────────────────
+  String _normalizeIso(String value) {
+    return value.trim().replaceFirst(RegExp(r'Z$'), '');
+  }
+
+  // ===================== LEVELS =====================
 
   Future<List<EmpathyMirrorLevel>> getLevels(int activityId) async {
     final url =
         '${ApiConstants.levelsByActivity(activityId)}?page=0&size=100&sort=levelNumber,asc';
-    debugPrint('EMPATHY GET LEVELS: $url');
 
-    final res = await _client.get(Uri.parse(url));
-    debugPrint('EMPATHY LEVELS: ${res.statusCode} - ${res.body}');
+    debugPrint('EMPATHY GET LEVELS URL: $url');
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final decoded = jsonDecode(res.body);
-      final List content = decoded is Map
-          ? (decoded['content'] as List? ?? [])
-          : (decoded as List? ?? []);
-      return content
-          .whereType<Map>()
-          .map((e) =>
-              EmpathyMirrorLevel.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
-    }
-    throw Exception('Failed to load levels: ${res.statusCode}');
+    final response = await _client.get(Uri.parse(url));
+
+    debugPrint(
+      'EMPATHY GET LEVELS RESPONSE: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'فشل تحميل مستويات مرآة التعاطف',
+    );
+
+    final decoded = jsonDecode(response.body);
+    final List content = decoded is Map
+        ? (decoded['content'] as List? ?? [])
+        : (decoded as List? ?? []);
+
+    return content
+        .whereType<Map>()
+        .map(
+          (item) => EmpathyMirrorLevel.fromJson(
+        Map<String, dynamic>.from(item),
+      ),
+    )
+        .toList();
   }
 
-  // ─── Level Attempts ────────────────────────────────────────────────────────
+  // ===================== LEVEL ATTEMPTS =====================
 
-  Future<int> createLevelAttempt({
+  Future<EmpathyMirrorAttemptInfo> createLevelAttempt({
     required int attemptNumber,
     required int activitySessionId,
     required int levelId,
   }) async {
+    final startedAt = _nowIso();
     final body = {
       'attemptNumber': attemptNumber,
-      'startedAt': _now(),
+      'startedAt': startedAt,
       'activitySessionId': activitySessionId,
       'levelId': levelId,
       'completed': false,
     };
-    debugPrint('EMPATHY CREATE ATTEMPT: $body');
 
-    final res = await _client.post(
+    debugPrint('EMPATHY CREATE ATTEMPT BODY: $body');
+
+    final response = await _client.post(
       Uri.parse(ApiConstants.levelAttempts),
       body: jsonEncode(body),
     );
-    debugPrint('EMPATHY ATTEMPT RESP: ${res.statusCode} - ${res.body}');
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final d = jsonDecode(res.body);
-      if (d is Map && d['id'] != null) return _int(d['id']);
+    debugPrint(
+      'EMPATHY CREATE ATTEMPT RESPONSE: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'فشل إنشاء محاولة المستوى',
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (decoded is Map && decoded['id'] != null) {
+      return EmpathyMirrorAttemptInfo(
+        id: _toInt(decoded['id']),
+        startedAt: (decoded['startedAt'] ?? startedAt).toString(),
+      );
     }
-    throw Exception('Failed to create attempt: ${res.statusCode}');
+
+    throw Exception('تم إنشاء المحاولة بدون إرجاع رقم المحاولة');
   }
 
   Future<void> updateLevelAttempt({
     required int attemptId,
+    required int attemptNumber,
+    required String startedAt,
+    required int activitySessionId,
+    required int levelId,
     required bool completed,
   }) async {
-    final body = {'endedAt': _now(), 'completed': completed};
-    await _client.put(
+    final body = {
+      'attemptNumber': attemptNumber,
+      'startedAt': _normalizeIso(startedAt),
+      'endedAt': _nowIso(),
+      'completed': completed,
+      'activitySessionId': activitySessionId,
+      'levelId': levelId,
+    };
+
+    debugPrint(
+      'EMPATHY UPDATE ATTEMPT $attemptId BODY: $body',
+    );
+
+    final response = await _client.put(
       Uri.parse(ApiConstants.levelAttemptById(attemptId)),
       body: jsonEncode(body),
     );
+
+    debugPrint(
+      'EMPATHY UPDATE ATTEMPT RESPONSE: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'فشل تحديث محاولة المستوى',
+    );
   }
 
-  // ─── Events ────────────────────────────────────────────────────────────────
+  // ===================== EVENTS =====================
 
   Future<void> logActivityEvent({
     required int childId,
     required int sessionId,
     required int activityId,
     required String action,
+    String responseLanguage = 'en',
   }) async {
     final body = {
       'childId': childId,
       'sessionId': sessionId,
       'activityId': activityId,
       'action': action,
-      'responseLanguage': 'en',
+      'responseLanguage': responseLanguage,
     };
-    debugPrint('EMPATHY ACTIVITY EVENT: $body');
-    await _client.post(
+
+    debugPrint('EMPATHY ACTIVITY EVENT BODY: $body');
+
+    final response = await _client.post(
       Uri.parse(ApiConstants.activityEvents),
       body: jsonEncode(body),
+    );
+
+    debugPrint(
+      'EMPATHY ACTIVITY EVENT RESPONSE: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'فشل حفظ حدث النشاط $action',
     );
   }
 
@@ -109,23 +195,75 @@ class EmpathyMirrorService {
       'activitySessionId': activitySessionId,
       'action': action,
     };
-    debugPrint('EMPATHY LEVEL EVENT: $body');
-    await _client.post(
+
+    debugPrint('EMPATHY LEVEL EVENT BODY: $body');
+
+    final response = await _client.post(
       Uri.parse(ApiConstants.levelEvents),
       body: jsonEncode(body),
     );
-  }
 
-  // ─── Activity Session ──────────────────────────────────────────────────────
+    debugPrint(
+      'EMPATHY LEVEL EVENT RESPONSE: '
+          '${response.statusCode} - ${response.body}',
+    );
 
-  Future<void> completeActivitySession(int activitySessionId) async {
-    await _client.put(
-      Uri.parse(ApiConstants.activitySessionById(activitySessionId)),
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'فشل حفظ حدث المستوى $action',
     );
   }
 
-  static int _int(dynamic v) {
-    if (v is int) return v;
-    return int.tryParse(v?.toString() ?? '') ?? 0;
+  // ===================== ACTIVITY SESSION =====================
+
+  Future<void> completeActivitySession(int activitySessionId) async {
+    final response = await _client.put(
+      Uri.parse(ApiConstants.activitySessionById(activitySessionId)),
+    );
+
+    debugPrint(
+      'EMPATHY COMPLETE ACTIVITY SESSION RESPONSE: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    _ensureSuccess(
+      response.statusCode,
+      response.body,
+      'فشل إكمال جلسة النشاط',
+    );
+  }
+
+  // ===================== HELPERS =====================
+
+  void _ensureSuccess(
+      int statusCode,
+      String body,
+      String fallbackMessage,
+      ) {
+    if (statusCode >= 200 && statusCode < 300) return;
+
+    throw Exception(
+      '${_extractErrorMessage(body, fallbackMessage)} '
+          '| statusCode=$statusCode | body=$body',
+    );
+  }
+
+  String _extractErrorMessage(String body, String fallbackMessage) {
+    try {
+      final decoded = jsonDecode(body);
+
+      if (decoded is Map) {
+        return (decoded['message'] ?? decoded['error'] ?? fallbackMessage)
+            .toString();
+      }
+    } catch (_) {}
+
+    return fallbackMessage;
+  }
+
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }
