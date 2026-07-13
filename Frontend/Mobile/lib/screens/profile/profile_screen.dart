@@ -177,91 +177,99 @@ class _ProfileView extends StatelessWidget {
                         ? selectedChild.avatarUrl
                         : null;
 
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 12),
-                          ProfileHeader(
-                            name: displayName,
-                            email: isChildMode ? '' : user.email,
-                            avatarUrl: displayAvatar,
-                            isChildMode: isChildMode,
-                          ),
-                          const SizedBox(height: 24),
-
-                          if (!isChildMode)
-                            ChildrenSection(
-                              children: children,
-                              selectedChild: selectedChild,
-                              openAddChildDialog: openAddChildDialog,
-                              onChildSelected: (child) async {
-                                final profileCubit =
-                                context.read<ProfileCubit>();
-
-                                // Wait until the backend actually changes the
-                                // selected child. The old fixed 150 ms delay
-                                // caused coins and home data to be requested
-                                // for the previous child.
-                                await profileCubit.selectChild(child);
-
-                                if (!context.mounted) return;
-
-                                final profileState = profileCubit.state;
-                                final selectionSucceeded =
-                                    profileState is ProfileLoaded &&
-                                        profileState.selectedChild?.id == child.id;
-
-                                if (!selectionSucceeded) return;
-
-                                // Clear the previous child's number and fetch
-                                // the newly selected child's real balance.
-                                await context
-                                    .read<CoinsCubit>()
-                                    .reloadForSelectedChild();
-
-                                if (!context.mounted) return;
-
-                                await context
-                                    .read<ChildModeCubit>()
-                                    .checkChildMode();
-                              },
+                    return Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 10),
+                            ProfileHeader(
+                              name: displayName,
+                              email: isChildMode ? '' : user.email,
+                              avatarUrl: displayAvatar,
+                              isChildMode: isChildMode,
                             ),
+                            const SizedBox(height: 22),
 
-                          if (!isChildMode) const SizedBox(height: 24),
+                            if (!isChildMode)
+                              ChildrenSection(
+                                children: children,
+                                selectedChild: selectedChild,
+                                openAddChildDialog: openAddChildDialog,
+                                onChildSelected: (child) async {
+                                  final profileCubit =
+                                  context.read<ProfileCubit>();
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'الحقائب النشطة',
-                                style: AppTextStyles.bodyLarge.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
+                                  // Wait until the backend actually changes the
+                                  // selected child. The old fixed 150 ms delay
+                                  // caused coins and home data to be requested
+                                  // for the previous child.
+                                  await profileCubit.selectChild(child);
+
+                                  if (!context.mounted) return;
+
+                                  final profileState = profileCubit.state;
+                                  final selectionSucceeded =
+                                      profileState is ProfileLoaded &&
+                                          profileState.selectedChild?.id == child.id;
+
+                                  if (!selectionSucceeded) return;
+
+                                  // Clear the previous child's number and fetch
+                                  // the newly selected child's real balance.
+                                  await context
+                                      .read<CoinsCubit>()
+                                      .reloadForSelectedChild();
+
+                                  if (!context.mounted) return;
+
+                                  await context
+                                      .read<ChildModeCubit>()
+                                      .checkChildMode();
+                                },
+                              ),
+
+                            if (!isChildMode) const SizedBox(height: 24),
+
+                            _ProfileSectionTitle(
+                              title: 'الصندوق الحالي',
+                              subtitle: isChildMode
+                                  ? 'استكشف رحلتك الحالية'
+                                  : 'الصناديق المرتبطة بالطفل المختار',
+                              icon: Icons.inventory_2_outlined,
+                            ),
+                            const SizedBox(height: 12),
+                            if (isKitsLoading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
                                 ),
+                              )
+                            else
+                              AvailableKitsSection(
+                                kits: kits,
+                                onAddKitTap: isChildMode
+                                    ? null
+                                    : () => _openKitQrScanner(context),
                               ),
+
+                            const SizedBox(height: 24),
+
+                            if (!isChildMode) ...[
+                              const _ProfileSectionTitle(
+                                title: 'الإعدادات',
+                                subtitle: 'إدارة الحساب وتفضيلات التطبيق',
+                                icon: Icons.settings_outlined,
+                              ),
+                              const SizedBox(height: 12),
+                              const SettingsSection(),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (isKitsLoading)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.primary,
-                              ),
-                            )
-                          else
-                            AvailableKitsSection(
-                              kits: kits,
-                              onAddKitTap: () => _openKitQrScanner(context),
-                            ),
 
-                          const SizedBox(height: 24),
-
-                          if (!isChildMode) const SettingsSection(),
-
-                          const SizedBox(height: 24),
-                        ],
+                            const SizedBox(height: 24),
+                          ],
+                        ),
                       ),
                     );
                   }
@@ -274,6 +282,65 @@ class _ProfileView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProfileSectionTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  const _ProfileSectionTitle({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      textDirection: TextDirection.rtl,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.09),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 19,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
