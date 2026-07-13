@@ -1,8 +1,6 @@
+// lib/shared/services/auth_state.dart
 import 'package:flutter/foundation.dart';
-
-// ⚠️ ADJUST THIS IMPORT to wherever local_storage.dart actually lives in
-// your project (it's next to auth_service.dart based on what you shared).
-import 'local_storage.dart';
+import 'local_storage.dart';  // ✅ Only need this once
 
 /// Minimal reactive wrapper around the app's existing token storage.
 ///

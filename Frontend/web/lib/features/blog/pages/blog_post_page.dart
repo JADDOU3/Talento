@@ -1,3 +1,4 @@
+// lib/features/blog/pages/blog_post_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/components/footer/footer.dart';
@@ -60,7 +61,6 @@ class _BlogPostPageState extends State<BlogPostPage> with SingleTickerProviderSt
       backgroundColor: AppColors.cartPageBackground,
       body: Stack(
         children: [
-          // Main content with no top padding
           SingleChildScrollView(
             controller: _scrollController,
             padding: EdgeInsets.zero,
@@ -78,14 +78,23 @@ class _BlogPostPageState extends State<BlogPostPage> with SingleTickerProviderSt
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 760),
                       child: Transform.translate(
-                        offset: const Offset(0, -28),
+                        offset: const Offset(0, -40),
                         child: Container(
-                          padding: const EdgeInsetsDirectional.fromSTEB(32, 36, 32, 32),
+                          padding: const EdgeInsetsDirectional.fromSTEB(32, 32, 32, 32),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(28),
-                            boxShadow: const [
+                            border: Border.all(
+                              color: accent.withOpacity(0.18),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
                               BoxShadow(
+                                color: accent.withOpacity(0.14),
+                                blurRadius: 26,
+                                offset: const Offset(0, 12),
+                              ),
+                              const BoxShadow(
                                 color: AppColors.shadow,
                                 blurRadius: 20,
                                 offset: Offset(0, 8),
@@ -95,20 +104,21 @@ class _BlogPostPageState extends State<BlogPostPage> with SingleTickerProviderSt
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _ReadingProgressIndicator(accent: accent),
-                              const SizedBox(height: 20),
+                              _ArticleTag(isArabic: isArabic, accent: accent),
+                              const SizedBox(height: 24),
                               for (int i = 0; i < post.body(isArabic).length; i++) ...[
                                 _FunParagraph(
                                   text: post.body(isArabic)[i],
                                   index: i,
+                                  accent: accent,
                                 ),
                                 if (i < post.body(isArabic).length - 1)
                                   const SizedBox(height: 22),
                               ],
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 12),
                               Container(height: 1, color: const Color(0xFFEEEEEE)),
                               const SizedBox(height: 20),
-                              _MoreStoriesRow(
+                              _MoreStoriesCard(
                                 currentIndex: _postIndex,
                                 isArabic: isArabic,
                                 floatAnimation: _floatAnimation,
@@ -124,7 +134,6 @@ class _BlogPostPageState extends State<BlogPostPage> with SingleTickerProviderSt
               ],
             ),
           ),
-          // Floating Navbar
           Positioned(
             top: 0,
             left: 0,
@@ -135,6 +144,14 @@ class _BlogPostPageState extends State<BlogPostPage> with SingleTickerProviderSt
       ),
     );
   }
+}
+
+Widget _decorativeCircle(double size, Color color) {
+  return Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
 }
 
 class _AccentHeader extends StatelessWidget {
@@ -154,16 +171,42 @@ class _AccentHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 80), // Removed top padding
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 96),
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [accent, Color.lerp(accent, Colors.black, 0.15)!],
+          colors: [
+            AppColors.cartForestGreen,
+            AppColors.cartTeal,
+            Color(0xFF3FA796),
+          ],
+          stops: [0.0, 0.55, 1.0],
         ),
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
+          Positioned(
+            top: -20,
+            right: -10,
+            child: _decorativeCircle(70, const Color(0xFFE07A5F).withOpacity(0.35)),
+          ),
+          Positioned(
+            top: 60,
+            right: 60,
+            child: _decorativeCircle(24, const Color(0xFFDDA83A).withOpacity(0.55)),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -10,
+            child: _decorativeCircle(90, Colors.white.withOpacity(0.14)),
+          ),
+          Positioned(
+            bottom: 30,
+            left: 100,
+            child: _decorativeCircle(18, const Color(0xFFE07A5F).withOpacity(0.5)),
+          ),
           Positioned.fill(
             child: _FloatingDecorations(
               color: accent,
@@ -176,10 +219,11 @@ class _AccentHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Add top padding to push content below navbar
-                  const SizedBox(height: 110), // Push content below navbar
+                  const SizedBox(height: 110),
                   _BouncyBackButton(isArabic: isArabic),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
+                  _ArticleBadge(isArabic: isArabic),
+                  const SizedBox(height: 18),
                   _FunIconContainer(accent: accent, icon: post.icon),
                   const SizedBox(height: 20),
                   _AnimatedTitle(title: post.title(isArabic)),
@@ -193,6 +237,32 @@ class _AccentHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ArticleBadge extends StatelessWidget {
+  final bool isArabic;
+
+  const _ArticleBadge({required this.isArabic});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDDA83A).withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        isArabic ? 'مقال' : 'ARTICLE',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.4,
+        ),
       ),
     );
   }
@@ -257,8 +327,12 @@ class _FunIconContainer extends StatelessWidget {
         width: 64,
         height: 64,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
+          color: Colors.white.withOpacity(0.18),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.25),
+            width: 1.5,
+          ),
         ),
         child: Icon(icon, color: Colors.white, size: 30),
       ),
@@ -281,7 +355,7 @@ class _AnimatedTitle extends StatelessWidget {
         return Transform.translate(
           offset: Offset(-20 * (1 - value), 0),
           child: Opacity(
-            opacity: value,
+            opacity: value.clamp(0.0, 1.0), // ✅ Clamped
             child: child,
           ),
         );
@@ -324,14 +398,14 @@ class _FunReadTime extends StatelessWidget {
           child: Icon(
             Icons.schedule_rounded,
             size: 15,
-            color: Colors.white.withValues(alpha: 0.85),
+            color: Colors.white.withOpacity(0.85),
           ),
         ),
         const SizedBox(width: 6),
         Text(
           '⏱️ ${blogReadLabel(post, isArabic)}',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
+            color: Colors.white.withOpacity(0.85),
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -370,14 +444,14 @@ class _FloatingDecorations extends StatelessWidget {
         children: [
           _FloatingIcon(
             Icons.star,
-            Colors.white.withValues(alpha: 0.15),
+            Colors.white.withOpacity(0.15),
             24,
             Offset(size.width * 0.08, 30),
             floatAnimation,
           ),
           _FloatingIcon(
             Icons.favorite,
-            Colors.white.withValues(alpha: 0.12),
+            Colors.white.withOpacity(0.12),
             20,
             Offset(size.width * 0.92, 50),
             floatAnimation,
@@ -385,7 +459,7 @@ class _FloatingDecorations extends StatelessWidget {
           ),
           _FloatingIcon(
             Icons.circle,
-            Colors.white.withValues(alpha: 0.10),
+            Colors.white.withOpacity(0.10),
             12,
             Offset(size.width * 0.15, 120),
             floatAnimation,
@@ -393,7 +467,7 @@ class _FloatingDecorations extends StatelessWidget {
           ),
           _FloatingIcon(
             Icons.star_half,
-            Colors.white.withValues(alpha: 0.12),
+            Colors.white.withOpacity(0.12),
             18,
             Offset(size.width * 0.85, 150),
             floatAnimation,
@@ -401,7 +475,7 @@ class _FloatingDecorations extends StatelessWidget {
           ),
           _FloatingIcon(
             Icons.emoji_emotions,
-            Colors.white.withValues(alpha: 0.10),
+            Colors.white.withOpacity(0.10),
             22,
             Offset(size.width * 0.05, 200),
             floatAnimation,
@@ -409,7 +483,7 @@ class _FloatingDecorations extends StatelessWidget {
           ),
           _FloatingIcon(
             Icons.auto_awesome,
-            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withOpacity(0.08),
             28,
             Offset(size.width * 0.95, 220),
             floatAnimation,
@@ -421,6 +495,7 @@ class _FloatingDecorations extends StatelessWidget {
   }
 }
 
+// ✅ COMPLETELY REWRITTEN _FloatingIcon with safe opacity
 class _FloatingIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -446,12 +521,16 @@ class _FloatingIcon extends StatelessWidget {
       child: AnimatedBuilder(
         animation: floatAnimation,
         builder: (context, child) {
-          final delayedValue = (floatAnimation.value + delay) % 1.0;
-          final offset = 10 * delayedValue;
+          // ✅ Safe calculation with clamp
+          double rawValue = (floatAnimation.value + delay) % 1.0;
+          double clampedValue = rawValue.clamp(0.0, 1.0);
+          double offset = 10 * clampedValue;
+          double opacity = (0.3 + 0.7 * (1 - clampedValue)).clamp(0.0, 1.0);
+
           return Transform.translate(
             offset: Offset(0, -offset),
             child: Opacity(
-              opacity: 0.3 + 0.7 * (1 - delayedValue.abs()),
+              opacity: opacity,
               child: child,
             ),
           );
@@ -462,93 +541,50 @@ class _FloatingIcon extends StatelessWidget {
   }
 }
 
-class _ReadingProgressIndicator extends StatefulWidget {
+class _ArticleTag extends StatelessWidget {
+  final bool isArabic;
   final Color accent;
 
-  const _ReadingProgressIndicator({required this.accent});
-
-  @override
-  State<_ReadingProgressIndicator> createState() => _ReadingProgressIndicatorState();
-}
-
-class _ReadingProgressIndicatorState extends State<_ReadingProgressIndicator> with SingleTickerProviderStateMixin {
-  late AnimationController _progressController;
-  late Animation<double> _progressAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _progressController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..forward();
-    _progressAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _progressController.dispose();
-    super.dispose();
-  }
+  const _ArticleTag({required this.isArabic, required this.accent});
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _progressAnimation,
-      builder: (context, child) {
-        return Row(
-          children: [
-            const Text('📖', style: TextStyle(fontSize: 16)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: _progressAnimation.value,
-                  backgroundColor: Colors.grey.shade200,
-                  color: widget.accent,
-                  minHeight: 6,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '${(_progressAnimation.value * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: widget.accent,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              _getProgressEmoji(_progressAnimation.value),
-              style: const TextStyle(fontSize: 16),
-            ),
-          ],
-        );
-      },
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 4,
+          decoration: BoxDecoration(
+            color: accent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          isArabic ? 'مقال' : 'ARTICLE',
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            color: accent,
+          ),
+        ),
+        const SizedBox(width: 8),
+        const Text('📖', style: TextStyle(fontSize: 15)),
+      ],
     );
-  }
-
-  String _getProgressEmoji(double progress) {
-    if (progress < 0.25) return '🚀';
-    if (progress < 0.50) return '⭐';
-    if (progress < 0.75) return '🌟';
-    if (progress < 0.95) return '🎉';
-    return '🏆';
   }
 }
 
 class _FunParagraph extends StatelessWidget {
   final String text;
   final int index;
+  final Color accent;
 
   const _FunParagraph({
     required this.text,
     required this.index,
+    required this.accent,
   });
 
   @override
@@ -559,7 +595,7 @@ class _FunParagraph extends StatelessWidget {
       curve: Curves.easeOut,
       builder: (context, value, child) {
         return Opacity(
-          opacity: value,
+          opacity: value.clamp(0.0, 1.0), // ✅ Clamped
           child: Transform.translate(
             offset: Offset(20 * (1 - value), 0),
             child: child,
@@ -582,7 +618,7 @@ class _FunParagraph extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16.5,
                 height: 1.85,
-                color: AppColors.textPrimary.withValues(alpha: 0.85),
+                color: AppColors.textPrimary.withOpacity(0.85),
               ),
             ),
           ),
@@ -592,12 +628,12 @@ class _FunParagraph extends StatelessWidget {
   }
 }
 
-class _MoreStoriesRow extends StatelessWidget {
+class _MoreStoriesCard extends StatelessWidget {
   final int currentIndex;
   final bool isArabic;
   final Animation<double> floatAnimation;
 
-  const _MoreStoriesRow({
+  const _MoreStoriesCard({
     required this.currentIndex,
     required this.isArabic,
     required this.floatAnimation,
@@ -610,30 +646,40 @@ class _MoreStoriesRow extends StatelessWidget {
     final accent = blogAccentColorFor(nextIndex);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       onTap: () => Navigator.of(context).pushReplacementNamed('/blog-post', arguments: next.id),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: accent.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: accent.withOpacity(0.18),
+            width: 1.5,
+          ),
+        ),
         child: Row(
           children: [
             AnimatedBuilder(
               animation: floatAnimation,
               builder: (context, child) {
+                // ✅ Safe float value
+                floatAnimation.value.clamp(0.0, 1.0);
                 return Transform.translate(
-                  offset: Offset(0, -5 * floatAnimation.value),
+                  offset: Offset(0, -5 * (floatAnimation.value / 15)),
                   child: child,
                 );
               },
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  color: accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(next.icon, color: accent, size: 18),
+                child: Icon(next.icon, color: accent, size: 20),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -644,21 +690,22 @@ class _MoreStoriesRow extends StatelessWidget {
                         isArabic ? 'المقال التالي' : 'Next up',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.cartMutedGrey.withValues(alpha: 0.7),
-                          letterSpacing: 0.6,
+                          fontWeight: FontWeight.w800,
+                          color: accent,
+                          letterSpacing: 0.8,
                         ),
                       ),
                       const SizedBox(width: 6),
                       const Text('👉', style: TextStyle(fontSize: 12)),
                     ],
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     next.title(isArabic),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 14.5,
+                      fontSize: 15.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.cartForestGreen,
                     ),
@@ -666,18 +713,17 @@ class _MoreStoriesRow extends StatelessWidget {
                 ],
               ),
             ),
-            AnimatedBuilder(
-              animation: floatAnimation,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(5 * floatAnimation.value, 0),
-                  child: child,
-                );
-              },
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accent,
+                shape: BoxShape.circle,
+              ),
               child: Icon(
                 isArabic ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded,
-                size: 18,
-                color: accent,
+                size: 16,
+                color: Colors.white,
               ),
             ),
           ],

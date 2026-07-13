@@ -209,10 +209,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get heroDesc =>
-      'Thoughtfully curated kits designed by educators to spark lifelong curiosity, critical thinking, and a love for the natural world.';
+      'Thoughtfully curated Boxes designed by educators to spark lifelong curiosity, critical thinking, and a love for the natural world.';
 
   @override
-  String get heroExplore => 'Explore Kits';
+  String get heroExplore => 'Explore Boxes';
 
   @override
   String get heroLearn => 'Learn Our Story';
@@ -371,15 +371,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartTotal => 'Total';
 
   @override
-  String get proceedToCheckout => 'Proceed to Checkout';
+  String get proceedToCheckout => 'Place My Order';
 
   @override
   String get cartSupportNote =>
       'Every purchase supports our Re-Forestation partner program.';
 
   @override
-  String get cartDeliveryEstimate =>
-      'Arrives by Thursday — Standard Ground Shipping';
+  String get cartDeliveryEstimate => 'Arrives In Three To Five Business Days';
 
   @override
   String get promoCode => 'Promo Code';

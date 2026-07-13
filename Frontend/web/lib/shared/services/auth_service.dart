@@ -1,8 +1,8 @@
+// lib/shared/services/auth_service.dart
 import 'package:flutter/foundation.dart';
-
+import 'local_storage.dart';
 import '../models/parent_profile.dart';
 import 'api_service.dart';
-import 'local_storage.dart';
 import 'auth_state.dart';
 
 class AuthService {
@@ -153,11 +153,25 @@ class AuthService {
     }
   }
 
-  /// Logout
+  /// Logout - clears all user data and updates auth state
   static Future<void> logout() async {
-    await LocalStorage.clear();
+    try {
+      // Clear all stored tokens from SharedPreferences
+      await LocalStorage.clear();
 
-    // Notify listeners immediately.
-    AuthState.instance.setLoggedIn(false);
+      // ✅ AuthState.instance.setLoggedIn(false) is already called inside LocalStorage.clear()
+      // if it's implemented correctly, but we'll call it explicitly to be safe.
+      AuthState.instance.setLoggedIn(false);
+
+      if (kDebugMode) {
+        debugPrint('[AuthService.logout] User logged out successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AuthService.logout] Error during logout: $e');
+      }
+      // Even if there's an error, make sure the user is logged out
+      AuthState.instance.setLoggedIn(false);
+    }
   }
 }

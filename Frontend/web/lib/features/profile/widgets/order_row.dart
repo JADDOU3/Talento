@@ -1,6 +1,12 @@
+// lib/features/profile/widgets/order_row.dart
 import 'package:flutter/material.dart';
 
 class OrderRow extends StatelessWidget {
+  final String imageAsset;
+  final String orderNumber;
+  final String subtitle;
+  final String statusLabel;
+
   const OrderRow({
     super.key,
     required this.imageAsset,
@@ -9,15 +15,10 @@ class OrderRow extends StatelessWidget {
     required this.statusLabel,
   });
 
-  final String imageAsset;
-  final String orderNumber;
-  final String subtitle;
-  final String statusLabel;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsetsDirectional.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
           ClipOval(
@@ -57,7 +58,7 @@ class OrderRow extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withOpacity(0.85),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -73,11 +74,10 @@ class OrderRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.end,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withOpacity(0.9),
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
-                letterSpacing:
-                    Directionality.of(context) == TextDirection.rtl ? 0 : 0.8,
+                letterSpacing: Directionality.of(context) == TextDirection.rtl ? 0 : 0.8,
               ),
             ),
           ),

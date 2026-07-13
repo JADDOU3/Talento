@@ -205,10 +205,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get heroDesc =>
-      'مجموعات مختارة بعناية من قبل معلمين لإشعال الفضول والتفكير النقدي وحب الطبيعة.';
+      'صناديق مختارة بعناية من قبل معلمين لإشعال الفضول والتفكير النقدي وحب الطبيعة.';
 
   @override
-  String get heroExplore => 'استكشف المجموعات';
+  String get heroExplore => 'استكشف الصناديق';
 
   @override
   String get heroLearn => 'تعرف علينا';

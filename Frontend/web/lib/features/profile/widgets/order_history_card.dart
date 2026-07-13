@@ -1,3 +1,4 @@
+// lib/features/profile/widgets/order_history_card.dart
 import 'package:flutter/material.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../util/theme/app_colors.dart';
@@ -12,7 +13,7 @@ class OrderHistoryCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsetsDirectional.all(28),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: AppColors.cartTeal,
         borderRadius: BorderRadius.circular(24),

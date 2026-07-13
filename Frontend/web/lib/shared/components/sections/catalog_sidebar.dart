@@ -59,7 +59,6 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
   }
 
   void _onLearnMorePressed() {
-    // Show subscription dialog or navigate to subscription page
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -73,30 +72,30 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isAr 
-                ? 'احصل على خصم 15% على جميع المنتجات عند الاشتراك في العضوية السنوية'
-                : 'Get 15% off on all products when you subscribe to our annual membership',
+              isAr
+                  ? 'احصل على خصم 15% على جميع المنتجات عند الاشتراك في العضوية السنوية'
+                  : 'Get 15% off on all products when you subscribe to our annual membership',
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             Text(
               isAr
-                ? '✓ شحن مجاني للطلبات التي تزيد عن 50'
-                : '✓ Free shipping on orders over \$50',
+                  ? '✓ شحن مجاني للطلبات التي تزيد عن 50'
+                  : '✓ Free shipping on orders over \$50',
               style: const TextStyle(fontSize: 13, color: Colors.green),
             ),
             const SizedBox(height: 8),
             Text(
               isAr
-                ? '✓ وصول مبكر للمنتجات الجديدة'
-                : '✓ Early access to new products',
+                  ? '✓ وصول مبكر للمنتجات الجديدة'
+                  : '✓ Early access to new products',
               style: const TextStyle(fontSize: 13, color: Colors.green),
             ),
             const SizedBox(height: 8),
             Text(
               isAr
-                ? '✓ محتوى حصري للمشتركين'
-                : '✓ Exclusive content for subscribers',
+                  ? '✓ محتوى حصري للمشتركين'
+                  : '✓ Exclusive content for subscribers',
               style: const TextStyle(fontSize: 13, color: Colors.green),
             ),
           ],
@@ -161,28 +160,29 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
   }
 
   Widget _header() => Text(
-        t('filter_by', widget.lang),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.0,
-          color: Colors.black54,
-        ),
-      );
+    t('filter_by', widget.lang),
+    style: const TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.0,
+      color: Colors.black54,
+    ),
+  );
 
   Widget _section(String key) => Text(
-        t(key, widget.lang),
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
-          color: Colors.black45,
-        ),
-      );
+    t(key, widget.lang),
+    style: const TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.8,
+      color: Colors.black45,
+    ),
+  );
 
   // ── Age pills ──────────────────────────────────────────────────────────────
   Widget _agePills() {
-    const ages = ['age_3_5', 'age_6_8', 'age_9_12', 'age_teens'];
+    // ✅ Updated age ranges to 3-5 and 6-7
+    const ages = ['age_3_5', 'age_6_7'];
 
     return Wrap(
       spacing: 8,
@@ -214,10 +214,10 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
           onTap: isDisabled
               ? null
               : () {
-                  setState(() =>
-                      _selectedAge = isSelected ? null : age);
-                  _notify();
-                },
+            setState(() =>
+            _selectedAge = isSelected ? null : age);
+            _notify();
+          },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(
@@ -270,7 +270,7 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
             },
             child: Row(
               textDirection:
-                  isAr ? TextDirection.rtl : TextDirection.ltr,
+              isAr ? TextDirection.rtl : TextDirection.ltr,
               children: [
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -280,14 +280,14 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
                     color: checked ? AppColors.teal : Colors.white,
                     border: Border.all(
                       color:
-                          checked ? AppColors.teal : Colors.black26,
+                      checked ? AppColors.teal : Colors.black26,
                       width: 1.5,
                     ),
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: checked
                       ? const Icon(Icons.check,
-                          color: Colors.white, size: 12)
+                      color: Colors.white, size: 12)
                       : null,
                 ),
                 const SizedBox(width: 10),
@@ -296,7 +296,7 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
                   style: TextStyle(
                     fontSize: 13,
                     color:
-                        checked ? Colors.black87 : Colors.black54,
+                    checked ? Colors.black87 : Colors.black54,
                     fontWeight: checked
                         ? FontWeight.w600
                         : FontWeight.w400,
@@ -322,7 +322,7 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
             thumbColor: AppColors.teal,
             overlayColor: AppColors.teal.withOpacity(0.15),
             thumbShape:
-                const RoundSliderThumbShape(enabledThumbRadius: 7),
+            const RoundSliderThumbShape(enabledThumbRadius: 7),
             trackHeight: 3,
           ),
           child: Slider(
@@ -358,7 +358,7 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
     );
   }
 
-  // ── Subscription card with working Learn More button ───────────────────────
+  // ── Subscription card ───────────────────────────────────────────────────────
   Widget _subscriptionCard() {
     return Container(
       width: double.infinity,
@@ -392,7 +392,7 @@ class _CatalogSidebarState extends State<CatalogSidebar> {
           ),
           const SizedBox(height: 14),
           GestureDetector(
-            onTap: _onLearnMorePressed, // 🔥 Now working!
+            onTap: _onLearnMorePressed,
             child: Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: 16, vertical: 8),

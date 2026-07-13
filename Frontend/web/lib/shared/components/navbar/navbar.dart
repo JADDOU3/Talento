@@ -5,13 +5,12 @@ import 'package:provider/provider.dart';
 import '../buttons/primary_button.dart';
 import '../../../cubits/cart/cart_cubit.dart';
 import '../../../cubits/cart/cart_state.dart';
-// ⚠️ ADJUST THIS IMPORT to wherever you put auth_state.dart.
+// ADJUST THIS IMPORT to wherever you put auth_state.dart.
 import '../../services/auth_state.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../shared/providers/language_provider.dart';
 import '../../../features/auth/pages/login_screen.dart';
-import '../../../features/aut'
-    'h/pages/signup_screen.dart';
+import '../../../features/auth/pages/signup_screen.dart';
 import '../../../util/theme/app_colors.dart';
 
 /// Talento's single, canonical navbar.
@@ -148,7 +147,7 @@ class _NavbarState extends State<Navbar> {
         Row(
           children: [
             _NavItem(title: l10n.navHome, emoji: "🏠", onTap: () => _goHome(context)),
-            _NavItem(title: "Kits", emoji: "🎒", onTap: () => _go(context, '/kits')),
+            _NavItem(title: "boxes", emoji: "🎒", onTap: () => _go(context, '/catalog')),
             _NavItem(title: l10n.navBlog, emoji: "📖", onTap: () => _go(context, '/blog')),
           ],
         ),
@@ -195,7 +194,7 @@ class _NavbarState extends State<Navbar> {
               l10n: l10n,
               isLoggedIn: isLoggedIn,
               onHome: () => _goHome(context),
-              onKits: () => _go(context, '/kits'),
+              onKits: () => _go(context, '/catalog'),
               onBlog: () => _go(context, '/blog'),
               onLanguage: () => _toggleLanguage(context),
               onProfile: () => _go(context, '/profile'),
@@ -478,6 +477,8 @@ class _CartIconButtonState extends State<_CartIconButton> with SingleTickerProvi
     );
   }
 }
+// lib/shared/components/navbar/navbar.dart
+// Replace the entire _ProfileAvatarButton class with this:
 
 class _ProfileAvatarButton extends StatelessWidget {
   final double minSize;

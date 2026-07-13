@@ -1,3 +1,5 @@
+// lib/cubits/reviews/kit_reviews_cubit.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../shared/models/review_model.dart';
@@ -13,7 +15,7 @@ class KitReviewsCubit extends Cubit<KitReviewsState> {
 
     final reviewsResult = await ApiService.getWithStatus('/reviews/kit/$kitId');
     final ratingResult =
-        await ApiService.getWithStatus('/reviews/kit/$kitId/rating');
+    await ApiService.getWithStatus('/reviews/kit/$kitId/rating');
 
     if (reviewsResult.isNetworkFailure && ratingResult.isNetworkFailure) {
       emit(const KitReviewsHidden());
@@ -38,6 +40,45 @@ class KitReviewsCubit extends Cubit<KitReviewsState> {
       averageRating: summary.averageRating,
       totalReviews: summary.totalReviews,
     ));
+  }
+
+  /// Submit a new review for a kit
+  Future<bool> submitReview(int kitId, int rating, String comment) async {
+    debugPrint('🔄 submitReview called: kitId=$kitId, rating=$rating');
+    debugPrint('📝 Comment: $comment');
+
+    try {
+      final Map<String, dynamic> body = {
+        'kitId': kitId,
+        'rating': rating,
+        'comment': comment,
+      };
+
+      debugPrint('📤 Sending review: $body');
+
+      final result = await ApiService.postWithStatus('/reviews/', body);
+
+      debugPrint('📥 Review response: status=${result.status}, isSuccess=${result.isSuccess}');
+      debugPrint('📥 Response body: ${result.body}');
+      debugPrint('📥 Raw text: ${result.rawText}');
+
+      if (result.isSuccess) {
+        debugPrint('✅ Review submitted successfully!');
+        // Reload reviews after successful submission
+        await loadForKit(kitId);
+        return true;
+      } else {
+        final message = ApiService.decodeResponseBody(result.rawText)['message']
+            ?? 'Failed to submit review';
+        debugPrint('❌ Review failed: $message');
+        emit(KitReviewsError(message));
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Review error: $e');
+      emit(KitReviewsError(e.toString()));
+      return false;
+    }
   }
 
   List<ReviewModel> _parseReviews(dynamic body) {

@@ -5,6 +5,7 @@ import '../../../util/theme/app_colors.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../shared/components/custom_text_field.dart';
 import '../../../shared/services/auth_service.dart';
+import '../../../shared/services/auth_state.dart'; // Add this import
 import '../../../shared/providers/language_provider.dart';
 import 'signup_screen.dart';
 
@@ -31,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat(reverse: true);
-    // Subtle animation - reduced from 15 to 5
     _floatAnimation = Tween<double>(begin: 0, end: 5).animate(
       CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
@@ -49,31 +49,52 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    final result = await AuthService.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    try {
+      final result = await AuthService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
 
-    final l10n = AppLocalizations.of(context)!;
+      final l10n = AppLocalizations.of(context)!;
 
-    if (result['success'] == true) {
-      Navigator.pushReplacementNamed(context, '/');
-    } else {
+      if (result['success'] == true) {
+        // 🔥 IMPORTANT: Update AuthState on successful login
+        // The AuthService.login() already saves tokens, but we need to notify
+        // the AuthState so the navbar updates
+        await AuthState.instance.refresh(); // Re-read tokens from storage
+
+        // Or if you have the tokens from the response, you can use:
+        // AuthState.instance.setLoggedIn(true);
+
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(result['message'] ?? 'Login failed'),
+              ],
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(result['message'] ?? 'Login failed'),
-            ],
-          ),
+          content: Text('An error occurred: $e'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
@@ -121,7 +142,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             padding: const EdgeInsets.all(48),
             child: Stack(
               children: [
-                // Subtle floating decorations (removed emojis, using simple shapes)
                 _FloatingDecoration(Icons.star, const Offset(0.1, 0.2), _floatAnimation),
                 _FloatingDecoration(Icons.circle, const Offset(0.85, 0.3), _floatAnimation, delay: 0.5),
                 _FloatingDecoration(Icons.star_half, const Offset(0.15, 0.8), _floatAnimation, delay: 0.3),
@@ -210,7 +230,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // Stats
                     Row(
                       children: [
                         _buildStatItem('50K+', 'Families', Icons.family_restroom),
@@ -510,6 +529,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       ],
     );
   }
+
+// ... rest of your mobile layout, _buildStatItem, and _FloatingDecoration remain the same
 
   Widget _mobileLayout(AppLocalizations l10n, LanguageProvider langProvider, bool isArabic) {
     return Container(

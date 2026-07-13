@@ -1,9 +1,9 @@
+// lib/features/catalog/pages/kit_details_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import '../../../cubits/cart/cart_cubit.dart';
 import '../../../cubits/kit/kit_cubit.dart';
-import '../../../cubits/kit/kit_state.dart';
 import '../../../cubits/reviews/kit_reviews_cubit.dart';
 import '../../../cubits/reviews/kit_reviews_state.dart';
 import '../../../shared/components/footer/footer.dart';
@@ -19,7 +19,8 @@ import '../widgets/kit_details/kit_testimonials_section.dart';
 import '../widgets/kit_details/kit_whats_inside_section.dart';
 
 class KitDetailsPage extends StatefulWidget {
-  const KitDetailsPage({super.key});
+  final int kitId;
+  const KitDetailsPage({super.key, required this.kitId});
 
   @override
   State<KitDetailsPage> createState() => _KitDetailsPageState();
@@ -28,7 +29,6 @@ class KitDetailsPage extends StatefulWidget {
 class _KitDetailsPageState extends State<KitDetailsPage> {
   final ScrollController _scrollController = ScrollController();
   bool _addingToCart = false;
-  int? _kitId;
 
   @override
   void dispose() {
@@ -36,13 +36,7 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
     super.dispose();
   }
 
-  int _resolveKitId(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    return args is int ? args : 1;
-  }
-
-  Future<void> _onAddToCart(BuildContext context, KitLoaded loaded) async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _onAddToCart(BuildContext context, KitLoadedSingle loaded) async {
     setState(() => _addingToCart = true);
 
     final ok = await context.read<CartCubit>().addItem(loaded.kit.id, 1);
@@ -50,11 +44,22 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
     if (!context.mounted) return;
     setState(() => _addingToCart = false);
 
+    String message;
+    Color backgroundColor;
+
+    if (ok) {
+      message = 'Added to cart!';
+      backgroundColor = AppColors.cartForestGreen;
+    } else {
+      message = 'Failed to add to cart';
+      backgroundColor = Colors.redAccent;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok ? l10n.addedToCart : l10n.addToCartFailed),
+        content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: ok ? AppColors.cartForestGreen : Colors.redAccent,
+        backgroundColor: backgroundColor,
       ),
     );
   }
@@ -64,7 +69,9 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
     final l10n = AppLocalizations.of(context)!;
     final width = MediaQuery.sizeOf(context).width;
     final hPad = width >= 768 ? 40.0 : 20.0;
-    _kitId ??= _resolveKitId(context);
+
+    // Fetch kit details when page loads
+    context.read<KitCubit>().getKitById(widget.kitId);
 
     return Scaffold(
       backgroundColor: AppColors.cartPageBackground,
@@ -123,7 +130,6 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
               children: [
                 Navbar(
                   scrollController: _scrollController,
-                  isLoggedIn: true,
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(hPad, 28, hPad, 0),
@@ -151,11 +157,11 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
     if (state is KitError) {
       return _KitErrorView(
         message: state.message,
-        onRetry: () => context.read<KitCubit>().getKitById(_kitId!),
+        onRetry: () => context.read<KitCubit>().getKitById(widget.kitId),
       );
     }
 
-    if (state is KitLoaded) {
+    if (state is KitLoadedSingle) {
       final kit = state.kit;
       final criteria = kit.mindset?.criteria ?? [];
       final reviewCount = _reviewCount(context);
@@ -189,7 +195,11 @@ class _KitDetailsPageState extends State<KitDetailsPage> {
             fallbackImageAsset: KitDetailsConstants.whatsInsideImage,
           ),
           const SizedBox(height: 56),
-          KitTestimonialsSection(l10n: l10n),
+          // ✅ FIXED: Pass kitId to KitTestimonialsSection
+          KitTestimonialsSection(
+            l10n: l10n,
+            kitId: widget.kitId,
+          ),
           const SizedBox(height: 48),
         ],
       );

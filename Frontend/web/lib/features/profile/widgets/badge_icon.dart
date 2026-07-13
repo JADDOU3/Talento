@@ -1,44 +1,51 @@
+// lib/features/profile/widgets/badge_icon.dart
 import 'package:flutter/material.dart';
 
 class BadgeIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
   const BadgeIcon({
     super.key,
+    required this.icon,
+    required this.label,
     required this.color,
-    this.icon,
-    this.isPlaceholder = false,
   });
-
-  final Color color;
-  final IconData? icon;
-  final bool isPlaceholder;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: isPlaceholder ? const Color(0xFFE0E0E0) : color,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white,
-          width: 3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: isPlaceholder
-          ? Icon(Icons.lock_outline, color: Colors.grey.shade500, size: 22)
-          : Icon(
-              icon ?? Icons.emoji_events_rounded,
-              color: Colors.white,
-              size: 26,
-            ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 24,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

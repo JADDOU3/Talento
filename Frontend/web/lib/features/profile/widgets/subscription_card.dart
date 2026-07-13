@@ -1,3 +1,4 @@
+// lib/features/profile/widgets/subscription_card.dart
 import 'package:flutter/material.dart';
 import '../../../shared/i18n/app_localizations.dart';
 import '../../../util/theme/app_colors.dart';
@@ -16,7 +17,7 @@ class SubscriptionCard extends StatelessWidget {
     final sideBySide = width >= 640;
 
     final subscriptionPanel = Container(
-      padding: const EdgeInsetsDirectional.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -48,7 +49,7 @@ class SubscriptionCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsetsDirectional.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 10,
                   vertical: 4,
                 ),
@@ -63,8 +64,7 @@ class SubscriptionCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    letterSpacing:
-                        Directionality.of(context) == TextDirection.rtl ? 0 : 0.8,
+                    letterSpacing: Directionality.of(context) == TextDirection.rtl ? 0 : 0.8,
                     color: AppColors.cartTeal,
                   ),
                 ),
@@ -87,7 +87,7 @@ class SubscriptionCard extends StatelessWidget {
             textAlign: TextAlign.start,
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.cartMutedGrey.withValues(alpha: 0.95),
+              color: AppColors.cartMutedGrey.withOpacity(0.95),
             ),
           ),
           const SizedBox(height: 6),
@@ -96,7 +96,7 @@ class SubscriptionCard extends StatelessWidget {
             textAlign: TextAlign.start,
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.cartMutedGrey.withValues(alpha: 0.95),
+              color: AppColors.cartMutedGrey.withOpacity(0.95),
             ),
           ),
           const SizedBox(height: 20),
@@ -123,7 +123,7 @@ class SubscriptionCard extends StatelessWidget {
     );
 
     final badgesPanel = Container(
-      padding: const EdgeInsetsDirectional.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: _badgePink,
         borderRadius: BorderRadius.circular(24),
@@ -153,20 +153,36 @@ class SubscriptionCard extends StatelessWidget {
             textAlign: TextAlign.start,
             style: TextStyle(
               fontSize: 13,
-              color: _badgePinkText.withValues(alpha: 0.75),
+              color: _badgePinkText.withOpacity(0.75),
             ),
           ),
           const SizedBox(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: const [
-              BadgeIcon(color: AppColors.cartTeal, icon: Icons.eco_rounded),
-              SizedBox(width: 12),
-              BadgeIcon(color: Color(0xFFFF8FA3), icon: Icons.flight_rounded),
-              SizedBox(width: 12),
-              BadgeIcon(color: Color(0xFF8BC34A), icon: Icons.wb_sunny_rounded),
-              SizedBox(width: 12),
-              BadgeIcon(isPlaceholder: true, color: Colors.grey),
+            children: [
+              const BadgeIcon(
+                label: 'Eco',
+                color: AppColors.cartTeal,
+                icon: Icons.eco_rounded,
+              ),
+              const SizedBox(width: 12),
+              const BadgeIcon(
+                label: 'Flight',
+                color: Color(0xFFFF8FA3),
+                icon: Icons.flight_rounded,
+              ),
+              const SizedBox(width: 12),
+              const BadgeIcon(
+                label: 'Sun',
+                color: Color(0xFF8BC34A),
+                icon: Icons.wb_sunny_rounded,
+              ),
+              const SizedBox(width: 12),
+              BadgeIcon(
+                label: 'Coming soon...',
+                color: Colors.grey,
+                icon: Icons.add_rounded,
+              ),
             ],
           ),
           const SizedBox(height: 18),

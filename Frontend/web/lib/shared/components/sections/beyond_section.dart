@@ -118,10 +118,10 @@ class _BeyondSectionState extends State<BeyondSection> {
   };
 
   static const _gradients = [
-    [AppColors.teal, Color(0xFF6EE7C8)],
-    [AppColors.yellow, Color(0xFFFFE17D)],
-    [AppColors.coral, Color(0xFFFF9F9F)],
-    [AppColors.cartForestGreen, Color(0xFF3F8F6E)],
+    [AppColors.teal, AppColors.cartTeal],       // Cognitive
+    [AppColors.yellow, Color(0xFFFFE082)],      // Physical (Using yellow + lighter shade)
+    [AppColors.coral, Color(0xFFFF9E9E)],       // Emotional (Using coral + lighter shade)
+    [Color(0xFF1E3A8A), Color(0xFF60A5FA)], // Creative
   ];
 
   static const _tilts = [-0.035, 0.03, -0.025, 0.035];
@@ -337,6 +337,7 @@ class _PillarCardState extends State<_PillarCard> {
           child: Column(
             children: [
               // Colorful gradient header strip with a tilted emoji sticker.
+              // Inside _PillarCardState build method, replace the Header Container:
               Container(
                 height: 92,
                 decoration: BoxDecoration(
@@ -350,24 +351,37 @@ class _PillarCardState extends State<_PillarCard> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
+                    // 1. Tilted sticker emoji in the top corner
                     Positioned(
-                      top: -10,
-                      right: -10,
+                      top: 10,
+                      right: 15,
                       child: Transform.rotate(
-                        angle: -0.25,
-                        child: Icon(Icons.star_rounded, color: Colors.white.withOpacity(0.35), size: 34),
+                        angle: 0.25,
+                        child: Text(p.emoji, style: const TextStyle(fontSize: 22)),
                       ),
                     ),
+
+                    // 2. The main icon in the center circle
                     Container(
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white,
-                        boxShadow: [BoxShadow(color: _accent.withOpacity(0.35), blurRadius: 14, offset: const Offset(0, 6))],
+                        boxShadow: [
+                          BoxShadow(
+                            color: _accent.withOpacity(0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          )
+                        ],
                       ),
                       child: Center(
-                        child: Text(p.emoji, style: const TextStyle(fontSize: 30)),
+                        child: Icon(
+                          p.icon,
+                          color: _accent,
+                          size: 30,
+                        ),
                       ),
                     ),
                   ],

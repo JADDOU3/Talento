@@ -1,189 +1,204 @@
+// lib/features/cart/widgets/cart_item_card.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../util/theme/app_colors.dart';
-import 'quantity_stepper.dart';
 
-class CartItemCard extends StatelessWidget {
-  final String imageAsset;
+class CartItemCard extends StatefulWidget {
+  final String imageUrl;  // Changed from imageAsset to imageUrl
   final String name;
   final String description;
   final int quantity;
   final double unitPrice;
+  final String removeTooltip;
   final ValueChanged<int> onQuantityChanged;
   final VoidCallback onRemove;
-  final String removeTooltip;
 
   const CartItemCard({
     super.key,
-    required this.imageAsset,
+    required this.imageUrl,  // Changed
     required this.name,
     required this.description,
     required this.quantity,
     required this.unitPrice,
+    required this.removeTooltip,
     required this.onQuantityChanged,
     required this.onRemove,
-    required this.removeTooltip,
   });
 
   @override
+  State<CartItemCard> createState() => _CartItemCardState();
+}
+
+class _CartItemCardState extends State<CartItemCard> {
+  late int _quantity;
+
+  @override
+  void initState() {
+    super.initState();
+    _quantity = widget.quantity;
+  }
+
+  @override
+  void didUpdateWidget(CartItemCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.quantity != oldWidget.quantity) {
+      _quantity = widget.quantity;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currency = NumberFormat.simpleCurrency(locale: 'en_US');
-    final lineTotal = unitPrice * quantity;
+    final totalPrice = widget.unitPrice * _quantity;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 4),
-            child: Row(
+          // Image
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: widget.imageUrl.isNotEmpty
+                ? ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                widget.imageUrl,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _placeholder(),
+              ),
+            )
+                : _placeholder(),
+          ),
+          const SizedBox(width: 16),
+          // Content
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: _CartLineImage(
-                    pathOrUrl: imageAsset,
-                    width: 96,
-                    height: 96,
+                Text(
+                  widget.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.cartForestGreen,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.cartForestGreen,
-                          height: 1.2,
-                        ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    // Quantity controls
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          height: 1.45,
-                          color: AppColors.cartMutedGrey,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      child: Row(
                         children: [
-                          QuantityStepper(
-                            count: quantity,
-                            onChanged: onQuantityChanged,
-                          ),
-                          const Spacer(),
-                          Text(
-                            currency.format(lineTotal),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.cartTeal,
+                          IconButton(
+                            icon: const Icon(Icons.remove, size: 16),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
                             ),
+                            onPressed: _quantity > 1
+                                ? () {
+                              setState(() => _quantity--);
+                              widget.onQuantityChanged(_quantity);
+                            }
+                                : null,
+                          ),
+                          SizedBox(
+                            width: 32,
+                            child: Text(
+                              '$_quantity',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add, size: 16),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            onPressed: () {
+                              setState(() => _quantity++);
+                              widget.onQuantityChanged(_quantity);
+                            },
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '\$${totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.cartTeal,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      onPressed: widget.onRemove,
+                      color: Colors.red[300],
+                      tooltip: widget.removeTooltip,
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ),
-          PositionedDirectional(
-            top: 0,
-            end: 0,
-            child: IconButton(
-              visualDensity: VisualDensity.compact,
-              tooltip: removeTooltip,
-              onPressed: onRemove,
-              icon: Icon(
-                Icons.close,
-                size: 20,
-                color: AppColors.cartMutedGrey.withValues(alpha: 0.85),
-              ),
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class _CartLineImage extends StatelessWidget {
-  final String pathOrUrl;
-  final double width;
-  final double height;
-
-  const _CartLineImage({
-    required this.pathOrUrl,
-    required this.width,
-    required this.height,
-  });
-
-  static const String _fallback = 'assets/images/img1.jpg';
-
-  bool get _isNetwork =>
-      pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://');
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isNetwork) {
-      return Image.network(
-        pathOrUrl,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => Image.asset(
-          _fallback,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
-        ),
-        loadingBuilder: (_, child, progress) {
-          if (progress == null) return child;
-          return SizedBox(
-            width: width,
-            height: height,
-            child: const Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        },
-      );
-    }
-    return Image.asset(
-      pathOrUrl.isEmpty ? _fallback : pathOrUrl,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => Image.asset(
-        _fallback,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
+  Widget _placeholder() {
+    return Container(
+      width: 80,
+      height: 80,
+      color: Colors.grey[200],
+      child: Icon(
+        Icons.image_outlined,
+        size: 32,
+        color: Colors.grey[400],
       ),
     );
   }

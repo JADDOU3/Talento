@@ -1,3 +1,4 @@
+// lib/features/blog/pages/blog_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/components/footer/footer.dart';
@@ -172,13 +173,13 @@ class _KeepExploringSection extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.cartForestGreen.withValues(alpha: 0.08),
-            AppColors.cartTeal.withValues(alpha: 0.08),
+            AppColors.cartForestGreen.withOpacity(0.08), // ✅ FIXED: withOpacity
+            AppColors.cartTeal.withOpacity(0.08),        // ✅ FIXED: withOpacity
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.cartTeal.withValues(alpha: 0.2),
+          color: AppColors.cartTeal.withOpacity(0.2),    // ✅ FIXED: withOpacity
           width: 2,
         ),
       ),
@@ -238,22 +239,22 @@ class _Hero extends StatelessWidget {
           Positioned(
             top: -20,
             right: -10,
-            child: _decorativeCircle(70, const Color(0xFFE07A5F).withValues(alpha: 0.35)),
+            child: _decorativeCircle(70, const Color(0xFFE07A5F).withOpacity(0.35)), // ✅ FIXED: withOpacity
           ),
           Positioned(
             top: 60,
             right: 60,
-            child: _decorativeCircle(24, const Color(0xFFDDA83A).withValues(alpha: 0.55)),
+            child: _decorativeCircle(24, const Color(0xFFDDA83A).withOpacity(0.55)), // ✅ FIXED: withOpacity
           ),
           Positioned(
             bottom: -30,
             left: -10,
-            child: _decorativeCircle(90, Colors.white.withValues(alpha: 0.14)),
+            child: _decorativeCircle(90, Colors.white.withOpacity(0.14)), // ✅ FIXED: withOpacity
           ),
           Positioned(
             bottom: 30,
             left: 100,
-            child: _decorativeCircle(18, const Color(0xFFE07A5F).withValues(alpha: 0.5)),
+            child: _decorativeCircle(18, const Color(0xFFE07A5F).withOpacity(0.5)), // ✅ FIXED: withOpacity
           ),
           Center(
             child: ConstrainedBox(
@@ -263,7 +264,7 @@ class _Hero extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFDDA83A).withValues(alpha: 0.9),
+                      color: const Color(0xFFDDA83A).withOpacity(0.9), // ✅ FIXED: withOpacity
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -297,7 +298,7 @@ class _Hero extends StatelessWidget {
                         "behind every activity and report.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.92),
+                      color: Colors.white.withOpacity(0.92), // ✅ FIXED: withOpacity
                       fontSize: 15,
                       height: 1.6,
                     ),
@@ -371,12 +372,12 @@ class _FeaturedCardState extends State<_FeaturedCard> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: accent.withValues(alpha: _hovered ? 0.5 : 0.25),
+                color: accent.withOpacity(_hovered ? 0.5 : 0.25), // ✅ FIXED: withOpacity
                 width: _hovered ? 2 : 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: accent.withValues(alpha: _hovered ? 0.25 : 0.12),
+                  color: accent.withOpacity(_hovered ? 0.25 : 0.12), // ✅ FIXED: withOpacity
                   blurRadius: _hovered ? 30 : 18,
                   offset: const Offset(0, 8),
                 ),
@@ -401,10 +402,10 @@ class _FeaturedCardState extends State<_FeaturedCard> {
                     width: sideBySide ? 96 : 72,
                     height: sideBySide ? 96 : 72,
                     decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.15),
+                      color: accent.withOpacity(0.15), // ✅ FIXED: withOpacity
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: accent.withValues(alpha: 0.2),
+                        color: accent.withOpacity(0.2), // ✅ FIXED: withOpacity
                         width: 1.5,
                       ),
                     ),
@@ -458,7 +459,7 @@ class _FeaturedCardState extends State<_FeaturedCard> {
                         widget.post.excerpt(widget.isArabic),
                         style: TextStyle(
                           fontSize: 14.5,
-                          color: AppColors.cartMutedGrey.withValues(alpha: 0.9),
+                          color: AppColors.cartMutedGrey.withOpacity(0.9), // ✅ FIXED: withOpacity
                           height: 1.6,
                         ),
                       ),
@@ -468,10 +469,10 @@ class _FeaturedCardState extends State<_FeaturedCard> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: accent.withValues(alpha: 0.12),
+                              color: accent.withOpacity(0.12), // ✅ FIXED: withOpacity
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: accent.withValues(alpha: 0.2),
+                                color: accent.withOpacity(0.2), // ✅ FIXED: withOpacity
                                 width: 1,
                               ),
                             ),
@@ -502,14 +503,14 @@ class _FeaturedCardState extends State<_FeaturedCard> {
                               Icon(
                                 Icons.schedule_rounded,
                                 size: 14,
-                                color: AppColors.cartMutedGrey.withValues(alpha: 0.6),
+                                color: AppColors.cartMutedGrey.withOpacity(0.6), // ✅ FIXED: withOpacity
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 blogReadLabel(widget.post, widget.isArabic),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.cartMutedGrey.withValues(alpha: 0.7),
+                                  color: AppColors.cartMutedGrey.withOpacity(0.7), // ✅ FIXED: withOpacity
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -608,7 +609,7 @@ class _BlogCardState extends State<_BlogCard> with SingleTickerProviderStateMixi
               ),
               boxShadow: [
                 BoxShadow(
-                  color: accent.withValues(alpha: _hovered ? 0.2 : 0.1),
+                  color: accent.withOpacity(_hovered ? 0.2 : 0.1), // ✅ FIXED: withOpacity
                   blurRadius: _hovered ? 20 : 12,
                   offset: const Offset(0, 6),
                 ),
@@ -632,10 +633,10 @@ class _BlogCardState extends State<_BlogCard> with SingleTickerProviderStateMixi
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.12),
+                          color: accent.withOpacity(0.12), // ✅ FIXED: withOpacity
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: accent.withValues(alpha: 0.15),
+                            color: accent.withOpacity(0.15), // ✅ FIXED: withOpacity
                             width: 1,
                           ),
                         ),
@@ -678,7 +679,7 @@ class _BlogCardState extends State<_BlogCard> with SingleTickerProviderStateMixi
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.cartMutedGrey.withValues(alpha: 0.9),
+                              color: AppColors.cartMutedGrey.withOpacity(0.9), // ✅ FIXED: withOpacity
                               height: 1.55,
                             ),
                           ),
@@ -694,10 +695,10 @@ class _BlogCardState extends State<_BlogCard> with SingleTickerProviderStateMixi
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.1),
+                          color: accent.withOpacity(0.1), // ✅ FIXED: withOpacity
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: accent.withValues(alpha: 0.15),
+                            color: accent.withOpacity(0.15), // ✅ FIXED: withOpacity
                             width: 1,
                           ),
                         ),
@@ -729,7 +730,7 @@ class _BlogCardState extends State<_BlogCard> with SingleTickerProviderStateMixi
                             blogReadLabel(widget.post, widget.isArabic),
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.cartMutedGrey.withValues(alpha: 0.7),
+                              color: AppColors.cartMutedGrey.withOpacity(0.7), // ✅ FIXED: withOpacity
                             ),
                           ),
                           const SizedBox(width: 4),

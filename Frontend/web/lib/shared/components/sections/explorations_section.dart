@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
-import '../../../shared/i18n/app_localizations.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ExplorationsSection extends StatelessWidget {
+import '../../../shared/i18n/app_localizations.dart';
+import '../../../shared/models/kit_model.dart';
+import '../../../cubits/kit/kit_cubit.dart';
+
+class ExplorationsSection extends StatefulWidget {
   const ExplorationsSection({super.key});
 
+  @override
+  State<ExplorationsSection> createState() => _ExplorationsSectionState();
+}
+
+class _ExplorationsSectionState extends State<ExplorationsSection> {
   static const double kRowHeight = 420.0;
 
-  static const int _botanistKitId = 1;
-  static const int _avianKitId = 2;
-  static const int _prismKitId = 3;
+  @override
+  void initState() {
+    super.initState();
+    // Fetch first 3 kits from backend
+    context.read<KitCubit>().getAllKits(page: 0, size: 3);
+  }
 
   void _openKitDetails(BuildContext context, int kitId) {
     Navigator.pushNamed(context, '/kit-details', arguments: kitId);
@@ -16,28 +28,85 @@ class ExplorationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final width = MediaQuery.of(context).size.width;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: width >= 768 ? 40 : 20, vertical: 60),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _header(context, l10n, mobile: width < 768),
-              const SizedBox(height: 32),
-              width >= 768 ? _buildDesktop(context, l10n) : _buildMobile(context, l10n),
-            ],
+    return BlocBuilder<KitCubit, KitState>(
+      builder: (context, state) {
+        if (state is KitLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 60),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (state is KitError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 60),
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: ${state.message}',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<KitCubit>().getAllKits(page: 0, size: 3);
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (state is KitLoaded && state.kits.isNotEmpty) {
+          final displayKits = state.kits.take(3).toList();
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width >= 768 ? 40 : 20,
+                  vertical: 60,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _header(context, mobile: width < 768),
+                    const SizedBox(height: 32),
+                    width >= 768
+                        ? _buildDesktop(context, displayKits)
+                        : _buildMobile(context, displayKits),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        // Empty state
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 60),
+            child: Text('No exploration kits available'),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _header(BuildContext context, AppLocalizations l10n, {required bool mobile}) {
+  Widget _header(BuildContext context, {required bool mobile}) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (mobile) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,12 +114,26 @@ class ExplorationsSection extends StatelessWidget {
           Row(children: [
             const Text("🧭", style: TextStyle(fontSize: 24)),
             const SizedBox(width: 8),
-            Text(l10n.explorationsTitle, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+            Text(
+              l10n.explorationsTitle,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+            ),
           ]),
           const SizedBox(height: 6),
-          Text(l10n.explorationsSubtitle, style: const TextStyle(color: Colors.grey)),
+          Text(
+            l10n.explorationsSubtitle,
+            style: const TextStyle(color: Colors.grey),
+          ),
           const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: _BounceButton(text: l10n.explorationsViewAll, onTap: () {})),
+          SizedBox(
+            width: double.infinity,
+            child: _BounceButton(
+              text: l10n.explorationsViewAll,
+              onTap: () {
+                Navigator.pushNamed(context, '/catalog');
+              },
+            ),
+          ),
         ],
       );
     }
@@ -62,115 +145,162 @@ class ExplorationsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              const Text("", style: TextStyle(fontSize: 28)),
+              const Text("🧭", style: TextStyle(fontSize: 28)),
               const SizedBox(width: 10),
-              Text(l10n.explorationsTitle, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
+              Text(
+                l10n.explorationsTitle,
+                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
+              ),
             ]),
             const SizedBox(height: 6),
-            Text(l10n.explorationsSubtitle, style: const TextStyle(color: Colors.grey)),
+            Text(
+              l10n.explorationsSubtitle,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ],
         ),
-        _BounceButton(text: l10n.explorationsViewAll, onTap: () {}),
+        _BounceButton(
+          text: l10n.explorationsViewAll,
+          onTap: () {
+            Navigator.pushNamed(context, '/catalog');
+          },
+        ),
       ],
     );
   }
 
-  Widget _buildDesktop(BuildContext context, AppLocalizations l10n) {
+  Widget _buildDesktop(BuildContext context, List<KitModel> kits) {
+    if (kits.isEmpty) {
+      return const Center(child: Text('No kits available'));
+    }
+
     return SizedBox(
       height: kRowHeight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(flex: 2, child: _bigCard(context, l10n)),
-          const SizedBox(width: 20),
-          Expanded(child: _avianCard(context, l10n)),
-          const SizedBox(width: 20),
-          Expanded(child: _prismCard(context, l10n)),
+          Expanded(flex: 2, child: _bigCard(context, kits[0])),
+          if (kits.length > 1) ...[
+            const SizedBox(width: 20),
+            Expanded(child: _compactCard(context, kits[1])),
+          ],
+          if (kits.length > 2) ...[
+            const SizedBox(width: 20),
+            Expanded(child: _compactCard(context, kits[2])),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildMobile(BuildContext context, AppLocalizations l10n) {
+  Widget _buildMobile(BuildContext context, List<KitModel> kits) {
+    if (kits.isEmpty) {
+      return const Center(child: Text('No kits available'));
+    }
+
     return Column(
       children: [
-        _BouncyTapCard(
-          onTap: () => _openKitDetails(context, _botanistKitId),
-          child: _mobileCardContent(
-            context: context,
-            kitId: _botanistKitId,
-            imagePath: 'assets/images/img5.png',
-            tag: 'AGES 6-9',
-            tagColor: Colors.green,
-            title: l10n.card1Title,
-            description: l10n.card1Desc,
-            hasButton: true,
-            buttonText: l10n.card1Button,
+        for (int i = 0; i < kits.length; i++) ...[
+          _BouncyTapCard(
+            onTap: () => _openKitDetails(context, kits[i].id),
+            child: _mobileCardContent(
+              context: context,
+              kit: kits[i],
+              hasButton: i == 0, // Only first card has the button
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        _BouncyTapCard(
-          onTap: () => _openKitDetails(context, _avianKitId),
-          child: _mobileCardContent(
-            context: context,
-            kitId: _avianKitId,
-            imagePath: 'assets/images/img6.png',
-            tag: 'AGES 4-6',
-            tagColor: const Color(0xFFE91E8C),
-            title: l10n.card2Title,
-            description: l10n.card2Desc,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _BouncyTapCard(
-          onTap: () => _openKitDetails(context, _prismKitId),
-          child: _mobileCardContent(
-            context: context,
-            kitId: _prismKitId,
-            imagePath: 'assets/images/img7.png',
-            tag: 'AGES 8-12',
-            tagColor: Colors.blue,
-            title: l10n.card3Title,
-            description: l10n.card3Desc,
-          ),
-        ),
+          if (i < kits.length - 1) const SizedBox(height: 16),
+        ],
       ],
     );
   }
 
   Widget _mobileCardContent({
     required BuildContext context,
-    required int kitId,
-    required String imagePath,
-    required String tag,
-    required Color tagColor,
-    required String title,
-    required String description,
+    required KitModel kit,
     bool hasButton = false,
-    String? buttonText,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+    final tagColor = _getTagColor(kit.id);
+
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            child: Image.asset(imagePath, width: double.infinity, height: 200, fit: BoxFit.cover),
+            child: kit.imageURL.isNotEmpty
+                ? Image.network(
+              kit.imageURL,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.image_not_supported, size: 50),
+                );
+              },
+            )
+                : Container(
+              height: 200,
+              color: Colors.grey[300],
+              child: const Icon(Icons.image, size: 50),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _WiggleTag(label: tag, color: tagColor),
+                _WiggleTag(
+                  label: kit.displayAge,
+                  color: tagColor,
+                ),
                 const SizedBox(height: 10),
-                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                Text(
+                  kit.name,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 8),
-                Text(description, style: const TextStyle(color: Colors.grey, fontSize: 14, height: 1.5)),
-                if (hasButton && buttonText != null) ...[
+                Text(
+                  kit.description,
+                  style: const TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (hasButton) ...[
                   const SizedBox(height: 16),
-                  SizedBox(width: double.infinity, child: _OutlineBounceButton(text: buttonText, color: Colors.green, onTap: () => _openKitDetails(context, kitId))),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _OutlineBounceButton(
+                      text: l10n.card1Button,
+                      color: tagColor,
+                      onTap: () => _openKitDetails(context, kit.id),
+                    ),
+                  ),
+                ],
+                if (kit.mindset != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.psychology, size: 14, color: Colors.blue),
+                      const SizedBox(width: 4),
+                      Text(
+                        '🧠 ${kit.mindset!.name}',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -180,14 +310,40 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _bigCard(BuildContext context, AppLocalizations l10n) {
+  Widget _bigCard(BuildContext context, KitModel kit) {
+    final l10n = AppLocalizations.of(context)!;
+    final tagColor = _getTagColor(kit.id);
+
     return _BouncyTapCard(
-      onTap: () => _openKitDetails(context, _botanistKitId),
+      onTap: () => _openKitDetails(context, kit.id),
       child: Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+        ),
         child: Row(
           children: [
-            Expanded(child: ClipRRect(borderRadius: const BorderRadius.horizontal(left: Radius.circular(32)), child: Image.asset("assets/images/img55.png", fit: BoxFit.cover, height: double.infinity))),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(32)),
+                child: kit.imageURL.isNotEmpty
+                    ? Image.network(
+                  kit.imageURL,
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.image_not_supported, size: 80),
+                    );
+                  },
+                )
+                    : Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.image, size: 80),
+                ),
+              ),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(28),
@@ -198,14 +354,64 @@ class ExplorationsSection extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _WiggleTag(label: "AGES 6-9", color: Colors.green),
+                        _WiggleTag(
+                          label: kit.displayAge,
+                          color: tagColor,
+                        ),
                         const SizedBox(height: 14),
-                        Text(l10n.card1Title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                        Text(
+                          kit.name,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                        ),
                         const SizedBox(height: 12),
-                        Text(l10n.card1Desc, style: const TextStyle(color: Colors.grey, fontSize: 15)),
+                        Text(
+                          kit.description,
+                          style: const TextStyle(color: Colors.grey, fontSize: 15),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (kit.isNew) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'NEW!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (kit.mindset != null) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.psychology, size: 16, color: Colors.blue),
+                              const SizedBox(width: 4),
+                              Text(
+                                kit.mindset!.name,
+                                style: TextStyle(
+                                  color: Colors.blue.shade700,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
-                    _OutlineBounceButton(text: l10n.card1Button, color: Colors.green, onTap: () => _openKitDetails(context, _botanistKitId)),
+                    _OutlineBounceButton(
+                      text: l10n.card1Button,
+                      color: tagColor,
+                      onTap: () => _openKitDetails(context, kit.id),
+                    ),
                   ],
                 ),
               ),
@@ -216,26 +422,119 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _avianCard(BuildContext context, AppLocalizations l10n) {
+  Widget _compactCard(BuildContext context, KitModel kit) {
+    final tagColor = _getTagColor(kit.id);
+
     return _BouncyTapCard(
-      onTap: () => _openKitDetails(context, _avianKitId),
+      onTap: () => _openKitDetails(context, kit.id),
       child: Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+        ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: Image.asset("assets/images/img6.png", width: double.infinity, fit: BoxFit.cover)),
+            Expanded(
+              child: kit.imageURL.isNotEmpty
+                  ? Image.network(
+                kit.imageURL,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.image_not_supported, size: 50),
+                  );
+                },
+              )
+                  : Container(
+                color: Colors.grey[300],
+                child: const Icon(Icons.image, size: 50),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _WiggleTag(label: "AGES 4-6", color: const Color(0xFFE91E8C)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _WiggleTag(
+                        label: kit.displayAge,
+                        color: tagColor,
+                      ),
+                      if (kit.isNew)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'NEW',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
-                  Text(l10n.card2Title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  Text(
+                    kit.name,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 6),
-                  Text(l10n.card2Desc, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  Text(
+                    kit.description,
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (kit.rating > 0) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          kit.ratingDisplay,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${kit.rating.toStringAsFixed(1)})',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (kit.mindset != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.psychology, size: 12, color: Colors.blue),
+                        const SizedBox(width: 2),
+                        Text(
+                          kit.mindset!.name,
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -245,35 +544,22 @@ class ExplorationsSection extends StatelessWidget {
     );
   }
 
-  Widget _prismCard(BuildContext context, AppLocalizations l10n) {
-    return _BouncyTapCard(
-      onTap: () => _openKitDetails(context, _prismKitId),
-      child: Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32)),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: Image.asset("assets/images/img7.png", width: double.infinity, fit: BoxFit.cover)),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _WiggleTag(label: "AGES 8-12", color: Colors.blue),
-                  const SizedBox(height: 8),
-                  Text(l10n.card3Title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 6),
-                  Text(l10n.card3Desc, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  // Helper method to assign colors based on kit ID
+  Color _getTagColor(int kitId) {
+    const colors = [
+      Colors.green,
+      Color(0xFFE91E8C),
+      Colors.blue,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+    ];
+    return colors[kitId % colors.length];
   }
 }
+
+// ... Rest of your widget classes (_BouncyTapCard, _WiggleTag, _BounceButton, _OutlineBounceButton)
+// remain exactly the same as in your original code ...
 
 /// 🎈 Card that lifts and bounces when tapped or hovered — feels alive.
 class _BouncyTapCard extends StatefulWidget {

@@ -485,13 +485,13 @@ abstract class AppLocalizations {
   /// No description provided for @heroDesc.
   ///
   /// In en, this message translates to:
-  /// **'Thoughtfully curated kits designed by educators to spark lifelong curiosity, critical thinking, and a love for the natural world.'**
+  /// **'Thoughtfully curated Boxes designed by educators to spark lifelong curiosity, critical thinking, and a love for the natural world.'**
   String get heroDesc;
 
   /// No description provided for @heroExplore.
   ///
   /// In en, this message translates to:
-  /// **'Explore Kits'**
+  /// **'Explore Boxes'**
   String get heroExplore;
 
   /// No description provided for @heroLearn.
@@ -785,7 +785,7 @@ abstract class AppLocalizations {
   /// No description provided for @proceedToCheckout.
   ///
   /// In en, this message translates to:
-  /// **'Proceed to Checkout'**
+  /// **'Place My Order'**
   String get proceedToCheckout;
 
   /// No description provided for @cartSupportNote.
@@ -797,7 +797,7 @@ abstract class AppLocalizations {
   /// No description provided for @cartDeliveryEstimate.
   ///
   /// In en, this message translates to:
-  /// **'Arrives by Thursday — Standard Ground Shipping'**
+  /// **'Arrives In Three To Five Business Days'**
   String get cartDeliveryEstimate;
 
   /// No description provided for @promoCode.

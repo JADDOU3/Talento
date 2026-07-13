@@ -1,52 +1,48 @@
+// lib/shared/models/review_model.dart
 class ReviewModel {
-  const ReviewModel({
+  final int id;
+  final int kitId;
+  final String kitName;
+  final int parentId;
+  final String parentName;
+  final int rating;
+  final String comment;
+  final String createdAt;
+
+  ReviewModel({
     required this.id,
+    required this.kitId,
+    required this.kitName,
+    required this.parentId,
+    required this.parentName,
     required this.rating,
     required this.comment,
-    required this.parentName,
-    this.createdAt,
+    required this.createdAt,
   });
-
-  final int id;
-  final double rating;
-  final String comment;
-  final String parentName;
-  final DateTime? createdAt;
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
-    DateTime? parsed;
-    final raw = json['createdAt'];
-    if (raw is String && raw.isNotEmpty) {
-      parsed = DateTime.tryParse(raw);
-    }
-
     return ReviewModel(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      rating: (json['rating'] as num?)?.toDouble() ?? 0,
-      comment: json['comment'] as String? ?? '',
+      id: json['id'] as int? ?? 0,
+      kitId: json['kitId'] as int? ?? 0,
+      kitName: json['kitName'] as String? ?? '',
+      parentId: json['parentId'] as int? ?? 0,
       parentName: json['parentName'] as String? ?? '',
-      createdAt: parsed,
+      rating: json['rating'] as int? ?? 0,
+      comment: json['comment'] as String? ?? '',
+      createdAt: json['createdAt'] as String? ?? '',
     );
   }
-}
 
-class KitRatingSummary {
-  const KitRatingSummary({
-    required this.averageRating,
-    required this.totalReviews,
-  });
+  String get formattedDate {
+    try {
+      final date = DateTime.parse(createdAt);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return createdAt;
+    }
+  }
 
-  final double averageRating;
-  final int totalReviews;
-
-  factory KitRatingSummary.fromJson(Map<String, dynamic> json) {
-    return KitRatingSummary(
-      averageRating: (json['averageRating'] as num?)?.toDouble() ??
-          (json['rating'] as num?)?.toDouble() ??
-          0,
-      totalReviews: (json['totalReviews'] as num?)?.toInt() ??
-          (json['count'] as num?)?.toInt() ??
-          0,
-    );
+  String get stars {
+    return '★' * rating + '☆' * (5 - rating);
   }
 }

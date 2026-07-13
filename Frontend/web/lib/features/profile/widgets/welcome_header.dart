@@ -1,50 +1,73 @@
+// lib/features/profile/widgets/welcome_header.dart
 import 'package:flutter/material.dart';
-import '../../../shared/i18n/app_localizations.dart';
 import '../../../util/theme/app_colors.dart';
 
 class WelcomeHeader extends StatelessWidget {
-  /// The logged-in parent's real name (from ParentProfile). Pass null while
-  /// still loading to show a lightweight fallback instead of blank text.
   final String? userName;
 
-  /// The child's name — not yet wireable to real data; see note in
-  /// ProfilePage about the /children/selected endpoint. Falls back to the
-  /// old placeholder text until that's connected.
-  final String? childName;
-
-  const WelcomeHeader({super.key, this.userName, this.childName});
+  const WelcomeHeader({super.key, this.userName});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final resolvedUserName = userName ?? l10n.profileUserName;
-    final resolvedChildName = childName ?? l10n.profileChildName;
+    final name = userName ?? 'Explorer';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.profileWelcomeBack(resolvedUserName),
-          textAlign: TextAlign.start,
-          style: const TextStyle(
-            fontSize: 34,
-            fontWeight: FontWeight.w900,
-            color: AppColors.cartForestGreen,
-            height: 1.15,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF2D4059),
+            const Color(0xFF3B5A7A).withOpacity(0.8), // ✅ FIXED: withOpacity
+          ],
         ),
-        const SizedBox(height: 10),
-        Text(
-          l10n.profileWelcomeSubtitle(resolvedChildName),
-          textAlign: TextAlign.start,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: AppColors.cartMutedGrey.withValues(alpha: 0.95),
-            height: 1.45,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15), // ✅ FIXED: withOpacity
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2), // ✅ FIXED: withOpacity
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.person,
+                size: 32,
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome back, $name!',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your learning journey continues',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7), // ✅ FIXED: withOpacity
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

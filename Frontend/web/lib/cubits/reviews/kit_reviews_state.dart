@@ -1,4 +1,22 @@
+// lib/cubits/reviews/kit_reviews_state.dart
 import '../../shared/models/review_model.dart';
+
+class KitRatingSummary {
+  final double averageRating;
+  final int totalReviews;
+
+  const KitRatingSummary({
+    required this.averageRating,
+    required this.totalReviews,
+  });
+
+  factory KitRatingSummary.fromJson(Map<String, dynamic> json) {
+    return KitRatingSummary(
+      averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
+      totalReviews: json['totalReviews'] as int? ?? 0,
+    );
+  }
+}
 
 abstract class KitReviewsState {
   const KitReviewsState();
@@ -28,7 +46,11 @@ class KitReviewsEmpty extends KitReviewsState {
   const KitReviewsEmpty();
 }
 
-/// Hard failure — section should be hidden.
 class KitReviewsHidden extends KitReviewsState {
   const KitReviewsHidden();
+}
+
+class KitReviewsError extends KitReviewsState {
+  final String message;
+  const KitReviewsError(this.message);
 }

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:html' as html;
-
 import 'package:flutter/foundation.dart';
 
 import '../models/cart_model.dart';
@@ -290,30 +289,132 @@ class ApiService {
 
   // ===== CART =====
 
+// lib/shared/services/api_service.dart
+// Update the getCart method:
+
   static Future<Map<String, dynamic>> getCart() async {
-    final result = await getWithStatus('/cart/');
-    if (result.isNotFound) {
-      return {'success': false, 'notFound': true};
-    }
-    if (result.isUnauthorized) {
-      return {'success': false, 'message': 'Unauthorized'};
-    }
-    if (result.isNetworkFailure) {
-      return {'success': false, 'message': 'Network error'};
-    }
-    if (result.isSuccess && result.body is Map<String, dynamic>) {
+    try {
+      // Check if token exists first
+      final token = await LocalStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return {'success': false, 'notFound': true, 'message': 'Not authenticated'};
+      }
+
+      final result = await getWithStatus('/cart/');
+
+      if (result.status == 0) {
+        // Network error or CORS issue
+        return {'success': false, 'notFound': true, 'message': 'Network error'};
+      }
+
+      if (result.isNotFound) {
+        return {'success': false, 'notFound': true};
+      }
+      if (result.isUnauthorized) {
+        return {'success': false, 'message': 'Unauthorized', 'notFound': true};
+      }
+      if (result.isNetworkFailure) {
+        return {'success': false, 'message': 'Network error', 'notFound': true};
+      }
+      if (result.isSuccess && result.body is Map<String, dynamic>) {
+        return {
+          'success': true,
+          'cart': CartModel.fromJson(result.body as Map<String, dynamic>),
+        };
+      }
       return {
-        'success': true,
-        'cart': CartModel.fromJson(result.body as Map<String, dynamic>),
+        'success': false,
+        'message': decodeResponseBody(result.rawText)['message'] ?? 'Failed to load cart',
       };
+    } catch (e) {
+      // On any error, return notFound so empty cart is shown
+      return {
+        'success': false,
+        'notFound': true,
+        'message': 'Could not load cart',
+      };
+    }
+  }
+
+
+  // lib/shared/services/api_service.dart - Add these methods
+
+// Add to ApiService class:
+
+  static Future<Map<String, dynamic>> updateCartItem(int itemId, int quantity) async {
+    final result = await putWithStatus('/cart/items/$itemId', {'quantity': quantity});
+    if (result.isSuccess) {
+      return {'success': true};
     }
     return {
       'success': false,
-      'message': decodeResponseBody(result.rawText)['message'] ??
-          'Failed to load cart',
+      'message': decodeResponseBody(result.rawText)['message'] ?? 'Failed to update item',
     };
   }
 
+  static Future<Map<String, dynamic>> removeCartItem(int itemId) async {
+    final result = await deleteWithStatus('/cart/items/$itemId');
+    if (result.isSuccess) {
+      return {'success': true};
+    }
+    return {
+      'success': false,
+      'message': decodeResponseBody(result.rawText)['message'] ?? 'Failed to remove item',
+    };
+  }
+
+  static Future<Map<String, dynamic>> checkout() async {
+    final result = await postWithStatus('/orders/checkout', {});
+    if (result.isSuccess) {
+      return {'success': true};
+    }
+    return {
+      'success': false,
+      'message': decodeResponseBody(result.rawText)['message'] ?? 'Failed to checkout',
+    };
+  }
+
+  static Future<Map<String, dynamic>> clearCart() async {
+    final result = await deleteWithStatus('/cart/');
+    if (result.isSuccess) {
+      return {'success': true};
+    }
+    return {
+      'success': false,
+      'message': decodeResponseBody(result.rawText)['message'] ?? 'Failed to clear cart',
+    };
+  }
+
+// Also add putWithStatus method if not present:
+  static Future<ApiResult> putWithStatus(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final token = await LocalStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return const ApiResult(status: 401, body: null);
+      }
+
+      final request = await html.HttpRequest.request(
+        '$baseUrl$endpoint',
+        method: 'PUT',
+        sendData: json.encode(body),
+        requestHeaders: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      final status = request.status ?? 0;
+      final raw = request.responseText;
+      return ApiResult(
+        status: status,
+        body: _decodeJson(raw),
+        rawText: raw,
+      );
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[ApiService] PUT $endpoint failed: $e\n$st');
+      return const ApiResult(status: 0, body: null);
+    }
+  }
   static Future<Map<String, dynamic>> createCart() async {
     final result = await postWithStatus('/cart/', {});
     if (result.isSuccess) return {'success': true};
