@@ -27,9 +27,17 @@ class EmotionChainResultView extends StatelessWidget {
             ? ActivityFeedbackType.correct
             : ActivityFeedbackType.wrong,
 
-        // الصح ينتقل تلقائيًا من الـ Cubit، لذلك ما بنغيّر منطق اللعبة.
         onPrimaryPressed: isCorrect
-            ? null
+            ? () {
+          final cubit = context.read<EmotionChainCubit>();
+
+          if (cubit.isActivityCompleted) {
+            Navigator.of(context).pop();
+            return;
+          }
+
+          cubit.continueAfterCorrect();
+        }
             : () {
           context.read<EmotionChainCubit>().retryStep();
         },

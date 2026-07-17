@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../models/empathy_mirror/empathy_mirror_models.dart';
 import '../../../services/activities/empathy_mirror_service.dart';
@@ -8,19 +11,31 @@ import 'empathy_mirror_state.dart';
 class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {
   final EmpathyMirrorService _service;
 
+  static const FlutterSecureStorage _progressStorage =
+  FlutterSecureStorage();
+
   final int activityId;
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int initialLevelNumber;
 
   List<EmpathyMirrorLevel> _levels = [];
   int _levelIndex = 0;
+  int _challengeIndex = 0;
+  int _attemptNumber = 1;
+  int _currentAttemptId = 0;
+  String _currentAttemptStartedAt = '';
+
   bool _activityCompleted = false;
   bool _isLoading = false;
+  bool _isSubmittingAnswer = false;
+  bool _isCompletingActivity = false;
+  bool _exitLogged = false;
 
-  /// TEST MODE: when true, ANY non-empty QR/barcode scan counts as correct,
-  /// so you can walk through all levels with any code in real life.
-  /// Set to false before release to enforce real answer validation.
+  /// TEST MODE: when true, any non-empty QR/barcode scan counts as correct.
+  /// Set to false before release to enforce the backend answer values.
   static const bool kAcceptAnyQr = true;
 
   EmpathyMirrorCubit({
@@ -29,34 +44,101 @@ class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.initialLevelNumber = 1,
   })  : _service = service,
         super(const EmpathyMirrorInitial());
 
   EmpathyMirrorLevel get _level => _levels[_levelIndex];
 
-  // ─── Load ──────────────────────────────────────────────────────────────────
+  String get _progressStorageKey {
+    return 'empathy_mirror_progress_child_${childId}_activity_$activityId';
+  }
+
+  // ===================== LOCAL PROGRESS BACKUP =====================
+
+  Future<_EmpathyMirrorSavedProgress?> _readSavedProgress() async {
+    final raw = await _progressStorage.read(key: _progressStorageKey);
+
+    if (raw == null || raw.trim().isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return null;
+
+      final levelIndex = _readInt(decoded['levelIndex']);
+      final challengeIndex = _readInt(decoded['challengeIndex']);
+
+      if (levelIndex == null || levelIndex < 0) return null;
+
+      return _EmpathyMirrorSavedProgress(
+        levelIndex: levelIndex,
+        challengeIndex: challengeIndex ?? 0,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _saveProgress({
+    required int levelIndex,
+    required int challengeIndex,
+  }) async {
+    await _progressStorage.write(
+      key: _progressStorageKey,
+      value: jsonEncode({
+        'levelIndex': levelIndex,
+        'challengeIndex': challengeIndex,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
+  }
+
+  Future<void> _clearSavedProgress() async {
+    await _progressStorage.delete(key: _progressStorageKey);
+  }
+
+  // ===================== LOAD =====================
 
   Future<void> loadGame() async {
     if (_isLoading) return;
+
     _isLoading = true;
+    _activityCompleted = false;
+    _isSubmittingAnswer = false;
+    _isCompletingActivity = false;
+    _exitLogged = false;
+
     emit(const EmpathyMirrorLoading());
 
     try {
       _levels = await _service.getLevels(activityId);
+      _levels = _levels.where((level) => level.challenges.isNotEmpty).toList();
 
       if (_levels.isEmpty) {
-        emit(const EmpathyMirrorError('لا توجد مستويات لهذا النشاط'));
-        _isLoading = false;
-        return;
+        throw Exception('لا توجد مستويات أو تحديات لهذا النشاط');
       }
 
-      _levelIndex = 0;
+      final startPosition = await _resolveStartPosition();
+      _levelIndex = startPosition.levelIndex;
+      _challengeIndex = startPosition.challengeIndex;
+      _attemptNumber = 1;
 
-      final attemptId = await _service.createLevelAttempt(
-        attemptNumber: 1,
+      await _saveCurrentProgress();
+
+      final attempt = await _service.createLevelAttempt(
+        attemptNumber: _attemptNumber,
         activitySessionId: activitySessionId,
         levelId: _level.id,
       );
+
+      _currentAttemptId = attempt.id;
+      _currentAttemptStartedAt = attempt.startedAt;
 
       await _service.logActivityEvent(
         childId: childId,
@@ -64,6 +146,7 @@ class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {
         activityId: activityId,
         action: 'STARTED',
       );
+
       await _service.logLevelEvent(
         childId: childId,
         sessionId: sessionId,
@@ -71,338 +154,422 @@ class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {
         action: 'STARTED',
       );
 
+      debugPrint(
+        'EMPATHY START: levelIndex=$_levelIndex, '
+            'challengeIndex=$_challengeIndex, levelId=${_level.id}',
+      );
+
       _isLoading = false;
-      emit(EmpathyMirrorLoaded(
-        level: _level,
-        currentChallengeIndex: 0,
-        currentAttemptId: attemptId,
-        attemptNumber: 1,
-      ));
-    } catch (e) {
+      _emitLoaded();
+    } catch (error) {
       _isLoading = false;
-      emit(EmpathyMirrorError(e.toString().replaceFirst('Exception: ', '')));
+      emit(
+        EmpathyMirrorError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
     }
   }
 
-  // ─── Video finished ────────────────────────────────────────────────────────
+  Future<_EmpathyMirrorStartPosition> _resolveStartPosition() async {
+    int backendLevelIndex;
+
+    if (startLevelId != null && startLevelId! > 0) {
+      final indexFromId = _levels.indexWhere(
+            (level) => level.id == startLevelId,
+      );
+
+      backendLevelIndex = indexFromId == -1
+          ? _levelIndexFromNumber(initialLevelNumber)
+          : indexFromId;
+    } else {
+      backendLevelIndex = _levelIndexFromNumber(initialLevelNumber);
+    }
+
+    final savedProgress = await _readSavedProgress();
+
+    if (savedProgress != null &&
+        savedProgress.levelIndex >= backendLevelIndex &&
+        savedProgress.levelIndex < _levels.length) {
+      final savedLevel = _levels[savedProgress.levelIndex];
+      final maxChallengeIndex = savedLevel.challenges.length - 1;
+
+      return _EmpathyMirrorStartPosition(
+        levelIndex: savedProgress.levelIndex,
+        challengeIndex: _clampInt(
+          savedProgress.challengeIndex,
+          0,
+          maxChallengeIndex,
+        ),
+      );
+    }
+
+    return _EmpathyMirrorStartPosition(
+      levelIndex: backendLevelIndex,
+      challengeIndex: 0,
+    );
+  }
+
+  int _levelIndexFromNumber(int levelNumber) {
+    if (levelNumber <= 0 || levelNumber > _levels.length) return 0;
+    return _clampInt(levelNumber - 1, 0, _levels.length - 1);
+  }
+
+  int _clampInt(int value, int min, int max) {
+    if (max < min) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+  }
+
+  // ===================== VIDEO =====================
 
   void onVideoFinished() {
-    final s = state;
-    if (s is EmpathyMirrorLoaded) {
-      emit(s.copyWith(videoFinished: true));
+    final current = state;
+    if (current is EmpathyMirrorLoaded) {
+      emit(current.copyWith(videoFinished: true));
     }
   }
 
-  /// Replays the video for the current challenge (locks Continue again until
-  /// it finishes once more).
   void replayVideo() {
-    final s = state;
-    if (s is EmpathyMirrorLoaded) {
-      emit(s.copyWith(videoFinished: false));
+    final current = state;
+    if (current is EmpathyMirrorLoaded) {
+      emit(current.copyWith(videoFinished: false));
     }
   }
 
-  // ─── QR scanned (Levels 1, 3, 4, 5) ──────────────────────────────────────
+  // ===================== NORMAL ANSWERS =====================
 
   Future<void> onQrScanned(String result) async {
-    final s = state;
-    if (s is! EmpathyMirrorLoaded) return;
+    final current = state;
+    if (current is! EmpathyMirrorLoaded || _isSubmittingAnswer) return;
 
-    final challenge = s.currentChallenge;
-    final correctAnswer =
-    _level.correctAnswers[challenge.challengeId];
+    final challenge = current.currentChallenge;
+    final correctAnswer = _level.correctAnswers[challenge.challengeId];
 
-    // TODO: coordinate with team on exact QR value format.
     final isCorrect = kAcceptAnyQr
         ? result.trim().isNotEmpty
-        : (correctAnswer == null
+        : correctAnswer == null
         ? result.trim().isNotEmpty
         : result.trim().toLowerCase() ==
-        correctAnswer.trim().toLowerCase());
+        correctAnswer.trim().toLowerCase();
 
     debugPrint(
-        'QR SCANNED: $result | expected: $correctAnswer | correct: $isCorrect');
+      'EMPATHY QR: value=$result, expected=$correctAnswer, '
+          'correct=$isCorrect',
+    );
 
-    await _handleAnswer(s, isCorrect: isCorrect);
+    await _handleAnswer(
+      current,
+      isCorrect: isCorrect,
+      isFollowup: challenge.isFollowup,
+    );
   }
 
-  // ─── Card selected (Level 2) ───────────────────────────────────────────────
-
   Future<void> onCardSelected(String icon) async {
-    final s = state;
-    if (s is! EmpathyMirrorLoaded) return;
+    final current = state;
+    if (current is! EmpathyMirrorLoaded || _isSubmittingAnswer) return;
 
-    final challenge = s.currentChallenge;
+    final challenge = current.currentChallenge;
     final correctAnswer = _level.correctAnswers[challenge.challengeId];
     final isCorrect = icon.trim().toLowerCase() ==
         (correctAnswer ?? '').trim().toLowerCase();
 
     debugPrint(
-        'CARD SELECTED: $icon | expected: $correctAnswer | correct: $isCorrect');
+      'EMPATHY CARD: value=$icon, expected=$correctAnswer, '
+          'correct=$isCorrect',
+    );
 
-    await _handleAnswer(s, isCorrect: isCorrect, isFollowup: challenge.isFollowup);
+    await _handleAnswer(
+      current,
+      isCorrect: isCorrect,
+      isFollowup: challenge.isFollowup,
+    );
   }
 
-  // ─── Split-screen character scanned (Level 3) ─────────────────────────────
+  Future<void> _handleAnswer(
+      EmpathyMirrorLoaded current, {
+        required bool isCorrect,
+        bool isFollowup = false,
+      }) async {
+    if (_isSubmittingAnswer) return;
+    _isSubmittingAnswer = true;
 
-  Future<void> onCharacterScanned(int characterIndex, String result) async {
-    final s = state;
-    if (s is! EmpathyMirrorLoaded) return;
+    try {
+      if (!isCorrect) {
+        final retrySnapshot = await _handleWrongAttempt(current);
 
-    // Find the challenge tagged for this character (1 or 2) — NOT by array
-    // index, since challenge[0] may be the shared intro video, not a
-    // character-specific question.
+        emit(
+          EmpathyMirrorChallengeResult(
+            isCorrect: false,
+            isFollowup: isFollowup,
+            snapshot: retrySnapshot,
+          ),
+        );
+        return;
+      }
+
+      final isLastChallenge =
+          current.currentChallengeIndex >= _level.challenges.length - 1;
+
+      if (!isLastChallenge) {
+        _challengeIndex = current.currentChallengeIndex + 1;
+        await _saveCurrentProgress();
+
+        emit(
+          EmpathyMirrorChallengeResult(
+            isCorrect: true,
+            isFollowup: isFollowup,
+            snapshot: current.copyWith(
+              currentChallengeIndex: _challengeIndex,
+              videoFinished: false,
+            ),
+          ),
+        );
+        return;
+      }
+
+      await _completeCurrentLevelAttempt();
+
+      final nextSnapshot = await _moveAfterCompletedLevel(
+        completedSnapshot: current,
+      );
+
+      emit(
+        EmpathyMirrorChallengeResult(
+          isCorrect: true,
+          isFollowup: isFollowup,
+          snapshot: nextSnapshot,
+        ),
+      );
+    } catch (error) {
+      emit(
+        EmpathyMirrorError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
+    } finally {
+      _isSubmittingAnswer = false;
+    }
+  }
+
+  // ===================== SPLIT SCREEN =====================
+
+  Future<void> onCharacterScanned(
+      int characterIndex,
+      String result,
+      ) async {
+    final current = state;
+    if (current is! EmpathyMirrorLoaded || _isSubmittingAnswer) return;
+
     final challenge = _level.challengeForCharacter(characterIndex);
     if (challenge == null) return;
 
     final correctAnswer = _level.correctAnswers[challenge.challengeId];
     final isCorrect = kAcceptAnyQr
         ? result.trim().isNotEmpty
-        : (correctAnswer == null
+        : correctAnswer == null
         ? result.trim().isNotEmpty
         : result.trim().toLowerCase() ==
-        correctAnswer.trim().toLowerCase());
+        correctAnswer.trim().toLowerCase();
 
     debugPrint(
-        'CHAR $characterIndex SCANNED: $result | correct: $isCorrect');
-
-    // Update attempt for this character's challenge.
-    try {
-      await _service.updateLevelAttempt(
-        attemptId: s.currentAttemptId,
-        completed: isCorrect,
-      );
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: isCorrect ? 'COMPLETED' : 'FAILED',
-      );
-
-      if (!isCorrect) {
-        final newAttempt = await _service.createLevelAttempt(
-          attemptNumber: s.attemptNumber + 1,
-          activitySessionId: activitySessionId,
-          levelId: _level.id,
-        );
-        await _service.logLevelEvent(
-          childId: childId,
-          sessionId: sessionId,
-          activitySessionId: activitySessionId,
-          action: 'RETRIED',
-        );
-        emit(s.copyWith(
-          currentAttemptId: newAttempt,
-          attemptNumber: s.attemptNumber + 1,
-          character1Answered: characterIndex == 1 ? true : s.character1Answered,
-          character1Correct: characterIndex == 1 ? false : s.character1Correct,
-          character2Answered: characterIndex == 2 ? true : s.character2Answered,
-          character2Correct: characterIndex == 2 ? false : s.character2Correct,
-        ));
-        return;
-      }
-    } catch (e) {
-      debugPrint('CHAR SCAN ERROR: $e');
-    }
-
-    final newState = s.copyWith(
-      character1Answered: characterIndex == 1 ? true : s.character1Answered,
-      character1Correct: characterIndex == 1 ? true : s.character1Correct,
-      character2Answered: characterIndex == 2 ? true : s.character2Answered,
-      character2Correct: characterIndex == 2 ? true : s.character2Correct,
+      'EMPATHY CHARACTER $characterIndex: value=$result, '
+          'expected=$correctAnswer, correct=$isCorrect',
     );
 
-    // Both characters answered correctly → level done
-    if (newState.character1Correct && newState.character2Correct) {
-      final hasNextLevel = _levelIndex < _levels.length - 1;
+    _isSubmittingAnswer = true;
 
-      if (hasNextLevel) {
-        _levelIndex++;
-        try {
-          final newAttempt = await _service.createLevelAttempt(
-            attemptNumber: 1,
-            activitySessionId: activitySessionId,
-            levelId: _level.id,
-          );
-          await _service.logLevelEvent(
-            childId: childId,
-            sessionId: sessionId,
-            activitySessionId: activitySessionId,
-            action: 'STARTED',
-          );
-          emit(EmpathyMirrorLoaded(
-            level: _level,
-            currentChallengeIndex: 0,
-            currentAttemptId: newAttempt,
-            attemptNumber: 1,
-          ));
-        } catch (e) {
-          debugPrint('NEXT LEVEL ERROR: $e');
-        }
+    try {
+      if (!isCorrect) {
+        final retrySnapshot = await _handleWrongAttempt(current);
+
+        emit(
+          retrySnapshot.copyWith(
+            character1Answered:
+            characterIndex == 1 ? true : current.character1Answered,
+            character1Correct:
+            characterIndex == 1 ? false : current.character1Correct,
+            character2Answered:
+            characterIndex == 2 ? true : current.character2Answered,
+            character2Correct:
+            characterIndex == 2 ? false : current.character2Correct,
+          ),
+        );
         return;
       }
 
-      await _completeActivity();
-      emit(const EmpathyMirrorLevelComplete());
-      return;
-    }
+      final answeredSnapshot = current.copyWith(
+        character1Answered:
+        characterIndex == 1 ? true : current.character1Answered,
+        character1Correct:
+        characterIndex == 1 ? true : current.character1Correct,
+        character2Answered:
+        characterIndex == 2 ? true : current.character2Answered,
+        character2Correct:
+        characterIndex == 2 ? true : current.character2Correct,
+      );
 
-    emit(newState);
+      final bothCorrect = answeredSnapshot.character1Correct &&
+          answeredSnapshot.character2Correct;
+
+      if (!bothCorrect) {
+        emit(answeredSnapshot);
+        return;
+      }
+
+      await _completeCurrentLevelAttempt();
+
+      final nextSnapshot = await _moveAfterCompletedLevel(
+        completedSnapshot: answeredSnapshot,
+      );
+
+      emit(
+        EmpathyMirrorChallengeResult(
+          isCorrect: true,
+          isSplitScreen: true,
+          snapshot: nextSnapshot,
+        ),
+      );
+    } catch (error) {
+      emit(
+        EmpathyMirrorError(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
+    } finally {
+      _isSubmittingAnswer = false;
+    }
   }
 
-  // ─── Core answer handler ───────────────────────────────────────────────────
+  // ===================== ATTEMPT FLOW =====================
 
-  Future<void> _handleAnswer(
-      EmpathyMirrorLoaded s, {
-        required bool isCorrect,
-        bool isFollowup = false,
-      }) async {
-    try {
-      await _service.updateLevelAttempt(
-        attemptId: s.currentAttemptId,
-        completed: isCorrect,
-      );
-      await _service.logLevelEvent(
-        childId: childId,
-        sessionId: sessionId,
-        activitySessionId: activitySessionId,
-        action: isCorrect ? 'COMPLETED' : 'FAILED',
-      );
+  Future<EmpathyMirrorLoaded> _handleWrongAttempt(
+      EmpathyMirrorLoaded current,
+      ) async {
+    await _service.updateLevelAttempt(
+      attemptId: _currentAttemptId,
+      attemptNumber: _attemptNumber,
+      startedAt: _currentAttemptStartedAt,
+      activitySessionId: activitySessionId,
+      levelId: _level.id,
+      completed: false,
+    );
 
-      if (!isCorrect) {
-        final newAttempt = await _service.createLevelAttempt(
-          attemptNumber: s.attemptNumber + 1,
-          activitySessionId: activitySessionId,
-          levelId: _level.id,
-        );
-        await _service.logLevelEvent(
-          childId: childId,
-          sessionId: sessionId,
-          activitySessionId: activitySessionId,
-          action: 'RETRIED',
-        );
-        emit(EmpathyMirrorChallengeResult(
-          isCorrect: false,
-          isFollowup: isFollowup,
-          snapshot: s.copyWith(
-            currentAttemptId: newAttempt,
-            attemptNumber: s.attemptNumber + 1,
-          ),
-        ));
-        return;
-      }
-    } catch (e) {
-      debugPrint('ANSWER HANDLER ERROR: $e');
-    }
+    await _service.logLevelEvent(
+      childId: childId,
+      sessionId: sessionId,
+      activitySessionId: activitySessionId,
+      action: 'FAILED',
+    );
 
-    // Correct → check if more challenges
-    final isLastChallenge =
-        s.currentChallengeIndex >= _level.challenges.length - 1;
+    _attemptNumber += 1;
 
-    if (isLastChallenge) {
-      // Level 2: if c1 correct and followup exists, advance to c2.
-      if (s.isLevel2 && !isFollowup && _level.challenges.length > 1) {
-        final newAttempt = await _service.createLevelAttempt(
-          attemptNumber: 1,
-          activitySessionId: activitySessionId,
-          levelId: _level.id,
-        );
-        emit(EmpathyMirrorChallengeResult(
-          isCorrect: true,
-          isFollowup: false,
-          snapshot: s.copyWith(
-            currentChallengeIndex: s.currentChallengeIndex + 1,
-            currentAttemptId: newAttempt,
-            attemptNumber: 1,
-          ),
-        ));
-        return;
-      }
-
-      // All challenges in THIS level done → is there a next level?
-      final hasNextLevel = _levelIndex < _levels.length - 1;
-
-      if (hasNextLevel) {
-        // Move to the next level.
-        _levelIndex++;
-        final newAttempt = await _service.createLevelAttempt(
-          attemptNumber: 1,
-          activitySessionId: activitySessionId,
-          levelId: _level.id,
-        );
-        await _service.logLevelEvent(
-          childId: childId,
-          sessionId: sessionId,
-          activitySessionId: activitySessionId,
-          action: 'STARTED',
-        );
-        emit(EmpathyMirrorChallengeResult(
-          isCorrect: true,
-          isFollowup: isFollowup,
-          snapshot: EmpathyMirrorLoaded(
-            level: _level,
-            currentChallengeIndex: 0,
-            currentAttemptId: newAttempt,
-            attemptNumber: 1,
-          ),
-        ));
-        return;
-      }
-
-      // No more levels → complete the whole activity.
-      await _completeActivity();
-      emit(EmpathyMirrorChallengeResult(
-        isCorrect: true,
-        isFollowup: isFollowup,
-        snapshot: s,
-      ));
-      return;
-    }
-
-    // Advance to next challenge in same level.
-    final newAttempt = await _service.createLevelAttempt(
-      attemptNumber: 1,
+    final retryAttempt = await _service.createLevelAttempt(
+      attemptNumber: _attemptNumber,
       activitySessionId: activitySessionId,
       levelId: _level.id,
     );
-    emit(EmpathyMirrorChallengeResult(
-      isCorrect: true,
-      isFollowup: isFollowup,
-      snapshot: s.copyWith(
-        currentChallengeIndex: s.currentChallengeIndex + 1,
-        currentAttemptId: newAttempt,
-        attemptNumber: 1,
-        videoFinished: false,
-      ),
-    ));
+
+    _currentAttemptId = retryAttempt.id;
+    _currentAttemptStartedAt = retryAttempt.startedAt;
+
+    await _service.logLevelEvent(
+      childId: childId,
+      sessionId: sessionId,
+      activitySessionId: activitySessionId,
+      action: 'RETRIED',
+    );
+
+    await _saveCurrentProgress();
+
+    return current.copyWith(
+      currentAttemptId: _currentAttemptId,
+      attemptNumber: _attemptNumber,
+    );
   }
 
-  // ─── Next challenge (called from screen after result shown) ───────────────
+  Future<void> _completeCurrentLevelAttempt() async {
+    await _service.updateLevelAttempt(
+      attemptId: _currentAttemptId,
+      attemptNumber: _attemptNumber,
+      startedAt: _currentAttemptStartedAt,
+      activitySessionId: activitySessionId,
+      levelId: _level.id,
+      completed: true,
+    );
 
-  void nextChallenge() {
-    final s = state;
-    if (s is! EmpathyMirrorChallengeResult) return;
+    await _service.logLevelEvent(
+      childId: childId,
+      sessionId: sessionId,
+      activitySessionId: activitySessionId,
+      action: 'COMPLETED',
+    );
+  }
 
-    if (!s.isCorrect) {
-      // Retry — go back to loaded with new attempt id.
-      emit(s.snapshot);
-      return;
+  Future<EmpathyMirrorLoaded> _moveAfterCompletedLevel({
+    required EmpathyMirrorLoaded completedSnapshot,
+  }) async {
+    final isLastLevel = _levelIndex >= _levels.length - 1;
+
+    if (isLastLevel) {
+      await _completeActivity();
+      return completedSnapshot;
     }
 
-    // Check if activity is fully complete.
+    _levelIndex += 1;
+    _challengeIndex = 0;
+    _attemptNumber = 1;
+
+    await _saveCurrentProgress();
+
+    final nextAttempt = await _service.createLevelAttempt(
+      attemptNumber: _attemptNumber,
+      activitySessionId: activitySessionId,
+      levelId: _level.id,
+    );
+
+    _currentAttemptId = nextAttempt.id;
+    _currentAttemptStartedAt = nextAttempt.startedAt;
+
+    await _service.logLevelEvent(
+      childId: childId,
+      sessionId: sessionId,
+      activitySessionId: activitySessionId,
+      action: 'STARTED',
+    );
+
+    return EmpathyMirrorLoaded(
+      level: _level,
+      currentChallengeIndex: _challengeIndex,
+      currentAttemptId: _currentAttemptId,
+      attemptNumber: _attemptNumber,
+    );
+  }
+
+  // ===================== RESULT CONTINUATION =====================
+
+  void nextChallenge() {
+    final current = state;
+    if (current is! EmpathyMirrorChallengeResult) return;
+
     if (_activityCompleted) {
       emit(const EmpathyMirrorLevelComplete());
       return;
     }
 
-    emit(s.snapshot);
+    emit(current.snapshot);
   }
 
-  // ─── Complete activity ─────────────────────────────────────────────────────
+  // ===================== ACTIVITY COMPLETION =====================
 
   Future<void> _completeActivity() async {
     if (_activityCompleted) return;
-    _activityCompleted = true;
+    if (_isCompletingActivity) {
+      throw Exception('يتم حفظ إكمال النشاط الآن، حاول مرة أخرى');
+    }
+
+    _isCompletingActivity = true;
 
     try {
       await _service.logActivityEvent(
@@ -411,25 +578,80 @@ class EmpathyMirrorCubit extends Cubit<EmpathyMirrorState> {
         activityId: activityId,
         action: 'COMPLETED',
       );
+
       await _service.completeActivitySession(activitySessionId);
-    } catch (e) {
-      debugPrint('COMPLETE ERROR: $e');
+
+      _activityCompleted = true;
+
+      try {
+        await _clearSavedProgress();
+      } catch (error) {
+        debugPrint('EMPATHY CLEAR LOCAL PROGRESS ERROR: $error');
+      }
+    } finally {
+      _isCompletingActivity = false;
     }
   }
 
-  // ─── Exit (Step D) ─────────────────────────────────────────────────────────
+  // ===================== EXIT =====================
 
   Future<void> logExitIfNotCompleted() async {
-    if (_activityCompleted) return;
+    if (_activityCompleted || _exitLogged) return;
+
+    _exitLogged = true;
+
     try {
+      await _saveCurrentProgress();
+
       await _service.logActivityEvent(
         childId: childId,
         sessionId: sessionId,
         activityId: activityId,
         action: 'ENDED',
       );
-    } catch (e) {
-      debugPrint('EXIT ERROR: $e');
+    } catch (error) {
+      _exitLogged = false;
+      debugPrint('EMPATHY EXIT ERROR: $error');
     }
   }
+
+  // ===================== STATE HELPERS =====================
+
+  Future<void> _saveCurrentProgress() async {
+    await _saveProgress(
+      levelIndex: _levelIndex,
+      challengeIndex: _challengeIndex,
+    );
+  }
+
+  void _emitLoaded() {
+    emit(
+      EmpathyMirrorLoaded(
+        level: _level,
+        currentChallengeIndex: _challengeIndex,
+        currentAttemptId: _currentAttemptId,
+        attemptNumber: _attemptNumber,
+      ),
+    );
+  }
+}
+
+class _EmpathyMirrorSavedProgress {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _EmpathyMirrorSavedProgress({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
+}
+
+class _EmpathyMirrorStartPosition {
+  final int levelIndex;
+  final int challengeIndex;
+
+  const _EmpathyMirrorStartPosition({
+    required this.levelIndex,
+    required this.challengeIndex,
+  });
 }

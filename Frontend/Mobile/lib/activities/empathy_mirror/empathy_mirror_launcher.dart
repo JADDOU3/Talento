@@ -62,6 +62,8 @@ class _EmpathyMirrorLauncherState
             activitySessionId: ctx.activitySessionId,
             childId: ctx.childId,
             sessionId: ctx.sessionId,
+            startLevelId: ctx.startLevelId,
+            startLevelNumber: ctx.startLevelNumber,
           ),
         ),
       );

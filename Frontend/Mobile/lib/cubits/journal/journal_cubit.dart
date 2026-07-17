@@ -51,11 +51,19 @@ class JournalCubit extends Cubit<JournalState> {
       loader: () => _journalService.getPerformances(childId),
     );
 
+    final activitiesProgress =
+    await _safeLoad<JournalActivitiesProgressModel>(
+      label: 'activities progress',
+      fallback: const JournalActivitiesProgressModel.empty(),
+      loader: () => _journalService.getActivitiesProgress(childId),
+    );
+
     if (report == null) {
       emit(
         JournalNoReport(
           weeklySessions: weeklySessions,
           performances: performances,
+          activitiesProgress: activitiesProgress,
         ),
       );
       return;
@@ -67,6 +75,7 @@ class JournalCubit extends Cubit<JournalState> {
         mindsetScores: report.mindsetScores,
         weeklySessions: weeklySessions,
         performances: performances,
+        activitiesProgress: activitiesProgress,
         childId: childId,
       ),
     );
@@ -77,6 +86,7 @@ class JournalCubit extends Cubit<JournalState> {
 
     final weeklySessions = _currentWeeklySessions(currentState);
     final performances = _currentPerformances(currentState);
+    final activitiesProgress = _currentActivitiesProgress(currentState);
 
     final report = await _safeLoad<AIReportModel?>(
       label: 'report version $version',
@@ -94,6 +104,7 @@ class JournalCubit extends Cubit<JournalState> {
         JournalNoReport(
           weeklySessions: weeklySessions,
           performances: performances,
+          activitiesProgress: activitiesProgress,
         ),
       );
       return;
@@ -105,6 +116,7 @@ class JournalCubit extends Cubit<JournalState> {
         mindsetScores: report.mindsetScores,
         weeklySessions: weeklySessions,
         performances: performances,
+        activitiesProgress: activitiesProgress,
         childId: childId,
       ),
     );
@@ -135,6 +147,14 @@ class JournalCubit extends Cubit<JournalState> {
     if (state is JournalLoaded) return state.performances;
     if (state is JournalNoReport) return state.performances;
     return [];
+  }
+
+  JournalActivitiesProgressModel _currentActivitiesProgress(
+      JournalState state,
+      ) {
+    if (state is JournalLoaded) return state.activitiesProgress;
+    if (state is JournalNoReport) return state.activitiesProgress;
+    return const JournalActivitiesProgressModel.empty();
   }
 
   String _cleanError(Object error) {

@@ -11,6 +11,8 @@ class ShapeCreatorIntro extends StatelessWidget {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const ShapeCreatorIntro({
     super.key,
@@ -18,10 +20,12 @@ class ShapeCreatorIntro extends StatelessWidget {
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 
   void _openBuildScreen(BuildContext context) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => BlocProvider(
           create: (_) => ShapeCreatorCubit(),
@@ -30,6 +34,8 @@ class ShapeCreatorIntro extends StatelessWidget {
             activitySessionId: activitySessionId,
             childId: childId,
             sessionId: sessionId,
+            startLevelId: startLevelId,
+            initialLevelNumber: startLevelNumber,
           ),
         ),
       ),
@@ -39,6 +45,7 @@ class ShapeCreatorIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActivityIntroTemplate(
+      activityId: activityId,
       background: const AnimatedBackground(
         child: SizedBox.expand(),
       ),

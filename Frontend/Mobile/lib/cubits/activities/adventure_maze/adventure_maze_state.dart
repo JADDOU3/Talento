@@ -1,5 +1,5 @@
-import '../../activities/adventure_maze/config/adventure_maze_level_config.dart';
-import '../../models/activities/adventure_maze/adventure_maze_models.dart';
+import '../../../activities/adventure_maze/config/adventure_maze_level_config.dart';
+import '../../../models/activities/adventure_maze/adventure_maze_models.dart';
 
 abstract class AdventureMazeState {
   const AdventureMazeState();

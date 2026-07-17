@@ -100,6 +100,19 @@ class ApiConstants {
   static const String postsByMindset = '$baseUrl/posts/mindset';
   static const String postsByKit = '$baseUrl/posts/kit';
 
+  // Voice-over
+  static String globalVoiceOver(String result) =>
+      '$baseUrl/voice-over/global/$result';
+
+  static String activityVoiceOver(int activityId) =>
+      '$baseUrl/voice-over/activity/$activityId';
+
+  static String mazeQuestionVoiceOver({
+    required int levelId,
+    required int challengeId,
+  }) =>
+      '$baseUrl/voice-over/maze-question/$levelId/$challengeId';
+
   // Media
   static const String mediaUpload = '$baseUrl/media/upload';
 
@@ -123,11 +136,18 @@ class ApiConstants {
   static const String addChild = '$baseUrl/children/';
   static const String selectedChild = '$baseUrl/children/selected';
 
+  static String setSelectedChild(int childId) =>
+      '$baseUrl/children/selected/$childId';
+
 // Coins
   static const String coins = '$baseUrl/coins';
 
-  static String setSelectedChild(int childId) =>
-      '$baseUrl/children/selected/$childId';
+  // POST /api/coins/maze-collect?count={count}
+
+  static String coinsMazeCollect(int count) =>
+      Uri.parse('$baseUrl/coins/maze-collect')
+          .replace(queryParameters: {'count': '$count'})
+          .toString();
 
   // Child Mode
   static const String isChildMode = '$baseUrl/isChildMode';

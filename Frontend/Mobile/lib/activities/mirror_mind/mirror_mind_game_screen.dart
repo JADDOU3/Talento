@@ -8,6 +8,7 @@ import '../../cubits/activities/mirror_mind/mirror_mind_cubit.dart';
 import '../../cubits/activities/mirror_mind/mirror_mind_state.dart';
 import '../../models/activities/mirror_mind/mirror_mind_challenge_model.dart';
 import '../../models/activities/mirror_mind/mirror_mind_choice_model.dart';
+import '../../shared/audio/voice_over_controller.dart';
 import '../../shared/layout/app_background.dart';
 import '../../shared/layout/top_bar.dart';
 import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
@@ -59,7 +60,7 @@ class MirrorMindGameScreen extends StatelessWidget {
   }
 }
 
-class MirrorMindGameView extends StatelessWidget {
+class MirrorMindGameView extends StatefulWidget {
   final int activityId;
   final int activitySessionId;
   final int childId;
@@ -78,40 +79,103 @@ class MirrorMindGameView extends StatelessWidget {
   });
 
   @override
+  State<MirrorMindGameView> createState() =>
+      _MirrorMindGameViewState();
+}
+
+class _MirrorMindGameViewState extends State<MirrorMindGameView> {
+  final VoiceOverController _voiceOverController =
+  VoiceOverController();
+
+  int? _lastPlayedLevelId;
+
+  Future<void> _playLevelVoiceOver(int levelId) async {
+    if (levelId <= 0 || _lastPlayedLevelId == levelId) {
+      return;
+    }
+
+    _lastPlayedLevelId = levelId;
+
+    await _voiceOverController.playLevel(
+      activityId: widget.activityId,
+      levelId: levelId,
+    );
+  }
+
+  Future<void> _exitActivity() async {
+    await _voiceOverController.stop();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop();
+  }
+
+  Future<bool> _onWillPop() async {
+    await _voiceOverController.stop();
+    return true;
+  }
+
+  @override
+  void dispose() {
+    _voiceOverController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: BlocConsumer<MirrorMindCubit, MirrorMindState>(
-        listener: (context, state) {
-          if (state is MirrorMindPartOneComplete) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MirrorMindResultScreen(
-                  elapsed: state.elapsed,
-                  activityId: activityId,
-                  activitySessionId: activitySessionId,
-                  childId: childId,
-                  sessionId: sessionId,
-                  initialLevelNumber: 1,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: BlocConsumer<MirrorMindCubit, MirrorMindState>(
+          listener: (context, state) async {
+            if (state is MirrorMindLoaded) {
+              await _playLevelVoiceOver(state.level.id);
+              return;
+            }
+
+            if (state is MirrorMindChallengeResult ||
+                state is MirrorMindLevelComplete) {
+              // Stop the level explanation before the shared
+              // SUCCESS / FAIL voice-over starts.
+              await _voiceOverController.stop();
+              return;
+            }
+
+            if (state is MirrorMindPartOneComplete) {
+              await _voiceOverController.stop();
+
+              if (!context.mounted) return;
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MirrorMindResultScreen(
+                    elapsed: state.elapsed,
+                    activityId: widget.activityId,
+                    activitySessionId: widget.activitySessionId,
+                    childId: widget.childId,
+                    sessionId: widget.sessionId,
+                    initialLevelNumber: 1,
+                  ),
                 ),
+              );
+            }
+          },
+          builder: (context, state) {
+            final isUnifiedFeedback =
+                state is MirrorMindChallengeResult ||
+                    state is MirrorMindLevelComplete;
+
+            return Scaffold(
+              body: isUnifiedFeedback
+                  ? _buildBody(context, state)
+                  : AppBackground(
+                child: _buildBody(context, state),
               ),
             );
-          }
-        },
-        builder: (context, state) {
-          final isUnifiedFeedback =
-              state is MirrorMindChallengeResult ||
-                  state is MirrorMindLevelComplete;
-
-          return Scaffold(
-            body: isUnifiedFeedback
-                ? _buildBody(context, state)
-                : AppBackground(
-              child: _buildBody(context, state),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -156,7 +220,10 @@ class MirrorMindGameView extends StatelessWidget {
     }
 
     if (state is MirrorMindLoaded) {
-      return _LoadedGameView(state: state);
+      return _LoadedGameView(
+        state: state,
+        onExit: _exitActivity,
+      );
     }
 
     return const SizedBox.shrink();
@@ -165,9 +232,11 @@ class MirrorMindGameView extends StatelessWidget {
 
 class _LoadedGameView extends StatefulWidget {
   final MirrorMindLoaded state;
+  final VoidCallback onExit;
 
   const _LoadedGameView({
     required this.state,
+    required this.onExit,
   });
 
   @override
@@ -246,7 +315,7 @@ class _LoadedGameViewState extends State<_LoadedGameView> {
       children: [
         TopBar(
           leadingIcon: Icons.arrow_back_ios_new_rounded,
-          onLeadingPressed: () => Navigator.of(context).pop(),
+          onLeadingPressed: widget.onExit,
         ),
         Expanded(
           child: SafeArea(

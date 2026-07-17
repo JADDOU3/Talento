@@ -9,6 +9,8 @@ import 'dart:io';
 import '../../../activities/create_creature/icon_arabic_labels.dart';
 
 class CreateCreatureCubit extends Cubit<CreateCreatureState> {
+  static const Duration _maximumRecordingDuration = Duration(minutes: 3);
+
   CreateCreatureCubit({
     CreateCreatureService? createCreatureService,
   })  : _createCreatureService =
@@ -26,6 +28,7 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
 
   bool _activityCompleted = false;
   bool _gameLoaded = false;
+  Duration _recordingDuration = Duration.zero;
 
   CreateCreatureLoaded? _getLoaded() {
     final currentState = state;
@@ -49,6 +52,7 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     _sessionId = sessionId;
     _activityCompleted = false;
     _gameLoaded = false;
+    _recordingDuration = Duration.zero;
 
     try {
       final levels =
@@ -230,15 +234,31 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
     }
   }
 
-  void onRecordingComplete(String filePath) {
+  void onRecordingComplete(
+      String filePath,
+      Duration recordingDuration,
+      ) {
     final loaded = _getLoaded();
     if (loaded == null) return;
+
+    if (recordingDuration > _maximumRecordingDuration) {
+      emit(
+        const CreateCreatureError(
+          'لا يمكن أن تزيد مدة التسجيل عن 3 دقائق.',
+        ),
+      );
+      return;
+    }
+
+    _recordingDuration = recordingDuration;
     _emitLoaded(loaded.copyWith(recordedFilePath: filePath));
   }
 
   void onRecordingCleared() {
     final loaded = _getLoaded();
     if (loaded == null) return;
+
+    _recordingDuration = Duration.zero;
     _emitLoaded(loaded.copyWith(clearRecordedFilePath: true));
   }
 
@@ -286,6 +306,7 @@ class CreateCreatureCubit extends Cubit<CreateCreatureState> {
         activitySessionId: _activitySessionId,
         levelId: loaded.level.id,
         keywords: keywords,
+        recordingDuration: _recordingDuration,
       );
 
       final success = response['success'] == true;

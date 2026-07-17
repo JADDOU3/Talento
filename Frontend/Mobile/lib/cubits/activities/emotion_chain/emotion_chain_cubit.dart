@@ -39,6 +39,8 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
       _currentChallengeIndex >= _level.challenges.length - 1;
   bool get _isLastLevel => _currentLevelIndex >= _levels.length - 1;
 
+  bool get isActivityCompleted => _activityCompleted;
+
   // ---------------------------------------------------------------------------
   // Load
   // ---------------------------------------------------------------------------
@@ -183,31 +185,19 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
     final wasLastInLevel = _isLastChallengeInLevel;
     final wasLastLevel = _isLastLevel;
 
-    emit(EmotionChainStepResult(
-      isCorrect: true,
-      level: _level,
-      challengeIndex: _currentChallengeIndex,
-    ));
-
-    await Future.delayed(const Duration(milliseconds: 1100));
-    if (state is! EmotionChainStepResult) return;
-
     if (wasLastInLevel && wasLastLevel) {
-      await _completeActivity();
-      return;
+      // Save the full activity completion first, then keep the unified
+      // correct-answer screen visible until the child presses "التالي".
+      await _completeActivity(emitCompletionState: false);
     }
 
-    if (wasLastInLevel) {
-      emit(EmotionChainLevelComplete(levelNumber: _level.levelNumber));
-      await Future.delayed(const Duration(milliseconds: 1200));
-      await _moveToNextLevel();
-      return;
-    }
-
-    // Next step in the same level.
-    _currentChallengeIndex += 1;
-    await _createAttempt(attemptNumber: 1);
-    _emitStepReady(reset: true);
+    emit(
+      EmotionChainStepResult(
+        isCorrect: true,
+        level: _level,
+        challengeIndex: _currentChallengeIndex,
+      ),
+    );
   }
 
   Future<void> _handleWrong() async {
@@ -242,6 +232,34 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
     ));
   }
 
+  /// Called from the correct result screen's "التالي" button.
+  Future<void> continueAfterCorrect() async {
+    final current = state;
+
+    if (current is! EmotionChainStepResult || !current.isCorrect) {
+      return;
+    }
+
+    // The final activity completion is already saved. The result screen
+    // handles the navigation back to the roadmap.
+    if (_activityCompleted) {
+      return;
+    }
+
+    try {
+      if (_isLastChallengeInLevel) {
+        await _moveToNextLevel();
+        return;
+      }
+
+      _currentChallengeIndex += 1;
+      await _createAttempt(attemptNumber: 1);
+      _emitStepReady(reset: true);
+    } catch (error) {
+      emit(EmotionChainError(error.toString()));
+    }
+  }
+
   /// Called from the result screen's "Try Again" button.
   void retryStep() {
     final current = state;
@@ -264,7 +282,9 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
     emit(EmotionChainVideoPlaying(level: _level));
   }
 
-  Future<void> _completeActivity() async {
+  Future<void> _completeActivity({
+    bool emitCompletionState = true,
+  }) async {
     _activityCompleted = true;
     _stopTimer();
 
@@ -276,7 +296,9 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
     );
     await _service.completeActivitySession(_activitySessionId);
 
-    emit(const EmotionChainActivityComplete());
+    if (emitCompletionState) {
+      emit(const EmotionChainActivityComplete());
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -305,7 +327,7 @@ class EmotionChainCubit extends Cubit<EmotionChainState> {
     _stopTimer();
     _timer = Timer.periodic(
       const Duration(seconds: 1),
-      (_) => onTimerTick(),
+          (_) => onTimerTick(),
     );
   }
 

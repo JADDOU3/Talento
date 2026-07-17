@@ -95,7 +95,7 @@ class _PatternHackerIntroState extends State<PatternHackerIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => PatternHackerGameScreen(
@@ -194,6 +194,7 @@ class _PatternHackerIntroState extends State<PatternHackerIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),

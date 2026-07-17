@@ -161,6 +161,33 @@ class PerformanceModel {
   }
 }
 
+
+class JournalActivitiesProgressModel {
+  final int completedActivities;
+  final int totalActivities;
+
+  const JournalActivitiesProgressModel({
+    required this.completedActivities,
+    required this.totalActivities,
+  });
+
+  const JournalActivitiesProgressModel.empty()
+      : completedActivities = 0,
+        totalActivities = 0;
+
+  bool get allActivitiesCompleted {
+    return totalActivities > 0 && completedActivities >= totalActivities;
+  }
+
+  double get progress {
+    if (totalActivities <= 0) return 0;
+
+    return (completedActivities / totalActivities)
+        .clamp(0.0, 1.0)
+        .toDouble();
+  }
+}
+
 String _toString(dynamic value) {
   if (value == null) return '';
   return value.toString();

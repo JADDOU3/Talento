@@ -95,7 +95,7 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => ConflictResolutionVideoScreen(
@@ -192,6 +192,7 @@ class _ConflictResolutionIntroState extends State<ConflictResolutionIntro> {
     return Stack(
       children: [
         ActivityIntroTemplate(
+          activityId: widget.activityId,
           background: const AnimatedBackground(
             child: SizedBox.expand(),
           ),

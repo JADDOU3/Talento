@@ -7,17 +7,11 @@ import '../../cubits/activities/creative_maze/creative_maze_cubit.dart';
 import '../../cubits/activities/creative_maze/creative_maze_state.dart';
 import '../../maze_engine/tilt/tilt_controller.dart';
 import '../../maze_engine/widgets/tilt_calibration_button.dart';
-import '../../shared/layout/top_bar.dart';
-import '../../shared/widgets/activity_feedback/activity_feedback_view.dart';
 import 'widgets/creative_maze_game_widget.dart';
 
-/// Creative Maze:
-///
-/// - There is no wrong-answer state.
-/// - Reaching the end displays the shared success screen.
-/// - This roadmap card contains one level only.
-/// - Pressing the success button returns to the roadmap.
-/// - There are no automatic transitions.
+/// Hosts the running Creative Maze: the maze image is the play area with the
+/// transparent Flame game (ball + physics walls from config) on top, plus a
+/// calibrate button. No timer is shown to the child.
 class CreativeMazeGameScreen extends StatefulWidget {
   const CreativeMazeGameScreen({
     super.key,
@@ -37,23 +31,18 @@ class CreativeMazeGameScreen extends StatefulWidget {
   final int? startLevelNumber;
 
   @override
-  State<CreativeMazeGameScreen> createState() =>
-      _CreativeMazeGameScreenState();
+  State<CreativeMazeGameScreen> createState() => _CreativeMazeGameScreenState();
 }
 
-class _CreativeMazeGameScreenState
-    extends State<CreativeMazeGameScreen> {
+class _CreativeMazeGameScreenState extends State<CreativeMazeGameScreen> {
   late final TiltController _tiltController;
   late final CreativeMazeCubit _cubit;
-
   CreativeMazeGame? _game;
 
   @override
   void initState() {
     super.initState();
-
     _tiltController = TiltController();
-
     _cubit = CreativeMazeCubit()
       ..loadGame(
         activityId: widget.activityId,
@@ -72,130 +61,153 @@ class _CreativeMazeGameScreenState
     super.dispose();
   }
 
-  void _returnToRoadmap() {
-    Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: BlocConsumer<CreativeMazeCubit, CreativeMazeState>(
-          bloc: _cubit,
-          listener: (context, state) {
-            if (state is CreativeMazeComplete) {
-              _tiltController.stop();
-            }
-          },
-          builder: (context, state) {
-            if (state is CreativeMazeLoading ||
-                state is CreativeMazeInitial) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            if (state is CreativeMazeError) {
-              return _buildError(state.message);
-            }
-
-            if (state is CreativeMazeComplete) {
-              return ActivityFeedbackView(
-                type: ActivityFeedbackType.correct,
-                onPrimaryPressed: _returnToRoadmap,
-              );
-            }
-
-            if (state is CreativeMazeLoaded) {
-              return _buildGame(state);
-            }
-
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          },
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFE9FAF6), Color(0xFFFFF9EA), Color(0xFFFFEEF3)],
+            ),
+          ),
+          child: SafeArea(
+            child: BlocConsumer<CreativeMazeCubit, CreativeMazeState>(
+              bloc: _cubit,
+              listener: (context, state) {
+                if (state is CreativeMazeComplete) {
+                  _onComplete(state.completionTime);
+                }
+              },
+              builder: (context, state) {
+                if (state is CreativeMazeLoading ||
+                    state is CreativeMazeInitial) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is CreativeMazeError) {
+                  return _buildError(state.message);
+                }
+                if (state is CreativeMazeLoaded) {
+                  return _buildGame(state);
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildGame(CreativeMazeLoaded state) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE9FAF6),
-            Color(0xFFFFF9EA),
-            Color(0xFFFFEEF3),
-          ],
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       child: Column(
         children: [
-          TopBar(
-            leadingIcon: Icons.arrow_back_ios_new_rounded,
-            onLeadingPressed: () => Navigator.of(context).pop(),
-          ),
+          _buildTopBar(state),
+          const SizedBox(height: 12),
           Expanded(
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.network(
-                              state.level.imageUrl,
-                              fit: BoxFit.fill,
-                              errorBuilder: (_, __, ___) {
-                                return Container(
-                                  color: Colors.white,
-                                  alignment: Alignment.center,
-                                  child: const Icon(
-                                    Icons.broken_image_outlined,
-                                    size: 48,
-                                    color: Colors.black26,
-                                  ),
-                                );
-                              },
-                            ),
-                            Builder(
-                              builder: (context) {
-                                _game ??= CreativeMazeGame(
-                                  tiltController: _tiltController,
-                                  config: state.config,
-                                  onReachedEnd: _cubit.onBallReachedEnd,
-                                );
-
-                                return GameWidget(
-                                  game: _game!,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Maze image (the walls the child sees).
+                  Image.network(
+                    state.level.imageUrl,
+                    fit: BoxFit.fill,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.white,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image_outlined,
+                          size: 48, color: Colors.black26),
                     ),
-                    const SizedBox(height: 14),
-                    TiltCalibrationButton(
-                      tiltController: _tiltController,
-                    ),
-                  ],
-                ),
+                  ),
+                  // Transparent physics layer (ball + walls on top).
+                  Builder(
+                    builder: (context) {
+                      _game ??= CreativeMazeGame(
+                        tiltController: _tiltController,
+                        config: state.config,
+                        onReachedEnd: _cubit.onBallReachedEnd,
+                        onCoinPicked: _cubit.onCoinCollected,
+                      );
+                      return GameWidget(game: _game!);
+                    },
+                  ),
+                ],
               ),
             ),
           ),
+          const SizedBox(height: 14),
+          TiltCalibrationButton(tiltController: _tiltController),
         ],
       ),
+    );
+  }
+
+  Widget _buildTopBar(CreativeMazeLoaded state) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: AppColors.textPrimary,
+        ),
+        const Expanded(
+          child: Text(
+            'المتاهة الإبداعية',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF123835),
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        // Coin counter: [icon] × N
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/icons/icon.png',
+                width: 22,
+                height: 22,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.monetization_on_rounded,
+                  size: 22,
+                  color: Color(0xFFF9B919),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${state.collectedCoins}',
+                style: const TextStyle(
+                  color: Color(0xFF123835),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -206,11 +218,8 @@ class _CreativeMazeGameScreenState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              size: 48,
-              color: AppColors.error,
-            ),
+            const Icon(Icons.error_outline_rounded,
+                size: 48, color: AppColors.error),
             const SizedBox(height: 12),
             Text(
               message,
@@ -219,6 +228,40 @@ class _CreativeMazeGameScreenState
                 color: Color(0xFF123835),
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onComplete(Duration time) {
+    final seconds = time.inSeconds;
+    final mm = (seconds ~/ 60).toString().padLeft(2, '0');
+    final ss = (seconds % 60).toString().padLeft(2, '0');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('أحسنت! 🎉', textAlign: TextAlign.center),
+          content: Text(
+            'وصلت للنهاية بوقت $mm:$ss',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          actions: [
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.pop(context);
+                },
+                child: const Text('تمام'),
               ),
             ),
           ],

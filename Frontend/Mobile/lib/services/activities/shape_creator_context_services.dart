@@ -17,12 +17,16 @@ class ShapeCreatorContext {
   final int activitySessionId;
   final int childId;
   final int sessionId;
+  final int? startLevelId;
+  final int startLevelNumber;
 
   const ShapeCreatorContext({
     required this.activityId,
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
+    this.startLevelId,
+    this.startLevelNumber = 1,
   });
 }
 
@@ -48,6 +52,8 @@ class ShapeCreatorContextService {
       throw Exception('لا يوجد نشاط حالي في خارطة الرحلة.');
     }
 
+    final startProgress = await _resolveStartProgress(activityId);
+
     final sessionId = await _createSession(
       kitId: kitId,
       childId: childId,
@@ -63,6 +69,8 @@ class ShapeCreatorContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
+      startLevelId: startProgress.startLevelId,
+      startLevelNumber: startProgress.startLevelNumber,
     );
   }
 
@@ -73,6 +81,8 @@ class ShapeCreatorContextService {
     required int kitId,
     required int childId,
   }) async {
+    final startProgress = await _resolveStartProgress(activityId);
+
     final sessionId = await _createSession(
       kitId: kitId,
       childId: childId,
@@ -88,6 +98,67 @@ class ShapeCreatorContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
+      startLevelId: startProgress.startLevelId,
+      startLevelNumber: startProgress.startLevelNumber,
+    );
+  }
+
+  Future<_ShapeCreatorStartProgress> _resolveStartProgress(
+      int activityId,
+      ) async {
+    debugPrint(
+      'SHAPE CREATOR: loading activity progress for activityId = $activityId',
+    );
+
+    final progress = await _roadmapService.getActivityProgress(
+      activityId: activityId,
+    );
+
+    if (progress == null) {
+      debugPrint('SHAPE CREATOR: no progress found, fallback to level 1');
+
+      return const _ShapeCreatorStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
+    }
+
+    if (progress.completed) {
+      debugPrint(
+        'SHAPE CREATOR: activity completed, replay starts from level 1',
+      );
+
+      return const _ShapeCreatorStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
+    }
+
+    if (!progress.hasValidCurrentLevel) {
+      debugPrint(
+        'SHAPE CREATOR: invalid progress level, fallback to level 1',
+      );
+
+      return const _ShapeCreatorStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
+    }
+
+    final startLevelNumber = progress.currentLevelNumber <= 0
+        ? 1
+        : progress.currentLevelNumber;
+
+    debugPrint(
+      'SHAPE CREATOR: resume from levelId = ${progress.currentLevelId}',
+    );
+    debugPrint(
+      'SHAPE CREATOR: resume from levelNumber = $startLevelNumber',
+    );
+
+    return _ShapeCreatorStartProgress(
+      startLevelId: progress.currentLevelId,
+      startLevelNumber: startLevelNumber,
     );
   }
 
@@ -233,4 +304,14 @@ class ShapeCreatorContextService {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? 0;
   }
+}
+
+class _ShapeCreatorStartProgress {
+  final int? startLevelId;
+  final int startLevelNumber;
+
+  const _ShapeCreatorStartProgress({
+    required this.startLevelId,
+    required this.startLevelNumber,
+  });
 }

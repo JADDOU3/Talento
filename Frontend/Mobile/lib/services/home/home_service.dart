@@ -10,10 +10,12 @@ import '../../models/home/last_reached_activity_model.dart';
 import '../../models/kit/kit_model.dart';
 import '../auth/auth_api_client.dart';
 import '../kit/kit_service.dart';
+import '../roadmap/roadmap_service.dart';
 
 class HomeService {
   final AuthApiClient _client = AuthApiClient();
   final KitService _kitService = KitService();
+  final RoadmapService _roadmapService = RoadmapService();
 
   Future<bool> isNewUser() async {
     final uri = Uri.parse(ApiConstants.isNewUser);
@@ -108,17 +110,20 @@ class HomeService {
 
     final results = await Future.wait<dynamic>([
       getLastReachedActivity(),
-      getCompletedActivitiesCount(),
-      getRoadmapActivitiesByKitAndChild(kitId, selectedChild.id),
+      getActivitiesProgressFromRoadmap(
+        kitId: kitId,
+        childId: selectedChild.id,
+      ),
       getDailyChallenge(),
       _safeGetKitById(kitId),
     ]);
 
     final lastReachedActivity = results[0] as LastReachedActivityModel?;
-    final completedActivities = results[1] as int;
-    final roadmapActivities = results[2] as List<Map<String, dynamic>>;
-    final dailyChallenge = results[3] as DailyChallengeModel?;
-    final lastUsedKit = results[4] as KitModel?;
+    final roadmapProgress = results[1] as _HomeActivitiesProgress;
+    final completedActivities = roadmapProgress.completedActivities;
+    final totalActivities = roadmapProgress.totalActivities;
+    final dailyChallenge = results[2] as DailyChallengeModel?;
+    final lastUsedKit = results[3] as KitModel?;
 
     final latestSessionForKit = _findLatestSession(
       sessions.where((session) => _extractKitId(session) == kitId).toList(),
@@ -131,7 +136,7 @@ class HomeService {
       selectedChild: selectedChild,
       lastUsedKit: lastUsedKit,
       activitiesDoneCount: completedActivities,
-      totalActivitiesCount: roadmapActivities.length,
+      totalActivitiesCount: totalActivities,
       currentLevel: lastReachedActivity?.currentLevelNumber ?? 1,
       latestActivitySessionId: latestActivitySessionId,
       lastReachedActivity: lastReachedActivity,
@@ -248,6 +253,71 @@ class HomeService {
 
     throw Exception(
       _extractErrorMessage(response.body, 'Failed to load last activity'),
+    );
+  }
+
+  Future<_HomeActivitiesProgress> getActivitiesProgressFromRoadmap({
+    required int kitId,
+    required int childId,
+  }) async {
+    try {
+      final roadmap = await _roadmapService.getRoadmap(
+        kitId: kitId,
+        childId: childId,
+      );
+
+      final completionByActivityId = <int, bool>{};
+
+      for (final activity in roadmap.activities) {
+        if (activity.activityId <= 0) continue;
+
+        completionByActivityId.update(
+          activity.activityId,
+              (allCardsCompleted) =>
+          allCardsCompleted && activity.isCompleted,
+          ifAbsent: () => activity.isCompleted,
+        );
+      }
+
+      if (completionByActivityId.isEmpty) {
+        return _getFallbackActivitiesProgress(kitId);
+      }
+
+      final completedActivities = completionByActivityId.values
+          .where((isCompleted) => isCompleted)
+          .length;
+      final totalActivities = completionByActivityId.length;
+
+      print(
+        'HOME ROADMAP PROGRESS: '
+            '$completedActivities/$totalActivities unique activities',
+      );
+
+      return _HomeActivitiesProgress(
+        completedActivities: completedActivities,
+        totalActivities: totalActivities,
+      );
+    } catch (_) {
+      return _getFallbackActivitiesProgress(kitId);
+    }
+  }
+
+  Future<_HomeActivitiesProgress> _getFallbackActivitiesProgress(
+      int kitId,
+      ) async {
+    final results = await Future.wait<int>([
+      getCompletedActivitiesCount(),
+      _kitService.getActivitiesCountByKitId(kitId),
+    ]);
+
+    final totalActivities = results[1];
+    final completedActivities = totalActivities > 0
+        ? results[0].clamp(0, totalActivities).toInt()
+        : results[0];
+
+    return _HomeActivitiesProgress(
+      completedActivities: completedActivities,
+      totalActivities: totalActivities,
     );
   }
 
@@ -623,4 +693,14 @@ class HomeService {
   String? _challengeCorrectAnswerFrom(DailyChallengeModel? dailyChallenge) {
     return dailyChallenge?.correctAnswer;
   }
+}
+
+class _HomeActivitiesProgress {
+  final int completedActivities;
+  final int totalActivities;
+
+  const _HomeActivitiesProgress({
+    required this.completedActivities,
+    required this.totalActivities,
+  });
 }

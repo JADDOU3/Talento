@@ -6,12 +6,11 @@ import '../../core/config/api_constants.dart';
 import '../auth/auth_api_client.dart';
 import '../roadmap/roadmap_service.dart';
 
-/// Resolves everything the Tower Builder game needs BEFORE it opens:
-/// selected child → last used kit → current activity via roadmap →
+/// Resolves everything Tower Builder needs before it opens:
 /// progress → session → activity session.
 ///
-/// The game itself never refetches any of this.
-/// It only receives the final ids.
+/// The roadmap already passes activityId, kitId and childId through the
+/// launcher, while [resolve] remains available as a fallback.
 class TowerBuilderContext {
   final int activityId;
   final int activitySessionId;
@@ -30,41 +29,33 @@ class TowerBuilderContext {
   });
 }
 
-class _TowerBuilderProgress {
-  final bool completed;
-  final int? currentLevelId;
-  final int currentLevelNumber;
-
-  const _TowerBuilderProgress({
-    required this.completed,
-    required this.currentLevelId,
-    required this.currentLevelNumber,
-  });
-}
-
 class TowerBuilderContextService {
   final AuthApiClient _client = AuthApiClient();
   final RoadmapService _roadmapService = RoadmapService();
 
-  /// Full resolution pipeline.
-  /// Useful if Tower Builder is opened without roadmap-provided ids.
   Future<TowerBuilderContext> resolve() async {
     final childId = await _getSelectedChildId();
+
     if (childId == null) {
       throw Exception('لم يتم اختيار طفل. الرجاء اختيار طفل أولاً.');
     }
 
     final kitId = await _getLastKitId(childId);
+
     if (kitId == null) {
       throw Exception('لا توجد حقيبة مستخدمة. الرجاء اختيار حقيبة.');
     }
 
-    final activityId = await _getCurrentActivityId(kitId, childId);
+    final activityId = await _getCurrentActivityId(
+      kitId,
+      childId,
+    );
+
     if (activityId == null) {
       throw Exception('لا يوجد نشاط حالي في خارطة الرحلة.');
     }
 
-    final progress = await _getActivityProgress(activityId);
+    final startProgress = await _resolveStartProgress(activityId);
 
     final sessionId = await _createSession(
       kitId: kitId,
@@ -81,19 +72,17 @@ class TowerBuilderContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
-      startLevelId: progress.completed ? null : progress.currentLevelId,
-      startLevelNumber: progress.completed ? 1 : progress.currentLevelNumber,
+      startLevelId: startProgress.startLevelId,
+      startLevelNumber: startProgress.startLevelNumber,
     );
   }
 
-  /// Faster path.
-  /// The roadmap already knows childId, kitId and tapped activityId.
   Future<TowerBuilderContext> resolveFromKnown({
     required int activityId,
     required int kitId,
     required int childId,
   }) async {
-    final progress = await _getActivityProgress(activityId);
+    final startProgress = await _resolveStartProgress(activityId);
 
     final sessionId = await _createSession(
       kitId: kitId,
@@ -110,73 +99,79 @@ class TowerBuilderContextService {
       activitySessionId: activitySessionId,
       childId: childId,
       sessionId: sessionId,
-      startLevelId: progress.completed ? null : progress.currentLevelId,
-      startLevelNumber: progress.completed ? 1 : progress.currentLevelNumber,
+      startLevelId: startProgress.startLevelId,
+      startLevelNumber: startProgress.startLevelNumber,
     );
   }
 
-  // GET /api/roadmap/progress/{activityId}
-  // GET /api/roadmap/progress/{activityId}
-  Future<_TowerBuilderProgress> _getActivityProgress(int activityId) async {
-    final url = ApiConstants.roadmapProgress(activityId);
-
-    final response = await _client.get(
-      Uri.parse(url),
-    );
-
+  /// Uses the same shared response parser as Color Lab.
+  ///
+  /// It accepts currentLevelId when available and still keeps
+  /// currentLevelNumber as a fallback when the backend returns no valid id.
+  Future<_TowerBuilderStartProgress> _resolveStartProgress(
+      int activityId,
+      ) async {
     debugPrint(
-      'TOWER BUILDER ACTIVITY PROGRESS: ${response.statusCode} - ${response.body}',
+      'TOWER BUILDER: loading progress for activityId=$activityId',
     );
 
-    // If no progress exists yet, start from Level 1.
-    if (response.statusCode == 404) {
-      return const _TowerBuilderProgress(
-        completed: false,
-        currentLevelId: null,
-        currentLevelNumber: 1,
+    final progress = await _roadmapService.getActivityProgress(
+      activityId: activityId,
+    );
+
+    if (progress == null) {
+      debugPrint(
+        'TOWER BUILDER: no progress found, starting from level 1',
+      );
+
+      return const _TowerBuilderStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
       );
     }
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.trim().isEmpty) {
-        return const _TowerBuilderProgress(
-          completed: false,
-          currentLevelId: null,
-          currentLevelNumber: 1,
-        );
-      }
+    if (progress.completed) {
+      debugPrint(
+        'TOWER BUILDER: completed activity replay starts from level 1',
+      );
 
-      final decoded = jsonDecode(response.body);
-
-      if (decoded is Map) {
-        final completed = decoded['completed'] == true;
-
-        final levelNumber = _toInt(decoded['currentLevelNumber']);
-
-        return _TowerBuilderProgress(
-          completed: completed,
-          currentLevelId: _nullableInt(decoded['currentLevelId']),
-          currentLevelNumber: levelNumber == 0 ? 1 : levelNumber,
-        );
-      }
+      return const _TowerBuilderStartProgress(
+        startLevelId: null,
+        startLevelNumber: 1,
+      );
     }
 
-    throw Exception('فشل تحميل تقدم النشاط');
+    final startLevelId =
+    progress.currentLevelId > 0 ? progress.currentLevelId : null;
+
+    final startLevelNumber = progress.currentLevelNumber > 0
+        ? progress.currentLevelNumber
+        : 1;
+
+    debugPrint(
+      'TOWER BUILDER: resume levelId=$startLevelId, '
+          'levelNumber=$startLevelNumber',
+    );
+
+    return _TowerBuilderStartProgress(
+      startLevelId: startLevelId,
+      startLevelNumber: startLevelNumber,
+    );
   }
 
-  // GET /api/children/selected
   Future<int?> _getSelectedChildId() async {
     final response = await _client.get(
       Uri.parse(ApiConstants.selectedChild),
     );
 
     debugPrint(
-      'TOWER BUILDER SELECTED CHILD: ${response.statusCode} - ${response.body}',
+      'TOWER BUILDER SELECTED CHILD: '
+          '${response.statusCode} - ${response.body}',
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.trim().isEmpty) return null;
-
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        response.body.trim().isNotEmpty) {
       final decoded = jsonDecode(response.body);
 
       if (decoded is Map) {
@@ -187,22 +182,21 @@ class TowerBuilderContextService {
     return null;
   }
 
-  // GET /api/sessions/child/{childId}?page=0&size=1&sort=createdAt,desc
   Future<int?> _getLastKitId(int childId) async {
     final url =
-        '${ApiConstants.sessionsByChild(childId)}?page=0&size=1&sort=createdAt,desc';
+        '${ApiConstants.sessionsByChild(childId)}'
+        '?page=0&size=1&sort=createdAt,desc';
 
-    final response = await _client.get(
-      Uri.parse(url),
-    );
+    final response = await _client.get(Uri.parse(url));
 
     debugPrint(
-      'TOWER BUILDER LAST SESSION: ${response.statusCode} - ${response.body}',
+      'TOWER BUILDER LAST SESSION: '
+          '${response.statusCode} - ${response.body}',
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.trim().isEmpty) return null;
-
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        response.body.trim().isNotEmpty) {
       final decoded = jsonDecode(response.body);
 
       final List content = decoded is Map
@@ -229,8 +223,10 @@ class TowerBuilderContextService {
     return null;
   }
 
-  // GET roadmap → find current activity, fallback to first activity.
-  Future<int?> _getCurrentActivityId(int kitId, int childId) async {
+  Future<int?> _getCurrentActivityId(
+      int kitId,
+      int childId,
+      ) async {
     final roadmap = await _roadmapService.getRoadmap(
       kitId: kitId,
       childId: childId,
@@ -247,7 +243,6 @@ class TowerBuilderContextService {
     return roadmap.activities.first.activityId;
   }
 
-  // POST /api/sessions/
   Future<int> _createSession({
     required int kitId,
     required int childId,
@@ -263,10 +258,15 @@ class TowerBuilderContextService {
     );
 
     debugPrint(
-      'TOWER BUILDER CREATE SESSION: ${response.statusCode} - ${response.body}',
+      'TOWER BUILDER CREATE SESSION BODY: $body',
+    );
+    debugPrint(
+      'TOWER BUILDER CREATE SESSION RESPONSE: '
+          '${response.statusCode} - ${response.body}',
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
 
       if (decoded is Map && decoded['id'] != null) {
@@ -277,7 +277,6 @@ class TowerBuilderContextService {
     throw Exception('فشل إنشاء الجلسة');
   }
 
-  // POST /api/activity-sessions/
   Future<int> _createActivitySession({
     required int activityId,
     required int sessionId,
@@ -294,10 +293,15 @@ class TowerBuilderContextService {
     );
 
     debugPrint(
-      'TOWER BUILDER CREATE ACTIVITY SESSION: ${response.statusCode} - ${response.body}',
+      'TOWER BUILDER CREATE ACTIVITY SESSION BODY: $body',
+    );
+    debugPrint(
+      'TOWER BUILDER CREATE ACTIVITY SESSION RESPONSE: '
+          '${response.statusCode} - ${response.body}',
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
 
       if (decoded is Map && decoded['id'] != null) {
@@ -312,10 +316,14 @@ class TowerBuilderContextService {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? 0;
   }
+}
 
-  static int? _nullableInt(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    return int.tryParse(value.toString());
-  }
+class _TowerBuilderStartProgress {
+  final int? startLevelId;
+  final int startLevelNumber;
+
+  const _TowerBuilderStartProgress({
+    required this.startLevelId,
+    required this.startLevelNumber,
+  });
 }

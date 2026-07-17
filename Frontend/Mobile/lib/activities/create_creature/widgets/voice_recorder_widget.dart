@@ -448,7 +448,10 @@ import 'package:audioplayers/audioplayers.dart' as ap;
 import 'package:flutter/material.dart';
 
 class VoiceRecorderWidget extends StatefulWidget {
-  final void Function(String filePath) onRecordingComplete;
+  final void Function(
+      String filePath,
+      Duration recordingDuration,
+      ) onRecordingComplete;
   final bool isRecording;
   final VoidCallback onToggleRecording;
   final Duration recordingDuration;

@@ -3,21 +3,21 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../activities/bodily_maze/config/bodily_maze_level_config.dart';
-import '../../../models/activities/bodily_maze/bodily_maze_models.dart';
-import '../../../services/activities/bodily_maze_service.dart';
-import 'bodily_maze_state.dart';
+import '../../../activities/adventure_maze/config/adventure_maze_level_config.dart';
+import '../../../models/activities/adventure_maze/adventure_maze_models.dart';
+import '../../../services/activities/adventure_maze_service.dart';
+import 'adventure_maze_state.dart';
 
-class BodilyMazeCubit extends Cubit<BodilyMazeState> {
-  final BodilyMazeService _service;
+class AdventureMazeCubit extends Cubit<AdventureMazeState> {
+  final AdventureMazeService _service;
 
   final int activityId;
   final int activitySessionId;
   final int childId;
   final int sessionId;
 
-  BodilyMazeLevel? _level;
-  MazeLevelConfig? _config;
+  AdventureMazeLevel? _level;
+  AdventureMazeLevelConfig? _config;
 
   int _attemptId = 0;
   int _attemptNumber = 1;
@@ -25,79 +25,67 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
 
   Duration _elapsed = Duration.zero;
 
+  final Set<int> _collected = <int>{};
+
   bool _completed = false;
   bool _isLoading = false;
   bool _isCompleting = false;
 
-  BodilyMazeCubit({
-    required BodilyMazeService service,
+  AdventureMazeCubit({
+    required AdventureMazeService service,
     required this.activityId,
     required this.activitySessionId,
     required this.childId,
     required this.sessionId,
   })  : _service = service,
-        super(const BodilyMazeInitial());
+        super(const AdventureMazeInitial());
 
-  Future<void> loadGame({
-    int? startLevelId,
-    int? startLevelNumber,
-  }) async {
+  Future<void> loadGame({int? startLevelId}) async {
     if (_isLoading) return;
 
     _isLoading = true;
-    emit(const BodilyMazeLoading());
+    emit(const AdventureMazeLoading());
 
     try {
       final levels = await _service.getLevels(activityId);
 
-      debugPrint('BODILY MAZE requested startLevelId = $startLevelId');
-      debugPrint(
-        'BODILY MAZE requested startLevelNumber = $startLevelNumber',
-      );
-
-      for (final level in levels) {
-        debugPrint(
-          'BODILY MAZE LEVEL => '
-              'id=${level.id}, number=${level.levelNumber}',
-        );
-      }
-
       if (levels.isEmpty) {
-        emit(const BodilyMazeError('لا توجد مستويات لهذا النشاط'));
+        emit(const AdventureMazeError('لا توجد مستويات لهذا النشاط'));
         return;
       }
 
-      BodilyMazeLevel selectedLevel;
-
-      if (startLevelNumber != null && startLevelNumber > 0) {
-        selectedLevel = levels.firstWhere(
-              (level) => level.levelNumber == startLevelNumber,
-          orElse: () => levels.first,
-        );
-      } else if (startLevelId != null && startLevelId > 0) {
-        selectedLevel = levels.firstWhere(
-              (level) => level.id == startLevelId,
-          orElse: () => levels.first,
-        );
-      } else {
-        selectedLevel = levels.first;
-      }
-
-      _level = selectedLevel;
-
       debugPrint(
-        'BODILY MAZE SELECTED => '
-            'id=${_level!.id}, number=${_level!.levelNumber}',
+        'ADVENTURE MAZE loadGame | '
+            'requested startLevelId=$startLevelId',
       );
 
-      final config =
-          mazeConfigs[_level!.levelNumber] ?? mazeConfigs[_level!.id];
+      debugPrint(
+        'ADVENTURE MAZE available levels='
+            '${levels.map((level) => '${level.id}(#${level.levelNumber})').toList()}',
+      );
+
+      _level = levels.firstWhere(
+            (level) => level.id == startLevelId,
+        orElse: () => levels.first,
+      );
+
+      debugPrint(
+        'ADVENTURE MAZE picked '
+            'levelId=${_level!.id} (#${_level!.levelNumber})',
+      );
+
+      debugPrint(
+        'ADVENTURE MAZE challenges='
+            '${_level!.challenges.map((challenge) => '${challenge.challengeId}:${challenge.type}').toList()}',
+      );
+
+      final config = adventureMazeConfigs[_level!.id];
 
       if (config == null) {
         emit(
-          BodilyMazeError(
-            'لا توجد إعدادات إحداثيات للمستوى '
-                '${_level!.levelNumber}. levelId=${_level!.id}',
+          AdventureMazeError(
+            'لا توجد إعدادات إحداثيات للمستوى ${_level!.id}. '
+                'يجب على المطوّر تعريفها.',
           ),
         );
         return;
@@ -105,10 +93,11 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
 
       _config = config;
 
+      _attemptNumber = 1;
+      _elapsed = Duration.zero;
+      _collected.clear();
       _completed = false;
       _isCompleting = false;
-      _elapsed = Duration.zero;
-      _attemptNumber = 1;
 
       _attemptStartedAt = DateTime.now().toUtc().toIso8601String();
 
@@ -120,7 +109,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       await _runSafely(
-        label: 'BODILY MAZE START ACTIVITY EVENT ERROR',
+        label: 'ADVENTURE MAZE START ACTIVITY EVENT ERROR',
         action: () => _service.logActivityEvent(
           childId: childId,
           sessionId: sessionId,
@@ -130,7 +119,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       await _runSafely(
-        label: 'BODILY MAZE START LEVEL EVENT ERROR',
+        label: 'ADVENTURE MAZE START LEVEL EVENT ERROR',
         action: () => _service.logLevelEvent(
           childId: childId,
           sessionId: sessionId,
@@ -142,7 +131,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       _emitLoaded();
     } catch (error) {
       emit(
-        BodilyMazeError(
+        AdventureMazeError(
           error.toString().replaceFirst('Exception: ', ''),
         ),
       );
@@ -151,18 +140,69 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
     }
   }
 
-  void _emitLoaded() {
+  void _emitLoaded({
+    int? activeChallengeId,
+    bool clearActive = false,
+  }) {
     if (_level == null || _config == null) return;
 
     emit(
-      BodilyMazeLoaded(
+      AdventureMazeLoaded(
         level: _level!,
         config: _config!,
+        challenges: _level!.challenges,
+        collectedChallengeIds: Set<int>.from(_collected),
         currentAttemptId: _attemptId,
         attemptNumber: _attemptNumber,
         elapsed: _elapsed,
+        activeChallengeId: clearActive ? null : activeChallengeId,
       ),
     );
+  }
+
+  void onStarTouched(int challengeId) {
+    if (_completed || _isCompleting || _level == null) return;
+    if (_collected.contains(challengeId)) return;
+
+    final currentState = state;
+
+    if (currentState is AdventureMazeLoaded &&
+        currentState.activeChallengeId != null) {
+      return;
+    }
+
+    _emitLoaded(activeChallengeId: challengeId);
+  }
+
+  bool onChoiceSelected(int challengeId, StarChoice choice) {
+    if (_completed || _isCompleting || _level == null) return false;
+
+    final challenge = _level!.challenges.firstWhere(
+          (item) => item.challengeId == challengeId,
+      orElse: () => const StarChallenge(
+        challengeId: -1,
+        type: '',
+        prompt: '',
+        choices: [],
+      ),
+    );
+
+    if (challenge.challengeId == -1) return false;
+
+    final isValid = challenge.isEmotional ? true : choice.isCorrect;
+
+    if (!isValid) {
+      return false;
+    }
+
+    _collected.add(challengeId);
+    _emitLoaded(clearActive: true);
+
+    return true;
+  }
+
+  void dismissPopup() {
+    _emitLoaded(clearActive: true);
   }
 
   Future<void> onBallFellInHole() async {
@@ -185,7 +225,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       await _runSafely(
-        label: 'BODILY MAZE FAILED LEVEL EVENT ERROR',
+        label: 'ADVENTURE MAZE FAILED LEVEL EVENT ERROR',
         action: () => _service.logLevelEvent(
           childId: childId,
           sessionId: sessionId,
@@ -205,7 +245,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       await _runSafely(
-        label: 'BODILY MAZE RETRIED LEVEL EVENT ERROR',
+        label: 'ADVENTURE MAZE RETRIED LEVEL EVENT ERROR',
         action: () => _service.logLevelEvent(
           childId: childId,
           sessionId: sessionId,
@@ -215,7 +255,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       emit(
-        BodilyMazeFailed(
+        AdventureMazeFailed(
           currentAttemptId: _attemptId,
           attemptNumber: _attemptNumber,
         ),
@@ -223,10 +263,10 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
 
       _emitLoaded();
     } catch (error) {
-      debugPrint('BODILY MAZE FAIL ERROR: $error');
+      debugPrint('ADVENTURE MAZE FAIL ERROR: $error');
 
       emit(
-        BodilyMazeError(
+        AdventureMazeError(
           error.toString().replaceFirst('Exception: ', ''),
         ),
       );
@@ -236,9 +276,17 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
   Future<void> onBallReachedEnd() async {
     if (_completed || _isCompleting || _level == null) return;
 
+    if (_collected.length < _level!.challenges.length) {
+      debugPrint(
+        'ADVENTURE MAZE reached end but stars incomplete: '
+            '${_collected.length}/${_level!.challenges.length}',
+      );
+      return;
+    }
+
     if (_attemptId <= 0) {
       emit(
-        const BodilyMazeError(
+        const AdventureMazeError(
           'تعذر العثور على محاولة المستوى الحالية',
         ),
       );
@@ -263,9 +311,9 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
 
       _completed = true;
 
-      // فشل تسجيل الـEvents لا يجب أن يمنع حفظ التقدم.
+      // فشل تسجيل الـEvents لا يجب أن يلغي حفظ التقدم.
       await _runSafely(
-        label: 'BODILY MAZE COMPLETED LEVEL EVENT ERROR',
+        label: 'ADVENTURE MAZE COMPLETED LEVEL EVENT ERROR',
         action: () => _service.logLevelEvent(
           childId: childId,
           sessionId: sessionId,
@@ -275,7 +323,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       await _runSafely(
-        label: 'BODILY MAZE COMPLETED ACTIVITY EVENT ERROR',
+        label: 'ADVENTURE MAZE COMPLETED ACTIVITY EVENT ERROR',
         action: () => _service.logActivityEvent(
           childId: childId,
           sessionId: sessionId,
@@ -284,14 +332,14 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
         ),
       );
 
-      emit(const BodilyMazeComplete());
+      emit(const AdventureMazeComplete());
     } catch (error) {
       _completed = false;
 
-      debugPrint('BODILY MAZE COMPLETE ERROR: $error');
+      debugPrint('ADVENTURE MAZE COMPLETE ERROR: $error');
 
       emit(
-        const BodilyMazeError(
+        const AdventureMazeError(
           'تعذر حفظ تقدم النشاط، حاول مرة أخرى',
         ),
       );
@@ -307,7 +355,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
 
     final currentState = state;
 
-    if (currentState is BodilyMazeLoaded) {
+    if (currentState is AdventureMazeLoaded) {
       emit(
         currentState.copyWith(
           elapsed: _elapsed,
@@ -331,7 +379,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
       );
 
       await _runSafely(
-        label: 'BODILY MAZE EXIT EVENT ERROR',
+        label: 'ADVENTURE MAZE EXIT EVENT ERROR',
         action: () => _service.logActivityEvent(
           childId: childId,
           sessionId: sessionId,
@@ -340,7 +388,7 @@ class BodilyMazeCubit extends Cubit<BodilyMazeState> {
         ),
       );
     } catch (error) {
-      debugPrint('BODILY MAZE EXIT ERROR: $error');
+      debugPrint('ADVENTURE MAZE EXIT ERROR: $error');
     }
   }
 

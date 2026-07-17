@@ -6,69 +6,133 @@ import '../../core/config/api_constants.dart';
 import '../../models/activities/adventure_maze/adventure_maze_models.dart';
 import '../auth/auth_api_client.dart';
 
-/// API layer for Adventure Maze — mirrors the Bodily Maze service exactly.
+/// API layer for Adventure Maze.
 class AdventureMazeService {
   final AuthApiClient _client = AuthApiClient();
-
-  String _nowIso() => DateTime.now().toUtc().toIso8601String();
 
   Future<List<AdventureMazeLevel>> getLevels(int activityId) async {
     final url =
         '${ApiConstants.levelsByActivity(activityId)}?page=0&size=100&sort=levelNumber,asc';
+
     debugPrint('ADVENTURE MAZE GET LEVELS: $url');
 
-    final res = await _client.get(Uri.parse(url));
-    debugPrint('ADVENTURE MAZE LEVELS: ${res.statusCode} - ${res.body}');
+    final response = await _client.get(Uri.parse(url));
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final decoded = jsonDecode(res.body);
-      final List content = decoded is Map
-          ? (decoded['content'] as List? ?? [])
-          : (decoded as List? ?? []);
+    debugPrint(
+      'ADVENTURE MAZE LEVELS RESP: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+
+      final List<dynamic> content = decoded is Map
+          ? (decoded['content'] as List<dynamic>? ?? <dynamic>[])
+          : (decoded as List<dynamic>? ?? <dynamic>[]);
+
       return content
           .whereType<Map>()
-          .map((e) => AdventureMazeLevel.fromJson(Map<String, dynamic>.from(e)))
+          .map(
+            (item) => AdventureMazeLevel.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
+      )
           .toList();
     }
-    throw Exception('Failed to load levels: ${res.statusCode}');
+
+    throw Exception(
+      'Failed to load levels: '
+          '${response.statusCode} - ${response.body}',
+    );
   }
 
   Future<int> createLevelAttempt({
     required int attemptNumber,
+    required String startedAt,
     required int activitySessionId,
     required int levelId,
   }) async {
-    final body = {
+    final body = jsonEncode({
       'attemptNumber': attemptNumber,
-      'startedAt': _nowIso(),
+      'startedAt': startedAt,
       'activitySessionId': activitySessionId,
       'levelId': levelId,
       'completed': false,
-    };
-    debugPrint('ADVENTURE MAZE CREATE ATTEMPT: $body');
+    });
 
-    final res = await _client.post(
+    debugPrint('ADVENTURE MAZE CREATE ATTEMPT BODY: $body');
+
+    final response = await _client.post(
       Uri.parse(ApiConstants.levelAttempts),
-      body: jsonEncode(body),
+      headers: const {
+        'Content-Type': 'application/json',
+      },
+      body: body,
     );
-    debugPrint('ADVENTURE MAZE ATTEMPT RESP: ${res.statusCode} - ${res.body}');
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final d = jsonDecode(res.body);
-      if (d is Map && d['id'] != null) return _toInt(d['id']);
+    debugPrint(
+      'ADVENTURE MAZE CREATE ATTEMPT RESP: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is Map && decoded['id'] != null) {
+        final attemptId = _toInt(decoded['id']);
+
+        if (attemptId > 0) {
+          return attemptId;
+        }
+      }
+
+      throw Exception('Created level attempt id was not found');
     }
-    throw Exception('Failed to create attempt: ${res.statusCode}');
+
+    throw Exception(
+      'Failed to create attempt: '
+          '${response.statusCode} - ${response.body}',
+    );
   }
 
   Future<void> updateLevelAttempt({
     required int attemptId,
+    required int attemptNumber,
+    required String startedAt,
+    required int activitySessionId,
+    required int levelId,
     required bool completed,
   }) async {
-    final body = {'endedAt': _nowIso(), 'completed': completed};
-    await _client.put(
-      Uri.parse(ApiConstants.updateLevelAttempt(attemptId)),
-      body: jsonEncode(body),
+    final body = jsonEncode({
+      'attemptNumber': attemptNumber,
+      'startedAt': startedAt,
+      'endedAt': DateTime.now().toUtc().toIso8601String(),
+      'completed': completed,
+      'activitySessionId': activitySessionId,
+      'levelId': levelId,
+    });
+
+    debugPrint('ADVENTURE MAZE UPDATE ATTEMPT BODY: $body');
+
+    final response = await _client.put(
+      Uri.parse(ApiConstants.levelAttemptById(attemptId)),
+      headers: const {
+        'Content-Type': 'application/json',
+      },
+      body: body,
     );
+
+    debugPrint(
+      'ADVENTURE MAZE UPDATE ATTEMPT RESP: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to update attempt: '
+            '${response.statusCode} - ${response.body}',
+      );
+    }
   }
 
   Future<void> logActivityEvent({
@@ -77,18 +141,35 @@ class AdventureMazeService {
     required int activityId,
     required String action,
   }) async {
-    final body = {
+    final body = jsonEncode({
       'childId': childId,
       'sessionId': sessionId,
       'activityId': activityId,
       'action': action,
       'responseLanguage': 'ar',
-    };
-    debugPrint('ADVENTURE MAZE ACTIVITY EVENT: $body');
-    await _client.post(
-      Uri.parse(ApiConstants.eventsActivity),
-      body: jsonEncode(body),
+    });
+
+    debugPrint('ADVENTURE MAZE ACTIVITY EVENT BODY: $body');
+
+    final response = await _client.post(
+      Uri.parse(ApiConstants.activityEvents),
+      headers: const {
+        'Content-Type': 'application/json',
+      },
+      body: body,
     );
+
+    debugPrint(
+      'ADVENTURE MAZE ACTIVITY EVENT RESP: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to log activity event: '
+            '${response.statusCode} - ${response.body}',
+      );
+    }
   }
 
   Future<void> logLevelEvent({
@@ -97,27 +178,59 @@ class AdventureMazeService {
     required int activitySessionId,
     required String action,
   }) async {
-    final body = {
+    final body = jsonEncode({
       'childId': childId,
       'sessionId': sessionId,
       'activitySessionId': activitySessionId,
       'action': action,
-    };
-    debugPrint('ADVENTURE MAZE LEVEL EVENT: $body');
-    await _client.post(
-      Uri.parse(ApiConstants.eventsLevel),
-      body: jsonEncode(body),
+    });
+
+    debugPrint('ADVENTURE MAZE LEVEL EVENT BODY: $body');
+
+    final response = await _client.post(
+      Uri.parse(ApiConstants.levelEvents),
+      headers: const {
+        'Content-Type': 'application/json',
+      },
+      body: body,
     );
+
+    debugPrint(
+      'ADVENTURE MAZE LEVEL EVENT RESP: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to log level event: '
+            '${response.statusCode} - ${response.body}',
+      );
+    }
   }
 
   Future<void> completeActivitySession(int activitySessionId) async {
-    await _client.put(
-      Uri.parse(ApiConstants.updateActivitySession(activitySessionId)),
+    final response = await _client.put(
+      Uri.parse(ApiConstants.activitySessionById(activitySessionId)),
+      headers: const {
+        'Content-Type': 'application/json',
+      },
     );
+
+    debugPrint(
+      'ADVENTURE MAZE COMPLETE ACTIVITY SESSION RESP: '
+          '${response.statusCode} - ${response.body}',
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to complete activity session: '
+            '${response.statusCode} - ${response.body}',
+      );
+    }
   }
 
-  static int _toInt(dynamic v) {
-    if (v is int) return v;
-    return int.tryParse(v?.toString() ?? '') ?? 0;
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }
