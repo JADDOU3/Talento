@@ -1,152 +1,136 @@
-# Talento
+# 🌟 Talento
 
-Talento is a full-stack platform built for the **Injaz Arab** competition program, combining a Spring Boot backend, a FastAPI-based AI service, and a Flutter mobile frontend to deliver interactive, game-based activities with AI-powered behavioral analysis. The project was recognized as **Product of the Year (Injaz Arab, July 2026)**.
+<div align="center">
 
-## Overview
+![Talento](https://img.shields.io/badge/Talento-Child%20Development%20Platform-blueviolet?style=for-the-badge)
 
-Talento gamifies child development through interactive, level-based activities spanning cognitive, emotional, creative, and bodily categories, tracks progress through a roadmap system, and generates holistic behavioral reports using an AI analysis pipeline. Physical activity kits use QR codes to bridge real-world materials with the digital platform, and parental controls are enforced through a PIN-gated child mode.
+**An AI-Powered, Gamified Platform for Cognitive, Emotional, Creative & Bodily Child Development**
 
-## Features
+[![Java](https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+[![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
 
-### Activities & Gameplay
-Activities are organized into four developmental categories, each built as interactive, level-based experiences (primarily maze and mini-game formats using Forge2D/Flame) rather than static exercises:
+🏆 **Product of the Year — Injaz Arab, July 2026**
 
-- **Cognitive** — Activities targeting problem-solving, memory, and pattern recognition, with progress tracked through level completion and in-game milestones.
-- **Emotional** — Activities designed around emotional awareness and regulation, structured as guided, level-based experiences.
-- **Creative** — Open-ended, building/composition-style activities that let children construct or arrange content within a structured framework (e.g. PIN-gated stages, JSON-driven content).
-- **Bodily** — Activities involving physical/sensory interaction, including audio-matching exercises that pair digital feedback with physical materials.
+[Features](#-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [Architecture](#-architecture) • [API Documentation](#-api-documentation) • [License](#-license)
 
-Each activity plugs into the shared roadmap and progress system, so regardless of category, completion is tracked the same way across the platform.
+</div>
 
-### QR Codes
+---
 
-QR codes are used as the bridge between physical materials and the digital platform:
+## 📖 Overview
+
+**Talento** is a full-stack platform that turns child development activities into interactive, level-based experiences, tracked through a shared roadmap system and analyzed by an AI behavioral reporting pipeline. It bridges physical activity kits and digital gameplay through QR codes, and gives parents and guardians oversight through a PIN-gated child mode.
+
+### 🎯 Key Highlights
+
+- 🧩 **Four Developmental Categories**: Cognitive, emotional, creative, and bodily activities, all tracked through one unified progress system
+- 🗺️ **Roadmap-Driven Progress**: Level-range-based roadmap cards route children through activities in a structured sequence
+- 🤖 **AI Behavioral Reports**: Milestone-triggered, holistic reports generated via a dedicated FastAPI + RAG pipeline
+- 🎙️ **Voice-Over & Transcription**: Recorded audio flows straight into AI transcription and analysis
+- 📦 **QR-Linked Physical Kits**: Real-world activity kits and components unlock digital content via unique QR codes
+- 🔐 **PIN-Gated Child Mode**: Keeps parent-facing settings and reports separate from the child's experience
+- 💬 **Community Feed**: A shared space for platform-wide interaction
+- ☁️ **Cloud-Native Deployment**: Dockerized services running on AWS EC2 behind Nginx, with S3-backed media storage
+
+---
+
+## ✨ Features
+
+### 🧠 Activities & Gameplay
+
+Activities span four developmental categories, each delivered as interactive, level-based experiences:
+
+| Category | Focus |
+|---|---|
+| 🧩 **Cognitive** | Problem-solving, memory, and pattern recognition, tracked through level completion and in-game milestones |
+| ❤️ **Emotional** | Emotional awareness and regulation through guided, level-based experiences |
+| 🎨 **Creative** | Open-ended building/composition activities within a structured framework |
+| 🏃 **Bodily** | Physical/sensory interaction, including exercises that pair digital feedback with physical materials |
+
+Every activity — regardless of category — plugs into the same roadmap and progress system, so completion is tracked consistently platform-wide.
+
+### 📦 QR Codes
+
+QR codes are the bridge between physical materials and the digital platform:
 
 - Each physical activity kit ships with a **unique, per-box QR code**.
-- Scanning a kit's QR code triggers redemption against the backend (`POST /api/kits/redeem`), which validates the code against a `redemption_codes` table and unlocks the corresponding digital content/activity for that user.
-- Individual physical components within a kit (e.g. cards used in audio-matching activities) can carry their **own distinct codes**, allowing the app to identify which specific piece was scanned and trigger the matching digital response.
-- Redemption codes are single-use and tied to a specific box/component, preventing a code from being reused across accounts once redeemed.
+- Scanning a kit's code triggers redemption against the backend, validating it against a dedicated codes table and unlocking the matching digital content.
+- Individual physical components within a kit can carry **their own distinct codes**, letting the app identify exactly which piece was scanned and trigger the right digital response.
+- Codes are single-use and tied to a specific box/component, so they can't be redeemed twice across accounts.
 
-### Roadmap & Progress
-- Roadmap cards (`RoadmapCard`) each reference a specific level range (`levelFrom` / `levelTo`) of an activity, so a single roadmap can route across parts of one activity or across multiple activities.
-- Completion state is computed server-side from `ActivityProgress` records rather than being written directly by the client, keeping progress tamper-resistant and consistent.
-- Attempts are tracked per level via `LevelAttempt` (replacing an earlier `ChallengeAttempt` model), which also backs session-duration calculations with a timestamp-based fallback.
+### 🗺️ Roadmap & Progress Tracking
 
-### AI Behavioral Analysis
-- A dedicated **FastAPI** service handles AI workloads independently of the core backend, communicating with it over REST rather than sharing a database or process space.
-- Holistic, child-level behavioral reports are generated automatically when a child reaches milestone levels, rather than after every single attempt — reducing noise and giving reports enough history to be meaningful.
-- Report generation draws on a child's accumulated `LevelAttempt` and session history, retrieved through **ChromaDB** as a RAG store so the model can ground its analysis in that child's own prior activity rather than generic heuristics.
-- **OpenAI** models power both the written behavioral analysis (turning raw activity/session data into a readable report) and audio transcription (via Whisper) for any recorded voice input tied to an activity.
-- Voice recordings are capped at a 3-minute maximum duration, enforced server-side with `mutagen` before a file is accepted for transcription, avoiding oversized uploads reaching the transcription step at all.
-- Because the AI service is decoupled from the backend, it can be scaled, redeployed, or have its model/provider swapped independently of the rest of the platform.
+- Roadmap cards each reference a specific level range of an activity, so a single roadmap can route across parts of one activity or span several.
+- Completion state is computed **server-side** from progress records rather than written directly by the client — keeping it tamper-resistant and consistent.
+- Attempts are tracked per level, which also backs session-duration calculations with a timestamp-based fallback.
 
-### Voice-Over System
-- Voice-over audio is modeled as its own `VoiceOver` entity, linked via foreign keys to the relevant activity and level, rather than being embedded as a field on the activity itself — allowing a level to have zero, one, or multiple recordings without schema changes.
-- Files are uploaded and served through **AWS S3**, using presigned URLs generated per request rather than storing raw, long-lived URLs in the database, with guards against blank/empty `s3Key` values to prevent server errors when a recording hasn't finished uploading.
-- Recorded audio can flow into the AI service for transcription and behavioral analysis, connecting the voice-over feature directly to the reporting pipeline rather than existing as an isolated playback feature.
+### 🤖 AI Behavioral Analysis
 
-### Child Mode & Access Control
-- PIN-based **Child Mode** restricts or enables access to specific app features for younger users, letting a single device be handed to a child without exposing parent-facing settings, reports, or account management.
-- Toggling out of Child Mode requires the PIN, so a child can't independently exit the restricted view.
-- Backend authentication and authorization are handled via **Spring Security** with JWT and role-based access control, layered underneath the client-side PIN gate rather than replacing it — the PIN controls UI access, while JWT/roles control what the underlying API will actually return.
+- A dedicated **FastAPI** service handles all AI workloads, decoupled from the core backend and communicating over REST.
+- Holistic, child-level behavioral reports are generated automatically at milestone levels rather than after every attempt, keeping reports meaningful rather than noisy.
+- Report generation is grounded in a child's own history via a **ChromaDB**-backed RAG pipeline, rather than relying on generic heuristics.
+- **OpenAI** models generate the written analysis and transcribe any linked audio via **Whisper**.
+- Voice recordings are capped at 3 minutes, enforced server-side before a file is even accepted for transcription.
 
-### Community Feed
-- A shared feed feature for community-style interaction within the app, giving users a space to view and engage with shared content separate from the individual activity/roadmap flow.
+### 🎙️ Voice-Over System
 
-### Notifications & Contact
-- Contact form functionality is wired through **Gmail SMTP** for outbound email delivery.
-- More scalable alternatives (Google Workspace, SendGrid, Amazon SES) were evaluated for production hardening, since SMTP through a personal/shared Gmail account has lower sending limits and weaker deliverability guarantees than a dedicated transactional email provider.
+- Voice-over audio is modeled as its own entity linked to a specific activity and level, so a level can have zero, one, or multiple recordings.
+- Files are stored in **AWS S3** and served via presigned URLs generated per request rather than persisted long-lived links.
+- Recorded audio connects directly into the AI transcription and reporting pipeline rather than existing as an isolated playback feature.
 
-## Tech Stack
+### 🔐 Child Mode & Access Control
 
-| Layer | Technologies |
-|---|---|
-| **Backend** | Java, Spring Boot, Spring Security (JWT, role-based auth), Hibernate/JPA, MySQL |
-| **AI Service** | Python, FastAPI, ChromaDB (RAG), OpenAI (analysis & Whisper transcription) |
-| **Frontend** | Flutter, Dart, Cubit (state management), Forge2D, Flame (game engine) |
-| **Infrastructure** | Docker, Docker Compose, AWS EC2, AWS S3, Nginx |
+- PIN-based **Child Mode** restricts app access to a child-safe view, hiding parent-facing settings, reports, and account management.
+- Exiting Child Mode requires the PIN, so a child can't independently step out of the restricted view.
+- Underneath the PIN gate, **Spring Security** with JWT and role-based access control governs what the API will actually return — the PIN controls UI access, JWT/roles control data access.
 
-## Project Structure
+### 💬 Community Feed
 
-```
-Talento/
-├── Backend/     # Spring Boot REST API (controllers, services, DTOs, repositories)
-├── ai/          # FastAPI AI service (RAG pipeline, transcription, behavioral analysis)
-├── Frontend/    # Flutter mobile application
-└── Docker/      # Docker Compose configuration for deployment
-```
+A shared feed for community-style interaction, separate from the individual activity/roadmap flow.
 
-## Architecture
+### 📧 Notifications & Contact
 
-- The **Backend** follows a layered architecture — controllers → services → DTOs → repositories (`Repo` suffix naming convention) — with a MySQL database via Hibernate/JPA, exposing REST APIs consumed by the Flutter frontend.
-- The **AI service** runs as an independent FastAPI process, using ChromaDB for retrieval-augmented generation and OpenAI models for both text analysis and audio transcription.
-- The **Frontend** is a Flutter application using **Cubit** for state management, communicating with both the Backend and AI service to render activities, roadmaps, and reports.
-- The full stack is containerized with **Docker Compose** and deployed on **AWS EC2** behind an **Nginx** reverse proxy, with media assets stored in **AWS S3**.
-- Pagination across list-returning endpoints is handled through a shared `PaginationUtil`.
-- Global error handling and logging is centralized through a `GlobalExceptionHandler`, which also helped surface subtle issues like a missing `Content-Type` header on multipart voice-upload requests.
+- Contact form functionality is wired through **Gmail SMTP** for outbound email.
+- More scalable alternatives (Google Workspace, SendGrid, Amazon SES) were evaluated for production, since personal/shared SMTP has lower sending limits and weaker deliverability than a dedicated transactional email provider.
 
-**Typical data flow for a behavioral report:** the Flutter client records activity/level attempts through the Backend as a child plays → the Backend persists `LevelAttempt`/`ActivityProgress` records and stores any voice-over audio in S3 → at a milestone level, the AI service is invoked, pulls the child's relevant history via ChromaDB, transcribes any linked audio with Whisper, and generates a report with OpenAI → the report is returned to the Backend/Frontend for display. The Backend and AI service stay decoupled through this flow — the AI service never writes directly to the primary MySQL database.
+---
 
-### Selected API Endpoints
+## 🛠 Tech Stack
 
-| Endpoint | Description |
-|---|---|
-| `POST /api/kits/redeem` | Redeem a unique per-box or per-component kit code |
-| `GET /api/cart` / `POST /api/cart` | View and modify the current user's cart |
-| `POST /api/orders` | Place an order from the current cart |
-| `POST /api/reviews` | Submit a review for a purchased item |
-| `GET /api/favorites` / `POST /api/favorites` | View and manage a user's favorited items |
-| `POST /api/voice-overs` | Upload a voice recording linked to an activity/level |
+### Backend
+- **Language**: Java
+- **Framework**: Spring Boot
+- **Security**: Spring Security (JWT, role-based access control)
+- **ORM**: Hibernate / JPA
+- **Database**: MySQL
+- **Testing**: JUnit, Cucumber (BDD)
 
-All list-returning endpoints accept pagination parameters handled uniformly through `PaginationUtil`, so clients don't need endpoint-specific pagination logic.
+### AI Service
+- **Language**: Python
+- **Framework**: FastAPI
+- **Vector Store**: ChromaDB (RAG)
+- **AI Provider**: OpenAI (analysis + Whisper transcription)
+- **Audio Validation**: mutagen
 
-*(See the `Backend` directory for the full, authoritative set of controllers and routes.)*
+### Frontend
+- **Framework**: Flutter (Dart)
+- **State Management**: Cubit
+- **Game Engine**: Forge2D + Flame
 
-### Data Model Highlights
+### Infrastructure
+- **Containerization**: Docker, Docker Compose
+- **Hosting**: AWS EC2
+- **Storage**: AWS S3 (presigned URLs)
+- **Reverse Proxy**: Nginx
 
-- `VoiceOver` — audio entity linked to an activity and level via foreign keys, backed by S3 storage.
-- `RoadmapCard` — maps a roadmap entry to a `levelFrom`/`levelTo` range within an activity.
-- `ActivityProgress` — source of truth for completion state, computed server-side.
-- `LevelAttempt` — per-level attempt tracking, used for both progress and session-duration calculations (with a timestamp-based fallback when explicit duration data is missing).
-- `redemption_codes` — unique QR redemption codes tied to physical/digital kits.
+---
 
-### Backend Conventions
-
-- Package structure follows `org.example.backend.<Layer>` (e.g. `org.example.backend.Dto`), with a consistent `Repo` suffix for repository interfaces.
-- Endpoint-level authorization includes explicit ownership validation (e.g. ensuring a user can only access or modify their own child's progress/reports), addressed as part of a security review that also flagged field-injection anti-patterns in favor of constructor injection.
-- S3-backed resources use presigned URLs generated on request rather than persisting long-lived public URLs, reducing the surface area for stale or leaked links.
-
-## Testing
-
-- **Backend** — Java unit tests alongside **Cucumber** for behavior-driven (BDD) feature testing of key flows.
-- API behavior (cart, orders, reviews, favorites, kit redemption) is exercised against documented request/response contracts rather than tested ad hoc.
-
-## Deployment Notes
-
-The stack is deployed via **Docker Compose** on an **AWS EC2** instance behind **Nginx**. A few real issues encountered and resolved during that process:
-
-- **ChromaDB port mismatches** between the AI service container and its vector store caused silent connection failures until container networking was aligned.
-- **SSL certificate path mismatches** inside the Nginx container blocked HTTPS termination until volume mounts were corrected.
-- **`env_file` path errors** in `docker-compose.yml` caused services to boot with missing configuration rather than failing loudly.
-- A **Python type-union syntax** (`X | Y`) incompatibility with the container's Python version crashed the AI service on startup; resolved by aligning the base image/interpreter version.
-- A production **500 error on the voice transcription endpoint** was traced to a multipart request missing an explicit `Content-Type: application/json` part — caught after improving structured logging in `GlobalExceptionHandler`.
-
-## Environment Variables
-
-The application expects configuration to be supplied via environment variables rather than committed config files. At minimum:
-
-| Variable | Used by | Purpose |
-|---|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Backend | MySQL connection |
-| `JWT_SECRET` | Backend | Signing/verifying auth tokens |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET` | Backend | S3 presigned URL generation for media (voice-overs, images) |
-| `OPENAI_API_KEY` | AI service | Behavioral analysis generation and Whisper transcription |
-| `CHROMA_HOST`, `CHROMA_PORT` | AI service | Connecting to the ChromaDB vector store |
-| `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Backend | Outbound contact-form email via Gmail SMTP |
-
-Exact variable names may differ slightly between `Backend`, `ai`, and `Docker` — check each service's configuration files for the definitive list before deploying.
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -155,9 +139,9 @@ Exact variable names may differ slightly between `Backend`, `ai`, and `Docker` �
 - Flutter SDK
 - Docker & Docker Compose
 - MySQL instance
-- AWS account (S3 bucket for media storage)
+- AWS account with an S3 bucket
 
-### Running Locally with Docker
+### Quick Start with Docker
 
 ```bash
 git clone https://github.com/JADDOU3/Talento.git
@@ -165,7 +149,14 @@ cd Talento/Docker
 docker compose up --build
 ```
 
-### Running Components Individually
+Docker Compose brings up the backend, AI service, and MySQL database with networking configured between them.
+
+```bash
+# Stop all services
+docker compose down
+```
+
+### Manual Setup (Without Docker)
 
 **Backend**
 ```bash
@@ -187,8 +178,120 @@ flutter pub get
 flutter run
 ```
 
-> Configuration such as database credentials, AWS keys, and API keys should be provided via environment variables / `.env` files (not committed to the repository).
+> Configuration such as database credentials, AWS keys, and API keys must be provided via environment variables / `.env` files — never commit these to the repository.
 
-## Award
+---
 
-🏆 **Product of the Year** — Injaz Arab (July 2026)
+## 📁 Project Structure
+
+```
+Talento/
+├── Backend/     # Spring Boot REST API (controllers, services, DTOs, repositories)
+├── ai/          # FastAPI AI service (RAG pipeline, transcription, behavioral analysis)
+├── Frontend/    # Flutter mobile application
+└── Docker/      # Docker Compose configuration for deployment
+```
+
+---
+
+## 🏗 Architecture
+
+- The **Backend** follows a layered architecture — controllers → services → DTOs → repositories (`Repo` suffix naming convention) — backed by MySQL via Hibernate/JPA, and exposes REST APIs consumed by the Flutter frontend.
+- The **AI service** runs as an independent FastAPI process, using ChromaDB for RAG and OpenAI for both analysis and transcription.
+- The **Frontend** uses **Cubit** for state management, communicating with both the Backend and AI service to render activities, roadmaps, and reports.
+- The stack is containerized with **Docker Compose** and deployed on **AWS EC2** behind **Nginx**, with media stored in **AWS S3**.
+- Pagination across list-returning endpoints is handled through a shared utility, so clients don't need endpoint-specific pagination logic.
+- Global error handling and logging is centralized, which has previously helped surface subtle production issues (e.g. a missing `Content-Type` header on multipart voice-upload requests).
+
+**Typical data flow for a behavioral report:**
+Flutter client records activity/level attempts as a child plays → Backend persists progress records and stores any voice-over audio in S3 → at a milestone level, the AI service is invoked, pulls the child's relevant history via ChromaDB, transcribes any linked audio with Whisper, and generates a report with OpenAI → the report is returned to the Backend/Frontend for display. The AI service never writes directly to the primary MySQL database, keeping the two services decoupled.
+
+### Backend Conventions
+
+- Package structure follows a consistent `<Layer>` convention (e.g. a dedicated DTO package), with a `Repo` suffix for repository interfaces.
+- Endpoint-level authorization includes explicit ownership validation (e.g. ensuring a user can only access or modify their own child's progress/reports) — addressed as part of a security review that also flagged field-injection anti-patterns in favor of constructor injection.
+- S3-backed resources use presigned URLs generated on request rather than persisting long-lived public URLs.
+
+---
+
+## 🔌 API Documentation
+
+### Kits & Redemption
+```http
+POST /api/kits/redeem          # Redeem a unique per-box or per-component kit code
+```
+
+### Marketplace
+```http
+GET    /api/cart               # View current user's cart
+POST   /api/cart               # Modify current user's cart
+POST   /api/orders             # Place an order from the current cart
+POST   /api/reviews            # Submit a review for a purchased item
+GET    /api/favorites          # View a user's favorited items
+POST   /api/favorites          # Manage a user's favorited items
+```
+
+### Voice-Over
+```http
+POST   /api/voice-overs        # Upload a voice recording linked to an activity/level
+```
+
+*(See the `Backend` directory for the full, authoritative set of controllers and routes.)*
+
+---
+
+## 🔒 Security
+
+- **JWT Authentication** with role-based access control via Spring Security
+- **Ownership validation** on endpoints handling per-child data
+- **Constructor injection** in place of field injection, addressed via internal security review
+- **Presigned S3 URLs** instead of persisted public links, reducing exposure from stale or leaked URLs
+- **PIN-gated Child Mode** to separate parent-facing controls from the child-facing experience
+
+---
+
+## 🧪 Testing
+
+- **Backend** — Java unit tests alongside **Cucumber** for behavior-driven (BDD) testing of key flows
+- API behavior (cart, orders, reviews, favorites, kit redemption) is exercised against documented request/response contracts
+
+---
+
+## 🚧 Deployment Notes
+
+The stack is deployed via Docker Compose on AWS EC2 behind Nginx. Notable issues encountered and resolved along the way:
+
+- **ChromaDB port mismatches** between the AI service container and its vector store, causing silent connection failures until networking was aligned
+- **SSL certificate path mismatches** inside the Nginx container blocking HTTPS termination until volume mounts were corrected
+- **`env_file` path errors** in `docker-compose.yml` causing services to boot with missing configuration rather than failing loudly
+- A **Python type-union syntax** incompatibility with the container's Python version crashing the AI service on startup
+- A production **500 error on the voice transcription endpoint**, traced to a multipart request missing an explicit `Content-Type` part
+
+---
+
+## 🔑 Environment Variables
+
+| Variable | Used by | Purpose |
+|---|---|---|
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Backend | MySQL connection |
+| `JWT_SECRET` | Backend | Signing/verifying auth tokens |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET` | Backend | S3 presigned URL generation for media |
+| `OPENAI_API_KEY` | AI service | Behavioral analysis and Whisper transcription |
+| `CHROMA_HOST`, `CHROMA_PORT` | AI service | Connecting to the ChromaDB vector store |
+| `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Backend | Outbound contact-form email |
+
+Exact variable names may differ slightly between `Backend`, `ai`, and `Docker` — check each service's configuration files before deploying.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+
+---
+
+<div align="center">
+
+🏆 **Product of the Year — Injaz Arab, July 2026**
+
+</div>
